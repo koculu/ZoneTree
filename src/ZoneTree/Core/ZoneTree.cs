@@ -460,11 +460,11 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             skipElement();
         }
 
-        DiskSegment = diskSegmentCreator.CreateReadOnlyDiskSegment();
-        DiskSegment.DropFailureReporter = (ds, e) => ReportDropFailure(ds, e);
-        OnDiskSegmentCreated?.Invoke(this, DiskSegment);
-
-        MetaWal.NewDiskSegment(DiskSegment.SegmentId);
+        var newDiskSegment = diskSegmentCreator.CreateReadOnlyDiskSegment();
+        newDiskSegment.DropFailureReporter = (ds, e) => ReportDropFailure(ds, e);
+        OnDiskSegmentCreated?.Invoke(this, newDiskSegment);
+        DiskSegment = newDiskSegment;
+        MetaWal.NewDiskSegment(newDiskSegment.SegmentId);
         try
         {
             oldDiskSegment.Drop();
