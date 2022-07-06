@@ -71,6 +71,40 @@ Note: For small data you don't need a maintainer.
   maintainer.CompleteRunningTasks().AsTask().Wait();
 ```
 
+## How to delete keys?
+In LSM trees, the deletions are handled by upserting key/value with deleted flag.
+Later on, during the compaction stage, the actual deletion happens.
+ZoneTree does not implement this flag format by default. It lets the user to define the suitable deletion flag themselves.
+For example, the deletion flag might be defined by user as -1 for int values.
+If user wants to use any int value as a valid record, then the value-type should be changed.
+For example, one can define the following struct and use this type as a value-type.
+```
+[StructLayout(LayoutKind.Sequential)]
+struct MyDeletableValueType {
+   int Number; 
+   bool IsDeleted; 
+}
+```
+ZoneTree gives flexibility to micro-manage the the tree size.
+The following sample shows how to configure the deletion markers for your database.
+```c#
+using var zoneTree = new ZoneTreeFactory<int, int>()
+  // Additional stuff goes here
+  .SetIsValueDeletedDelegate((in int x) => x == -1)
+  .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+  .OpenOrCreate();  
+```
+or
+```c#
+using var zoneTree = new ZoneTreeFactory<int, MyDeletableValueType>()
+  // Additional stuff goes here
+  .SetIsValueDeletedDelegate((in MyDeletableValueType x) => x.IsDeleted)
+  .SetMarkValueDeletedDelegate((ref MyDeletableValueType x) => x.IsDeleted = true)
+  .OpenOrCreate();  
+```
+If you forget to provide the deletion marker delegates, you can never delete record from your database.
+
+
 ### I need more information. Where can I find it?
 I am going to write more detailed documentation as soon as possible.
 
