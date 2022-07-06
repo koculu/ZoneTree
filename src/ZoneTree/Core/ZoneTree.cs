@@ -521,11 +521,12 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public int Count()
     {
-        var count = DiskSegment.Length;
+        var diskSegment = DiskSegment;
+        var count = diskSegment.Length;
         var iterator = CreateInMemorySegmentsIterator(true);
         while(iterator.Next())
         {
-            var hasKey = DiskSegment.ContainsKey(iterator.CurrentKey);
+            var hasKey = diskSegment.ContainsKey(iterator.CurrentKey);
             var isValueDeleted = IsValueDeleted(iterator.CurrentValue);
             if (hasKey)
             {
