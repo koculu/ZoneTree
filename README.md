@@ -22,7 +22,7 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
     .SetDataDirectory(dataPath)
     .SetWriteAheadLogDirectory(walPath)
     .SetKeySerializer(new Int32Serializer())
-    .SetValueSerializer(new UnicodeStringSerializer())
+    .SetValueSerializer(new Utf8StringSerializer())
     .OpenOrCreate();
     
     // upsert a key-value pair.
@@ -44,7 +44,7 @@ You can start using the default maintainer like in the following sample code.
     .SetDataDirectory(dataPath)
     .SetWriteAheadLogDirectory(walPath)
     .SetKeySerializer(new Int32Serializer())
-    .SetValueSerializer(new UnicodeStringSerializer())
+    .SetValueSerializer(new Utf8StringSerializer())
     .OpenOrCreate();
  
   using var maintainer = new BasicZoneTreeMaintainer<int, string>(zoneTree);
