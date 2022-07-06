@@ -46,14 +46,14 @@ You can start using the default maintainer like in the following sample code.
     .SetKeySerializer(new Int32Serializer())
     .SetValueSerializer(new UnicodeStringSerializer())
     .OpenOrCreate();
-    
-    using var maintainer = new BasicZoneTreeMaintainer<int, string>(zoneTree);
+ 
+  using var maintainer = new BasicZoneTreeMaintainer<int, string>(zoneTree);
 
-    // 2. Read/Write data
-    zoneTree.Upsert(39, "Hello ZoneTree!");
+  // 2. Read/Write data
+  zoneTree.Upsert(39, "Hello ZoneTree!");
 
-    // 3. Complete maintainer running tasks.
-    maintainer.CompleteRunningTasks().AsTask().Wait();
+  // 3. Complete maintainer running tasks.
+  maintainer.CompleteRunningTasks().AsTask().Wait();
 ```
 
 ### I need more information. Where can I find it?
