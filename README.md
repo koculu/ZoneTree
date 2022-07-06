@@ -126,6 +126,24 @@ The following sample shows how to do the iteration.
  }
 ```
 
+## How to iterate starting with a key (Seekable Iterator)?
+
+ZoneTreeIterator provides Seek() method to jump into any record with in O(log(n)) complexity.
+That is useful for doing prefix search with forward-iterator or postfix search with backward-iterator.
+```c#
+  using var zoneTree = new ZoneTreeFactory<string, int>()
+    // Additional stuff goes here
+    .OpenOrCreate();
+ using var iterator = zoneTree.CreateIterator();
+ // iterator jumps into the first record starting with "SomePrefix" in O(log(n)) complexity. 
+ iterator.Seek("SomePrefix");
+ 
+ //iterator.Next() complexity is O(1)
+ while(iterator.Next()) {
+    var key = iterator.CurrentKey;
+    var value = iterator.CurrentValue;
+ } 
+```
 
 ## I need more information. Where can I find it?
 I am going to write more detailed documentation as soon as possible.
