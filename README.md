@@ -24,11 +24,15 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
     .SetKeySerializer(new Int32Serializer())
     .SetValueSerializer(new UnicodeStringSerializer())
     .OpenOrCreate();
+    
+    // upsert a key-value pair.
     zoneTree.Upsert(39, "Hello Zone Tree!");
+    // atomically update a record in database. (thread-safe)
+    zoneTree.TryAddOrUpdateAtomic(39, "a", (x) => x + "b");
 ```
 ### How to maintain LSM Tree?
-LSM Trees require maintenance. ZoneTree provides the IZoneTreeMaintenance interface to give you full power on maintenance tasks.
-ZoneTree also comes with a default Maintainer to let you focus on your business logic without wasting time with LSM details.
+LSM Trees require maintenance tasks. ZoneTree provides the IZoneTreeMaintenance interface to give you full power on maintenance tasks.
+It also comes with a default maintainer to let you focus on your business logic without wasting time with LSM details.
 You can start using the default maintainer like in the following sample code.
 ```c#
   var dataPath = "data/mydatabase";
