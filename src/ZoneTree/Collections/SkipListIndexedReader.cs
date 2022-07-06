@@ -90,12 +90,12 @@ public class SkipListIndexedReader<TKey, TValue> : IIndexedReader<TKey, TValue>
 
     public int GetLastSmallerOrEqualPosition(in TKey key)
     {
-        throw new NotSupportedException("SkipListIndexedReader does not support lower or equal bound.");
+        throw new NotSupportedException("SkipListIndexedReader does not support last smaller or equal position.");
     }
 
     public int GetFirstGreaterOrEqualPosition(in TKey key)
     {
-        throw new NotSupportedException("SkipListIndexedReader does not support lower or equal bound.");
+        throw new NotSupportedException("SkipListIndexedReader does not support first greater or equal position.");
     }
 }
 
