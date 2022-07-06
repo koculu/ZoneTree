@@ -13,9 +13,11 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 
 ## How fast is it?
 
-2 Million int key and int value inserts in 7 seconds.
+2 Million int key and int value inserts in 7 seconds. (Config: 1M mutable segment size, 2M readonly segments merge-threshold)
 
-20 Million int key and int value inserts in 73 seconds.
+20 Million int key and int value inserts in 73 seconds. (Config: 1M mutable segment size, 2M readonly segments merge-threshold)
+
+20 Million int key and int value reads in 16 seconds. (Config: 1M mutable segment size, 2M readonly segments merge-threshold)
 
 Doing database benchmark is tough. A proper and fair performance analysis requires a lot of work. 
 
