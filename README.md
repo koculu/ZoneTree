@@ -78,7 +78,7 @@ ZoneTree does not implement this flag format by default. It lets the user to def
 For example, the deletion flag might be defined by user as -1 for int values.
 If user wants to use any int value as a valid record, then the value-type should be changed.
 For example, one can define the following struct and use this type as a value-type.
-```
+```c#
 [StructLayout(LayoutKind.Sequential)]
 struct MyDeletableValueType {
    int Number; 
@@ -103,6 +103,29 @@ using var zoneTree = new ZoneTreeFactory<int, MyDeletableValueType>()
   .OpenOrCreate();  
 ```
 If you forget to provide the deletion marker delegates, you can never delete the record from your database.
+
+## How to iterate over data?
+
+Iteration is possible in both directions, forward and backward.
+Unlike other LSM tree implementations, iteration performance is equal in both directions.
+The following sample shows how to do the iteration.
+```c#
+  using var zoneTree = new ZoneTreeFactory<int, int>()
+    // Additional stuff goes here
+    .OpenOrCreate();
+ using var iterator = zoneTree.CreateIterator();
+ while(iterator.Next()) {
+    var key = iterator.CurrentKey;
+    var value = iterator.CurrentValue;
+ } 
+ 
+ using var reverseIterator = zoneTree.CreateReverseIterator();
+ while(reverseIterator.Next()) {
+    var key = reverseIterator.CurrentKey;
+    var value = reverseIterator.CurrentValue;
+ }
+```
+
 
 ## I need more information. Where can I find it?
 I am going to write more detailed documentation as soon as possible.
