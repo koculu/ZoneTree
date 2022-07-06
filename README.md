@@ -45,7 +45,7 @@ You can start using the default maintainer like in the following sample code.
         using var maintainer = new BasicZoneTreeMaintainer<int, string>(zoneTree);
 
         // 2. Read/Write data
-        zoneTree.Upsert(39, "Hello Zone Tree!");
+        zoneTree.Upsert(39, "Hello ZoneTree!");
 
         // 3. Complete maintainer running tasks.
         maintainer.CompleteRunningTasks().AsTask().Wait();
