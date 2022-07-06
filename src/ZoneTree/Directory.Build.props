@@ -1,0 +1,33 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <Copyright>Ahmed Yasin Koculu</Copyright>
+    <Authors>Ahmed Yasin Koculu</Authors>
+    <PackageId>Topaz</PackageId>
+    <Title>Topaz</Title>
+    <ProductVersion>1.0.0.0</ProductVersion>
+    <Version>1.0.0.0</Version>
+    <Authors>Ahmed Yasin Koculu</Authors>
+    <AssemblyTitle>ZoneTree</AssemblyTitle>
+    <Description>ZoneTree is a persistent, high-performance key-value database for .NET. It can operate in memory or on disk. (Optimized for SSDs)</Description>
+    <Summmary>
+      ZoneTree is a persistent, high-performance key-value database for .NET. It can operate in memory or on disk. (Optimized for SSDs)
+
+      ZoneTree is a fast and high-performance LSM Tree for .NET.
+    </Summmary>
+    <PackageTags>high-performance, database, consistency, persistence, iterator, binary-tree, durability, isolation, key-value-database, atomicity, lsm-tree, key-value-store</PackageTags>
+    <ReleaseNotes></ReleaseNotes>
+    <Company>koculu</Company>
+    
+    <PackageProjectUrl>https://github.com/koculu/ZoneTree</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <DebugType>portable</DebugType>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>
