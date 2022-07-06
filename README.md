@@ -27,7 +27,7 @@ For now, we are confident that ZoneTree is fast enough to be used in production.
 
 ## How to use ZoneTree?
 
-### The following sample demonstrates creating a database.
+The following sample demonstrates creating a database.
 ```c#
   var dataPath = "data/mydatabase";
   var walPath = "data/mydatabase/wal";
@@ -44,7 +44,7 @@ For now, we are confident that ZoneTree is fast enough to be used in production.
     // atomically update a record in database. (thread-safe)
     zoneTree.TryAddOrUpdateAtomic(39, "a", (x) => x + "b");
 ```
-### How to maintain LSM Tree?
+## How to maintain LSM Tree?
 Big LSM Trees require maintenance tasks. ZoneTree provides the IZoneTreeMaintenance interface to give you full power on maintenance tasks.
 It also comes with a default maintainer to let you focus on your business logic without wasting time with LSM details.
 You can start using the default maintainer like in the following sample code.
@@ -71,7 +71,7 @@ Note: For small data you don't need a maintainer.
   maintainer.CompleteRunningTasks().AsTask().Wait();
 ```
 
-### How to delete keys?
+## How to delete keys?
 In LSM trees, the deletions are handled by upserting key/value with deleted flag.
 Later on, during the compaction stage, the actual deletion happens.
 ZoneTree does not implement this flag format by default. It lets the user to define the suitable deletion flag themselves.
@@ -104,10 +104,10 @@ using var zoneTree = new ZoneTreeFactory<int, MyDeletableValueType>()
 ```
 If you forget to provide the deletion marker delegates, you can never delete the record from your database.
 
-### I need more information. Where can I find it?
+## I need more information. Where can I find it?
 I am going to write more detailed documentation as soon as possible.
 
-### I want to contribute. What should I do?
+## I want to contribute. What should I do?
 I appreciate any contribution to the project.
 These are the things I do think we need at the moment:
 1. Write tests / benchmarks.
