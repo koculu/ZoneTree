@@ -35,7 +35,7 @@ LSM Trees require maintenance tasks. ZoneTree provides the IZoneTreeMaintenance 
 It also comes with a default maintainer to let you focus on your business logic without wasting time with LSM details.
 You can start using the default maintainer like in the following sample code.
 ```c#
-  var dataPath = "data/mydatabase";
+        var dataPath = "data/mydatabase";
         var walPath = "data/mydatabase/wal";
         
         // 1. Create your ZoneTree
