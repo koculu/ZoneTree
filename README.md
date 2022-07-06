@@ -12,10 +12,13 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 3. .NET EcoSystem does not have any feature-complete and thread-safe LSM Tree that operates both in memory and on disk.
 
 ## How fast is it?
+
 2 Million int key and int value inserts in 7 seconds.
+
 20 Million int key and int value inserts in 73 seconds.
 
 Doing database benchmark is tough. A proper and fair performance analysis requires a lot of work. 
+
 For now, we are confident that ZoneTree is fast enough to be used in production.
 
 ## How to use ZoneTree?
