@@ -12,7 +12,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <Nullable>disable</Nullable>
-    <PackageId>Tenray</PackageId>
+    <PackageId>ZoneTree</PackageId>
     <RepositoryType>git</RepositoryType>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
