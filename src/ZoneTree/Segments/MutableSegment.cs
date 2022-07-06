@@ -141,15 +141,17 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             var status = SkipList.AddOrUpdate(key,
                 (x) =>
                 {
-                    ref var value = ref x.GetValueRef();
+                    var value = x.Value;
                     MarkValueDeleted(ref value);
+                    x.Value = value;
                     WriteAheadLog.Append(in key, in value);
                     return AddOrUpdateResult.ADDED;
                 },
                 (x) =>
                 {
-                    ref var value = ref x.GetValueRef();
+                    var value = x.Value;
                     MarkValueDeleted(ref value);
+                    x.Value = value;
                     WriteAheadLog.Append(in key, in value);
                     return AddOrUpdateResult.UPDATED;
                 });

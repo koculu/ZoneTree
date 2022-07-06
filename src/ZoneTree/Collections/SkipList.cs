@@ -1,4 +1,5 @@
-﻿using Tenray.Collections;
+﻿using System.Runtime.CompilerServices;
+using Tenray.Collections;
 
 namespace ZoneTree.Collections;
 
@@ -300,9 +301,46 @@ public class SkipList<TKey, TValue>
 
     public class SkipListNode
     {
+        /// <summary>
+        /// A conforming CLI shall guarantee that read and write access 
+        /// to properly aligned memory locations no larger than the native word size
+        /// (the size of type native int) is atomic.
+        /// </summary>
+        private static bool IsValueAssignmentAtomic =
+            Unsafe.SizeOf<TValue>() <= IntPtr.Size;
+
         public SkipListNode[] Next;
+
         public TKey Key;
-        public TValue Value;
+
+        private TValue _value;
+
+        public TValue Value {
+            get
+            {
+                if (IsValueAssignmentAtomic)
+                    return _value;
+                else
+                {
+                    lock(this)
+                    {
+                        return _value;
+                    }
+                }
+            }
+            set
+            {
+                if(IsValueAssignmentAtomic)
+                    _value = value;
+                else
+                {
+                    lock(this)
+                    {
+                        _value = value;
+                    }
+                }
+            }
+        }
         public readonly int Level;
         public volatile bool isInserted;
         public SkipListNode NextNode => Next[0];
@@ -343,11 +381,6 @@ public class SkipList<TKey, TValue>
         public void MarkInserted()
         {
             isInserted = true;
-        }
-
-        public ref TValue GetValueRef()
-        {
-            return ref Value;
         }
     }
 }
