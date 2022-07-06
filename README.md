@@ -110,7 +110,7 @@ Iteration is possible in both directions, forward and backward.
 Unlike other LSM tree implementations, iteration performance is equal in both directions.
 The following sample shows how to do the iteration.
 ```c#
-  using var zoneTree = new ZoneTreeFactory<int, int>()
+ using var zoneTree = new ZoneTreeFactory<int, int>()
     // Additional stuff goes here
     .OpenOrCreate();
  using var iterator = zoneTree.CreateIterator();
