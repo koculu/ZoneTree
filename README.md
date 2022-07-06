@@ -35,24 +35,25 @@ LSM Trees require maintenance tasks. ZoneTree provides the IZoneTreeMaintenance 
 It also comes with a default maintainer to let you focus on your business logic without wasting time with LSM details.
 You can start using the default maintainer like in the following sample code.
 ```c#
-        var dataPath = "data/mydatabase";
-        var walPath = "data/mydatabase/wal";
-        
-        // 1. Create your ZoneTree
-        using var zoneTree = new ZoneTreeFactory<int, string>()
-            .SetComparer(new IntegerComparerAscending())
-            .SetDataDirectory(dataPath)
-            .SetWriteAheadLogDirectory(walPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new UnicodeStringSerializer())
-            .OpenOrCreate();
-        using var maintainer = new BasicZoneTreeMaintainer<int, string>(zoneTree);
+  var dataPath = "data/mydatabase";
+  var walPath = "data/mydatabase/wal";
 
-        // 2. Read/Write data
-        zoneTree.Upsert(39, "Hello ZoneTree!");
+  // 1. Create your ZoneTree
+  using var zoneTree = new ZoneTreeFactory<int, string>()
+    .SetComparer(new IntegerComparerAscending())
+    .SetDataDirectory(dataPath)
+    .SetWriteAheadLogDirectory(walPath)
+    .SetKeySerializer(new Int32Serializer())
+    .SetValueSerializer(new UnicodeStringSerializer())
+    .OpenOrCreate();
+    
+    using var maintainer = new BasicZoneTreeMaintainer<int, string>(zoneTree);
 
-        // 3. Complete maintainer running tasks.
-        maintainer.CompleteRunningTasks().AsTask().Wait();
+    // 2. Read/Write data
+    zoneTree.Upsert(39, "Hello ZoneTree!");
+
+    // 3. Complete maintainer running tasks.
+    maintainer.CompleteRunningTasks().AsTask().Wait();
 ```
 
 ### I need more information. Where can I find it?
