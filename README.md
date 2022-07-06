@@ -26,3 +26,39 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
     .OpenOrCreate();
     zoneTree.Upsert(39, "Hello Zone Tree!");
 ```
+### How to maintain LSM Tree?
+LSM Trees require maintenance. ZoneTree provides the IZoneTreeMaintenance interface to give you full power on maintenance tasks.
+ZoneTree also comes with a default Maintainer to let you focus on your business logic without wasting time with LSM details.
+You can start using the default maintainer like in the following sample code.
+```c#
+  var dataPath = "data/mydatabase";
+        var walPath = "data/mydatabase/wal";
+        
+        // 1. Create your ZoneTree
+        using var zoneTree = new ZoneTreeFactory<int, string>()
+            .SetComparer(new IntegerComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(walPath)
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new UnicodeStringSerializer())
+            .OpenOrCreate();
+        using var maintainer = new BasicZoneTreeMaintainer<int, string>(zoneTree);
+
+        // 2. Read/Write data
+        zoneTree.Upsert(39, "Hello Zone Tree!");
+
+        // 3. Complete maintainer running tasks.
+        maintainer.CompleteRunningTasks().AsTask().Wait();
+```
+
+### I need more information. Where can I find it?
+I am going to write more detailed documentation as soon as possible.
+
+### I want to contribute. What should I do?
+I appreciate any contribution to the project.
+These are the things I do think we need at the moment:
+1. Write tests / benchmarks.
+2. Write documentation.
+3. Convert documentation to a website using static site generators.
+4. Feature requests & bug fixes.
+5. Performance improvements.
