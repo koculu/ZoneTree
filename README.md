@@ -2,6 +2,8 @@
 ZoneTree is a persistent, high-performance key-value database for .NET.
 It can operate in memory or on disk. (Optimized for SSDs)
 
+[![Download](https://img.shields.io/badge/download-ZoneTree-blue)](https://www.nuget.org/packages/ZoneTree/)
+
 ZoneTree is a fast and high-performance LSM Tree for .NET. 
 
 LSM Tree (Log-structured merge-tree) is the most popular data structure and it is being used by many popular databases internally.
