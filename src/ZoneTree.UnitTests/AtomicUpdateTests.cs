@@ -43,7 +43,7 @@ public class AtomicUpdateTests
                 len = random.Next(1501);
                 for (var i = 0; i < len; ++i)
                 {
-                    data.TryAddOrUpdateAtomic(3999, 0, (y) => y + 1);
+                    data.TryAtomicAddOrUpdate(3999, 0, (y) => y + 1);
                     Interlocked.Increment(ref off);
                 }
 
@@ -100,7 +100,7 @@ public class AtomicUpdateTests
                 len = random.Next(1501);
                 for (var i = 0; i < len; ++i)
                 {
-                    data.TryAddOrUpdateAtomic(3999, 0, (y) => y + 1);
+                    data.TryAtomicAddOrUpdate(3999, 0, (y) => y + 1);
                     Interlocked.Increment(ref off);
                 }
 

@@ -168,27 +168,31 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         return TryGetFromReadonlySegments(in key, out value);
     }
 
-    public bool TryAdd(in TKey key, in TValue value)
+    public bool TryAtomicAdd(in TKey key, in TValue value)
     {
         if (key == null)
             throw new ArgumentNullException(nameof(key));
-
-        if (ContainsKey(key))
-            return false;
-        return Upsert(key, value);
+        lock (AtomicUpdateLock)
+        {
+            if (ContainsKey(key))
+                return false;
+            return Upsert(key, value);
+        }
     }
 
-    public bool TryUpdate(in TKey key, in TValue value)
+    public bool TryAtomicUpdate(in TKey key, in TValue value)
     {
         if (key == null)
             throw new ArgumentNullException(nameof(key));
-
-        if (!ContainsKey(key))
-            return false;
-        return Upsert(key, value);
+        lock (AtomicUpdateLock)
+        {
+            if (!ContainsKey(key))
+                return false;
+            return Upsert(key, value);
+        }
     }
 
-    public bool TryAddOrUpdateAtomic(in TKey key, in TValue valueToAdd, Func<TValue, TValue> valueToUpdateGetter)
+    public bool TryAtomicAddOrUpdate(in TKey key, in TValue valueToAdd, Func<TValue, TValue> valueToUpdateGetter)
     {
         if (key == null)
             throw new ArgumentNullException(nameof(key));
@@ -219,12 +223,20 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         switch (status)
         {
             case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
-                return TryAddOrUpdateAtomic(key, valueToAdd, valueToUpdateGetter);
+                return TryAtomicAddOrUpdate(key, valueToAdd, valueToUpdateGetter);
             case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
                 MoveSegmentZeroForward(segmentZero);
-                return TryAddOrUpdateAtomic(key, valueToAdd, valueToUpdateGetter);
+                return TryAtomicAddOrUpdate(key, valueToAdd, valueToUpdateGetter);
             default:
                 return status == AddOrUpdateResult.ADDED;
+        }
+    }
+
+    public bool AtomicUpsert(in TKey key, in TValue value)
+    {
+        lock (AtomicUpdateLock)
+        {
+            return Upsert(in key, in value);
         }
     }
 
@@ -521,6 +533,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public int Count()
     {
+        // TODO: disk segment + in memory segment atomicity!
         var diskSegment = DiskSegment;
         var count = diskSegment.Length;
         var iterator = CreateInMemorySegmentsIterator(true);
@@ -562,6 +575,10 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public IZoneTreeIterator<TKey, TValue> CreateIterator()
     {
+        // TODO 1: protect iterator against segment movements!
+        // TODO 2: add refresh capability to iterators.
+        // TODO 3: auto refresh iterator segments with Seek() and Reset().
+        // TODO 4: inform iterators from segment movements? for what?
         var diskSegment = DiskSegment;
         diskSegment.AddReader();
         var segments = CollectSegments(SegmentZero, DiskSegment);

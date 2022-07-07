@@ -20,27 +20,27 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     bool TryGet(in TKey key, out TValue value);
 
     /// <summary>
-    /// Attempts to add the specified key and value.
+    /// Attempts to add the specified key and value atomically across LSM-Tree segments.
     /// </summary>
     /// <param name="key">The key of the element to add.</param>
     /// <param name="value">The value of the element to add. It can be null.</param>
     /// <returns>true if the key/value pair was added successfully;
     /// otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">key is null.</exception>
-    bool TryAdd(in TKey key, in TValue value);
+    bool TryAtomicAdd(in TKey key, in TValue value);
 
     /// <summary>
-    /// Attempts to update the specified key's value.
+    /// Attempts to update the specified key's value atomically across LSM-Tree segments.
     /// </summary>
     /// <param name="key">The key of the element to update.</param>
     /// <param name="value">The value of the element to update. It can be null.</param>
     /// <returns>true if the key/value pair was updated successfully;
     /// otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">key is null.</exception>
-    bool TryUpdate(in TKey key, in TValue value);
+    bool TryAtomicUpdate(in TKey key, in TValue value);
 
     /// <summary>
-    /// Attempts to add or update the specified key and value using atomic updater.        
+    /// Attempts to add or update the specified key and value atomically across LSM-Tree segments.    
     /// </summary>
     /// <param name="key">The key of the element to add.</param>
     /// <param name="valueToAdd">The value of the element to add. It can be null.</param>
@@ -48,11 +48,45 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <returns>true if the key/value pair was added;
     /// false, if the key/value pair was updated.</returns>
     /// <exception cref="ArgumentNullException">key is null.</exception>
-    bool TryAddOrUpdateAtomic(in TKey key, in TValue valueToAdd, Func<TValue, TValue> valueProviderToUpdate);
+    bool TryAtomicAddOrUpdate(in TKey key, in TValue valueToAdd, Func<TValue, TValue> valueProviderToUpdate);
+
+    /// <summary>
+    /// Adds or updates the specified key/value pair atomically across LSM-Tree segments.
+    /// </summary>
+    /// <param name="key">The key of the element to upsert.</param>
+    /// <param name="value">The value of the element to upsert. It can be null.</param>
+    /// <returns>true if the key/value pair was inserted;
+    /// false if the key/value pair was updated.</returns>
+    /// <exception cref="ArgumentNullException">key is null.</exception>
+    bool AtomicUpsert(in TKey key, in TValue value);
 
     /// <summary>
     /// Adds or updates the specified key/value pair.
     /// </summary>
+    /// <remarks>
+    /// This is a thread-safe method, but it is not sycnhronized 
+    /// with other atomic add/update/upsert methods.
+    /// Using the Upsert method in parallel to atomic methods breaks the atomicity
+    /// of the atomic methods.
+    /// 
+    /// For example: 
+    /// TryAtomicAddOrUpdate(key) does the following 3 things
+    /// within lock to preserve atomicity across segments of LSM-Tree.
+    ///  1. tries to get the value of the key
+    ///  2. if it can find the key, it updates the value
+    ///  3. if it cannot find the key, inserts new key/value
+    ///  
+    /// All atomic methods respect this order using the same lock.
+    /// 
+    /// The Upsert method does not respect to the atomicity of atomic methods,    /// 
+    /// because it does upsert without lock.
+    /// 
+    /// On the other hand,
+    /// the Upsert method is atomic in the mutable segment scope but not across all segments.
+    /// This makes Upsert method thread-safe.
+    /// 
+    /// This is the fastest add or update function.
+    /// </remarks>    
     /// <param name="key">The key of the element to upsert.</param>
     /// <param name="value">The value of the element to upsert. It can be null.</param>
     /// <returns>true if the key/value pair was inserted;

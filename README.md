@@ -39,10 +39,11 @@ The following sample demonstrates creating a database.
     .SetValueSerializer(new Utf8StringSerializer())
     .OpenOrCreate();
     
-    // upsert a key-value pair.
+    // atomic (thread-safe) on single mutable-segment.
     zoneTree.Upsert(39, "Hello Zone Tree!");
-    // atomically update a record in database. (thread-safe)
-    zoneTree.TryAddOrUpdateAtomic(39, "a", (x) => x + "b");
+    
+    // atomic across all segments
+    zoneTree.TryAtomicAddOrUpdate(39, "a", (x) => x + "b");
 ```
 ## How to maintain LSM Tree?
 Big LSM Trees require maintenance tasks. ZoneTree provides the IZoneTreeMaintenance interface to give you full power on maintenance tasks.
