@@ -129,7 +129,7 @@ The following sample shows how to do the iteration.
 ## How to iterate starting with a key (Seekable Iterator)?
 
 ZoneTreeIterator provides Seek() method to jump into any record with in O(log(n)) complexity.
-That is useful for doing prefix search with forward-iterator or postfix search with backward-iterator.
+That is useful for doing prefix search with forward-iterator or with backward-iterator.
 ```c#
  using var zoneTree = new ZoneTreeFactory<string, int>()
     // Additional stuff goes here
