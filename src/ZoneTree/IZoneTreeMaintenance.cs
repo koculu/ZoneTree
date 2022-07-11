@@ -119,6 +119,11 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     event DiskSegmentCreated<TKey, TValue> OnDiskSegmentCreated;
 
     /// <summary>
+    /// Event is fired when the new disk segment is activated.
+    /// </summary>
+    event DiskSegmentCreated<TKey, TValue> OnDiskSegmentActivated;
+
+    /// <summary>
     /// Event is fired when a write ahead log cannot be dropped.
     /// This does not harm the database consistency.
     /// The cleanup task can be done later.
@@ -138,6 +143,11 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     /// The cleanup task can be done later.
     /// </summary>
     event CanNotDropDiskSegmentCreator<TKey, TValue> OnCanNotDropDiskSegmentCreator;
+
+    /// <summary>
+    /// Event is fired the ZoneTree is disposing.
+    /// </summary>
+    event ZoneTreeIsDisposing<TKey, TValue> OnZoneTreeIsDisposing;
 }
 
 public delegate void SegmentZeroMovedForward<TKey, TValue>
@@ -152,6 +162,9 @@ public delegate void MergeOperationEnded<TKey, TValue>
 public delegate void DiskSegmentCreated<TKey, TValue>
     (IZoneTreeMaintenance<TKey, TValue> zoneTree, IDiskSegment<TKey, TValue> newDiskSegment);
 
+public delegate void DiskSegmentActivated<TKey, TValue>
+    (IZoneTreeMaintenance<TKey, TValue> zoneTree, IDiskSegment<TKey, TValue> newDiskSegment);
+
 public delegate void CanNotDropReadOnlySegment<TKey, TValue>
     (IReadOnlySegment<TKey, TValue> readOnlySegment, Exception e);
 
@@ -160,3 +173,6 @@ public delegate void CanNotDropDiskSegment<TKey, TValue>
 
 public delegate void CanNotDropDiskSegmentCreator<TKey, TValue>
     (IDiskSegmentCreator<TKey, TValue> diskSegmentCreator, Exception e);
+
+public delegate void ZoneTreeIsDisposing<TKey, TValue>
+    (IZoneTreeMaintenance<TKey, TValue> zoneTree);

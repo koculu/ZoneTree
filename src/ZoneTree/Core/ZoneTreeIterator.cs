@@ -95,6 +95,12 @@ public class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
         IncludeSegmentZero = includeSegmentZero;
         IncludeDiskSegment = includeDiskSegment;
         ZoneTree.OnSegmentZeroMovedForward += OnZoneTreeSegmentZeroMovedForward;
+        ZoneTree.OnZoneTreeIsDisposing += OnZoneTreeIsDisposing;
+    }
+
+    private void OnZoneTreeIsDisposing(IZoneTreeMaintenance<TKey, TValue> zoneTree)
+    {
+        ReleaseResources();        
     }
 
     private void OnZoneTreeSegmentZeroMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)
@@ -326,7 +332,8 @@ public class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
 
     public void Dispose()
     {
-        ZoneTree.OnSegmentZeroMovedForward += OnZoneTreeSegmentZeroMovedForward;
+        ZoneTree.OnSegmentZeroMovedForward -= OnZoneTreeSegmentZeroMovedForward;
+        ZoneTree.OnZoneTreeIsDisposing -= OnZoneTreeIsDisposing;
         DiskSegment?.RemoveReader();
     }
 }

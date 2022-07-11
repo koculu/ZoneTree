@@ -3,13 +3,13 @@
   <PropertyGroup>
     <Copyright>Ahmed Yasin Koculu</Copyright>
     <Authors>Ahmed Yasin Koculu</Authors>
-    <PackageId>Topaz</PackageId>
-    <Title>Topaz</Title>
-    <ProductVersion>1.0.1.0</ProductVersion>
-    <Version>1.0.1.0</Version>
+    <PackageId>ZoneTree</PackageId>
+    <Title>ZoneTree</Title>
+    <ProductVersion>1.0.2.0</ProductVersion>
+    <Version>1.0.2.0</Version>
     <Authors>Ahmed Yasin Koculu</Authors>
     <AssemblyTitle>ZoneTree</AssemblyTitle>
-    <Description>ZoneTree is a persistent, high-performance key-value database for .NET. It can operate in memory or on disk. (Optimized for SSDs)</Description>
+    <Description>ZoneTree is a persistent, high-performance key-value database for .NET. It can operate in memory or on a disk. (Optimized for SSDs)</Description>
     <Summmary>
       ZoneTree is a persistent, high-performance key-value database for .NET. It can operate in memory or on disk. (Optimized for SSDs)
 

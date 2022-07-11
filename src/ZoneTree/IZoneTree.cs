@@ -127,11 +127,9 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// This depends on the iterator's internal segment iterator positions.
     /// If the newly inserted or deleted key is after the internal segment iterator position,
     /// the new data is included in the iteration.
-    /// Also, if there happens segment movement internally after iterators are created,
-    /// new mutable segment is completely ignored and the iterator acts like a snapshot iterator.
-    /// To refresh the iterator you need to create a new one.
-    /// Iterators are cheap. Create new iterators when you need them and
-    /// dispose the iterator when you are done with them.
+    /// 
+    /// AutoRefresh property enables the inclusion of newly inserted segments
+    /// after the iteration starts.
     /// </remarks>
     /// <returns>ZoneTree Iterator</returns>
     IZoneTreeIterator<TKey, TValue> CreateIterator();

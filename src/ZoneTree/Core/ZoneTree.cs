@@ -62,12 +62,16 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     public event MergeOperationEnded<TKey, TValue> OnMergeOperationEnded;
 
     public event DiskSegmentCreated<TKey, TValue> OnDiskSegmentCreated;
+    
+    public event DiskSegmentCreated<TKey, TValue> OnDiskSegmentActivated;
 
     public event CanNotDropReadOnlySegment<TKey, TValue> OnCanNotDropReadOnlySegment;
 
     public event CanNotDropDiskSegment<TKey, TValue> OnCanNotDropDiskSegment;
 
     public event CanNotDropDiskSegmentCreator<TKey, TValue> OnCanNotDropDiskSegmentCreator;
+
+    public event ZoneTreeIsDisposing<TKey, TValue> OnZoneTreeIsDisposing;
 
     public ZoneTree(ZoneTreeOptions<TKey, TValue> options)
     {
@@ -301,12 +305,12 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         lock (AtomicUpdateLock)
         {
             // move segment zero only if
-            // given segment zero is the current segment zero (not already moved)
+            // the given segment zero is the current segment zero (not already moved)
             // and it is not frozen.
             if (segmentZero.IsFrozen || segmentZero != SegmentZero)
                 return;
 
-            //Don't move emty segment zero.
+            //Don't move empty segment zero.
             int c = segmentZero.Length;
             if (c == 0)
                 return;
@@ -327,17 +331,16 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public void SaveMetaData()
     {
-        lock (LongMergerLock)
+        lock (ShortMergerLock)
+        lock (AtomicUpdateLock)
         {
-            lock (AtomicUpdateLock)
-            {
-                MetaWal.SaveMetaData(
-                    ZoneTreeMeta,
-                    SegmentZero.SegmentId,
-                    DiskSegment.SegmentId,
-                    ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray());
-            }
+            MetaWal.SaveMetaData(
+                ZoneTreeMeta,
+                SegmentZero.SegmentId,
+                DiskSegment.SegmentId,
+                ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray());
         }
+
     }
 
     public async ValueTask<MergeResult> StartMergeOperation()
@@ -506,6 +509,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 --len;
             }
         }
+        OnDiskSegmentActivated?.Invoke(this, newDiskSegment);
         return MergeResult.SUCCESS;
     }
 
@@ -516,6 +520,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public void Dispose()
     {
+        OnZoneTreeIsDisposing?.Invoke(this);
         SegmentZero.ReleaseResources();
         DiskSegment.Dispose();
         MetaWal.Dispose();
@@ -545,7 +550,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         lock (AtomicUpdateLock)
         {
             // 3 things to synchronize with
-            // MoveSegmentForward and ShortMergerLock.
+            // MoveSegmentForward and Merge disk segment swap.
             iterator.AutoRefresh = false;
             diskSegment = DiskSegment;
             iterator.Refresh();
@@ -574,7 +579,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         bool includeSegmentZero,
         bool includeDiskSegment)
     {
-        lock (LongMergerLock)
+        lock (ShortMergerLock)
         lock (AtomicUpdateLock)
         {
             var roSegments = ReadOnlySegmentQueue.ToArray();
