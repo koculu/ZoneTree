@@ -114,6 +114,7 @@ public class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
     {
         if (DoesRequireRefresh || Heap == null)
         {
+            ClearMarkers();
             Refresh();
         }
         SeekInternal(in key, true);
@@ -121,13 +122,13 @@ public class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
 
     public void SeekFirst()
     {
+        ClearMarkers();
         if (Heap == null)
         {
             Refresh();
         }
         Heap.Clear();
         IsHeapFilled = false;
-        ClearMarkers();
         var len = Length;
         if (IsReverseIterator)
         {
