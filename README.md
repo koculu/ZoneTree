@@ -114,13 +114,13 @@ The following sample shows how to do the iteration.
  using var zoneTree = new ZoneTreeFactory<int, int>()
     // Additional stuff goes here
     .OpenOrCreate();
- using var iterator = zoneTree.CreateIterator(true);
+ using var iterator = zoneTree.CreateIterator();
  while(iterator.Next()) {
     var key = iterator.CurrentKey;
     var value = iterator.CurrentValue;
  } 
  
- using var reverseIterator = zoneTree.CreateReverseIterator(true);
+ using var reverseIterator = zoneTree.CreateReverseIterator();
  while(reverseIterator.Next()) {
     var key = reverseIterator.CurrentKey;
     var value = reverseIterator.CurrentValue;
@@ -135,7 +135,7 @@ That is useful for doing prefix search with forward-iterator or with backward-it
  using var zoneTree = new ZoneTreeFactory<string, int>()
     // Additional stuff goes here
     .OpenOrCreate();
- using var iterator = zoneTree.CreateIterator(true);
+ using var iterator = zoneTree.CreateIterator();
  // iterator jumps into the first record starting with "SomePrefix" in O(log(n)) complexity. 
  iterator.Seek("SomePrefix");
  

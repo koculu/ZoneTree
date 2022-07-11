@@ -122,30 +122,47 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <summary>
     /// Creates an iterator that enables scanning of the entire database.
     /// </summary>
+    /// 
     /// <remarks>
     /// The iterator might or might not retrieve newly inserted elements.
     /// This depends on the iterator's internal segment iterator positions.
+    /// 
     /// If the newly inserted or deleted key is after the internal segment iterator position,
     /// the new data is included in the iteration.
     /// 
+    /// Iterators are lightweight.
+    /// Create them when you need and dispose them when you dont need.
+    /// Iterators acquire locks on the disk segment and prevents its disposal.
+    /// </remarks>
+    /// 
     /// <param name="autoRefresh">if true the iterator fetches the latest segments,
     /// when it is needed, to continue the iteration with most recent records.</param>
-    /// </remarks>
+    /// <param name="includeDeletedRecords">if true the iterator retrieves 
+    /// the deleted and normal records</param>
+    /// 
     /// <returns>ZoneTree Iterator</returns>
-    IZoneTreeIterator<TKey, TValue> CreateIterator(bool autoRefresh);
+    IZoneTreeIterator<TKey, TValue> CreateIterator(
+        bool autoRefresh = true,
+        bool includeDeletedRecords = false);
 
     /// <summary>
     /// Creates a reverse iterator that enables scanning of the entire database.
     /// </summary>
+    /// 
     /// <remarks>
     /// ZoneTree iterator direction does not hurt performance.
     /// Forward and backward iterator's performances are equal.
     /// </remarks>
+    /// 
     /// <param name="autoRefresh">if true the iterator fetches the latest segments,
     /// when it is needed, to continue the iteration with most recent records.</param>
+    /// <param name="includeDeletedRecords">if true the iterator retrieves 
+    /// the deleted and normal records</param>
+    /// 
     /// <returns>ZoneTree Iterator</returns>
-    /// <returns></returns>
-    IZoneTreeIterator<TKey, TValue> CreateReverseIterator(bool autoRefresh);
+    IZoneTreeIterator<TKey, TValue> CreateReverseIterator(
+        bool autoRefresh = true,
+        bool includeDeletedRecords = false);
 
     /// <summary>
     /// Returns maintenance object belongs to this ZoneTree.
