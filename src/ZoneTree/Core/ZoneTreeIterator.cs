@@ -68,7 +68,7 @@ public class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
         set
         {
             _AutoRefresh = value;
-            if (value == true)
+            if (!value)
                 DoesRequireRefresh = false;
         }  
     }
