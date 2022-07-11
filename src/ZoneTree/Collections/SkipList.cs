@@ -311,7 +311,7 @@ public class SkipList<TKey, TValue>
 
         public SkipListNode[] Next;
 
-        public TKey Key;
+        public readonly TKey Key;
 
         private TValue _value;
 
@@ -348,7 +348,7 @@ public class SkipList<TKey, TValue>
         public bool HasNext => NextNode != null;
         public bool HasPrev => PreviousNode != null;
 
-        public SkipListNode PreviousNode;
+        public volatile SkipListNode PreviousNode;
 
         public SkipListNode(in TKey key, int level)
         {
@@ -371,7 +371,7 @@ public class SkipList<TKey, TValue>
             newNode.Next[i] = nextNode;
             Next[i] = newNode;
             if (i == 0)
-            {  
+            {
                 if (nextNode != null)
                     nextNode.PreviousNode = head == newNode ? null : newNode;
                 newNode.PreviousNode = head == this ? null : this;
