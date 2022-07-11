@@ -128,11 +128,11 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// If the newly inserted or deleted key is after the internal segment iterator position,
     /// the new data is included in the iteration.
     /// 
-    /// AutoRefresh property enables the inclusion of newly inserted segments
-    /// after the iteration starts.
+    /// <param name="autoRefresh">if true the iterator fetches the latest segments,
+    /// when it is needed, to continue the iteration with most recent records.</param>
     /// </remarks>
     /// <returns>ZoneTree Iterator</returns>
-    IZoneTreeIterator<TKey, TValue> CreateIterator();
+    IZoneTreeIterator<TKey, TValue> CreateIterator(bool autoRefresh);
 
     /// <summary>
     /// Creates a reverse iterator that enables scanning of the entire database.
@@ -141,8 +141,11 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// ZoneTree iterator direction does not hurt performance.
     /// Forward and backward iterator's performances are equal.
     /// </remarks>
+    /// <param name="autoRefresh">if true the iterator fetches the latest segments,
+    /// when it is needed, to continue the iteration with most recent records.</param>
     /// <returns>ZoneTree Iterator</returns>
-    IZoneTreeIterator<TKey, TValue> CreateReverseIterator();
+    /// <returns></returns>
+    IZoneTreeIterator<TKey, TValue> CreateReverseIterator(bool autoRefresh);
 
     /// <summary>
     /// Returns maintenance object belongs to this ZoneTree.

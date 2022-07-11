@@ -39,9 +39,7 @@ public class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
 
     bool IsHeapFilled;
 
-    bool DoesRequireRefresh;
-    
-    bool _AutoRefresh;
+    volatile bool DoesRequireRefresh;
 
     public TKey CurrentKey
     {
@@ -63,15 +61,7 @@ public class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
 
     public bool HasCurrent { get; private set; }
 
-    public bool AutoRefresh { 
-        get => _AutoRefresh; 
-        set
-        {
-            _AutoRefresh = value;
-            if (!value)
-                DoesRequireRefresh = false;
-        }  
-    }
+    public bool AutoRefresh { get; }
 
     public KeyValuePair<TKey, TValue> Current => KeyValuePair.Create(CurrentKey, CurrentValue);
 
@@ -81,6 +71,7 @@ public class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
         ZoneTreeOptions<TKey, TValue> options,
         ZoneTree<TKey, TValue> zoneTree,
         IRefComparer<HeapEntry<TKey, TValue>> heapEntryComparer,
+        bool autoRefresh,
         bool isReverseIterator,
         bool includeDeletedRecords,
         bool includeSegmentZero,
@@ -90,22 +81,24 @@ public class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
         Comparer = options.Comparer;
         ZoneTree = zoneTree;
         HeapEntryComparer = heapEntryComparer;
+        AutoRefresh = autoRefresh;
         IsReverseIterator = isReverseIterator;
         IncludeDeletedRecords = includeDeletedRecords;
         IncludeSegmentZero = includeSegmentZero;
         IncludeDiskSegment = includeDiskSegment;
-        ZoneTree.OnSegmentZeroMovedForward += OnZoneTreeSegmentZeroMovedForward;
+        if (autoRefresh)
+            ZoneTree.OnSegmentZeroMovedForward += OnZoneTreeSegmentZeroMovedForward;
         ZoneTree.OnZoneTreeIsDisposing += OnZoneTreeIsDisposing;
     }
 
     private void OnZoneTreeIsDisposing(IZoneTreeMaintenance<TKey, TValue> zoneTree)
     {
-        ReleaseResources();        
+        ReleaseResources();
     }
 
     private void OnZoneTreeSegmentZeroMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)
     {
-        DoesRequireRefresh = AutoRefresh && true;
+        DoesRequireRefresh = true;
     }
 
     public bool Next()
@@ -332,7 +325,8 @@ public class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
 
     public void Dispose()
     {
-        ZoneTree.OnSegmentZeroMovedForward -= OnZoneTreeSegmentZeroMovedForward;
+        if (AutoRefresh)
+            ZoneTree.OnSegmentZeroMovedForward -= OnZoneTreeSegmentZeroMovedForward;
         ZoneTree.OnZoneTreeIsDisposing -= OnZoneTreeIsDisposing;
         DiskSegment?.RemoveReader();
     }

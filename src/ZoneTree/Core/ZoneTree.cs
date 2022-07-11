@@ -543,15 +543,16 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public int Count()
     {
-        var iterator = CreateInMemorySegmentsIterator(true);
+        var iterator = CreateInMemorySegmentsIterator(
+            autoRefresh: false,
+            includeDeletedRecords: true);
 
         IDiskSegment<TKey, TValue> diskSegment = null;
         lock(ShortMergerLock)
         lock (AtomicUpdateLock)
         {
-            // 3 things to synchronize with
-            // MoveSegmentForward and Merge disk segment swap.
-            iterator.AutoRefresh = false;
+            // 2 things to synchronize with
+            // MoveSegmentForward and disk merger segment swap.
             diskSegment = DiskSegment;
             iterator.Refresh();
         }        
@@ -613,12 +614,13 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         public IDiskSegment<TKey, TValue> DiskSegment { get; set; }
     }
 
-    public IZoneTreeIterator<TKey, TValue> CreateIterator()
+    public IZoneTreeIterator<TKey, TValue> CreateIterator(bool autoRefresh)
     {
         var iterator = new ZoneTreeIterator<TKey, TValue>(
             Options,
             this,
             MinHeapEntryComparer,
+            autoRefresh: autoRefresh,
             isReverseIterator: false,
             includeDeletedRecords: false,
             includeSegmentZero: true,
@@ -626,12 +628,13 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         return iterator;
     }
 
-    public IZoneTreeIterator<TKey, TValue> CreateReverseIterator()
+    public IZoneTreeIterator<TKey, TValue> CreateReverseIterator(bool autoRefresh)
     {
         var iterator = new ZoneTreeIterator<TKey, TValue>(
             Options,
             this,
             MaxHeapEntryComparer,
+            autoRefresh: autoRefresh,
             isReverseIterator: true,
             includeDeletedRecords: false,
             includeSegmentZero: true,
@@ -643,12 +646,13 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     /// Creates an iterator that enables scanning of the readonly segments.
     /// </summary>
     /// <returns>ZoneTree Iterator</returns>
-    public IZoneTreeIterator<TKey, TValue> CreateReadOnlySegmentsIterator()
+    public IZoneTreeIterator<TKey, TValue> CreateReadOnlySegmentsIterator(bool autoRefresh)
     {
         var iterator = new ZoneTreeIterator<TKey, TValue>(
             Options,
             this,
             MinHeapEntryComparer,
+            autoRefresh: autoRefresh,
             isReverseIterator: false,
             includeDeletedRecords: false,
             includeSegmentZero: false,
@@ -663,12 +667,13 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     /// <param name="includeDeletedRecords">if true the deleted records are included in iteration.</param>
     /// <returns>ZoneTree Iterator</returns>
     public IZoneTreeIterator<TKey, TValue> 
-        CreateInMemorySegmentsIterator(bool includeDeletedRecords)
+        CreateInMemorySegmentsIterator(bool autoRefresh, bool includeDeletedRecords)
     {
         var iterator = new ZoneTreeIterator<TKey, TValue>(
             Options,
             this,
             MinHeapEntryComparer,
+            autoRefresh: autoRefresh,
             isReverseIterator: false,
             includeDeletedRecords,
             includeSegmentZero: true,

@@ -21,9 +21,9 @@ public interface IZoneTreeIterator<TKey, TValue> : IDisposable
 
     /// <summary>
     /// If true, the iterator automatically refreshes itself to include
-    /// the latest segments. By default auto refresh flag is true.
+    /// the latest segments.
     /// </summary>
-    bool AutoRefresh { get; set; }
+    bool AutoRefresh { get; }
 
     /// <summary>
     /// Gets the current element at the iterator's position.

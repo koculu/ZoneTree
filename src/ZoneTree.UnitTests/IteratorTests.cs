@@ -44,7 +44,7 @@ public class IteratorTests
             zoneTree.Upsert(i, i + i);
         }
 
-        using var iterator = zoneTree.CreateIterator();
+        using var iterator = zoneTree.CreateIterator(true);
         
         for (var i = 0; i < b; ++i)
         {
@@ -58,7 +58,7 @@ public class IteratorTests
         Assert.That(iterator.Next(), Is.False);
         Assert.That(zoneTree.Count(), Is.EqualTo(b - 4));
 
-        using var reverseIterator = zoneTree.CreateReverseIterator();
+        using var reverseIterator = zoneTree.CreateReverseIterator(true);
 
         for (var i = b - 1; i >= 0; --i)
         {
@@ -117,7 +117,7 @@ public class IteratorTests
             zoneTree.Upsert(i, i + i);
         }
 
-        using var iterator = zoneTree.CreateIterator();
+        using var iterator = zoneTree.CreateIterator(true);
         iterator.Seek(13);        
         for (var i = 13; i < b; ++i)
         {
@@ -147,7 +147,7 @@ public class IteratorTests
         Assert.That(iterator.Next(), Is.True);
         Assert.That(iterator.CurrentKey, Is.EqualTo(1));
 
-        using var reverseIterator = zoneTree.CreateReverseIterator();
+        using var reverseIterator = zoneTree.CreateReverseIterator(true);
         reverseIterator.Seek(451);
         for (var i = 451; i >= 0; --i)
         {
@@ -208,7 +208,7 @@ public class IteratorTests
         zoneTree.ForceDelete(11);
         zoneTree.ForceDelete(13);
         zoneTree.ForceDelete(15);
-        using var iterator = zoneTree.CreateIterator();
+        using var iterator = zoneTree.CreateIterator(true);
         iterator.Seek(13);
         zoneTree.Upsert(24, 48);
         for (var i = 17; i < b; ++i)
