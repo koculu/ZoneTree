@@ -27,7 +27,9 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     readonly object AtomicUpdateLock = new();
 
-    readonly object MergerLock = new();
+    readonly object LongMergerLock = new();
+
+    readonly object ShortMergerLock = new();
 
     volatile bool IsMergingFlag;
 
@@ -46,7 +48,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public int ReadOnlySegmentsRecordCount => ReadOnlySegmentQueue.Sum(x => x.Length);
 
-    public int InMemoryRecordCount =>
+    public int InMemoryRecordCount => 
         SegmentZero.Length + ReadOnlySegmentsRecordCount;
 
     public int TotalRecordCount => InMemoryRecordCount + DiskSegment.Length;
@@ -325,9 +327,9 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public void SaveMetaData()
     {
-        lock (AtomicUpdateLock)
+        lock (LongMergerLock)
         {
-            lock (MergerLock)
+            lock (AtomicUpdateLock)
             {
                 MetaWal.SaveMetaData(
                     ZoneTreeMeta,
@@ -353,7 +355,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         IsCancelMergeRequested = false;
         return await Task.Run(() =>
         {
-            lock (MergerLock)
+            lock (LongMergerLock)
             {
                 try
                 {
@@ -475,31 +477,34 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         var newDiskSegment = diskSegmentCreator.CreateReadOnlyDiskSegment();
         newDiskSegment.DropFailureReporter = (ds, e) => ReportDropFailure(ds, e);
         OnDiskSegmentCreated?.Invoke(this, newDiskSegment);
-        DiskSegment = newDiskSegment;
-        MetaWal.NewDiskSegment(newDiskSegment.SegmentId);
-        try
+        lock (ShortMergerLock)
         {
-            oldDiskSegment.Drop();
-        }
-        catch(Exception e)
-        {
-            OnCanNotDropDiskSegment?.Invoke(oldDiskSegment, e);
-        }
-
-        len = readOnlySegmentsArray.Length;
-        while (len > 0)
-        {
-            ReadOnlySegmentQueue.TryDequeue(out var segment);
-            MetaWal.DequeueReadOnlySegment(segment.SegmentId);
+            DiskSegment = newDiskSegment;
+            MetaWal.NewDiskSegment(newDiskSegment.SegmentId);
             try
             {
-                segment.Drop();
+                oldDiskSegment.Drop();
             }
             catch (Exception e)
             {
-                OnCanNotDropReadOnlySegment.Invoke(segment, e);
+                OnCanNotDropDiskSegment?.Invoke(oldDiskSegment, e);
             }
-            --len;
+
+            len = readOnlySegmentsArray.Length;
+            while (len > 0)
+            {
+                ReadOnlySegmentQueue.TryDequeue(out var segment);
+                MetaWal.DequeueReadOnlySegment(segment.SegmentId);
+                try
+                {
+                    segment.Drop();
+                }
+                catch (Exception e)
+                {
+                    OnCanNotDropReadOnlySegment.Invoke(segment, e);
+                }
+                --len;
+            }
         }
         return MergeResult.SUCCESS;
     }
@@ -533,10 +538,20 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public int Count()
     {
-        // TODO: disk segment + in memory segment atomicity!
-        var diskSegment = DiskSegment;
-        var count = diskSegment.Length;
         var iterator = CreateInMemorySegmentsIterator(true);
+
+        IDiskSegment<TKey, TValue> diskSegment = null;
+        lock(ShortMergerLock)
+        lock (AtomicUpdateLock)
+        {
+            // 3 things to synchronize with
+            // MoveSegmentForward and ShortMergerLock.
+            iterator.AutoRefresh = false;
+            diskSegment = DiskSegment;
+            iterator.Refresh();
+        }        
+        var count = diskSegment.Length;
+        
         while(iterator.Next())
         {
             var hasKey = diskSegment.ContainsKey(iterator.CurrentKey);
@@ -555,55 +570,67 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         return count;
     }
 
-    private IReadOnlyList<ISeekableIterator<TKey, TValue>> 
-        CollectSegments(
-        IMutableSegment<TKey, TValue> segmentZero = null,
-        IDiskSegment<TKey, TValue> diskSegment = null)
+    public SegmentCollection CollectSegments(
+        bool includeSegmentZero,
+        bool includeDiskSegment)
     {
-        var roSegments = ReadOnlySegmentQueue.ToArray();
-        var segments = new List<ISeekableIterator<TKey, TValue>>();
-        if (segmentZero != null)
-            segments.Add(SegmentZero.GetSeekableIterator());
+        lock (LongMergerLock)
+        lock (AtomicUpdateLock)
+        {
+            var roSegments = ReadOnlySegmentQueue.ToArray();
+            var seekableIterators = new List<ISeekableIterator<TKey, TValue>>();
+            if (includeSegmentZero)
+                seekableIterators.Add(SegmentZero.GetSeekableIterator());
 
-        var readOnlySegmentsArray = roSegments.Select(x => x.GetSeekableIterator()).ToArray();
-        segments.AddRange(readOnlySegmentsArray.Reverse());
+            var readOnlySegmentsArray = roSegments.Select(x => x.GetSeekableIterator()).ToArray();
+            seekableIterators.AddRange(readOnlySegmentsArray.Reverse());
 
-        if (diskSegment != null)
-            segments.Add(diskSegment.GetSeekableIterator());
-        return segments;
+            var result = new SegmentCollection
+            {
+                SeekableIterators = seekableIterators
+            };
+
+            if (includeDiskSegment)
+            {
+                var diskSegment = DiskSegment;
+                diskSegment.AddReader();
+                result.DiskSegment = diskSegment;
+                seekableIterators.Add(diskSegment.GetSeekableIterator());
+            }
+            return result;
+        }
+    }
+
+    public class SegmentCollection
+    {
+        public IReadOnlyList<ISeekableIterator<TKey, TValue>> SeekableIterators { get; set; }
+
+        public IDiskSegment<TKey, TValue> DiskSegment { get; set; }
     }
 
     public IZoneTreeIterator<TKey, TValue> CreateIterator()
     {
-        // TODO 1: protect iterator against segment movements!
-        // TODO 2: add refresh capability to iterators.
-        // TODO 3: auto refresh iterator segments with Seek() and Reset().
-        // TODO 4: inform iterators from segment movements? for what?
-        var diskSegment = DiskSegment;
-        diskSegment.AddReader();
-        var segments = CollectSegments(SegmentZero, DiskSegment);
         var iterator = new ZoneTreeIterator<TKey, TValue>(
             Options,
-            segments,
+            this,
             MinHeapEntryComparer,
-            diskSegment,
-            false,
-            false);
+            isReverseIterator: false,
+            includeDeletedRecords: false,
+            includeSegmentZero: true,
+            includeDiskSegment: true);
         return iterator;
     }
 
     public IZoneTreeIterator<TKey, TValue> CreateReverseIterator()
     {
-        var diskSegment = DiskSegment;
-        diskSegment.AddReader();
-        var segments = CollectSegments(SegmentZero, DiskSegment);
         var iterator = new ZoneTreeIterator<TKey, TValue>(
             Options,
-            segments,
+            this,
             MaxHeapEntryComparer,
-            diskSegment,
-            true,
-            false);
+            isReverseIterator: true,
+            includeDeletedRecords: false,
+            includeSegmentZero: true,
+            includeDiskSegment: true);
         return iterator;
     }
 
@@ -613,9 +640,14 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     /// <returns>ZoneTree Iterator</returns>
     public IZoneTreeIterator<TKey, TValue> CreateReadOnlySegmentsIterator()
     {
-        var segments = CollectSegments();
-        var iterator = new ZoneTreeIterator<TKey, TValue>
-            (Options, segments, MinHeapEntryComparer, null, false, false);
+        var iterator = new ZoneTreeIterator<TKey, TValue>(
+            Options,
+            this,
+            MinHeapEntryComparer,
+            isReverseIterator: false,
+            includeDeletedRecords: false,
+            includeSegmentZero: false,
+            includeDiskSegment: false);
         return iterator;
     }
 
@@ -628,9 +660,14 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     public IZoneTreeIterator<TKey, TValue> 
         CreateInMemorySegmentsIterator(bool includeDeletedRecords)
     {
-        var segments = CollectSegments(SegmentZero);
-        var iterator = new ZoneTreeIterator<TKey, TValue>
-            (Options, segments, MinHeapEntryComparer, null, false, includeDeletedRecords);
+        var iterator = new ZoneTreeIterator<TKey, TValue>(
+            Options,
+            this,
+            MinHeapEntryComparer,
+            isReverseIterator: false,
+            includeDeletedRecords,
+            includeSegmentZero: true,
+            includeDiskSegment: false);
         return iterator;
     }
 }

@@ -142,7 +142,7 @@ public class IteratorTests
 
         Assert.That(iterator.Next(), Is.False);
         Assert.That(zoneTree.Count(), Is.EqualTo(b - 4));
-        iterator.Reset();
+        iterator.SeekFirst();
         Assert.That(iterator.Next(), Is.True);
         Assert.That(iterator.Next(), Is.True);
         Assert.That(iterator.CurrentKey, Is.EqualTo(1));
@@ -159,7 +159,7 @@ public class IteratorTests
         }
 
         Assert.That(reverseIterator.Next(), Is.False);
-        reverseIterator.Reset();
+        reverseIterator.SeekFirst();
         Assert.That(reverseIterator.Next(), Is.True);
         Assert.That(reverseIterator.Next(), Is.True);
         Assert.That(reverseIterator.CurrentKey, Is.EqualTo(b-2));

@@ -1,15 +1,44 @@
-﻿namespace ZoneTree;
+﻿using ZoneTree.Segments.Disk;
+
+namespace ZoneTree;
 
 public interface IZoneTreeIterator<TKey, TValue> : IDisposable
 {
+    /// <summary>
+    /// Returns the element key if there is an element in the iterator position.
+    /// </summary>
     TKey CurrentKey { get; }
 
+    /// <summary>
+    /// Returns the element value if there is an element in the iterator position.
+    /// </summary>
     TValue CurrentValue { get; }
-
+    
+    /// <summary>
+    /// Returns true if there is an element in the iterator position.
+    /// </summary>
     bool HasCurrent { get; }
 
-    KeyValuePair<TKey, TValue> Current { get; }
+    /// <summary>
+    /// If true, the iterator automatically refreshes itself to include
+    /// the latest segments. By default auto refresh flag is true.
+    /// </summary>
+    bool AutoRefresh { get; set; }
 
+    /// <summary>
+    /// Gets the current element at the iterator's position.
+    /// </summary>
+    KeyValuePair<TKey, TValue> Current { get; }
+    
+    /// <summary>
+    /// Returns the current disk segment associated with the iterator.
+    /// </summary>
+    IDiskSegment<TKey, TValue> DiskSegment { get; }
+
+    /// <summary>
+    /// Iterates to the next element.
+    /// </summary>
+    /// <returns>true if next element exists, otherwise false.</returns>
     bool Next();
 
     /// <summary>
@@ -22,5 +51,14 @@ public interface IZoneTreeIterator<TKey, TValue> : IDisposable
     /// <param name="key">The search key</param>
     void Seek(in TKey key);
 
-    void Reset();
+    /// <summary>
+    /// Seeks the first element of the iterator.
+    /// </summary>
+    void SeekFirst();
+
+    /// <summary>
+    /// Refreshes the iterator with latest segments. 
+    /// If AutoRefresh property is true, there is no need to call refresh manually.
+    /// </summary>
+    void Refresh();
 }

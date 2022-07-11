@@ -74,11 +74,11 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// within lock to preserve atomicity across segments of LSM-Tree.
     ///  1. tries to get the value of the key
     ///  2. if it can find the key, it updates the value
-    ///  3. if it cannot find the key, inserts new key/value
+    ///  3. if it cannot find the key, inserts the new key/value
     ///  
     /// All atomic methods respect this order using the same lock.
     /// 
-    /// The Upsert method does not respect to the atomicity of atomic methods,    /// 
+    /// The Upsert method does not respect to the atomicity of atomic methods,
     /// because it does upsert without lock.
     /// 
     /// On the other hand,
