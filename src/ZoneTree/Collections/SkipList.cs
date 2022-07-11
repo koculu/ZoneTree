@@ -306,7 +306,7 @@ public class SkipList<TKey, TValue>
         /// to properly aligned memory locations no larger than the native word size
         /// (the size of type native int) is atomic.
         /// </summary>
-        private static bool IsValueAssignmentAtomic =
+        private static readonly bool IsValueAssignmentAtomic =
             Unsafe.SizeOf<TValue>() <= IntPtr.Size;
 
         public SkipListNode[] Next;

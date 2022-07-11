@@ -29,11 +29,6 @@ public interface IZoneTreeIterator<TKey, TValue> : IDisposable
     /// Gets the current element at the iterator's position.
     /// </summary>
     KeyValuePair<TKey, TValue> Current { get; }
-    
-    /// <summary>
-    /// Returns the current disk segment associated with the iterator.
-    /// </summary>
-    IDiskSegment<TKey, TValue> DiskSegment { get; }
 
     /// <summary>
     /// Iterates to the next element.

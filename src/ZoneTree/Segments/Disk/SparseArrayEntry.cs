@@ -2,11 +2,11 @@
 
 public class SparseArrayEntry<TKey, TValue>
 {
-    public TKey Key;
+    public readonly TKey Key;
     
-    public TValue Value;
+    public readonly TValue Value;
     
-    public int Index;
+    public readonly int Index;
 
     public SparseArrayEntry(TKey key, TValue value, int index)
     {
