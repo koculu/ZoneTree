@@ -5,7 +5,7 @@ using ZoneTree.Segments.Disk;
 
 namespace ZoneTree.Core;
 
-public class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
+public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
 {
     readonly ZoneTree<TKey, TValue> ZoneTree;
 
