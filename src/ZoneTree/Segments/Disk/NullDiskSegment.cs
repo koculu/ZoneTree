@@ -19,12 +19,12 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public TKey GetKey(int index)
     {
-        throw new NotSupportedException();
+        throw new IndexOutOfRangeException();
     }
 
     public TValue GetValue(int index)
     {
-        throw new NotSupportedException();
+        throw new IndexOutOfRangeException();
     }
 
     public void InitSparseArray(int size)
