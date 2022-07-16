@@ -204,37 +204,40 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             throw new ArgumentNullException(nameof(key));
         AddOrUpdateResult status;
         IMutableSegment<TKey, TValue> segmentZero;
-        lock (AtomicUpdateLock)
+        while (true)
         {
-            segmentZero = SegmentZero;
-            if (segmentZero.IsFrozen)
+            lock (AtomicUpdateLock)
             {
-                status = AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
+                segmentZero = SegmentZero;
+                if (segmentZero.IsFrozen)
+                {
+                    status = AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
+                }
+                else if (segmentZero.TryGet(in key, out var existing))
+                {
+                    var value = valueToUpdateGetter(existing);
+                    status = segmentZero.Upsert(key, value);
+                }
+                else if (TryGetFromReadonlySegments(in key, out existing))
+                {
+                    var value = valueToUpdateGetter(existing);
+                    status = segmentZero.Upsert(key, value);
+                }
+                else
+                {
+                    status = segmentZero.Upsert(key, valueToAdd);
+                }
             }
-            else if (segmentZero.TryGet(in key, out var existing))
+            switch (status)
             {
-                var value = valueToUpdateGetter(existing);
-                status = segmentZero.Upsert(key, value);
+                case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
+                    continue;
+                case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
+                    MoveSegmentZeroForward(segmentZero);
+                    continue;
+                default:
+                    return status == AddOrUpdateResult.ADDED;
             }
-            else if (TryGetFromReadonlySegments(in key, out existing))
-            {
-                var value = valueToUpdateGetter(existing);
-                status = segmentZero.Upsert(key, value);
-            }
-            else
-            {
-                status = segmentZero.Upsert(key, valueToAdd);
-            }
-        }
-        switch (status)
-        {
-            case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
-                return TryAtomicAddOrUpdate(key, valueToAdd, valueToUpdateGetter);
-            case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
-                MoveSegmentZeroForward(segmentZero);
-                return TryAtomicAddOrUpdate(key, valueToAdd, valueToUpdateGetter);
-            default:
-                return status == AddOrUpdateResult.ADDED;
         }
     }
 
@@ -250,17 +253,20 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     {
         if (key == null)
             throw new ArgumentNullException(nameof(key));
-        var segmentZero = SegmentZero;
-        var status = segmentZero.Upsert(key, value);
-        switch (status)
+        while(true)
         {
-            case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
-                return Upsert(key, value);
-            case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
-                MoveSegmentZeroForward(segmentZero);
-                return Upsert(key, value);
-            default:
-                return status == AddOrUpdateResult.ADDED;
+            var segmentZero = SegmentZero;
+            var status = segmentZero.Upsert(key, value);
+            switch (status)
+            {
+                case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
+                    continue;
+                case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
+                    MoveSegmentZeroForward(segmentZero);
+                    continue;
+                default:
+                    return status == AddOrUpdateResult.ADDED;
+            }
         }
     }
 
@@ -278,17 +284,22 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     {
         if (key == null)
             throw new ArgumentNullException(nameof(key));
-        var segmentZero = SegmentZero;
-        var status = segmentZero.Delete(key);
-        switch (status)
+        while(true)
         {
-            case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
-                ForceDelete(key);
-                break;
-            case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
-                MoveSegmentZeroForward(segmentZero);
-                ForceDelete(key);
-                break;
+            var segmentZero = SegmentZero;
+            var status = segmentZero.Delete(key);
+            switch (status)
+            {
+                case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
+                    ForceDelete(key);
+                    continue;
+                case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
+                    MoveSegmentZeroForward(segmentZero);
+                    ForceDelete(key);
+                    continue;
+                default: return;
+            }
+
         }
     }
 
