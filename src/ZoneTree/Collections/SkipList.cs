@@ -435,13 +435,19 @@ public class SkipList<TKey, TValue>
 
         /// <summary>
         /// Spin waits till the node is fully inserted.
-        /// Call this method before you are access the Next or Prev
+        /// Call this method before you access the Next or Prev
         /// pointers of a node.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureNodeIsInserted()
         {
-            while (!IsInserted);
+            if (IsInserted)
+                return;
+            var spinWait = new SpinWait();
+            while (!IsInserted)
+            {
+                spinWait.SpinOnce();
+            }
         }
     }
 }
