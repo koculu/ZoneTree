@@ -17,7 +17,7 @@ public class SkipList<TKey, TValue>
 
     public int Length { get; private set; }
 
-    public SkipListNode FirstNode => Head.Next[0];
+    public SkipListNode FirstNode => Head.GetNext(0);
 
     public SkipListNode LastNode => Tail;
 
@@ -60,7 +60,7 @@ public class SkipList<TKey, TValue>
                 {
                     while (true)
                     {
-                        var nextNode = node.Next[i];
+                        var nextNode = node.GetNext(i);
                         if (nextNode == null)
                             break;
 
@@ -97,7 +97,7 @@ public class SkipList<TKey, TValue>
         {
             while(true)
             {
-                var nextNode = node.Next[i];
+                var nextNode = node.GetNext(i);
                 if (nextNode == null)
                     break;
                 var r = comparer.Compare(key, nextNode.Key);
@@ -122,7 +122,7 @@ public class SkipList<TKey, TValue>
             while(true)
             {
                 node.EnsureNodeIsInserted();
-                var nextNode = node.Next[i];
+                var nextNode = node.GetNext(i);
                 if (nextNode == null)
                     break;
 
@@ -156,7 +156,7 @@ public class SkipList<TKey, TValue>
             while (true)
             {
                 node.EnsureNodeIsInserted();
-                var nextNode = node.Next[i];
+                var nextNode = node.GetNext(i);
                 if (nextNode == null)
                     break;
                 
@@ -212,7 +212,7 @@ public class SkipList<TKey, TValue>
                 {
                     while (true)
                     {
-                        var nextNode = node.Next[i];
+                        var nextNode = node.GetNext(i);
                         if (nextNode == null)
                             break;
 
@@ -249,7 +249,7 @@ public class SkipList<TKey, TValue>
             while(true)
             {
                 node.EnsureNodeIsInserted();
-                var nextNode = node.Next[i];
+                var nextNode = node.GetNext(i);
                 if (nextNode == null)
                     break;
                 var r = comparer.Compare(key, nextNode.Key);
@@ -270,13 +270,13 @@ public class SkipList<TKey, TValue>
         TKey[] keys = new TKey[cnt];
         TValue[] values = new TValue[cnt];
         var i = 0;
-        var node = Head.Next[0];
+        var node = Head.GetNext(0);
         while (node != null && i < cnt)
         {
             keys[i] = node.Key;
             values[i] = node.Value;
             node.EnsureNodeIsInserted();
-            node = node.Next[0];
+            node = node.GetNext(i);
             ++i;
         }
         return (keys, values);
@@ -291,7 +291,7 @@ public class SkipList<TKey, TValue>
             while (true)
             {
                 node.EnsureNodeIsInserted();
-                var nextNode = node.Next[i];
+                var nextNode = node.GetNext(i);
                 if (nextNode == null)
                     break;
 
@@ -322,7 +322,7 @@ public class SkipList<TKey, TValue>
             {
                 while (true)
                 {
-                    var nextNode = node.Next[i];
+                    var nextNode = node.GetNext(i);
                     if (nextNode == null)
                         break;
 
@@ -331,9 +331,9 @@ public class SkipList<TKey, TValue>
                     if (r == 0)
                     {
                         isRemoved = true;
-                        node.Next[i] = nextNode.Next[i];
+                        node.SetNext(i, nextNode.GetNext(i));
                         if (i == 0)
-                            node.Next[0].PreviousNode = node;
+                            node.GetNext(0).SetPrevious(node);
                         break;
                     }
 
@@ -356,7 +356,7 @@ public class SkipList<TKey, TValue>
         private static readonly bool IsValueAssignmentAtomic =
             Unsafe.SizeOf<TValue>() <= IntPtr.Size;
 
-        public SkipListNode[] Next;
+        readonly SkipListNode[] Next;
 
         public readonly TKey Key;
 
@@ -391,23 +391,23 @@ public class SkipList<TKey, TValue>
 
         public readonly int Level;
         
-        public SkipListNode NextNode => Next[0];
+        public SkipListNode NextNode => GetNext(0);
 
         public bool HasNext => NextNode != null;
         public bool HasPrev => PreviousNode != null;
 
-        public volatile SkipListNode PreviousNode;
+        volatile SkipListNode PreviousNode;
 
         volatile bool IsInserted;
 
-        public SkipListNode(in TKey key, int level)
+        internal SkipListNode(in TKey key, int level)
         {
             Key = key;
             Level = level;
             Next = new SkipListNode[Level+1];
         }
 
-        public SkipListNode(TKey key, TValue value, int level)
+        internal SkipListNode(TKey key, TValue value, int level)
         {
             Key = key;
             Value = value;
@@ -415,11 +415,12 @@ public class SkipList<TKey, TValue>
             Next = new SkipListNode[Level + 1];
         }
 
-        public void AssignNext(SkipListNode newNode, int i, SkipListNode head)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void AssignNext(SkipListNode newNode, int i, SkipListNode head)
         {
-            var nextNode = Next[i];
-            newNode.Next[i] = nextNode;
-            Next[i] = newNode;
+            var nextNode = GetNext(i);
+            newNode.SetNext(i, nextNode);
+            SetNext(i, newNode);
             if (i == 0)
             {
                 if (nextNode != null)
@@ -428,7 +429,31 @@ public class SkipList<TKey, TValue>
             }
         }
 
-        public void MarkInserted()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public SkipListNode GetNext(int level)
+        {
+            return Volatile.Read(ref Next[level]);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void SetNext(int level, SkipListNode node)
+        {
+            Volatile.Write(ref Next[level], node);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public SkipListNode GetPrevious()
+        {
+            return PreviousNode;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void SetPrevious(SkipListNode node)
+        {
+            PreviousNode = node;
+        }
+
+        internal void MarkInserted()
         {
             IsInserted = true;
         }

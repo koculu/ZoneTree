@@ -62,7 +62,7 @@ public class SkipListSeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TV
             return;
         }
         node.EnsureNodeIsInserted();
-        PreviousNode = node.PreviousNode;
+        PreviousNode = node.GetPrevious();
         NextNode = node.NextNode;
     }
 
