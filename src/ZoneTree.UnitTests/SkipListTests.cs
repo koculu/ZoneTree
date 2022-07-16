@@ -17,7 +17,7 @@ public class SkipListTests
         var n = 2000;
         var skipList = new SkipList<int, int>(new IntegerComparerAscending(), (int)Math.Log2(n) + 1);
         for (var i = 0; i < n; ++i)
-            skipList.Insert(i, i + i);
+            skipList.TryInsert(i, i + i);
         
         var node = skipList.FirstNode;
         for (var i = 0; i < n; ++i)
@@ -42,7 +42,7 @@ public class SkipListTests
         var n = 3;
         var skipList = new SkipList<int, int>(new IntegerComparerAscending(), (int)Math.Log2(n) + 1);
         for (var i = 0; i < n; ++i)
-            skipList.Insert(i, i + i);
+            skipList.TryInsert(i, i + i);
         var indexedReader = new SkipListIndexedReader<int, int>(skipList);
         for (var i = 0; i < n; ++i)
         {
@@ -83,7 +83,7 @@ public class SkipListTests
             new IntegerComparerAscending(),
             (int)Math.Log2(n) + 1);
         for (var i = 1; i < n; i += 2)
-            skipList.Insert(i, i);
+            skipList.TryInsert(i, i);
         Assert.Multiple(() =>
         {
             // 1 3 5 7 9

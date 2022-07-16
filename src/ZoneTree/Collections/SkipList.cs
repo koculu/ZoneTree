@@ -52,7 +52,7 @@ public class SkipList<TKey, TValue>
         return level;
     }
 
-    public bool Insert(in TKey key, in TValue value)
+    public bool TryInsert(in TKey key, in TValue value)
     {
         int level = GetRandomLevel();
         lock (Head)
@@ -194,7 +194,9 @@ public class SkipList<TKey, TValue>
     }
 
     public delegate AddOrUpdateResult AddDelegate(SkipListNode node);
+
     public delegate AddOrUpdateResult UpdateDelegate(SkipListNode node);
+
     public AddOrUpdateResult AddOrUpdate(TKey key, AddDelegate adder, UpdateDelegate updater)
     {
         int level = GetRandomLevel();
@@ -316,7 +318,7 @@ public class SkipList<TKey, TValue>
         return false;
     }
 
-    public bool Remove(in TKey key)
+    public bool TryRemove(in TKey key)
     {
         var node = Head;
         bool isRemoved = false;
@@ -367,7 +369,9 @@ public class SkipList<TKey, TValue>
 
         private TValue _value;
 
-        public TValue Value {
+        public TValue Value
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (IsValueAssignmentAtomic)
@@ -380,6 +384,8 @@ public class SkipList<TKey, TValue>
                     }
                 }
             }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 if(IsValueAssignmentAtomic)
@@ -463,6 +469,7 @@ public class SkipList<TKey, TValue>
             PreviousNode = node;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void MarkInserted()
         {
             IsInserted = true;
