@@ -24,7 +24,7 @@ public class SkipListTests
         {
             Assert.That(node.Key, Is.EqualTo(i));
             Assert.That(node.Value, Is.EqualTo(i + i));
-            node = node.NextNode;
+            node = node.GetNext();
         }
 
         node = skipList.LastNode;

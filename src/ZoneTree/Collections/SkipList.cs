@@ -3,6 +3,11 @@ using Tenray.Collections;
 
 namespace ZoneTree.Collections;
 
+/// <summary>
+/// Thread-safe SkipList implementation.
+/// </summary>
+/// <typeparam name="TKey">Key Type</typeparam>
+/// <typeparam name="TValue">Value Type</typeparam>
 public class SkipList<TKey, TValue>
 {
     readonly SkipListNode Head;
@@ -76,7 +81,7 @@ public class SkipList<TKey, TValue>
                         node.AssignNext(newNode, i, Head);
                     }
                 }
-                if (newNode.NextNode == null)
+                if (!newNode.HasNext)
                     Tail = newNode;
             }
             finally
@@ -170,7 +175,7 @@ public class SkipList<TKey, TValue>
                 {
                     if (r < 0)
                     {
-                        node = node.NextNode;
+                        node = node.GetNext();
                         return node;
                     }
                 }
@@ -182,7 +187,7 @@ public class SkipList<TKey, TValue>
         }
         if (Head == node)
         {
-            node = node.NextNode;
+            node = node.GetNext();
             return node;
         }
         return null;
@@ -229,7 +234,7 @@ public class SkipList<TKey, TValue>
                     }
                 }
                 ++Length;
-                if (newNode.NextNode == null)
+                if (!newNode.HasNext)
                     Tail = newNode;
             }
             finally
@@ -390,10 +395,9 @@ public class SkipList<TKey, TValue>
         }
 
         public readonly int Level;
-        
-        public SkipListNode NextNode => GetNext(0);
 
-        public bool HasNext => NextNode != null;
+        public bool HasNext => GetNext() != null;
+
         public bool HasPrev => PreviousNode != null;
 
         volatile SkipListNode PreviousNode;
@@ -427,6 +431,12 @@ public class SkipList<TKey, TValue>
                     nextNode.PreviousNode = head == newNode ? null : newNode;
                 newNode.PreviousNode = head == this ? null : this;
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public SkipListNode GetNext()
+        {
+            return Volatile.Read(ref Next[0]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
