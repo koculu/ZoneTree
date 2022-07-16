@@ -12,7 +12,7 @@ public class SkipList<TKey, TValue>
 {
     readonly SkipListNode Head;
 
-    SkipListNode Tail;
+    volatile SkipListNode Tail;
 
     readonly Random Random = new ();
 
@@ -157,7 +157,6 @@ public class SkipList<TKey, TValue>
         var comparer = Comparer;
         for (int i = MaxLevel - 1; i >= 0; i--)
         {
-
             while (true)
             {
                 node.EnsureNodeIsInserted();
@@ -340,7 +339,7 @@ public class SkipList<TKey, TValue>
                         isRemoved = true;
                         node.SetNext(i, nextNode.GetNext(i));
                         if (i == 0)
-                            node.GetNext(0).SetPrevious(node);
+                            node.GetNext(0)?.SetPrevious(node);
                         break;
                     }
 
