@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tenray;
+using Tenray.Collections;
 using ZoneTree.Collections;
 
 namespace ZoneTree.UnitTests;
@@ -78,7 +79,9 @@ public class SkipListTests
     public void SkipListLowerOrEqualBound()
     {
         int n = 10;
-        var skipList = new SkipList<int, int>(new IntegerComparerAscending(), (int)Math.Log2(n) + 1);
+        var skipList = new SkipList<int, int>(
+            new IntegerComparerAscending(),
+            (int)Math.Log2(n) + 1);
         for (var i = 1; i < n; i += 2)
             skipList.Insert(i, i);
         Assert.Multiple(() =>
@@ -107,5 +110,115 @@ public class SkipListTests
             Assert.That(skipList.GetFirstNodeGreaterOrEqual(9).Key, Is.EqualTo(9));
             Assert.That(skipList.GetFirstNodeGreaterOrEqual(10), Is.Null);
         });
+    }
+
+    [Test]
+    public void SkipListIteratorParallelInserts()
+    {
+        var random = new Random();
+        var insertCount = 100000;
+        var iteratorCount = 1000;
+
+        var skipList = new SkipList<int, int>(
+            new IntegerComparerAscending(),
+            (int)Math.Log2(insertCount) + 1);
+
+        var task = Task.Factory.StartNew(() =>
+        {
+            Parallel.For(0, insertCount, (x) =>
+            {
+                var key = random.Next();
+                skipList.AddOrUpdate(key,
+                    (x) =>
+                    {
+                        x.Value = key + key;
+                        return AddOrUpdateResult.ADDED;
+                    },
+                    (y) =>
+                    {
+                        y.Value = key + key;
+                        return AddOrUpdateResult.UPDATED;
+                    });
+            });
+        });
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var initialCount = skipList.Length;
+            var iterator = new SkipListSeekableIterator<int, int>(skipList);
+            var counter = 0;
+            var isValidData = true;
+            while (iterator.Next())
+            {
+                var expected = iterator.CurrentKey + iterator.CurrentKey;
+                if (iterator.CurrentValue != expected)
+                    isValidData = false;
+                ++counter;
+            }
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(isValidData, Is.True);
+        });
+
+        task.Wait();
+    }
+
+    [Test]
+    public void SkipListReverseIteratorParallelInserts()
+    {
+        var random = new Random();
+        var insertCount = 100000;
+        var iteratorCount = 1000;
+
+        var skipList = new SkipList<int, int>(
+            new IntegerComparerAscending(),
+            (int)Math.Log2(insertCount) + 1);
+
+        var task = Task.Factory.StartNew(() =>
+        {
+            Parallel.For(0, insertCount, (x) =>
+            {
+                var key = random.Next();
+                skipList.AddOrUpdate(key,
+                    (x) =>
+                    {
+                        x.Value = key + key;
+                        return AddOrUpdateResult.ADDED;
+                    },
+                    (y) =>
+                    {
+                        y.Value = key + key;
+                        return AddOrUpdateResult.UPDATED;
+                    });
+            });
+        });
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var initialCount = skipList.Length;
+            var iterator = new SkipListSeekableIterator<int, int>(skipList);
+            var counter = iterator.SeekEnd() ? 1 : 0;
+            var isValidData = true;
+            while (iterator.Prev())
+            {
+                var expected = iterator.CurrentKey + iterator.CurrentKey;
+                if (iterator.CurrentValue != expected)
+                    isValidData = false;
+                ++counter;
+            }
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(isValidData, Is.True);
+
+            initialCount = skipList.Length;
+            counter = iterator.SeekBegin() ? 1 : 0;
+            while (iterator.Next())
+            {
+                var expected = iterator.CurrentKey + iterator.CurrentKey;
+                if (iterator.CurrentValue != expected)
+                    isValidData = false;
+                ++counter;
+            }
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(isValidData, Is.True);
+        });
+
+        task.Wait();
     }
 }

@@ -58,11 +58,17 @@ public class SkipList<TKey, TValue>
                 var node = Head;
                 for (int i = MaxLevel - 1; i >= 0; --i)
                 {
-                    for (; node.Next[i] != null; node = node.Next[i])
+                    while (true)
                     {
-                        var r = Comparer.Compare(key, node.Next[i].Key);
+                        var nextNode = node.Next[i];
+                        if (nextNode == null)
+                            break;
+
+                        var r = Comparer.Compare(key, nextNode.Key);
                         if (r < 0)
                             break;
+
+                        node = nextNode;
                     }
 
                     if (i <= level)
@@ -83,22 +89,25 @@ public class SkipList<TKey, TValue>
         }
     }
 
-    private SkipListNode SearchNode(in TKey key)
+    private SkipListNode SearchNodeWithoutSpinWait(in TKey key)
     {
         var node = Head;
         var comparer = Comparer;
         for (int i = MaxLevel - 1; i >= 0; i--)
         {
-            for (; node.Next[i] != null; node = node.Next[i])
+            while(true)
             {
-                while (!node.isInserted); //spin lock
-                var r = comparer.Compare(key, node.Next[i].Key);
+                var nextNode = node.Next[i];
+                if (nextNode == null)
+                    break;
+                var r = comparer.Compare(key, nextNode.Key);
                 if (r == 0)
                 {
-                    return node.Next[i];
+                    return nextNode;
                 }
                 if (r < 0)
                     break;
+                node = nextNode;
             }
         }
         return null;
@@ -110,25 +119,28 @@ public class SkipList<TKey, TValue>
         var comparer = Comparer;
         for (int i = MaxLevel - 1; i >= 0; i--)
         {
-            for (; node.Next[i] != null; node = node.Next[i])
+            while(true)
             {
-                while (!node.isInserted) ; //spin lock
-                var r = comparer.Compare(key, node.Next[i].Key);
+                node.EnsureNodeIsInserted();
+                var nextNode = node.Next[i];
+                if (nextNode == null)
+                    break;
+
+                var r = comparer.Compare(key, nextNode.Key);
                 if (r == 0)
                 {
-                    return node.Next[i];
+                    return nextNode;
                 }
 
                 if (i == 0)
                 {
                     if (r < 0)
                         return Head == node ? null : node;
-                    else
-                        continue;
                 }
-
-                if (r < 0)
+                else if (r < 0)
                     break;
+
+                node = nextNode;
             }
         }
         return Head == node ? null : node;
@@ -140,28 +152,40 @@ public class SkipList<TKey, TValue>
         var comparer = Comparer;
         for (int i = MaxLevel - 1; i >= 0; i--)
         {
-            for (; node.Next[i] != null; node = node.Next[i])
+
+            while (true)
             {
-                while (!node.isInserted) ; //spin lock
-                var r = comparer.Compare(key, node.Next[i].Key);
+                node.EnsureNodeIsInserted();
+                var nextNode = node.Next[i];
+                if (nextNode == null)
+                    break;
+                
+                var r = comparer.Compare(key, nextNode.Key);
                 if (r == 0)
                 {
-                    return node.Next[i];
+                    return nextNode;
                 }
 
                 if (i == 0)
                 {
                     if (r < 0)
-                        return node.NextNode;
-                    else
-                        continue;
+                    {
+                        node = node.NextNode;
+                        return node;
+                    }
                 }
-
-                if (r < 0)
+                else if (r < 0)
                     break;
+
+                node = nextNode;
             }
         }
-        return Head == node ? node.NextNode : null;
+        if (Head == node)
+        {
+            node = node.NextNode;
+            return node;
+        }
+        return null;
     }
 
     public delegate AddOrUpdateResult AddDelegate(SkipListNode node);
@@ -171,7 +195,7 @@ public class SkipList<TKey, TValue>
         int level = GetRandomLevel();
         lock (Head)
         {
-            var existingNode = SearchNode(in key);
+            var existingNode = SearchNodeWithoutSpinWait(in key);
             if (existingNode != null)
             {
                 return updater(existingNode);
@@ -186,11 +210,17 @@ public class SkipList<TKey, TValue>
                 var comparer = Comparer;
                 for (int i = MaxLevel - 1; i >= 0; --i)
                 {
-                    for (; node.Next[i] != null; node = node.Next[i])
+                    while (true)
                     {
-                        var r = comparer.Compare(key, node.Next[i].Key);
+                        var nextNode = node.Next[i];
+                        if (nextNode == null)
+                            break;
+
+                        var r = comparer.Compare(key, nextNode.Key);
                         if (r < 0)
                             break;
+
+                        node = nextNode;
                     }
 
                     if (i <= level)
@@ -216,17 +246,19 @@ public class SkipList<TKey, TValue>
         var comparer = Comparer;
         for (int i = MaxLevel - 1; i >= 0; i--)
         {
-            for (; node.Next[i] != null; node = node.Next[i])
+            while(true)
             {
-                // TODO: Benchmark while loop and SpinWait and
-                // switch to spinwait if it offers better performance.
-                // https://referencesource.microsoft.com/#mscorlib/system/threading/SpinWait.cs
-                while (!node.isInserted); //spin lock
-                var r = comparer.Compare(key, node.Next[i].Key);
+                node.EnsureNodeIsInserted();
+                var nextNode = node.Next[i];
+                if (nextNode == null)
+                    break;
+                var r = comparer.Compare(key, nextNode.Key);
                 if (r == 0)
                     return true;
                 if (r < 0)
                     break;
+
+                node = nextNode;
             }
         }
         return false;
@@ -243,6 +275,7 @@ public class SkipList<TKey, TValue>
         {
             keys[i] = node.Key;
             values[i] = node.Value;
+            node.EnsureNodeIsInserted();
             node = node.Next[0];
             ++i;
         }
@@ -255,17 +288,23 @@ public class SkipList<TKey, TValue>
         var comparer = Comparer;
         for (int i = MaxLevel - 1; i >= 0; i--)
         {
-            for (; node.Next[i] != null; node = node.Next[i])
+            while (true)
             {
-                while (!node.isInserted); //spin lock
-                var r = comparer.Compare(key, node.Next[i].Key);
+                node.EnsureNodeIsInserted();
+                var nextNode = node.Next[i];
+                if (nextNode == null)
+                    break;
+
+                var r = comparer.Compare(key, nextNode.Key);
                 if (r == 0)
                 {
-                    value = node.Next[i].Value;
+                    value = nextNode.Value;
                     return true;
                 }
                 if (r < 0)
                     break;
+
+                node = nextNode;
             }
         }
         value = default;
@@ -275,28 +314,36 @@ public class SkipList<TKey, TValue>
     public bool Remove(in TKey key)
     {
         var node = Head;
-        bool removed = false;
+        bool isRemoved = false;
         lock (Head)
         {
             var comparer = Comparer;
             for (int i = MaxLevel - 1; i >= 0; i--)
             {
-                for (; node.Next[i] != null; node = node.Next[i])
+                while (true)
                 {
-                    var r = comparer.Compare(key, node.Next[i].Key);
+                    var nextNode = node.Next[i];
+                    if (nextNode == null)
+                        break;
+
+                    var r = comparer.Compare(key, nextNode.Key);
                     if (r > 0) break;
                     if (r == 0)
                     {
-                        --Length;
-                        removed = true;
-                        node.Next[i] = node.Next[i].Next[i];
+                        isRemoved = true;
+                        node.Next[i] = nextNode.Next[i];
+                        if (i == 0)
+                            node.Next[0].PreviousNode = node;
                         break;
                     }
+
+                    node = nextNode;
                 }
             }
         }
-
-        return removed;
+        if (isRemoved)
+            --Length;
+        return isRemoved;
     }
 
     public class SkipListNode
@@ -341,14 +388,17 @@ public class SkipList<TKey, TValue>
                 }
             }
         }
+
         public readonly int Level;
-        public volatile bool isInserted;
+        
         public SkipListNode NextNode => Next[0];
 
         public bool HasNext => NextNode != null;
         public bool HasPrev => PreviousNode != null;
 
         public volatile SkipListNode PreviousNode;
+
+        public volatile bool IsInserted;
 
         public SkipListNode(in TKey key, int level)
         {
@@ -380,7 +430,18 @@ public class SkipList<TKey, TValue>
 
         public void MarkInserted()
         {
-            isInserted = true;
+            IsInserted = true;
+        }
+
+        /// <summary>
+        /// Spin waits till the node is fully inserted.
+        /// Call this method before you are access the Next or Prev
+        /// pointers of a node.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void EnsureNodeIsInserted()
+        {
+            while (!IsInserted);
         }
     }
 }

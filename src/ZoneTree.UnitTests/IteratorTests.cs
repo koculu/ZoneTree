@@ -227,4 +227,105 @@ public class IteratorTests
         iterator.Dispose();
         zoneTree.Maintenance.DestroyTree();
     }
+
+    [Test]
+    public void IntIntIteratorParallelInserts()
+    {
+        var dataPath = "data/IntIntIteratorParallelInserts";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        var random = new Random();
+        var insertCount = 100000;
+        var iteratorCount = 1000;
+
+        using var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetMutableSegmentMaxItemCount(insertCount * 2)
+            .SetComparer(new IntegerComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new Int32Serializer())
+            .OpenOrCreate();
+
+        var task = Task.Factory.StartNew(() =>
+        {
+            Parallel.For(0, insertCount, (x) =>
+            {
+                var key = random.Next();
+                zoneTree.Upsert(key, key + key);
+            });
+        });
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var initialCount = zoneTree.Maintenance.InMemoryRecordCount;
+            using var iterator = zoneTree.CreateIterator(false);
+            iterator.Seek(0);
+            var counter = 0;
+            var isValidData = true;
+            while(iterator.Next())
+            {
+                var expected = iterator.CurrentKey + iterator.CurrentKey;
+                if (iterator.CurrentValue != expected)
+                    isValidData = false;
+                ++counter;
+            }            
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(isValidData, Is.True);
+        });
+
+        task.Wait();
+        zoneTree.Maintenance.DestroyTree();
+    }
+
+
+    [Test]
+    public void IntIntReverseIteratorParallelInserts()
+    {
+        var dataPath = "data/IntIntReverseIteratorParallelInserts";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        var random = new Random();
+        var insertCount = 100000;
+        var iteratorCount = 1000;
+
+        using var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetMutableSegmentMaxItemCount(insertCount * 2)
+            .SetComparer(new IntegerComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new Int32Serializer())
+            .OpenOrCreate();
+
+        var task = Task.Factory.StartNew(() =>
+        {
+            Parallel.For(0, insertCount, (x) =>
+            {
+                var key = random.Next();
+                zoneTree.Upsert(key, key + key);
+            });
+        });
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var initialCount = zoneTree.Maintenance.InMemoryRecordCount;
+            using var iterator = zoneTree.CreateReverseIterator(false);
+            iterator.SeekFirst();
+            var counter = 0;
+            var isValidData = true;
+            while (iterator.Next())
+            {
+                var expected = iterator.CurrentKey + iterator.CurrentKey;
+                if (iterator.CurrentValue != expected)
+                    isValidData = false;
+                ++counter;
+            }
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(isValidData, Is.True);
+        });
+
+        task.Wait();
+        zoneTree.Maintenance.DestroyTree();
+    }
 }

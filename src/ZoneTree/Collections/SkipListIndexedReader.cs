@@ -24,7 +24,7 @@ public class SkipListIndexedReader<TKey, TValue> : IIndexedReader<TKey, TValue>
         {
             if (node == null)
                 break;
-            while (!node.isInserted); //spin lock
+            node.EnsureNodeIsInserted();
             node = node.NextNode;
             ++pos;
         }
@@ -33,7 +33,7 @@ public class SkipListIndexedReader<TKey, TValue> : IIndexedReader<TKey, TValue>
         {
             if (node == null)
                 break;
-            while (!node.isInserted); //spin lock
+            node.EnsureNodeIsInserted();
             node = node.PreviousNode;
             --pos;
         }
@@ -54,7 +54,7 @@ public class SkipListIndexedReader<TKey, TValue> : IIndexedReader<TKey, TValue>
         {
             if (node == null)
                 break;
-            while (!node.isInserted); //spin lock
+            node.EnsureNodeIsInserted();
             node = node.NextNode;
             ++pos;
         }
@@ -63,7 +63,7 @@ public class SkipListIndexedReader<TKey, TValue> : IIndexedReader<TKey, TValue>
         {
             if (node == null)
                 break;
-            while (!node.isInserted); //spin lock
+            node.EnsureNodeIsInserted();
             node = node.PreviousNode;
             --pos;
         }
