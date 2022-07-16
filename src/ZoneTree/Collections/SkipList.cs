@@ -340,9 +340,9 @@ public class SkipList<TKey, TValue>
                     node = nextNode;
                 }
             }
+            if (isRemoved)
+                --Length;
         }
-        if (isRemoved)
-            --Length;
         return isRemoved;
     }
 
@@ -398,7 +398,7 @@ public class SkipList<TKey, TValue>
 
         public volatile SkipListNode PreviousNode;
 
-        public volatile bool IsInserted;
+        volatile bool IsInserted;
 
         public SkipListNode(in TKey key, int level)
         {
