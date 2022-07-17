@@ -18,5 +18,5 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
 
     TransactionResult CommitTransaction(long transactionId);
 
-    TransactionResult AbortTransaction(long transactionId);
+    void AbortTransaction(long transactionId);
 }

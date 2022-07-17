@@ -79,7 +79,7 @@ public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
 
         if (optRecord.WriteStamp != 0)
             DependencyTable.Upsert(optRecord.WriteStamp, false);
-        optRecord.ReadStamp = Math.Max(optRecord.ReadStamp, TransactionId);            
+        optRecord.ReadStamp = Math.Max(optRecord.ReadStamp, TransactionId);
     }
 
     /// <summary>
@@ -103,6 +103,7 @@ public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
 
         if (optRecord.WriteStamp > TransactionId)
             return false;
+
         var value = oldValue;
         if (!hasOldValue)
             Options.MarkValueDeleted(ref value);
@@ -112,6 +113,11 @@ public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
         OldValueTable.Upsert(key, combinedValue);
         optRecord.WriteStamp = TransactionId;
         return true;
+    }
+
+    public IReadOnlyList<long> GetDependencyList()
+    {
+        return DependencyTable.Keys;
     }
 
     public void Dispose()

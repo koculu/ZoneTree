@@ -11,7 +11,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 {
     public IZoneTree<TKey, TValue> ZoneTree { get; }
 
-    private const string TxRecCategory = "txrec";
+    const string TxRecCategory = "txrec";
 
     readonly IncrementalIdProvider IdProvider = new ();
 
@@ -31,14 +31,21 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             (ref OptimisticRecord x) => x = default);
     }
 
-    private OptimisticTransaction<TKey, TValue> GetOrCreateTransaction(long transactionId)
+    OptimisticTransaction<TKey, TValue> GetOrCreateTransaction(long transactionId)
     {
         return null;
     }
 
-    public TransactionResult AbortTransaction(long transactionId)
+    public void AbortTransaction(long transactionId)
     {
-        throw new NotImplementedException();
+        lock (this)
+        {
+            var transaction = GetOrCreateTransaction(transactionId);
+            /*
+             For each oldOj, oldWTS(Oj) in OLD(Ti)
+                if WTS(Oj) equals TS(Ti) then restore Oj = oldOj and WTS(Oj) = oldWTS(Oj)
+             */
+        }
     }
 
     public TransactionResult CommitTransaction(long transactionId)
@@ -48,7 +55,28 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
          If there is a transaction in DEP(Ti) that aborted then abort
          Otherwise: commit.
          */
-        throw new NotImplementedException();
+
+        lock (this)
+        {
+            var transaction = GetOrCreateTransaction(transactionId);
+            var dependencies = transaction.GetDependencyList();
+            foreach (var dependency in dependencies)
+            {
+                //if (IsAborted(dependency))
+                {
+                    AbortTransaction(transactionId);
+                    throw new TransactionIsAbortedException(transactionId, TransactionResult.AbortedRetry);
+                }
+            }
+
+            foreach (var dependency in dependencies)
+            {
+                //if (IsUncommitted(dependency))
+                    return TransactionResult.WaitUncommittedTransactions;
+            }
+
+            return TransactionResult.Committed;
+        }
     }
 
     public bool ContainsKey(long transactionId, in TKey key)
@@ -79,9 +107,9 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     public bool TryGet(long transactionId, in TKey key, out TValue value)
     {
-        var transaction = GetOrCreateTransaction(transactionId);
         lock (this)
         {
+            var transaction = GetOrCreateTransaction(transactionId);
             var hasOptRecord = Records.TryGetValue(key, out var optRecord);
             var hasValue = ZoneTree.TryGet(in key, out value);
             transaction.HandleReadKey(ref optRecord);
@@ -92,11 +120,10 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     public void Upsert(long transactionId, in TKey key, in TValue value)
     {
-        var transaction = GetOrCreateTransaction(transactionId);
         lock (this)
         {
+            var transaction = GetOrCreateTransaction(transactionId);
             var hasOptRecord = Records.TryGetValue(key, out var optRecord);
-
             var hasOldValue = ZoneTree.TryGet(in key, out var oldValue);
 
             // skip the write based on Thomas Write Rule.

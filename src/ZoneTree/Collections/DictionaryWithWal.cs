@@ -33,6 +33,10 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 
     public int Length => Dictionary.Count;
 
+    public IReadOnlyList<TKey> Keys => Dictionary.Keys.ToArray();
+
+    public IReadOnlyList<TValue> Values => Dictionary.Values.ToArray();
+
     public DictionaryWithWAL(
         long segmentId,
         string category,

@@ -16,5 +16,10 @@ public enum TransactionResult
     /// <summary>
     /// Transaction is aborted.
     /// </summary>
-    AbortedDontRetry
+    AbortedDontRetry,
+
+    /// <summary>
+    /// Transaction can not commit due to other uncommitted transactions.
+    /// </summary>
+    WaitUncommittedTransactions
 }
