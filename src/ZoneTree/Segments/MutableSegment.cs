@@ -4,8 +4,9 @@
  * Lock Free Skip List is turned off by default.
  * Because it is slower in most of the test cases.
  * The option is pinned here for future analysis and improvements
- * on lock free skip list implementation.
- * It might have advantages in multi-threaded scenarios.
+ * on lock-free skiplist implementation.
+ * It might have advantages when the multi-threaded updates/inserts occur 
+ * in different regions in the list.
  */
 
 using Tenray.Collections;

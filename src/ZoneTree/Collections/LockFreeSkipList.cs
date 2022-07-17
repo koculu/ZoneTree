@@ -10,7 +10,10 @@ namespace ZoneTree.Collections;
 /// to synchronize node inserts,
 /// instead of a top level lock.
 /// Surprisingly, top level locks performs better in existing test cases.
-/// Use top level lock based SkipList for better performance!</remarks>
+/// Lock-Free Skip list performs better,when multiple writes are in different
+/// regions of the list, and
+/// performs worse when writes are in the same region of the list.
+/// </remarks>
 /// <typeparam name="TKey">Key Type</typeparam>
 /// <typeparam name="TValue">Value Type</typeparam>
 public class LockFreeSkipList<TKey, TValue>
