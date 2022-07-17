@@ -5,7 +5,7 @@ namespace ZoneTree.WAL;
 
 public class BasicWriteAheadLogProvider<TKey, TValue> : IWriteAheadLogProvider<TKey, TValue>
 {
-    readonly Dictionary<int, IWriteAheadLog<TKey, TValue>> WALTable = new();
+    readonly Dictionary<string, IWriteAheadLog<TKey, TValue>> WALTable = new();
     
     public ISerializer<TKey> KeySerializer { get; }
     
@@ -26,8 +26,13 @@ public class BasicWriteAheadLogProvider<TKey, TValue> : IWriteAheadLogProvider<T
 
     public IWriteAheadLog<TKey, TValue> GetOrCreateWAL(int segmentId)
     {
-        var walPath = Path.Combine(WalDirectory, segmentId + ".wal");
-        if (WALTable.TryGetValue(segmentId, out var value))
+        return GetOrCreateWAL(segmentId, string.Empty);
+    }
+
+    public IWriteAheadLog<TKey, TValue> GetOrCreateWAL(int segmentId, string category)
+    {
+        var walPath = Path.Combine(WalDirectory, category, segmentId + ".wal");
+        if (WALTable.TryGetValue(segmentId + category, out var value))
         {
             return value;
         }
@@ -35,13 +40,18 @@ public class BasicWriteAheadLogProvider<TKey, TValue> : IWriteAheadLogProvider<T
             KeySerializer,
             ValueSerializer,
             walPath);
-        WALTable.Add(segmentId, wal);
+        WALTable.Add(segmentId + category, wal);
         return wal;
     }
 
     public IWriteAheadLog<TKey, TValue> GetWAL(int segmentId)
     {
-        if (WALTable.TryGetValue(segmentId, out var value))
+        return GetWAL(segmentId, string.Empty);
+    }
+
+    public IWriteAheadLog<TKey, TValue> GetWAL(int segmentId, string category)
+    {
+        if (WALTable.TryGetValue(segmentId + category, out var value))
         {
             return value;
         }
@@ -50,7 +60,12 @@ public class BasicWriteAheadLogProvider<TKey, TValue> : IWriteAheadLogProvider<T
 
     public bool RemoveWAL(int segmentId)
     {
-        return WALTable.Remove(segmentId);
+        return RemoveWAL(segmentId, string.Empty);
+    }
+
+    public bool RemoveWAL(int segmentId, string category)
+    {
+        return WALTable.Remove(segmentId + category);
     }
 
     public void DropStore()

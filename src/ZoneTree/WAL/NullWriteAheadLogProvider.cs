@@ -21,5 +21,21 @@ public class NullWriteAheadLogProvider<TKey, TValue> : IWriteAheadLogProvider<TK
 
     public void DropStore()
     {
+        // Nothing to drop
+    }
+
+    public IWriteAheadLog<TKey, TValue> GetOrCreateWAL(int segmentId, string category)
+    {
+        return new NullWriteAheadLog<TKey, TValue>();
+    }
+
+    public IWriteAheadLog<TKey, TValue> GetWAL(int segmentId, string category)
+    {
+        return new NullWriteAheadLog<TKey, TValue>();
+    }
+
+    public bool RemoveWAL(int segmentId, string category)
+    {
+        return false;
     }
 }
