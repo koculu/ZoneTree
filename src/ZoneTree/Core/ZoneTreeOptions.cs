@@ -63,7 +63,7 @@ public class ZoneTreeOptions<TKey, TValue>
             throw exception;
     }
 
-    public IWriteAheadLogProvider<TKey, TValue> WriteAheadLogProvider { get; set; }
+    public IWriteAheadLogProvider WriteAheadLogProvider { get; set; }
 
     public IRandomAccessDeviceManager RandomAccessDeviceManager { get; set; }
 }

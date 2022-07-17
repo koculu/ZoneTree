@@ -1,20 +1,36 @@
 ﻿using Tenray.WAL;
+using ZoneTree.Core;
 
 namespace ZoneTree.WAL;
 
-public class NullWriteAheadLogProvider<TKey, TValue> : IWriteAheadLogProvider<TKey, TValue>
+public class NullWriteAheadLogProvider : IWriteAheadLogProvider
 {
-    public IWriteAheadLog<TKey, TValue> GetOrCreateWAL(int segmentId)
+    public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(int segmentId, ISerializer<TKey> keySerializer, ISerializer<TValue> valueSerialize)
     {
         return new NullWriteAheadLog<TKey, TValue>();
     }
 
-    public IWriteAheadLog<TKey, TValue> GetWAL(int segmentId)
+    public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(int segmentId, string category, ISerializer<TKey> keySerializer, ISerializer<TValue> valueSerialize)
     {
         return new NullWriteAheadLog<TKey, TValue>();
     }
 
-    public bool RemoveWAL(int segmentId)
+    public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(int segmentId)
+    {
+        return new NullWriteAheadLog<TKey, TValue>();
+    }
+
+    public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(int segmentId, string category)
+    {
+        return new NullWriteAheadLog<TKey, TValue>();
+    }
+
+    public bool RemoveWAL<TKey, TValue>(int segmentId)
+    {
+        return false;
+    }
+
+    public bool RemoveWAL<TKey, TValue>(int segmentId, string category)
     {
         return false;
     }
@@ -22,20 +38,5 @@ public class NullWriteAheadLogProvider<TKey, TValue> : IWriteAheadLogProvider<TK
     public void DropStore()
     {
         // Nothing to drop
-    }
-
-    public IWriteAheadLog<TKey, TValue> GetOrCreateWAL(int segmentId, string category)
-    {
-        return new NullWriteAheadLog<TKey, TValue>();
-    }
-
-    public IWriteAheadLog<TKey, TValue> GetWAL(int segmentId, string category)
-    {
-        return new NullWriteAheadLog<TKey, TValue>();
-    }
-
-    public bool RemoveWAL(int segmentId, string category)
-    {
-        return false;
     }
 }

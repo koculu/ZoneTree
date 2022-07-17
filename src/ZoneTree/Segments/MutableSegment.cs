@@ -50,7 +50,8 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         int segmentId)
     {
         SegmentId = segmentId;
-        WriteAheadLog = options.WriteAheadLogProvider.GetOrCreateWAL(SegmentId);
+        WriteAheadLog = options.WriteAheadLogProvider
+            .GetOrCreateWAL(SegmentId, options.KeySerializer, options.ValueSerializer);
         Options = options;
         Comparer = options.Comparer;
         SkipList = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
@@ -197,7 +198,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public void Drop()
     {
-        Options.WriteAheadLogProvider.RemoveWAL(SegmentId);
+        Options.WriteAheadLogProvider.RemoveWAL<TKey, TValue>(SegmentId);
         WriteAheadLog?.Drop();
     }
 
@@ -221,7 +222,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public void ReleaseResources()
     {
-        Options.WriteAheadLogProvider.RemoveWAL(SegmentId);
+        Options.WriteAheadLogProvider.RemoveWAL<TKey, TValue>(SegmentId);
         WriteAheadLog?.Dispose();
     }
 }

@@ -63,15 +63,12 @@ public class ZoneTreeFactory<TKey, TValue>
     {
         if (WalDirectory == null || Options.WriteAheadLogProvider != null)
             return;
-        Options.WriteAheadLogProvider = new BasicWriteAheadLogProvider<TKey, TValue>(
-                        Options.KeySerializer,
-                        Options.ValueSerializer,
-                        WalDirectory);
+        Options.WriteAheadLogProvider = new BasicWriteAheadLogProvider(WalDirectory);
     }
 
     public ZoneTreeFactory<TKey, TValue>
         SetWriteAheadLogProvider(
-        Func<ZoneTreeOptions<TKey, TValue>, IWriteAheadLogProvider<TKey, TValue>> walProvider)
+        Func<ZoneTreeOptions<TKey, TValue>, IWriteAheadLogProvider> walProvider)
     {
         Options.WriteAheadLogProvider = walProvider(Options);
         return this;

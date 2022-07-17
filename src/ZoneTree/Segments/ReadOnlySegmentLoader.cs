@@ -18,12 +18,15 @@ public class ReadOnlySegmentLoader<TKey, TValue>
 
     public IReadOnlySegment<TKey, TValue> LoadReadOnlySegment(int segmentId)
     {
-        var wal = Options.WriteAheadLogProvider.GetOrCreateWAL(segmentId);
+        var wal = Options.WriteAheadLogProvider.GetOrCreateWAL(
+            segmentId,
+            Options.KeySerializer,
+            Options.ValueSerializer);
         var result = wal.ReadLogEntries(false, false);
         
         if (!result.Success)
         {
-            Options.WriteAheadLogProvider.RemoveWAL(segmentId);
+            Options.WriteAheadLogProvider.RemoveWAL<TKey, TValue>(segmentId);
             using var disposeWal = wal;
             throw new WriteAheadLogCorruptionException(segmentId, result.Exceptions);
         }

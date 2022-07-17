@@ -3,67 +3,65 @@ using ZoneTree.Core;
 
 namespace ZoneTree.WAL;
 
-public class BasicWriteAheadLogProvider<TKey, TValue> : IWriteAheadLogProvider<TKey, TValue>
+public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 {
-    readonly Dictionary<string, IWriteAheadLog<TKey, TValue>> WALTable = new();
-    
-    public ISerializer<TKey> KeySerializer { get; }
-    
-    public ISerializer<TValue> ValueSerializer { get; }
+    readonly Dictionary<string, object> WALTable = new();
     
     public string WalDirectory { get; }
 
-    public BasicWriteAheadLogProvider(
-        ISerializer<TKey> keySerializer,
-        ISerializer<TValue> valueSerializer,
-        string walDirectory = "data/wal")
+    public BasicWriteAheadLogProvider(string walDirectory = "data/wal")
     {
-        KeySerializer = keySerializer;
-        ValueSerializer = valueSerializer;
         WalDirectory = walDirectory;
         Directory.CreateDirectory(walDirectory);
     }
 
-    public IWriteAheadLog<TKey, TValue> GetOrCreateWAL(int segmentId)
+    public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(
+        int segmentId,
+        ISerializer<TKey> keySerializer,
+        ISerializer<TValue> valueSerializer)
     {
-        return GetOrCreateWAL(segmentId, string.Empty);
+        return GetOrCreateWAL(segmentId, string.Empty, keySerializer, valueSerializer);
     }
 
-    public IWriteAheadLog<TKey, TValue> GetOrCreateWAL(int segmentId, string category)
+    public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(
+        int segmentId,
+        string category,
+        ISerializer<TKey> keySerializer,
+        ISerializer<TValue> valueSerializer)
     {
         var walPath = Path.Combine(WalDirectory, category, segmentId + ".wal");
         if (WALTable.TryGetValue(segmentId + category, out var value))
         {
-            return value;
+            return (IWriteAheadLog<TKey, TValue>) value;
         }
         var wal = new FileSystemWriteAheadLog<TKey, TValue>(
-            KeySerializer,
-            ValueSerializer,
+            keySerializer,
+            valueSerializer,
             walPath);
         WALTable.Add(segmentId + category, wal);
         return wal;
     }
 
-    public IWriteAheadLog<TKey, TValue> GetWAL(int segmentId)
+    public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(int segmentId)
     {
-        return GetWAL(segmentId, string.Empty);
+        return GetWAL<TKey, TValue>(segmentId, string.Empty);
     }
 
-    public IWriteAheadLog<TKey, TValue> GetWAL(int segmentId, string category)
+    public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(int segmentId, string category)
     {
         if (WALTable.TryGetValue(segmentId + category, out var value))
         {
-            return value;
+            return (IWriteAheadLog<TKey, TValue>) value;
         }
         return null;
     }
 
-    public bool RemoveWAL(int segmentId)
+    public bool RemoveWAL<TKey, TValue>(int segmentId)
     {
-        return RemoveWAL(segmentId, string.Empty);
+        return RemoveWAL<TKey, TValue>(segmentId, string.Empty);
     }
 
-    public bool RemoveWAL(int segmentId, string category)
+    public bool RemoveWAL<TKey, TValue>(int segmentId, string category)
     {
         return WALTable.Remove(segmentId + category);
     }
