@@ -18,7 +18,7 @@ public class Test1
             Directory.Delete(dataPath, true);
         var counterKey = -3999;
         using var data = new ZoneTreeFactory<int, int>()
-            .SetComparer(new IntegerComparerDescending())
+            .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetKeySerializer(new Int32Serializer())

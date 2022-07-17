@@ -16,7 +16,7 @@ public class FixedSizeKeyAndValueTests
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         using var data = new ZoneTreeFactory<int, int>()
-            .SetComparer(new IntegerComparerAscending())
+            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -48,7 +48,7 @@ public class FixedSizeKeyAndValueTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<int, string>()
-            .SetComparer(new IntegerComparerAscending())
+            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -148,7 +148,7 @@ public class FixedSizeKeyAndValueTests
     private void ReloadIntIntTreeTestHelper(string dataPath, bool destroy)
     {
         using var data = new ZoneTreeFactory<int, int>()
-            .SetComparer(new IntegerComparerAscending())
+            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)

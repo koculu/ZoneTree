@@ -16,11 +16,5 @@ public enum TransactionResult
     /// <summary>
     /// Transaction is aborted.
     /// </summary>
-    AbortedDontRetry,
-
-    /// <summary>
-    /// Transaction is killed as a deadlock victim.
-    /// Note: Optimistic transactions does not produce deadlocks.
-    /// </summary>
-    DeadlockVictim
+    AbortedDontRetry
 }

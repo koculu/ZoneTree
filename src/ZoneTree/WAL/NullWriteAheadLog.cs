@@ -28,7 +28,8 @@ public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValu
     {
     }
 
-    public void ReplaceWriteAheadLog(TKey[] keys, TValue[] values)
+    public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values)
     {
+        return 0;
     }
 }

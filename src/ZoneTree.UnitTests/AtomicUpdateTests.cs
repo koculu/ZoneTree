@@ -16,7 +16,7 @@ public class AtomicUpdateTests
             Directory.Delete(dataPath, true);
         var counterKey = -3999;
         using var data = new ZoneTreeFactory<int, int>()
-            .SetComparer(new IntegerComparerDescending())
+            .SetComparer(new Int32ComparerDescending())
             .SetMutableSegmentMaxItemCount(500)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -76,7 +76,7 @@ public class AtomicUpdateTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<int, int>()
-            .SetComparer(new IntegerComparerDescending())
+            .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetKeySerializer(new Int32Serializer())
@@ -131,7 +131,7 @@ public class AtomicUpdateTests
             Directory.Delete(dataPath, true);
         var counterKey = -3999;
         using var data = new ZoneTreeFactory<int, int>()
-            .SetComparer(new IntegerComparerDescending())
+            .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetKeySerializer(new Int32Serializer())
@@ -185,7 +185,7 @@ public class AtomicUpdateTests
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         using var data = new ZoneTreeFactory<int, int>()
-            .SetComparer(new IntegerComparerDescending())
+            .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetKeySerializer(new Int32Serializer())

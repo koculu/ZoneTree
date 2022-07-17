@@ -16,7 +16,7 @@ public class IteratorTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new IntegerComparerAscending())
+            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(11)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -89,7 +89,7 @@ public class IteratorTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new IntegerComparerAscending())
+            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(11)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -183,7 +183,7 @@ public class IteratorTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new IntegerComparerAscending())
+            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(250)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -241,7 +241,7 @@ public class IteratorTests
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetMutableSegmentMaxItemCount(insertCount * 2)
-            .SetComparer(new IntegerComparerAscending())
+            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetKeySerializer(new Int32Serializer())
@@ -292,7 +292,7 @@ public class IteratorTests
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetMutableSegmentMaxItemCount(insertCount * 2)
-            .SetComparer(new IntegerComparerAscending())
+            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetKeySerializer(new Int32Serializer())

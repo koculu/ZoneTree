@@ -15,7 +15,7 @@ public class SkipListTests
     public void SkipListIteration()
     {
         var n = 2000;
-        var skipList = new SkipList<int, int>(new IntegerComparerAscending(), (int)Math.Log2(n) + 1);
+        var skipList = new SkipList<int, int>(new Int32ComparerAscending(), (int)Math.Log2(n) + 1);
         for (var i = 0; i < n; ++i)
             skipList.TryInsert(i, i + i);
         
@@ -40,7 +40,7 @@ public class SkipListTests
     public void SkipListIterator()
     {
         var n = 3;
-        var skipList = new SkipList<int, int>(new IntegerComparerAscending(), (int)Math.Log2(n) + 1);
+        var skipList = new SkipList<int, int>(new Int32ComparerAscending(), (int)Math.Log2(n) + 1);
         for (var i = 0; i < n; ++i)
             skipList.TryInsert(i, i + i);
         var indexedReader = new SkipListIndexedReader<int, int>(skipList);
@@ -80,7 +80,7 @@ public class SkipListTests
     {
         int n = 10;
         var skipList = new SkipList<int, int>(
-            new IntegerComparerAscending(),
+            new Int32ComparerAscending(),
             (int)Math.Log2(n) + 1);
         for (var i = 1; i < n; i += 2)
             skipList.TryInsert(i, i);
@@ -120,7 +120,7 @@ public class SkipListTests
         var iteratorCount = 1000;
 
         var skipList = new SkipList<int, int>(
-            new IntegerComparerAscending(),
+            new Int32ComparerAscending(),
             (int)Math.Log2(insertCount) + 1);
 
         var task = Task.Factory.StartNew(() =>
@@ -169,7 +169,7 @@ public class SkipListTests
         var iteratorCount = 1000;
 
         var skipList = new SkipList<int, int>(
-            new IntegerComparerAscending(),
+            new Int32ComparerAscending(),
             (int)Math.Log2(insertCount) + 1);
 
         var task = Task.Factory.StartNew(() =>

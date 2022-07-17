@@ -32,7 +32,7 @@ The following sample demonstrates creating a database.
   var dataPath = "data/mydatabase";
   var walPath = "data/mydatabase/wal";
   using var zoneTree = new ZoneTreeFactory<int, string>()
-    .SetComparer(new IntegerComparerAscending())
+    .SetComparer(new Int32ComparerAscending())
     .SetDataDirectory(dataPath)
     .SetWriteAheadLogDirectory(walPath)
     .SetKeySerializer(new Int32Serializer())
@@ -56,7 +56,7 @@ Note: For small data you don't need a maintainer.
 
   // 1. Create your ZoneTree
   using var zoneTree = new ZoneTreeFactory<int, string>()
-    .SetComparer(new IntegerComparerAscending())
+    .SetComparer(new Int32ComparerAscending())
     .SetDataDirectory(dataPath)
     .SetWriteAheadLogDirectory(walPath)
     .SetKeySerializer(new Int32Serializer())

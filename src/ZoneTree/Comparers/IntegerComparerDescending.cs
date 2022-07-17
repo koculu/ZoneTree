@@ -2,7 +2,7 @@
 
 namespace Tenray;
 
-public class IntegerComparerDescending : IRefComparer<int>
+public class Int32ComparerDescending : IRefComparer<int>
 {
     public int Compare(in int x, in int y)
     {
