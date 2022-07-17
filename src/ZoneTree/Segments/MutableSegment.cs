@@ -1,4 +1,14 @@
-﻿using Tenray.Collections;
+﻿#undef USE_LOCK_FREE_SKIP_LIST
+
+/*
+ * Lock Free Skip List is turned off by default.
+ * Because it is slower in most of the test cases.
+ * The option is pinned here for future analysis and improvements
+ * on lock free skip list implementation.
+ * It might have advantages in multi-threaded scenarios.
+ */
+
+using Tenray.Collections;
 using Tenray.WAL;
 using ZoneTree.Collections;
 using ZoneTree.Core;
@@ -17,7 +27,11 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     readonly int MutableSegmentMaxItemCount;
 
+#if USE_LOCK_FREE_SKIP_LIST
+    readonly LockFreeSkipList<TKey, TValue> SkipList;
+#else
     readonly SkipList<TKey, TValue> SkipList;
+#endif
 
     readonly IRefComparer<TKey> Comparer;
 
@@ -188,12 +202,20 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public IIndexedReader<TKey, TValue> GetIndexedReader()
     {
+#if USE_LOCK_FREE_SKIP_LIST
+        return new LockFreeSkipListIndexedReader<TKey, TValue>(SkipList);
+#else
         return new SkipListIndexedReader<TKey, TValue>(SkipList);
+#endif
     }
 
     public ISeekableIterator<TKey, TValue> GetSeekableIterator()
     {
+#if USE_LOCK_FREE_SKIP_LIST
+        return new LockFreeSkipListSeekableIterator<TKey, TValue>(SkipList);
+#else
         return new SkipListSeekableIterator<TKey, TValue>(SkipList);
+#endif
     }
 
     public void ReleaseResources()

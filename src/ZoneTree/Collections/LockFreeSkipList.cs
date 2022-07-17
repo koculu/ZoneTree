@@ -4,23 +4,28 @@ using Tenray.Collections;
 namespace ZoneTree.Collections;
 
 /// <summary>
-/// Thread-safe SkipList implementation.
+/// Lock-Free Thread-Safe SkipList implementation.
 /// </summary>
+/// <remarks>CAS (Compare and swap) atomic instructions are being used 
+/// to synchronize node inserts,
+/// instead of a top level lock.
+/// Surprisingly, top level locks performs better in existing test cases.
+/// Use top level lock based SkipList for better performance!</remarks>
 /// <typeparam name="TKey">Key Type</typeparam>
 /// <typeparam name="TValue">Value Type</typeparam>
-public class SkipList<TKey, TValue>
+public class LockFreeSkipList<TKey, TValue>
 {
     readonly SkipListNode Head;
 
     volatile SkipListNode Tail;
-
-    readonly Random Random = new ();
+    readonly Random Random = new();
 
     readonly int MaxLevel;
 
     public IRefComparer<TKey> Comparer { get; }
 
-    public int Length { get; private set; }
+    private int _length;
+    public int Length { get => _length; private set => _length = value; }
 
     public SkipListNode FirstNode => Head.GetNext(0);
 
@@ -33,7 +38,7 @@ public class SkipList<TKey, TValue>
     /// </summary>
     /// <param name="comparer">Key Comparer</param>
     /// <param name="maxLevel">maxLevel of a skip list node.</param>
-    public SkipList(IRefComparer<TKey> comparer, int maxLevel = 20)
+    public LockFreeSkipList(IRefComparer<TKey> comparer, int maxLevel = 20)
     {
         MaxLevel = maxLevel;
         Comparer = comparer;
@@ -55,11 +60,25 @@ public class SkipList<TKey, TValue>
     public bool TryInsert(in TKey key, in TValue value)
     {
         int level = GetRandomLevel();
-        lock (Head)
+        var lockedNodes = new List<SkipListNode>();
+        var releaseLocks = () =>
         {
-            if (ContainsKey(key))
-                return false;
-            var newNode = new SkipListNode(key, value, level);
+            var len = lockedNodes.Count;
+            for (int i = len - 1; i >= 0; --i)
+            {
+                var node = lockedNodes[i];
+                node.ReleaseLock();
+            }
+            for (int i = len - 1; i >= 0; --i)
+            {
+                var node = lockedNodes[i];
+                node.MarkInserted();
+            }
+            lockedNodes.Clear();
+        };
+        var newNode = new SkipListNode(key, value, level);
+        while (true)
+        {
             try
             {
                 var node = Head;
@@ -67,57 +86,52 @@ public class SkipList<TKey, TValue>
                 {
                     while (true)
                     {
+                        if (!lockedNodes.Contains(node))
+                            node.EnsureNodeIsInserted();
                         var nextNode = node.GetNext(i);
                         if (nextNode == null)
                             break;
 
                         var r = Comparer.Compare(key, nextNode.Key);
+                        if (r == 0)
+                            return false;
                         if (r < 0)
                             break;
 
                         node = nextNode;
                     }
 
-                    if (i <= level)
+                    if (i > level)
+                        continue;
+
+                    if (!lockedNodes.Contains(node) && !node.TryAcquireLock())
                     {
-                        node.AssignNext(newNode, i, Head);
+                        releaseLocks();
+                        break;
                     }
+                    node.MarkNotInserted();
+                    lockedNodes.Add(node);
                 }
+                var len = lockedNodes.Count;
+                if (len == 0)
+                    continue;
+
+                for (int i = len - 1; i >= 0; --i)
+                {
+                    node = lockedNodes[i];
+                    node.AssignNext(newNode, len - i - 1, Head);
+                }
+                Interlocked.Increment(ref _length);
                 if (!newNode.HasNext)
                     Tail = newNode;
+                newNode.MarkInserted();
             }
             finally
             {
-                newNode.MarkInserted();
+                newNode.ReleaseLock();
             }
-
-            ++Length;
             return true;
         }
-    }
-
-    private SkipListNode SearchNodeWithoutSpinWait(in TKey key)
-    {
-        var node = Head;
-        var comparer = Comparer;
-        for (int i = MaxLevel - 1; i >= 0; i--)
-        {
-            while(true)
-            {
-                var nextNode = node.GetNext(i);
-                if (nextNode == null)
-                    break;
-                var r = comparer.Compare(key, nextNode.Key);
-                if (r == 0)
-                {
-                    return nextNode;
-                }
-                if (r < 0)
-                    break;
-                node = nextNode;
-            }
-        }
-        return null;
     }
 
     public SkipListNode GetLastNodeSmallerOrEqual(in TKey key)
@@ -126,7 +140,7 @@ public class SkipList<TKey, TValue>
         var comparer = Comparer;
         for (int i = MaxLevel - 1; i >= 0; i--)
         {
-            while(true)
+            while (true)
             {
                 node.EnsureNodeIsInserted();
                 var nextNode = node.GetNext(i);
@@ -165,7 +179,7 @@ public class SkipList<TKey, TValue>
                 var nextNode = node.GetNext(i);
                 if (nextNode == null)
                     break;
-                
+
                 var r = comparer.Compare(key, nextNode.Key);
                 if (r == 0)
                 {
@@ -201,17 +215,25 @@ public class SkipList<TKey, TValue>
     public AddOrUpdateResult AddOrUpdate(TKey key, AddDelegate adder, UpdateDelegate updater)
     {
         int level = GetRandomLevel();
-        lock (Head)
+        var lockedNodes = new List<SkipListNode>();
+        var releaseLocks = () =>
         {
-            var existingNode = SearchNodeWithoutSpinWait(in key);
-            if (existingNode != null)
+            var len = lockedNodes.Count;
+            for (int i = len - 1; i >= 0; --i)
             {
-                return updater(existingNode);
+                var node = lockedNodes[i];
+                node.ReleaseLock();
             }
-            var newNode = new SkipListNode(key, level);
-            var adderResult = adder(newNode);
-            if (adderResult != AddOrUpdateResult.ADDED)
-                return adderResult;
+            for (int i = len - 1; i >= 0; --i)
+            {
+                var node = lockedNodes[i];
+                node.MarkInserted();
+            }
+            lockedNodes.Clear();
+        };
+        var newNode = new SkipListNode(key, level);
+        while (true)
+        {
             try
             {
                 var node = Head;
@@ -220,29 +242,78 @@ public class SkipList<TKey, TValue>
                 {
                     while (true)
                     {
+                        if (!lockedNodes.Contains(node))
+                            node.EnsureNodeIsInserted();
                         var nextNode = node.GetNext(i);
                         if (nextNode == null)
                             break;
 
                         var r = comparer.Compare(key, nextNode.Key);
+
+                        if (r == 0)
+                        {
+                            try
+                            {
+                                if (!lockedNodes.Contains(nextNode))
+                                {
+                                    if (!nextNode.TryAcquireLock())
+                                    {
+                                        node = null;
+                                        break;
+                                    }
+                                    nextNode.EnsureNodeIsInserted();
+                                }
+                                return updater(nextNode);
+                            }
+                            finally
+                            {
+                                nextNode.ReleaseLock();
+                            }
+                        }
+
                         if (r < 0)
                             break;
 
                         node = nextNode;
                     }
-
-                    if (i <= level)
+                    if (node == null)
                     {
-                        node.AssignNext(newNode, i, Head);
+                        releaseLocks();
+                        break;
                     }
+                    if (i > level)
+                        continue;
+
+                    if (!lockedNodes.Contains(node) && !node.TryAcquireLock())
+                    {
+                        releaseLocks();
+                        break;
+                    }
+                    node.MarkNotInserted();
+                    lockedNodes.Add(node);
                 }
-                ++Length;
+
+                var len = lockedNodes.Count;
+                if (len == 0)
+                    continue;
+
+                var adderResult = adder(newNode);
+                if (adderResult != AddOrUpdateResult.ADDED)
+                    return adderResult;
+
+                for (int i = len - 1; i >= 0; --i)
+                {
+                    node = lockedNodes[i];
+                    node.AssignNext(newNode, len - i - 1, Head);
+                }
+                Interlocked.Increment(ref _length);
                 if (!newNode.HasNext)
                     Tail = newNode;
+                newNode.MarkInserted();
             }
             finally
             {
-                newNode.MarkInserted();
+                releaseLocks();
             }
             return AddOrUpdateResult.ADDED;
         }
@@ -254,7 +325,7 @@ public class SkipList<TKey, TValue>
         var comparer = Comparer;
         for (int i = MaxLevel - 1; i >= 0; i--)
         {
-            while(true)
+            while (true)
             {
                 node.EnsureNodeIsInserted();
                 var nextNode = node.GetNext(i);
@@ -321,37 +392,7 @@ public class SkipList<TKey, TValue>
 
     public bool TryRemove(in TKey key)
     {
-        var node = Head;
-        bool isRemoved = false;
-        lock (Head)
-        {
-            var comparer = Comparer;
-            for (int i = MaxLevel - 1; i >= 0; i--)
-            {
-                while (true)
-                {
-                    var nextNode = node.GetNext(i);
-                    if (nextNode == null)
-                        break;
-
-                    var r = comparer.Compare(key, nextNode.Key);
-                    if (r > 0) break;
-                    if (r == 0)
-                    {
-                        isRemoved = true;
-                        node.SetNext(i, nextNode.GetNext(i));
-                        if (i == 0)
-                            node.GetNext(0)?.SetPrevious(node);
-                        break;
-                    }
-
-                    node = nextNode;
-                }
-            }
-            if (isRemoved)
-                --Length;
-        }
-        return isRemoved;
+        throw new NotSupportedException();
     }
 
     public class SkipListNode
@@ -380,7 +421,7 @@ public class SkipList<TKey, TValue>
                     return _value;
                 else
                 {
-                    lock(this)
+                    lock (this)
                     {
                         return _value;
                     }
@@ -395,7 +436,7 @@ public class SkipList<TKey, TValue>
                     _value = value;
                 else
                 {
-                    lock(this)
+                    lock (this)
                     {
                         _value = value;
                     }
@@ -417,7 +458,7 @@ public class SkipList<TKey, TValue>
         {
             Key = key;
             Level = level;
-            Next = new SkipListNode[Level+1];
+            Next = new SkipListNode[Level + 1];
         }
 
         internal SkipListNode(TKey key, TValue value, int level)
@@ -478,6 +519,12 @@ public class SkipList<TKey, TValue>
             IsInserted = true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void MarkNotInserted()
+        {
+            IsInserted = false;
+        }
+
         /// <summary>
         /// Spin waits till the node is fully inserted.
         /// Call this method before you access the Next or Prev
@@ -493,6 +540,17 @@ public class SkipList<TKey, TValue>
             {
                 spinWait.SpinOnce();
             }
+        }
+
+        int casLock = 0;
+        public bool TryAcquireLock()
+        {
+            return Interlocked.CompareExchange(ref casLock, 1, 0) == 0;
+        }
+
+        public void ReleaseLock()
+        {
+            Interlocked.CompareExchange(ref casLock, 0, 1);
         }
     }
 }

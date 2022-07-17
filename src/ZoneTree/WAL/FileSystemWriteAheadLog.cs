@@ -1,6 +1,4 @@
-﻿using System.Runtime.Intrinsics.Arm;
-using System.Runtime.Intrinsics.X86;
-using ZoneTree.Core;
+﻿using ZoneTree.Core;
 using ZoneTree.WAL;
 
 namespace Tenray.WAL;
@@ -36,7 +34,10 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     {
         var keyBytes = KeySerializer.Serialize(key);
         var valueBytes = ValueSerializer.Serialize(value);
-        AppendLogEntry(keyBytes, valueBytes);
+        lock (this)
+        {
+            AppendLogEntry(keyBytes, valueBytes);
+        }
     }
 
     public void Drop()
