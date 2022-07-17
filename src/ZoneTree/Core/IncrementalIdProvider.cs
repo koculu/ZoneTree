@@ -2,14 +2,14 @@
 
 public class IncrementalIdProvider : IIncrementalIdProvider
 {
-    int nextId = 0;
+    int lastId = 0;
     public int NextId()
     {
-        return Interlocked.Increment(ref nextId);
+        return Interlocked.Increment(ref lastId);
     }
 
     public void SetNextId(int id)
     {
-        Interlocked.Exchange(ref nextId, id - 1);
+        Interlocked.Exchange(ref lastId, id - 1);
     }
 }

@@ -15,7 +15,7 @@ namespace ZoneTree.Collections
     /// <typeparam name="TValue"></typeparam>
     public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
     {
-        readonly int SegmentId;
+        readonly long SegmentId;
 
         readonly string Category;
 
@@ -31,8 +31,10 @@ namespace ZoneTree.Collections
 
         Dictionary<TKey, TValue> Dictionary = new();
 
+        public int Length => Dictionary.Count;
+
         public DictionaryWithWAL(
-            int segmentId,
+            long segmentId,
             string category,
             IWriteAheadLogProvider writeAheadLogProvider,
             ISerializer<TKey> keySerializer,
@@ -44,7 +46,7 @@ namespace ZoneTree.Collections
             WriteAheadLogProvider = writeAheadLogProvider;
             Comparer = comparer;
             WriteAheadLog = writeAheadLogProvider
-                .GetOrCreateWAL(segmentId, keySerializer, valueSerializer);
+                .GetOrCreateWAL(segmentId, category, keySerializer, valueSerializer);
             SegmentId = segmentId;
             Category = category;
             IsValueDeleted = isValueDeleted;

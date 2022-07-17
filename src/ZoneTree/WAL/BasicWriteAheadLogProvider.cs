@@ -16,7 +16,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
     }
 
     public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(
-        int segmentId,
+        long segmentId,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer)
     {
@@ -24,7 +24,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
     }
 
     public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(
-        int segmentId,
+        long segmentId,
         string category,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer)
@@ -42,12 +42,12 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
         return wal;
     }
 
-    public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(int segmentId)
+    public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(long segmentId)
     {
         return GetWAL<TKey, TValue>(segmentId, string.Empty);
     }
 
-    public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(int segmentId, string category)
+    public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(long segmentId, string category)
     {
         if (WALTable.TryGetValue(segmentId + category, out var value))
         {
@@ -56,12 +56,12 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
         return null;
     }
 
-    public bool RemoveWAL(int segmentId)
+    public bool RemoveWAL(long segmentId)
     {
         return RemoveWAL(segmentId, string.Empty);
     }
 
-    public bool RemoveWAL(int segmentId, string category)
+    public bool RemoveWAL(long segmentId, string category)
     {
         return WALTable.Remove(segmentId + category);
     }
