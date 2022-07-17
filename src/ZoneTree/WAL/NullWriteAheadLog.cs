@@ -27,4 +27,8 @@ public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValu
     public void Dispose()
     {
     }
+
+    public void ReplaceWriteAheadLog(TKey[] keys, TValue[] values)
+    {
+    }
 }

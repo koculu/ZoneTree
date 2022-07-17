@@ -56,12 +56,12 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
         return null;
     }
 
-    public bool RemoveWAL<TKey, TValue>(int segmentId)
+    public bool RemoveWAL(int segmentId)
     {
-        return RemoveWAL<TKey, TValue>(segmentId, string.Empty);
+        return RemoveWAL(segmentId, string.Empty);
     }
 
-    public bool RemoveWAL<TKey, TValue>(int segmentId, string category)
+    public bool RemoveWAL(int segmentId, string category)
     {
         return WALTable.Remove(segmentId + category);
     }

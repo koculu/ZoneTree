@@ -25,12 +25,12 @@ public class NullWriteAheadLogProvider : IWriteAheadLogProvider
         return new NullWriteAheadLog<TKey, TValue>();
     }
 
-    public bool RemoveWAL<TKey, TValue>(int segmentId)
+    public bool RemoveWAL(int segmentId)
     {
         return false;
     }
 
-    public bool RemoveWAL<TKey, TValue>(int segmentId, string category)
+    public bool RemoveWAL(int segmentId, string category)
     {
         return false;
     }

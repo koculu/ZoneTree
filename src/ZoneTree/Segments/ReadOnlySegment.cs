@@ -102,7 +102,7 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
 
     public void Drop()
     {
-        Options.WriteAheadLogProvider.RemoveWAL<TKey, TValue>(SegmentId);
+        Options.WriteAheadLogProvider.RemoveWAL(SegmentId);
         WriteAheadLog?.Drop();
     }
 
@@ -157,7 +157,7 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
 
     public void ReleaseResources()
     {
-        Options.WriteAheadLogProvider.RemoveWAL<TKey, TValue>(SegmentId);
+        Options.WriteAheadLogProvider.RemoveWAL(SegmentId);
         WriteAheadLog?.Dispose();
     }
 }

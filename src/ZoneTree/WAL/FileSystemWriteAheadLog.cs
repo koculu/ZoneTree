@@ -180,4 +180,20 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     {
         FileStream.Flush();
     }
+
+    public void ReplaceWriteAheadLog(TKey[] keys, TValue[] values)
+    {
+        // TODO: backup existing WAL.
+        // Track completion.
+        // Ensure durability.
+        lock (this)
+        {
+            FileStream.SetLength(0);
+            var len = keys.Length;
+            for (var i = 0; i < len; ++i)
+            {
+                Append(keys[i], values[i]);
+            }
+        }
+    }
 }

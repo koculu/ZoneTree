@@ -198,7 +198,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public void Drop()
     {
-        Options.WriteAheadLogProvider.RemoveWAL<TKey, TValue>(SegmentId);
+        Options.WriteAheadLogProvider.RemoveWAL(SegmentId);
         WriteAheadLog?.Drop();
     }
 
@@ -222,7 +222,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public void ReleaseResources()
     {
-        Options.WriteAheadLogProvider.RemoveWAL<TKey, TValue>(SegmentId);
+        Options.WriteAheadLogProvider.RemoveWAL(SegmentId);
         WriteAheadLog?.Dispose();
     }
 }

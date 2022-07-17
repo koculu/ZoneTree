@@ -20,9 +20,9 @@ public interface IWriteAheadLogProvider
 
     IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(int segmentId, string category);
 
-    bool RemoveWAL<TKey, TValue>(int segmentId);
+    bool RemoveWAL(int segmentId);
 
-    bool RemoveWAL<TKey, TValue>(int segmentId, string category);
+    bool RemoveWAL(int segmentId, string category);
 
     void DropStore();
 }

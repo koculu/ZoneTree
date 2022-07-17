@@ -20,7 +20,7 @@ public class MutableSegmentLoader<TKey, TValue>
         var result = wal.ReadLogEntries(false, false);
         if (!result.Success)
         {
-            Options.WriteAheadLogProvider.RemoveWAL<TKey, TValue>(segmentId);
+            Options.WriteAheadLogProvider.RemoveWAL(segmentId);
             using var disposeWal = wal;
             throw new WriteAheadLogCorruptionException(segmentId, result.Exceptions);
         }
