@@ -2,7 +2,6 @@
 using ZoneTree.Collections;
 using ZoneTree.Core;
 using ZoneTree.Serializers;
-using ZoneTree.WAL;
 
 namespace ZoneTree.Transactional;
 
@@ -14,6 +13,8 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
     const string TxDependency = "txd";
 
+    const string TxReadWriteStampCategory = "txs";
+
     readonly IncrementalInt64IdProvider IncrementalIdProvider = new();
 
     readonly DictionaryWithWAL<long, TransactionMeta> Transactions;
@@ -21,6 +22,8 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
     readonly DictionaryOfDictionaryWithWAL<long, TKey, CombinedValue<TValue, long>> HistoryTable;
 
     readonly DictionaryOfDictionaryWithWAL<long, long, bool> DependencyTable;
+
+    readonly DictionaryWithWAL<TKey, ReadWriteStamp> ReadWriteStamps;
 
     public int TransactionCount {
         get {
@@ -75,6 +78,17 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             new Int64Serializer(),
             new BooleanSerializer()
             );
+
+        writeAheadLogProvider.InitCategory(TxReadWriteStampCategory);
+        ReadWriteStamps = new(
+            0,
+            TxReadWriteStampCategory,
+            options.WriteAheadLogProvider,
+            options.KeySerializer,
+            new StructSerializer<ReadWriteStamp>(),
+            options.Comparer,
+            (in ReadWriteStamp x) => x.IsDeleted,
+            (ref ReadWriteStamp x) => x = default);
 
         var keys = Transactions.Keys;
         if (keys.Count > 0)
@@ -148,7 +162,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
         }
     }
 
-    public void AddHistory(long transactionId, TKey key, CombinedValue<TValue, long> combinedValue)
+    public void AddHistoryRecord(long transactionId, TKey key, CombinedValue<TValue, long> combinedValue)
     {
         lock (this)
         {
@@ -181,10 +195,21 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
         Transactions?.Dispose();
         DependencyTable?.Dispose();
         HistoryTable?.Dispose();
+        ReadWriteStamps?.Dispose();
     }
 
     public long GetNextTransactionId()
     {
         return IncrementalIdProvider.NextId();
+    }
+
+    public bool TryGetReadWriteStamp(in TKey key, out ReadWriteStamp readWriteStamp)
+    {
+        return ReadWriteStamps.TryGetValue(in key, out readWriteStamp);
+    }
+
+    public bool AddOrUpdateReadWriteStamp(in TKey key, in ReadWriteStamp readWriteStamp)
+    {
+        return ReadWriteStamps.Upsert(in key, readWriteStamp);
     }
 }

@@ -73,7 +73,7 @@ public sealed class OptimisticTransaction<TKey, TValue>
 
         var combinedValue = 
             new CombinedValue<TValue, long>(value, readWriteStamp.WriteStamp);
-        TransactionLog.AddHistory(TransactionId, key, combinedValue);
+        TransactionLog.AddHistoryRecord(TransactionId, key, combinedValue);
         readWriteStamp.WriteStamp = TransactionId;
         return OptimisticWriteAction.Write;
     }

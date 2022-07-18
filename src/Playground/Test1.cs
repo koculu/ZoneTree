@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,10 +15,11 @@ public class Test1
     public void Run()
     {
         var dataPath = "data/SeveralParallelTransactions";
-        if (Directory.Exists(dataPath))
-            Directory.Delete(dataPath, true);
-
-        int n = 10000;
+        /*if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);*/
+        var stopWatch = new Stopwatch();
+        stopWatch.Start();
+        int n = 100000;
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
@@ -26,6 +28,7 @@ public class Test1
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();
 
+        Console.WriteLine("Loaded: " + stopWatch.ElapsedMilliseconds);
         Parallel.For(0, n, (x) =>
         {
             var tx = zoneTree.BeginTransaction();
@@ -34,7 +37,7 @@ public class Test1
             zoneTree.Prepare(tx);
             zoneTree.Commit(tx);
         });
-
-        zoneTree.DestroyTree();
+        Console.WriteLine("Elapsed: " + stopWatch.ElapsedMilliseconds);
+        //zoneTree.DestroyTree();
     }
 }

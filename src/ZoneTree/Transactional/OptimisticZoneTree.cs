@@ -9,13 +9,9 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 {
     public IZoneTree<TKey, TValue> ZoneTree { get; }
 
-    const string TxStampRecordCategory = "txs";
-
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
     readonly ITransactionLog<TKey, TValue> TransactionLog;
-
-    readonly DictionaryWithWAL<TKey, ReadWriteStamp> ReadWriteStamps;
 
     readonly Dictionary<long, OptimisticTransaction<TKey, TValue>> OptimisticTransactions = new();
 
@@ -26,17 +22,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
     {
         Options = options;
         TransactionLog = transactionLog;
-        ZoneTree = zoneTree ?? new ZoneTree<TKey, TValue>(options);
-        Options.WriteAheadLogProvider.InitCategory(TxStampRecordCategory);
-        ReadWriteStamps = new(
-            0,
-            TxStampRecordCategory,
-            options.WriteAheadLogProvider,
-            options.KeySerializer,
-            new StructSerializer<ReadWriteStamp>(),
-            options.Comparer,
-            (in ReadWriteStamp x) => x.IsDeleted,
-            (ref ReadWriteStamp x) => x = default);
+        ZoneTree = zoneTree ?? new ZoneTree<TKey, TValue>(options);        
     }
 
     OptimisticTransaction<TKey, TValue> GetOrCreateTransaction(long transactionId)
@@ -95,11 +81,11 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             var key = item.Key;
             var oldValue = item.Value.Value1;
             var oldWriteStamp = item.Value.Value2;
-            ReadWriteStamps.TryGetValue(key, out var readWriteStamp);
+            TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             if (readWriteStamp.WriteStamp != transactionId)
                 continue;
             readWriteStamp.WriteStamp = oldWriteStamp;
-            ReadWriteStamps.Upsert(key, readWriteStamp);
+            TransactionLog.AddOrUpdateReadWriteStamp(key, readWriteStamp);
             ZoneTree.Upsert(key, oldValue);
         }
         DeleteTransaction(transaction);
@@ -178,14 +164,14 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         lock (this)
         {
             var transaction = GetOrCreateTransaction(transactionId);
-            var hasReadWriteStamp = ReadWriteStamps.TryGetValue(key, out var readWriteStamp);
+            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             var hasKey = ZoneTree.ContainsKey(in key);
             if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
             {
                 AbortTransaction(transaction);
                 throw new TransactionAbortedException(transactionId);
             }
-            ReadWriteStamps.Upsert(key, in readWriteStamp);
+            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
             return hasKey;
         }
     }
@@ -195,7 +181,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         lock (this)
         {
             var transaction = GetOrCreateTransaction(transactionId);
-            var hasReadWriteStamp = ReadWriteStamps.TryGetValue(key, out var readWriteStamp);
+            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             var hasValue = ZoneTree.TryGet(in key, out value);
             if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
             {
@@ -203,7 +189,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
                 throw new TransactionAbortedException(transactionId);
             }
 
-            ReadWriteStamps.Upsert(key, in readWriteStamp);
+            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
             return hasValue;
         }
     }
@@ -213,7 +199,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         lock (this)
         {
             var transaction = GetOrCreateTransaction(transactionId);
-            var hasReadWriteStamp = ReadWriteStamps.TryGetValue(key, out var readWriteStamp);
+            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             var hasOldValue = ZoneTree.TryGet(in key, out var oldValue);
 
             var action = transaction.HandleWriteKey(
@@ -234,7 +220,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             }
 
             // actual write happens.
-            ReadWriteStamps.Upsert(key, in readWriteStamp);
+            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
             ZoneTree.Upsert(in key, in value);
             return !hasOldValue;
         }
@@ -245,7 +231,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         lock (this)
         {
             var transaction = GetOrCreateTransaction(transactionId);
-            var hasReadWriteStamp = ReadWriteStamps.TryGetValue(key, out var readWriteStamp);
+            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             var hasOldValue = ZoneTree.TryGet(in key, out var oldValue);
 
             var action = transaction.HandleWriteKey(
@@ -264,7 +250,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
                 AbortTransaction(transaction);
                 throw new TransactionAbortedException(transactionId);
             }
-            ReadWriteStamps.Upsert(key, in readWriteStamp);
+            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
             ZoneTree.ForceDelete(in key);
         }
     }
@@ -272,13 +258,11 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
     public void Dispose()
     {
         ZoneTree.Dispose();
-        ReadWriteStamps.Dispose();
     }
 
     public void DestroyTree()
     {
         TransactionLog.Dispose();
-        ReadWriteStamps.Dispose();
         ZoneTree.Maintenance.DestroyTree();
     }
 }

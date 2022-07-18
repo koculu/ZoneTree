@@ -8,6 +8,8 @@ public interface ITransactionLog<TKey, TValue> : IDisposable
 
     IReadOnlyList<long> TransactionIds { get; }
 
+    long GetNextTransactionId();
+
     void TransactionStarted(long transactionId);
     
     void TransactionCommitted(long transactionId);
@@ -19,12 +21,17 @@ public interface ITransactionLog<TKey, TValue> : IDisposable
     TransactionMeta GetTransactionMeta(long transactionId);
     
     void AddDependency(long src, long dest);
-    
-    void AddHistory(long transactionId, TKey key, CombinedValue<TValue, long> combinedValue);
-    
-    IDictionary<TKey, CombinedValue<TValue, long>> GetHistory(long transactionId);
-    
+
     IReadOnlyList<long> GetDependencyList(long transactionId);
 
-    long GetNextTransactionId();
+    void AddHistoryRecord(
+        long transactionId,
+        TKey key,
+        CombinedValue<TValue, long> combinedValue);
+    
+    IDictionary<TKey, CombinedValue<TValue, long>> GetHistory(long transactionId);
+
+    bool TryGetReadWriteStamp(in TKey key, out ReadWriteStamp readWriteStamp);
+
+    bool AddOrUpdateReadWriteStamp(in TKey key, in ReadWriteStamp readWriteStamp);
 }
