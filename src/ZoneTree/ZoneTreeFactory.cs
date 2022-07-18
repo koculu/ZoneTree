@@ -10,7 +10,7 @@ public class ZoneTreeFactory<TKey, TValue>
 {
     String WalDirectory;
 
-    ITransactionManager TransactionManager;
+    ITransactionManager<TKey, TValue> TransactionManager;
 
     public ZoneTreeOptions<TKey, TValue> Options { get; } = new();
 
@@ -92,7 +92,7 @@ public class ZoneTreeFactory<TKey, TValue>
     }
 
     public ZoneTreeFactory<TKey, TValue>
-        SetTransactionManager(ITransactionManager transactionManager)
+        SetTransactionManager(ITransactionManager<TKey, TValue> transactionManager)
     {
         TransactionManager = transactionManager;
         return this;
@@ -132,7 +132,7 @@ public class ZoneTreeFactory<TKey, TValue>
         var zoneTree = OpenOrCreate();
         var transactionManager =
             TransactionManager ??
-            new BasicTransactionManager(Options.WriteAheadLogProvider);
+            new BasicTransactionManager<TKey, TValue>(Options);
 
         return new OptimisticZoneTree<TKey, TValue>(Options, transactionManager, zoneTree);
     }
@@ -142,7 +142,7 @@ public class ZoneTreeFactory<TKey, TValue>
         var zoneTree = Create();
         var transactionManager =
             TransactionManager ??
-            new BasicTransactionManager(Options.WriteAheadLogProvider);
+            new BasicTransactionManager<TKey, TValue>(Options);
         return new OptimisticZoneTree<TKey, TValue>(Options, transactionManager, zoneTree);
     }
 
@@ -151,7 +151,7 @@ public class ZoneTreeFactory<TKey, TValue>
         var zoneTree = Open();
         var transactionManager =
             TransactionManager ??
-            new BasicTransactionManager(Options.WriteAheadLogProvider);
+            new BasicTransactionManager<TKey, TValue>(Options);
         return new OptimisticZoneTree<TKey, TValue>(Options, transactionManager, zoneTree);
     }
 }

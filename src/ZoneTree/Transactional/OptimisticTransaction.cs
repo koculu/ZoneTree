@@ -1,64 +1,26 @@
-﻿using Tenray;
-using ZoneTree.Collections;
-using ZoneTree.Core;
+﻿using ZoneTree.Core;
 using ZoneTree.Serializers;
 
 namespace ZoneTree.Transactional;
 
-public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
+public sealed class OptimisticTransaction<TKey, TValue>
 {
-    public const string TxHistory = "txh";
-
-    public const string TxDependency = "txd";
-
     public long TransactionId { get; }
 
-    readonly DictionaryWithWAL<TKey, CombinedValue<TValue, long>> OldValueTable;
-    
-    readonly DictionaryWithWAL<long, bool> DependencyTable;
-
     readonly ZoneTreeOptions<TKey, TValue> Options;
-
-    public IEnumerable<KeyValuePair<TKey, CombinedValue<TValue, long>>> 
-        OldValueEnumerable => OldValueTable.Enumerable;
+    
+    readonly ITransactionManager<TKey, TValue> TransactionManager;
 
     public bool IsReadyToCommit { get; set; }
 
     public OptimisticTransaction(
         long transactionId,
-        ZoneTreeOptions<TKey, TValue> options)
+        ZoneTreeOptions<TKey, TValue> options,
+        ITransactionManager<TKey, TValue> transactionManager)
     {
         TransactionId = transactionId;
         Options = options;
-        OldValueTable = new(
-            transactionId,
-            TxHistory,
-            options.WriteAheadLogProvider,
-            options.KeySerializer,
-            new CombinedSerializer<TValue, long>(
-                options.ValueSerializer,
-                new Int64Serializer()),
-            options.Comparer,
-            (in CombinedValue<TValue, long> x) => x.Value2 == 0,
-            (ref CombinedValue<TValue, long> x) => x.Value2 = 0
-            );
-
-        DependencyTable = new(
-            transactionId,
-            TxDependency,
-            options.WriteAheadLogProvider,
-            new Int64Serializer(),
-            new BooleanSerializer(),
-            new Int64ComparerAscending(),
-            (in bool x) => x == true,
-            (ref bool x) => x = true
-            );
-    }
-
-    public void Drop()
-    {
-        DependencyTable.Drop();
-        OldValueTable.Drop();
+        TransactionManager = transactionManager;
     }
 
     /// <summary>
@@ -76,7 +38,7 @@ public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
         }
 
         if (readWriteStamp.WriteStamp != 0)
-            DependencyTable.Upsert(readWriteStamp.WriteStamp, false);
+            TransactionManager.AddDependency(TransactionId, readWriteStamp.WriteStamp);
         readWriteStamp.ReadStamp = Math.Max(readWriteStamp.ReadStamp, TransactionId);
         return OptimisticReadAction.Read;
     }
@@ -111,19 +73,8 @@ public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
 
         var combinedValue = 
             new CombinedValue<TValue, long>(value, readWriteStamp.WriteStamp);
-        OldValueTable.Upsert(key, combinedValue);
+        TransactionManager.AddHistory(TransactionId, key, combinedValue);
         readWriteStamp.WriteStamp = TransactionId;
         return OptimisticWriteAction.Write;
-    }
-
-    public IReadOnlyList<long> GetDependencyList()
-    {
-        return DependencyTable.Keys;
-    }
-
-    public void Dispose()
-    {
-        DependencyTable?.Dispose();
-        OldValueTable?.Dispose();
     }
 }

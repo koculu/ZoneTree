@@ -13,7 +13,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
-    readonly ITransactionManager TransactionManager;
+    readonly ITransactionManager<TKey, TValue> TransactionManager;
 
     readonly IncrementalIdProvider IdProvider = new ();
 
@@ -23,15 +23,13 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     public OptimisticZoneTree(
         ZoneTreeOptions<TKey, TValue> options,
-        ITransactionManager transactionManager,
+        ITransactionManager<TKey, TValue> transactionManager,
         IZoneTree<TKey, TValue> zoneTree = null)
     {
         Options = options;
         TransactionManager = transactionManager;
         ZoneTree = zoneTree ?? new ZoneTree<TKey, TValue>(options);
         Options.WriteAheadLogProvider.InitCategory(TxStampRecordCategory);
-        Options.WriteAheadLogProvider.InitCategory(OptimisticTransaction<TKey, TValue>.TxDependency);
-        Options.WriteAheadLogProvider.InitCategory(OptimisticTransaction<TKey, TValue>.TxHistory);
         ReadWriteStamps = new(
             0,
             TxStampRecordCategory,
@@ -55,7 +53,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         if (OptimisticTransactions.TryGetValue(transactionId, out var transaction))
             return transaction;
 
-        transaction = new OptimisticTransaction<TKey, TValue>(transactionId, Options);
+        transaction = new OptimisticTransaction<TKey, TValue>(transactionId, Options, TransactionManager);
         OptimisticTransactions.Add(transactionId, transaction);
         return transaction;
     }
@@ -68,8 +66,6 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
     void DeleteTransaction(OptimisticTransaction<TKey, TValue> transaction)
     {
         OptimisticTransactions.Remove(transaction.TransactionId);
-        transaction.Drop();
-        transaction.Dispose();
     }
 
     public long BeginTransaction()
@@ -95,7 +91,8 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
          For each oldOj, oldWTS(Oj) in OLD(Ti)
             if WTS(Oj) equals TS(Ti) then restore Oj = oldOj and WTS(Oj) = oldWTS(Oj)
          */
-        foreach (var item in transaction.OldValueEnumerable)
+        var history = TransactionManager.GetHistory(transactionId);
+        foreach (var item in history)
         {
             var key = item.Key;
             var oldValue = item.Value.Value1;
@@ -151,7 +148,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
     CommitResult DoPrepare(long transactionId)
     {
         var transaction = GetOrCreateTransaction(transactionId);
-        var dependencies = transaction.GetDependencyList();
+        var dependencies = TransactionManager.GetDependencyList(transactionId);
         var waitList = new List<long>();
         foreach (var dependency in dependencies)
         {
@@ -276,20 +273,12 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     public void Dispose()
     {
-        foreach (var transaction in OptimisticTransactions.Values.ToArray())
-        {
-            transaction.Dispose();
-        }
         ZoneTree.Dispose();
         ReadWriteStamps.Dispose();
     }
 
     public void DestroyTree()
     {
-        foreach (var transaction in OptimisticTransactions.Values.ToArray())
-        {
-            transaction.Dispose();
-        }
         TransactionManager.Dispose();
         ReadWriteStamps.Dispose();
         ZoneTree.Maintenance.DestroyTree();

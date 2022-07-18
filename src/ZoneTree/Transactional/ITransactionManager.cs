@@ -1,18 +1,28 @@
-﻿namespace ZoneTree.Transactional;
+﻿using ZoneTree.Serializers;
 
-public interface ITransactionManager : IDisposable
+namespace ZoneTree.Transactional;
+
+public interface ITransactionManager<TKey, TValue> : IDisposable
 {
-    public int TransactionCount { get; }
+    int TransactionCount { get; }
 
-    public IReadOnlyList<long> TransactionIds { get; }
+    IReadOnlyList<long> TransactionIds { get; }
 
-    public void TransactionStarted(long transactionId);
+    void TransactionStarted(long transactionId);
     
-    public void TransactionCommitted(long transactionId);
+    void TransactionCommitted(long transactionId);
 
-    public void TransactionAborted(long transactionId);
+    void TransactionAborted(long transactionId);
 
-    public TransactionState GetTransactionState(long transactionId);
+    TransactionState GetTransactionState(long transactionId);
 
-    public TransactionMeta GetTransactionMeta(long transactionId);
+    TransactionMeta GetTransactionMeta(long transactionId);
+    
+    void AddDependency(long src, long dest);
+    
+    void AddHistory(long transactionId, TKey key, CombinedValue<TValue, long> combinedValue);
+    
+    IDictionary<TKey, CombinedValue<TValue, long>> GetHistory(long transactionId);
+    
+    IReadOnlyList<long> GetDependencyList(long transactionId);
 }

@@ -89,6 +89,7 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
     {
         if (Dictionary.TryGetValue(key1, out var dic))
         {
+            dic.Remove(key2);
             dic.Add(key2, value);
             WriteAheadLog.Append(key1, new CombinedValue<TKey2,TValue>(key2, value));
             return true;

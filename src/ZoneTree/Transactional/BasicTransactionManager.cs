@@ -1,14 +1,24 @@
 ﻿using Tenray;
 using ZoneTree.Collections;
+using ZoneTree.Core;
 using ZoneTree.Serializers;
 using ZoneTree.WAL;
 
 namespace ZoneTree.Transactional;
 
-public sealed class BasicTransactionManager : ITransactionManager, IDisposable
+public sealed class BasicTransactionManager<TKey, TValue> : ITransactionManager<TKey, TValue>, IDisposable
 {
-    private const string TxMetaCategory = "txm";
+    const string TxMetaCategory = "txm";
+
+    const string TxHistory = "txh";
+
+    const string TxDependency = "txd";
+
     readonly DictionaryWithWAL<long, TransactionMeta> Transactions;
+
+    readonly DictionaryOfDictionaryWithWAL<long, TKey, CombinedValue<TValue, long>> HistoryTable;
+
+    readonly DictionaryOfDictionaryWithWAL<long, long, bool> DependencyTable;
 
     public int TransactionCount {
         get {
@@ -30,9 +40,12 @@ public sealed class BasicTransactionManager : ITransactionManager, IDisposable
         }
     }
 
-    public BasicTransactionManager(IWriteAheadLogProvider writeAheadLogProvider)
+    public BasicTransactionManager(ZoneTreeOptions<TKey, TValue> options)
     {
+        var writeAheadLogProvider = options.WriteAheadLogProvider;
         writeAheadLogProvider.InitCategory(TxMetaCategory);
+        writeAheadLogProvider.InitCategory(TxHistory);
+        writeAheadLogProvider.InitCategory(TxDependency);
         Transactions = new(
             0,
             TxMetaCategory,
@@ -42,6 +55,24 @@ public sealed class BasicTransactionManager : ITransactionManager, IDisposable
             new Int64ComparerAscending(),
             (in TransactionMeta x) => x.TransactionId == 0,
             (ref TransactionMeta x) => x.TransactionId = 0);
+
+        var combinedSerializer = new CombinedSerializer<TValue, long>(options.ValueSerializer, new Int64Serializer());
+        HistoryTable = new(
+            0,
+            TxHistory,
+            writeAheadLogProvider,
+            new Int64Serializer(),
+            options.KeySerializer,
+            combinedSerializer);
+
+        DependencyTable = new(
+            0,
+            TxDependency,
+            writeAheadLogProvider,
+            new Int64Serializer(),
+            new Int64Serializer(),
+            new BooleanSerializer()
+            );
     }
 
     public TransactionMeta GetTransactionMeta(long transactionId)
@@ -106,6 +137,43 @@ public sealed class BasicTransactionManager : ITransactionManager, IDisposable
     public void Dispose()
     {
         Transactions?.Dispose();
+        DependencyTable?.Dispose();
+        HistoryTable?.Dispose();
     }
 
+    public void AddDependency(long src, long dest)
+    {
+        lock (this)
+        {
+            DependencyTable.Upsert(src, dest, false);
+        }
+    }
+
+    public void AddHistory(long transactionId, TKey key, CombinedValue<TValue, long> combinedValue)
+    {
+        lock (this)
+        {
+            HistoryTable.Upsert(transactionId, key, combinedValue);
+        }
+    }
+
+    public IDictionary<TKey, CombinedValue<TValue, long>> GetHistory(long transactionId)
+    {
+        lock (this)
+        {
+            if (HistoryTable.TryGetDictionary(transactionId, out var history))
+                return history;
+        }
+        return new Dictionary<TKey, CombinedValue<TValue, long>>();
+    }
+
+    public IReadOnlyList<long> GetDependencyList(long transactionId)
+    {
+        lock (this)
+        {
+            if (DependencyTable.TryGetDictionary(transactionId, out var dic))
+                return dic.Keys.ToArray();
+            return Array.Empty<long>();
+        }
+    }
 }
