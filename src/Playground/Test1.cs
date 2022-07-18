@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tenray;
+using ZoneTree.Maintainers;
 using ZoneTree.Serializers;
 
 namespace Playground;
@@ -14,7 +15,7 @@ public class Test1
 {
     public void Run()
     {
-        var dataPath = "data/SeveralParallelTransactions";
+        var dataPath = "../../data/SeveralParallelTransactions";
         /*if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);*/
         var stopWatch = new Stopwatch();
@@ -27,6 +28,7 @@ public class Test1
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();
+        using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree.ZoneTree);
 
         Console.WriteLine("Loaded: " + stopWatch.ElapsedMilliseconds);
         Parallel.For(0, n, (x) =>
@@ -38,6 +40,7 @@ public class Test1
             zoneTree.Commit(tx);
         });
         Console.WriteLine("Elapsed: " + stopWatch.ElapsedMilliseconds);
-        //zoneTree.DestroyTree();
+        zoneTree.ZoneTree.Maintenance.SaveMetaData();
+        basicMaintainer.CompleteRunningTasks().AsTask().Wait();
     }
 }

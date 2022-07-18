@@ -33,7 +33,11 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 
     public int Length => Dictionary.Count;
 
-    public IReadOnlyList<TKey> Keys => Dictionary.Keys.ToArray();
+    volatile int _logLength = 0;
+
+    public int LogLength => _logLength;
+
+    public TKey[] Keys => Dictionary.Keys.ToArray();
 
     public IReadOnlyList<TValue> Values => Dictionary.Values.ToArray();
 
@@ -82,6 +86,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
             Dictionary.Remove(newKeys[i]);
             Dictionary.Add(newKeys[i], newValues[i]);
         }
+        _logLength = Dictionary.Count;
     }
 
     public bool ContainsKey(in TKey key)
@@ -96,6 +101,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 
     public bool Upsert(in TKey key, in TValue value)
     {
+        ++_logLength;
         if (Dictionary.ContainsKey(key))
         {
             Dictionary[key] = value;
@@ -105,6 +111,11 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         Dictionary.Add(key, value);
         WriteAheadLog.Append(key, value);
         return true;
+    }
+    
+    public bool TryDeleteFromMemory(in TKey key)
+    {
+        return Dictionary.Remove(key);
     }
 
     public bool TryDelete(in TKey key)
@@ -143,5 +154,6 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
             newDictionary.Add(keys[i], values[i]);
         }
         Dictionary = newDictionary;
+        _logLength = newDictionary.Count;
     }
 }

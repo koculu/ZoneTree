@@ -1,4 +1,5 @@
-﻿using Tenray;
+﻿using System.Diagnostics;
+using Tenray;
 using ZoneTree.Collections;
 using ZoneTree.Core;
 using ZoneTree.Serializers;
@@ -24,6 +25,8 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
     readonly DictionaryOfDictionaryWithWAL<long, long, bool> DependencyTable;
 
     readonly DictionaryWithWAL<TKey, ReadWriteStamp> ReadWriteStamps;
+
+    public int TransactionLogCompactionThreshold { get; set; } = 100000;
 
     public int TransactionCount {
         get {
@@ -91,7 +94,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             (ref ReadWriteStamp x) => x = default);
 
         var keys = Transactions.Keys;
-        if (keys.Count > 0)
+        if (keys.Length > 0)
             IncrementalIdProvider.SetNextId(keys.Max() + 1);
     }
 
@@ -112,8 +115,9 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             if (Transactions.TryGetValue(transactionId, out var transactionMeta))
                 return transactionMeta.State;
         }
-        // all non-existing transactions are considered uncommitted.
-        return TransactionState.Uncommitted;
+        // all non-existing transactions are considered committed
+        // to simplify compacting the transaction log.
+        return TransactionState.Committed;
     }
 
     public void TransactionAborted(long transactionId)
@@ -124,6 +128,10 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             transactionMeta.EndedAt = DateTime.UtcNow.Ticks;
             transactionMeta.State = TransactionState.Aborted;
             Transactions.Upsert(transactionId, in transactionMeta);
+            // aborted transactions does not need dependency and history tables.
+            // safe to delete from memory.
+            DependencyTable.TryDeleteFromMemory(transactionId);
+            HistoryTable.TryDeleteFromMemory(transactionId);
         }
     }
 
@@ -135,6 +143,9 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             transactionMeta.EndedAt = DateTime.UtcNow.Ticks;
             transactionMeta.State = TransactionState.Committed;
             Transactions.Upsert(transactionId, in transactionMeta);
+            
+            // committed transactions can be safely dropped from memory.
+            DeleteTransactionFromMemory(transactionId);
         }
     }
 
@@ -142,6 +153,9 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
     {
         lock(this)
         {
+            if (Transactions.LogLength > TransactionLogCompactionThreshold)
+                CompactTransactionLog();
+
             if (Transactions.ContainsKey(transactionId))
                 return;
             var transactionMeta = new TransactionMeta
@@ -211,5 +225,105 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
     public bool AddOrUpdateReadWriteStamp(in TKey key, in ReadWriteStamp readWriteStamp)
     {
         return ReadWriteStamps.Upsert(in key, readWriteStamp);
+    }
+
+    public void CompactTransactionLog()
+    {
+        lock (this)
+        {
+            var aborted = new List<long>();
+            var uncommitted = new List<long>();
+
+            CollectAbortedAndUncommittedTransactions(aborted, uncommitted);
+
+            DeleteAbortedTransactions(aborted, uncommitted);
+
+            DeleteObsoleteReadStamps();
+
+            DeleteObsoleteHistory();
+
+            Transactions.CompactWriteAheadLog();
+            
+            HistoryTable.CompactWriteAheadLog();
+
+            DependencyTable.CompactWriteAheadLog();
+
+            ReadWriteStamps.CompactWriteAheadLog();
+        }
+    }
+
+    private void DeleteObsoleteHistory()
+    {
+        var keys = HistoryTable.Keys;
+        foreach (var key in keys)
+            if (!Transactions.ContainsKey(key))
+                HistoryTable.TryDeleteFromMemory(key);
+    }
+
+    private void DeleteObsoleteReadStamps()
+    {
+        var keys = ReadWriteStamps.Keys;
+        var values = ReadWriteStamps.Values;
+        var len = keys.Length;
+        for (var i = 0; i < len; ++i)
+        {
+            var key = keys[i];
+            var value = values[i];
+
+            if (Transactions.ContainsKey(value.ReadStamp) ||
+            Transactions.ContainsKey(value.WriteStamp))
+                continue;
+            ReadWriteStamps.TryDeleteFromMemory(in key);
+        }
+    }
+
+    private void CollectAbortedAndUncommittedTransactions(
+        List<long> aborted, 
+        List<long> uncommitted)
+    {
+        var transactionIds = Transactions.Keys;
+        Array.Sort(transactionIds);
+        foreach (var id in transactionIds)
+        {
+            var state = GetTransactionState(id);
+            switch (state)
+            {
+                case TransactionState.Uncommitted:
+                    uncommitted.Add(id);
+                    continue;
+                case TransactionState.Aborted:
+                    aborted.Add(id);
+                    break;
+                case TransactionState.Committed:
+                    DeleteTransactionFromMemory(id);
+                    break;
+            }
+        }
+    }
+
+    private void DeleteAbortedTransactions(IReadOnlyList<long> aborted, IReadOnlyList<long> uncommitted)
+    {
+        foreach (var a in aborted)
+        {
+            var isDependentA = false;
+            foreach (var u in uncommitted)
+            {
+                DependencyTable.TryGetDictionary(u, out var dic);
+                if (dic.ContainsKey(a))
+                {
+                    isDependentA = true;
+                    break;
+                }
+            }
+            if (!isDependentA)
+                DeleteTransactionFromMemory(a);
+        }
+    }
+
+    private void DeleteTransactionFromMemory(long id)
+    {
+        Transactions.TryDeleteFromMemory(id);
+        HistoryTable.TryDeleteFromMemory(id);
+        DependencyTable.TryDeleteFromMemory(id);
     }
 }

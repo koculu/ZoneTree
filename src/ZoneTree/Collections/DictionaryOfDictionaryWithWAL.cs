@@ -1,4 +1,5 @@
-﻿using Tenray;
+﻿using System.Diagnostics;
+using Tenray;
 using Tenray.Collections;
 using Tenray.WAL;
 using ZoneTree.Core;
@@ -113,5 +114,38 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
     {
         WriteAheadLogProvider.RemoveWAL(SegmentId);
         WriteAheadLog?.Dispose();
+    }
+
+    public bool TryDeleteFromMemory(TKey1 key1)
+    {
+        return Dictionary.Remove(key1);
+    }
+
+    public void CompactWriteAheadLog()
+    {
+        var keys = Dictionary.Keys.ToArray();
+        if (keys.Length == 0)
+            return;
+        var values = Dictionary.Values.ToArray();
+        var manyKeys = values
+            .SelectMany((x, i) => 
+                Enumerable.Range(0, x.Count)
+                .Select(y => keys[i])).ToArray();
+        var manyValues = values
+            .SelectMany(x => x.ToArray())
+            .Select(x => new CombinedValue<TKey2, TValue>(x.Key, x.Value))
+            .ToArray();
+        var diff = WriteAheadLog.ReplaceWriteAheadLog(manyKeys, manyValues);
+        if (diff <= 0) return;
+
+        var len = keys.Length;
+
+        // recreate the dictionary to avoid empty space in the hash table.
+        var newDictionary = new Dictionary<TKey1, IDictionary<TKey2, TValue>>((int)(len * 1.3));
+        for (var i = 0; i < len; ++i)
+        {
+            newDictionary.Add(keys[i], values[i]);
+        }
+        Dictionary = newDictionary;
     }
 }

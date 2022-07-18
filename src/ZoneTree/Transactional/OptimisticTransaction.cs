@@ -32,13 +32,21 @@ public sealed class OptimisticTransaction<TKey, TValue>
     public OptimisticReadAction HandleReadKey(
         ref ReadWriteStamp readWriteStamp)
     {
-        if (readWriteStamp.WriteStamp > TransactionId)
+        var writeStamp = readWriteStamp.WriteStamp;
+        if (writeStamp > TransactionId)
         {
             return OptimisticReadAction.Abort;
         }
 
-        if (readWriteStamp.WriteStamp != 0)
-            TransactionLog.AddDependency(TransactionId, readWriteStamp.WriteStamp);
+        if (writeStamp != 0)
+        {
+            var state = TransactionLog.GetTransactionState(writeStamp);
+            // aborted state is impossible because of rollback logic.
+
+            // adds dependency only for uncommitted transactions!
+            if (state == TransactionState.Uncommitted)
+                TransactionLog.AddDependency(TransactionId, writeStamp);
+        }
         readWriteStamp.ReadStamp = Math.Max(readWriteStamp.ReadStamp, TransactionId);
         return OptimisticReadAction.Read;
     }
