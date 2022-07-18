@@ -71,4 +71,10 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
         if (Directory.Exists(WalDirectory))
             Directory.Delete(WalDirectory, true);
     }
+
+    public void InitCategory(string category)
+    {
+        var categoryPath = Path.Combine(WalDirectory, category);
+        Directory.CreateDirectory(categoryPath);
+    }
 }

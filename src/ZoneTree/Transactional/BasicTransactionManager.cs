@@ -7,6 +7,7 @@ namespace ZoneTree.Transactional;
 
 public sealed class BasicTransactionManager : ITransactionManager, IDisposable
 {
+    private const string TxMetaCategory = "txm";
     readonly DictionaryWithWAL<long, TransactionMeta> Transactions;
 
     public int TransactionCount {
@@ -31,9 +32,10 @@ public sealed class BasicTransactionManager : ITransactionManager, IDisposable
 
     public BasicTransactionManager(IWriteAheadLogProvider writeAheadLogProvider)
     {
+        writeAheadLogProvider.InitCategory(TxMetaCategory);
         Transactions = new(
             0,
-            "txm",
+            TxMetaCategory,
             writeAheadLogProvider,
             new Int64Serializer(),
             new StructSerializer<TransactionMeta>(),
@@ -87,7 +89,6 @@ public sealed class BasicTransactionManager : ITransactionManager, IDisposable
 
     public void TransactionStarted(long transactionId)
     {
-        
         lock(this)
         {
             if (Transactions.ContainsKey(transactionId))

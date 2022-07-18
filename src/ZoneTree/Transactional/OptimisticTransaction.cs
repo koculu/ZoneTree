@@ -7,9 +7,9 @@ namespace ZoneTree.Transactional;
 
 public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
 {
-    const string TxHistory = "txh";
+    public const string TxHistory = "txh";
 
-    const string TxDependency = "txd";
+    public const string TxDependency = "txd";
 
     public long TransactionId { get; }
 

@@ -1,6 +1,6 @@
 ﻿namespace ZoneTree.Transactional;
 
-public interface ITransactionManager
+public interface ITransactionManager : IDisposable
 {
     public int TransactionCount { get; }
 

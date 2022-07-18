@@ -39,4 +39,9 @@ public class NullWriteAheadLogProvider : IWriteAheadLogProvider
     {
         // Nothing to drop
     }
+
+    public void InitCategory(string category)
+    {
+        // Nothing to init
+    }
 }

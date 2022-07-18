@@ -85,4 +85,9 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="transactionId"></param>
     void Rollback(long transactionId);
+
+    /// <summary>
+    /// Removes the tree from the universe.
+    /// </summary>
+    void DestroyTree();
 }

@@ -28,7 +28,10 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
     {
         Options = options;
         TransactionManager = transactionManager;
-        ZoneTree = zoneTree ?? new ZoneTree<TKey, TValue>(options);        
+        ZoneTree = zoneTree ?? new ZoneTree<TKey, TValue>(options);
+        Options.WriteAheadLogProvider.InitCategory(TxStampRecordCategory);
+        Options.WriteAheadLogProvider.InitCategory(OptimisticTransaction<TKey, TValue>.TxDependency);
+        Options.WriteAheadLogProvider.InitCategory(OptimisticTransaction<TKey, TValue>.TxHistory);
         ReadWriteStamps = new(
             0,
             TxStampRecordCategory,
@@ -65,6 +68,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
     void DeleteTransaction(OptimisticTransaction<TKey, TValue> transaction)
     {
         OptimisticTransactions.Remove(transaction.TransactionId);
+        transaction.Drop();
         transaction.Dispose();
     }
 
@@ -278,5 +282,16 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         }
         ZoneTree.Dispose();
         ReadWriteStamps.Dispose();
+    }
+
+    public void DestroyTree()
+    {
+        foreach (var transaction in OptimisticTransactions.Values.ToArray())
+        {
+            transaction.Dispose();
+        }
+        TransactionManager.Dispose();
+        ReadWriteStamps.Dispose();
+        ZoneTree.Maintenance.DestroyTree();
     }
 }

@@ -1,5 +1,5 @@
 # ZoneTree
-ZoneTree is a persistent, high-performance key-value database for .NET.
+ZoneTree is a persistent, high-performance and transactional key-value database for .NET.
 It can operate in memory or on disk. (Optimized for SSDs)
 
 [![Download](https://img.shields.io/badge/download-ZoneTree-blue)](https://www.nuget.org/packages/ZoneTree/)
