@@ -9,7 +9,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 {
     public IZoneTree<TKey, TValue> ZoneTree { get; }
 
-    const string TxRecCategory = "txrec";
+    const string TxStampRecordCategory = "txs";
 
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
@@ -17,7 +17,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     readonly IncrementalIdProvider IdProvider = new ();
 
-    readonly DictionaryWithWAL<TKey, OptimisticRecord> Records;
+    readonly DictionaryWithWAL<TKey, ReadWriteStamp> ReadWriteStamps;
 
     readonly Dictionary<long, OptimisticTransaction<TKey, TValue>> OptimisticTransactions = new();
 
@@ -28,15 +28,15 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         Options = options;
         TransactionManager = transactionManager;
         ZoneTree = new ZoneTree<TKey, TValue>(options);        
-        Records = new(
+        ReadWriteStamps = new(
             0,
-            TxRecCategory,
+            TxStampRecordCategory,
             options.WriteAheadLogProvider,
             options.KeySerializer,
-            new StructSerializer<OptimisticRecord>(),
+            new StructSerializer<ReadWriteStamp>(),
             options.Comparer,
-            (in OptimisticRecord x) => x.IsDeleted,
-            (ref OptimisticRecord x) => x = default);
+            (in ReadWriteStamp x) => x.IsDeleted,
+            (ref ReadWriteStamp x) => x = default);
     }
 
     OptimisticTransaction<TKey, TValue> GetOrCreateTransaction(long transactionId)
@@ -70,6 +70,19 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
              For each oldOj, oldWTS(Oj) in OLD(Ti)
                 if WTS(Oj) equals TS(Ti) then restore Oj = oldOj and WTS(Oj) = oldWTS(Oj)
              */
+            foreach (var item in transaction.OldValueEnumerable)
+            {
+                var key = item.Key;
+                var oldValue = item.Value.Value1;
+                var oldWriteStamp = item.Value.Value2;
+                ReadWriteStamps.TryGetValue(key, out var readWriteStamp);
+                if (readWriteStamp.WriteStamp == transactionId)
+                {
+                    readWriteStamp.WriteStamp = oldWriteStamp;
+                    ReadWriteStamps.Upsert(key, readWriteStamp);
+                    ZoneTree.Upsert(key, oldValue);
+                }
+            }
             DeleteTransaction(transactionId);
             TransactionManager.TransactionAborted(transactionId);
         }
@@ -115,10 +128,13 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         lock (this)
         {
             var transaction = GetOrCreateTransaction(transactionId);
-            var hasOptRecord = Records.TryGetValue(key, out var optRecord);
-            var hasKey = ZoneTree.ContainsKey(in key);
-            transaction.HandleReadKey(ref optRecord);
-            Records.Upsert(key, in optRecord);
+            var hasReadWriteStamp = ReadWriteStamps.TryGetValue(key, out var readWriteStamp);
+            var hasKey = ZoneTree.ContainsKey(in key); 
+            if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
+                throw new TransactionIsAbortedException(
+                    transactionId,
+                    TransactionResult.AbortedRetry);
+            ReadWriteStamps.Upsert(key, in readWriteStamp);
             return hasKey;
         }
     }
@@ -135,19 +151,27 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         lock (this)
         {
             var transaction = GetOrCreateTransaction(transactionId);
-            var hasOptRecord = Records.TryGetValue(key, out var optRecord);
+            var hasReadWriteStamp = ReadWriteStamps.TryGetValue(key, out var readWriteStamp);
             var hasOldValue = ZoneTree.TryGet(in key, out var oldValue);
 
+            var action = transaction.HandleWriteKey(
+               ref readWriteStamp,
+               in key,
+               hasOldValue,
+               in oldValue);
+
             // skip the write based on Thomas Write Rule.
-            if (!transaction.HandleWriteKey(
-                ref optRecord,
-                in key,
-                hasOldValue,
-                in oldValue))
+            if (action == OptimisticWriteAction.SkipWrite)
                 return;
 
+            // abort case
+            if (action == OptimisticWriteAction.Abort)
+                throw new TransactionIsAbortedException(
+                    transactionId,
+                    TransactionResult.AbortedRetry);
+
             ZoneTree.ForceDelete(in key);
-            Records.Upsert(key, in optRecord);
+            ReadWriteStamps.Upsert(key, in readWriteStamp);
         }
     }
 
@@ -156,10 +180,14 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         lock (this)
         {
             var transaction = GetOrCreateTransaction(transactionId);
-            var hasOptRecord = Records.TryGetValue(key, out var optRecord);
+            var hasReadWriteStamp = ReadWriteStamps.TryGetValue(key, out var readWriteStamp);
             var hasValue = ZoneTree.TryGet(in key, out value);
-            transaction.HandleReadKey(ref optRecord);
-            Records.Upsert(key, in optRecord);
+            if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
+                throw new TransactionIsAbortedException(
+                    transactionId,
+                    TransactionResult.AbortedRetry);
+
+            ReadWriteStamps.Upsert(key, in readWriteStamp);
             return hasValue;
         }
     }
@@ -169,19 +197,28 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         lock (this)
         {
             var transaction = GetOrCreateTransaction(transactionId);
-            var hasOptRecord = Records.TryGetValue(key, out var optRecord);
+            var hasReadWriteStamp = ReadWriteStamps.TryGetValue(key, out var readWriteStamp);
             var hasOldValue = ZoneTree.TryGet(in key, out var oldValue);
 
-            // skip the write based on Thomas Write Rule.
-            if (!transaction.HandleWriteKey(
-                ref optRecord,
-                in key, 
+            var action = transaction.HandleWriteKey(
+                ref readWriteStamp,
+                in key,
                 hasOldValue,
-                in oldValue))
+                in oldValue);
+
+            // skip the write based on Thomas Write Rule.
+            if (action == OptimisticWriteAction.SkipWrite)
                 return !hasOldValue;
 
+            // abort case
+            if (action == OptimisticWriteAction.Abort)
+                throw new TransactionIsAbortedException(
+                    transactionId,
+                    TransactionResult.AbortedRetry);
+
+            // actual write happens.
+            ReadWriteStamps.Upsert(key, in readWriteStamp);
             ZoneTree.Upsert(in key, in value);
-            Records.Upsert(key, in optRecord);
             return !hasOldValue;
         }
     }
@@ -193,6 +230,6 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             transaction.Dispose();
         }
         ZoneTree.Dispose();
-        Records.Dispose();
+        ReadWriteStamps.Dispose();
     }
 }

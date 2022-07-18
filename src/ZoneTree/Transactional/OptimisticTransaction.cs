@@ -7,9 +7,9 @@ namespace ZoneTree.Transactional;
 
 public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
 {
-    const string TxHistory = "txHistory";
+    const string TxHistory = "txh";
 
-    const string TxDependency = "txDep";
+    const string TxDependency = "txd";
 
     public long TransactionId { get; }
 
@@ -18,6 +18,9 @@ public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
     readonly DictionaryWithWAL<long, bool> DependencyTable;
 
     readonly ZoneTreeOptions<TKey, TValue> Options;
+
+    public IEnumerable<KeyValuePair<TKey, CombinedValue<TValue, long>>> 
+        OldValueEnumerable => OldValueTable.Enumerable;
 
     public OptimisticTransaction(
         long transactionId,
@@ -50,12 +53,6 @@ public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
             );
     }
 
-    public void AbortTransaction(TransactionResult result)
-    {
-        // abort dependent transactions
-        // Undo changes
-    }
-
     public void Drop()
     {
         DependencyTable.Drop();
@@ -66,53 +63,55 @@ public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
     /// Marks read stamp, adds dependencies or aborts transaction.
     /// https://en.wikipedia.org/wiki/Timestamp-based_concurrency_control
     /// </summary>
-    /// <param name="optRecord"></param>
-    /// <exception cref="TransactionIsAbortedException"></exception>
-    public void HandleReadKey(
-        ref OptimisticRecord optRecord)
+    /// <param name="readWriteStamp"></param>
+    /// <returns>Optimistic read action.</returns>
+    public OptimisticReadAction HandleReadKey(
+        ref ReadWriteStamp readWriteStamp)
     {
-        if (optRecord.WriteStamp > TransactionId)
+        if (readWriteStamp.WriteStamp > TransactionId)
         {
-            AbortTransaction(TransactionResult.AbortedRetry);
-            throw new TransactionIsAbortedException(TransactionId, TransactionResult.AbortedRetry);
+            return OptimisticReadAction.Abort;
         }
 
-        if (optRecord.WriteStamp != 0)
-            DependencyTable.Upsert(optRecord.WriteStamp, false);
-        optRecord.ReadStamp = Math.Max(optRecord.ReadStamp, TransactionId);
+        if (readWriteStamp.WriteStamp != 0)
+            DependencyTable.Upsert(readWriteStamp.WriteStamp, false);
+        readWriteStamp.ReadStamp = Math.Max(readWriteStamp.ReadStamp, TransactionId);
+        return OptimisticReadAction.Read;
     }
 
     /// <summary>
-    /// Returns true for skipping writes. (Thomas Write Rule)
+    /// Marks write stamp, adds old values or aborts transaction.
+    /// Returns SkipWrite for skipping writes. (Thomas Write Rule)
     /// https://en.wikipedia.org/wiki/Thomas_Write_Rule
     /// </summary>
-    /// <param name="optRecord"></param>
-    /// <returns>false if write must be skipped, otherwise true.</returns>
-    /// <exception cref="TransactionIsAbortedException"></exception>
-    public bool HandleWriteKey(
-        ref OptimisticRecord optRecord, 
+    /// <param name="readWriteStamp"></param>
+    /// <param name="key"></param>
+    /// <param name="hasOldValue"></param>
+    /// <param name="oldValue"></param>
+    /// <returns>Optimistic write action</returns>
+    public OptimisticWriteAction HandleWriteKey(
+        ref ReadWriteStamp readWriteStamp, 
         in TKey key,
         bool hasOldValue, 
         in TValue oldValue)
     {
-        if (optRecord.ReadStamp > TransactionId)
+        if (readWriteStamp.ReadStamp > TransactionId)
         {
-            AbortTransaction(TransactionResult.AbortedRetry);
-            throw new TransactionIsAbortedException(TransactionId, TransactionResult.AbortedRetry);
+            return OptimisticWriteAction.Abort;
         }
 
-        if (optRecord.WriteStamp > TransactionId)
-            return false;
+        if (readWriteStamp.WriteStamp > TransactionId)
+            return OptimisticWriteAction.SkipWrite;
 
         var value = oldValue;
         if (!hasOldValue)
             Options.MarkValueDeleted(ref value);
 
         var combinedValue = 
-            new CombinedValue<TValue, long>(value, optRecord.WriteStamp);
+            new CombinedValue<TValue, long>(value, readWriteStamp.WriteStamp);
         OldValueTable.Upsert(key, combinedValue);
-        optRecord.WriteStamp = TransactionId;
-        return true;
+        readWriteStamp.WriteStamp = TransactionId;
+        return OptimisticWriteAction.Write;
     }
 
     public IReadOnlyList<long> GetDependencyList()

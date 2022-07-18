@@ -37,6 +37,8 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 
     public IReadOnlyList<TValue> Values => Dictionary.Values.ToArray();
 
+    public IEnumerable<KeyValuePair<TKey, TValue>> Enumerable => Dictionary.AsEnumerable();
+
     public DictionaryWithWAL(
         long segmentId,
         string category,

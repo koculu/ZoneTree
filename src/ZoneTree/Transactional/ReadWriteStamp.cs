@@ -3,7 +3,7 @@
 namespace ZoneTree.Transactional;
 
 [StructLayout(LayoutKind.Sequential)]
-public struct OptimisticRecord
+public struct ReadWriteStamp
 {
     public long ReadStamp;
 
