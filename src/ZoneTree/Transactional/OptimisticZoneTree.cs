@@ -71,7 +71,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         return transactionId;
     }
 
-    public void AbortTransaction(long transactionId)
+    public void Rollback(long transactionId)
     {
         lock (this)
         {
@@ -269,7 +269,6 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
                     transactionId,
                     TransactionResult.Aborted);
             }
-
             ReadWriteStamps.Upsert(key, in readWriteStamp);
             ZoneTree.ForceDelete(in key);
         }

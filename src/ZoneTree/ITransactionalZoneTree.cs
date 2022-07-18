@@ -81,8 +81,8 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     TransactionCommitResult Commit(long transactionId);
 
     /// <summary>
-    /// Aborts the transaction by undoing all changes writes by this transaction.
+    /// Rollsback the transaction by undoing all writes by this transaction.
     /// </summary>
     /// <param name="transactionId"></param>
-    void AbortTransaction(long transactionId);
+    void Rollback(long transactionId);
 }

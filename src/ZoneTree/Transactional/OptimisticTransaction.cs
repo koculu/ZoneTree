@@ -92,7 +92,7 @@ public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
     /// <param name="oldValue"></param>
     /// <returns>Optimistic write action</returns>
     public OptimisticWriteAction HandleWriteKey(
-        ref ReadWriteStamp readWriteStamp, 
+        ref ReadWriteStamp readWriteStamp,
         in TKey key,
         bool hasOldValue, 
         in TValue oldValue)
