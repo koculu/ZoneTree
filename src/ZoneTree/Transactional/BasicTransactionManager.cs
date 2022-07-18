@@ -5,7 +5,7 @@ using ZoneTree.WAL;
 
 namespace ZoneTree.Transactional;
 
-public class BasicTransactionManager : ITransactionManager, IDisposable
+public sealed class BasicTransactionManager : ITransactionManager, IDisposable
 {
     readonly DictionaryWithWAL<long, TransactionMeta> Transactions;
 
@@ -68,7 +68,7 @@ public class BasicTransactionManager : ITransactionManager, IDisposable
         lock (this)
         {
             Transactions.TryGetValue(transactionId, out var transactionMeta);
-            transactionMeta.EndedAt = DateTime.UtcNow;
+            transactionMeta.EndedAt = DateTime.UtcNow.Ticks;
             transactionMeta.State = TransactionState.Aborted;
             Transactions.Upsert(transactionId, in transactionMeta);
         }
@@ -78,8 +78,8 @@ public class BasicTransactionManager : ITransactionManager, IDisposable
     {
         lock (this)
         {
-            Transactions.TryGetValue(transactionId, out var transactionMeta);
-            transactionMeta.EndedAt = DateTime.UtcNow;
+            Transactions.TryGetValue(transactionId, out var transactionMeta);            
+            transactionMeta.EndedAt = DateTime.UtcNow.Ticks;
             transactionMeta.State = TransactionState.Committed;
             Transactions.Upsert(transactionId, in transactionMeta);
         }
@@ -95,7 +95,7 @@ public class BasicTransactionManager : ITransactionManager, IDisposable
             var transactionMeta = new TransactionMeta
             {
                 TransactionId = transactionId,
-                StartedAt = DateTime.UtcNow,
+                StartedAt = DateTime.UtcNow.Ticks,
                 State = TransactionState.Uncommitted
             };
             Transactions.Upsert(transactionId, in transactionMeta);

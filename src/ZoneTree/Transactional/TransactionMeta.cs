@@ -9,7 +9,7 @@ public struct TransactionMeta
 
     public TransactionState State;
 
-    public DateTime StartedAt;
+    public long StartedAt;
 
-    public DateTime EndedAt;
+    public long EndedAt;
 }
