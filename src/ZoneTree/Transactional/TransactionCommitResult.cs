@@ -4,6 +4,8 @@ namespace ZoneTree.Transactional;
 
 public class TransactionCommitResult
 {
+    public readonly static TransactionCommitResult ReadyToCommitResult = new(TransactionResult.ReadyToCommit);
+
     public readonly static TransactionCommitResult CommittedResult = new(TransactionResult.Committed);
 
     /// <summary>
@@ -20,11 +22,11 @@ public class TransactionCommitResult
     /// </summary>
     public IReadOnlyList<long> PendingTransactionList { get; }
 
+    public bool IsReadyToCommit => Result == TransactionResult.ReadyToCommit;
+
     public bool IsCommitted => Result == TransactionResult.Committed;
 
-    public bool IsAbortedRetry => Result == TransactionResult.AbortedRetry;
-
-    public bool IsAborted => Result == TransactionResult.AbortedDontRetry;
+    public bool IsAbortedRetry => Result == TransactionResult.Aborted;
 
     public bool IsWaitingUncommittedTransactions => Result == TransactionResult.WaitUncommittedTransactions;
 

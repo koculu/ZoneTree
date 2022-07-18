@@ -22,6 +22,8 @@ public sealed class OptimisticTransaction<TKey, TValue> : IDisposable
     public IEnumerable<KeyValuePair<TKey, CombinedValue<TValue, long>>> 
         OldValueEnumerable => OldValueTable.Enumerable;
 
+    public bool IsReadyToCommit { get; set; }
+
     public OptimisticTransaction(
         long transactionId,
         ZoneTreeOptions<TKey, TValue> options)

@@ -15,4 +15,3 @@ public class InvalidTransactionStateException : ZoneTreeException
 
     public TransactionState State { get; }
 }
-
