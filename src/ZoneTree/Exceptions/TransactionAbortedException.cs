@@ -2,9 +2,9 @@
 
 namespace Tenray;
 
-public class TransactionIsAbortedException : ZoneTreeException
+public class TransactionAbortedException : ZoneTreeException
 {
-    public TransactionIsAbortedException(long transactionId)
+    public TransactionAbortedException(long transactionId)
         : base($"Transaction is aborted. Transaction Id: {transactionId}")
     {
         TransactionId = transactionId;

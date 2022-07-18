@@ -14,7 +14,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="transactionId"></param>
     /// <param name="key"></param>
-    /// <exception cref="TransactionIsAbortedException"></exception>
+    /// <exception cref="TransactionAbortedException"></exception>
     /// <returns></returns>
     bool ContainsKey(long transactionId, in TKey key);
 
@@ -25,7 +25,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// <param name="key"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    /// <exception cref="TransactionIsAbortedException"></exception>
+    /// <exception cref="TransactionAbortedException"></exception>
     bool TryGet(long transactionId, in TKey key, out TValue value);
 
     /// <summary>
@@ -35,7 +35,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// <param name="key"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    /// <exception cref="TransactionIsAbortedException"></exception>
+    /// <exception cref="TransactionAbortedException"></exception>
     bool Upsert(long transactionId, in TKey key, in TValue value);
 
     /// <summary>
@@ -43,7 +43,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="transactionId"></param>
     /// <param name="key"></param>
-    /// <exception cref="TransactionIsAbortedException"></exception>
+    /// <exception cref="TransactionAbortedException"></exception>
     void Delete(long transactionId, in TKey key);
 
     /// <summary>
@@ -59,7 +59,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="transactionId"></param>
     /// <returns></returns>
-    /// <exception cref="TransactionIsAbortedException"></exception>
+    /// <exception cref="TransactionAbortedException"></exception>
     CommitResult Prepare(long transactionId);
 
     /// <summary>
@@ -68,7 +68,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="transactionId"></param>
     /// <returns></returns>
-    /// <exception cref="TransactionIsAbortedException"></exception>
+    /// <exception cref="TransactionAbortedException"></exception>
     CommitResult PrepareAndCommit(long transactionId);
 
     /// <summary>

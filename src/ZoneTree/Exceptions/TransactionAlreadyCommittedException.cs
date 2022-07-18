@@ -2,9 +2,9 @@
 
 namespace Tenray;
 
-public class TransactionIsAlreadyCommittedException : ZoneTreeException
+public class TransactionAlreadyCommittedException : ZoneTreeException
 {
-    public TransactionIsAlreadyCommittedException(long transactionId)
+    public TransactionAlreadyCommittedException(long transactionId)
         : base($"Transaction is already committed. Transaction Id: {transactionId}")
     {
         TransactionId = transactionId;

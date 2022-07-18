@@ -33,11 +33,20 @@ public class OptimisticTransactionTests
         zoneTree.TryGet(tx3, 3, out var value);
         Assert.That(value, Is.EqualTo(10));
 
-        Assert.Throws<TransactionIsAbortedException>(() => zoneTree.Upsert(tx2, 3, 6));
+        Assert.Throws<TransactionAbortedException>(() => zoneTree.Upsert(tx2, 3, 6));
         //tx2 is aborted. changes made by tx2 is rolled back.
+        //tx3 depends on tx2 and it is also aborted.
 
         zoneTree.TryGet(tx3, 3, out value);
         Assert.That(value, Is.EqualTo(9));
+
+        Assert.Throws<TransactionAbortedException>(() => zoneTree.PrepareAndCommit(tx2));
+
+        Assert.Throws<TransactionAbortedException>(() => zoneTree.PrepareAndCommit(tx3));
+
+        Assert.Throws<TransactionAlreadyCommittedException>(() => zoneTree.PrepareAndCommit(tx1));
+
+        Assert.Throws<TransactionAlreadyCommittedException>(() => zoneTree.Commit(tx1));
 
         zoneTree.DestroyTree();
     }

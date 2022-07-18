@@ -45,10 +45,10 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
     {
         var state = TransactionLog.GetTransactionState(transactionId);
         if (state == TransactionState.Aborted)
-            throw new TransactionIsAbortedException(transactionId);
+            throw new TransactionAbortedException(transactionId);
 
         if (state == TransactionState.Committed)
-            throw new TransactionIsAlreadyCommittedException(transactionId);
+            throw new TransactionAlreadyCommittedException(transactionId);
 
         if (OptimisticTransactions.TryGetValue(transactionId, out var transaction))
             return transaction;
@@ -152,12 +152,12 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         var waitList = new List<long>();
         foreach (var dependency in dependencies)
         {
-            var state = TransactionLog.GetTransactionState(transactionId);
+            var state = TransactionLog.GetTransactionState(dependency);
             if (state == TransactionState.Aborted)
             {
                 // If there is a transaction in DEP(Ti) that aborted then abort
                 AbortTransaction(transaction);
-                throw new TransactionIsAbortedException(transactionId);
+                throw new TransactionAbortedException(transactionId);
             }
             if (state == TransactionState.Uncommitted)
                 waitList.Add(dependency);
@@ -185,7 +185,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
             {
                 AbortTransaction(transaction);
-                throw new TransactionIsAbortedException(transactionId);
+                throw new TransactionAbortedException(transactionId);
             }
             ReadWriteStamps.Upsert(key, in readWriteStamp);
             return hasKey;
@@ -202,7 +202,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
             {
                 AbortTransaction(transaction);
-                throw new TransactionIsAbortedException(transactionId);
+                throw new TransactionAbortedException(transactionId);
             }
 
             ReadWriteStamps.Upsert(key, in readWriteStamp);
@@ -232,7 +232,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             if (action == OptimisticWriteAction.Abort)
             {
                 AbortTransaction(transaction);
-                throw new TransactionIsAbortedException(transactionId);
+                throw new TransactionAbortedException(transactionId);
             }
 
             // actual write happens.
@@ -264,7 +264,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             if (action == OptimisticWriteAction.Abort)
             {
                 AbortTransaction(transaction);
-                throw new TransactionIsAbortedException(transactionId);
+                throw new TransactionAbortedException(transactionId);
             }
             ReadWriteStamps.Upsert(key, in readWriteStamp);
             ZoneTree.ForceDelete(in key);
