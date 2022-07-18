@@ -13,7 +13,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
-    readonly ITransactionManager<TKey, TValue> TransactionManager;
+    readonly ITransactionLog<TKey, TValue> TransactionLog;
 
     readonly IncrementalIdProvider IdProvider = new ();
 
@@ -23,11 +23,11 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     public OptimisticZoneTree(
         ZoneTreeOptions<TKey, TValue> options,
-        ITransactionManager<TKey, TValue> transactionManager,
+        ITransactionLog<TKey, TValue> transactionLog,
         IZoneTree<TKey, TValue> zoneTree = null)
     {
         Options = options;
-        TransactionManager = transactionManager;
+        TransactionLog = transactionLog;
         ZoneTree = zoneTree ?? new ZoneTree<TKey, TValue>(options);
         Options.WriteAheadLogProvider.InitCategory(TxStampRecordCategory);
         ReadWriteStamps = new(
@@ -43,7 +43,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     OptimisticTransaction<TKey, TValue> GetOrCreateTransaction(long transactionId)
     {
-        var state = TransactionManager.GetTransactionState(transactionId);
+        var state = TransactionLog.GetTransactionState(transactionId);
         if (state == TransactionState.Aborted)
             throw new TransactionIsAbortedException(transactionId);
 
@@ -53,7 +53,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         if (OptimisticTransactions.TryGetValue(transactionId, out var transaction))
             return transaction;
 
-        transaction = new OptimisticTransaction<TKey, TValue>(transactionId, Options, TransactionManager);
+        transaction = new OptimisticTransaction<TKey, TValue>(transactionId, Options, TransactionLog);
         OptimisticTransactions.Add(transactionId, transaction);
         return transaction;
     }
@@ -71,7 +71,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
     public long BeginTransaction()
     {
         var transactionId = IdProvider.NextId();
-        TransactionManager.TransactionStarted(transactionId);
+        TransactionLog.TransactionStarted(transactionId);
         return transactionId;
     }
 
@@ -91,7 +91,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
          For each oldOj, oldWTS(Oj) in OLD(Ti)
             if WTS(Oj) equals TS(Ti) then restore Oj = oldOj and WTS(Oj) = oldWTS(Oj)
          */
-        var history = TransactionManager.GetHistory(transactionId);
+        var history = TransactionLog.GetHistory(transactionId);
         foreach (var item in history)
         {
             var key = item.Key;
@@ -105,7 +105,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             ZoneTree.Upsert(key, oldValue);
         }
         DeleteTransaction(transaction);
-        TransactionManager.TransactionAborted(transactionId);
+        TransactionLog.TransactionAborted(transactionId);
     }
 
     public CommitResult Prepare(long transactionId)
@@ -141,18 +141,18 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         if (!transaction.IsReadyToCommit)
             throw new TransactionIsNotReadyToCommitException(transactionId);
         DeleteTransaction(transaction);
-        TransactionManager.TransactionCommitted(transactionId);
+        TransactionLog.TransactionCommitted(transactionId);
         return CommitResult.Committed;
     }
 
     CommitResult DoPrepare(long transactionId)
     {
         var transaction = GetOrCreateTransaction(transactionId);
-        var dependencies = TransactionManager.GetDependencyList(transactionId);
+        var dependencies = TransactionLog.GetDependencyList(transactionId);
         var waitList = new List<long>();
         foreach (var dependency in dependencies)
         {
-            var state = TransactionManager.GetTransactionState(transactionId);
+            var state = TransactionLog.GetTransactionState(transactionId);
             if (state == TransactionState.Aborted)
             {
                 // If there is a transaction in DEP(Ti) that aborted then abort
@@ -279,7 +279,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     public void DestroyTree()
     {
-        TransactionManager.Dispose();
+        TransactionLog.Dispose();
         ReadWriteStamps.Dispose();
         ZoneTree.Maintenance.DestroyTree();
     }

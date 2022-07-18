@@ -6,7 +6,7 @@ using ZoneTree.WAL;
 
 namespace ZoneTree.Transactional;
 
-public sealed class BasicTransactionManager<TKey, TValue> : ITransactionManager<TKey, TValue>, IDisposable
+public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TValue>, IDisposable
 {
     const string TxMetaCategory = "txm";
 
@@ -40,7 +40,7 @@ public sealed class BasicTransactionManager<TKey, TValue> : ITransactionManager<
         }
     }
 
-    public BasicTransactionManager(ZoneTreeOptions<TKey, TValue> options)
+    public BasicTransactionLog(ZoneTreeOptions<TKey, TValue> options)
     {
         var writeAheadLogProvider = options.WriteAheadLogProvider;
         writeAheadLogProvider.InitCategory(TxMetaCategory);
@@ -134,13 +134,6 @@ public sealed class BasicTransactionManager<TKey, TValue> : ITransactionManager<
         }
     }
 
-    public void Dispose()
-    {
-        Transactions?.Dispose();
-        DependencyTable?.Dispose();
-        HistoryTable?.Dispose();
-    }
-
     public void AddDependency(long src, long dest)
     {
         lock (this)
@@ -175,5 +168,12 @@ public sealed class BasicTransactionManager<TKey, TValue> : ITransactionManager<
                 return dic.Keys.ToArray();
             return Array.Empty<long>();
         }
+    }
+
+    public void Dispose()
+    {
+        Transactions?.Dispose();
+        DependencyTable?.Dispose();
+        HistoryTable?.Dispose();
     }
 }

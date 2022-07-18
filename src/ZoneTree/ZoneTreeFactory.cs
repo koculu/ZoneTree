@@ -10,7 +10,7 @@ public class ZoneTreeFactory<TKey, TValue>
 {
     String WalDirectory;
 
-    ITransactionManager<TKey, TValue> TransactionManager;
+    ITransactionLog<TKey, TValue> TransactionLog;
 
     public ZoneTreeOptions<TKey, TValue> Options { get; } = new();
 
@@ -92,9 +92,9 @@ public class ZoneTreeFactory<TKey, TValue>
     }
 
     public ZoneTreeFactory<TKey, TValue>
-        SetTransactionManager(ITransactionManager<TKey, TValue> transactionManager)
+        SetTransactionLog(ITransactionLog<TKey, TValue> transactionLog)
     {
-        TransactionManager = transactionManager;
+        TransactionLog = transactionLog;
         return this;
     }
 
@@ -130,28 +130,28 @@ public class ZoneTreeFactory<TKey, TValue>
     public ITransactionalZoneTree<TKey, TValue> OpenOrCreateTransactional()
     {
         var zoneTree = OpenOrCreate();
-        var transactionManager =
-            TransactionManager ??
-            new BasicTransactionManager<TKey, TValue>(Options);
+        var transactionLog =
+            TransactionLog ??
+            new BasicTransactionLog<TKey, TValue>(Options);
 
-        return new OptimisticZoneTree<TKey, TValue>(Options, transactionManager, zoneTree);
+        return new OptimisticZoneTree<TKey, TValue>(Options, transactionLog, zoneTree);
     }
 
     public ITransactionalZoneTree<TKey, TValue> CreateTransactional()
     {
         var zoneTree = Create();
-        var transactionManager =
-            TransactionManager ??
-            new BasicTransactionManager<TKey, TValue>(Options);
-        return new OptimisticZoneTree<TKey, TValue>(Options, transactionManager, zoneTree);
+        var transactionLog =
+            TransactionLog ??
+            new BasicTransactionLog<TKey, TValue>(Options);
+        return new OptimisticZoneTree<TKey, TValue>(Options, transactionLog, zoneTree);
     }
 
     public ITransactionalZoneTree<TKey, TValue> OpenTransactional()
     {
         var zoneTree = Open();
-        var transactionManager =
-            TransactionManager ??
-            new BasicTransactionManager<TKey, TValue>(Options);
-        return new OptimisticZoneTree<TKey, TValue>(Options, transactionManager, zoneTree);
+        var transactionLog =
+            TransactionLog ??
+            new BasicTransactionLog<TKey, TValue>(Options);
+        return new OptimisticZoneTree<TKey, TValue>(Options, transactionLog, zoneTree);
     }
 }

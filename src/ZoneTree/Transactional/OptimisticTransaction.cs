@@ -9,18 +9,18 @@ public sealed class OptimisticTransaction<TKey, TValue>
 
     readonly ZoneTreeOptions<TKey, TValue> Options;
     
-    readonly ITransactionManager<TKey, TValue> TransactionManager;
+    readonly ITransactionLog<TKey, TValue> TransactionLog;
 
     public bool IsReadyToCommit { get; set; }
 
     public OptimisticTransaction(
         long transactionId,
         ZoneTreeOptions<TKey, TValue> options,
-        ITransactionManager<TKey, TValue> transactionManager)
+        ITransactionLog<TKey, TValue> transactionLog)
     {
         TransactionId = transactionId;
         Options = options;
-        TransactionManager = transactionManager;
+        TransactionLog = transactionLog;
     }
 
     /// <summary>
@@ -38,7 +38,7 @@ public sealed class OptimisticTransaction<TKey, TValue>
         }
 
         if (readWriteStamp.WriteStamp != 0)
-            TransactionManager.AddDependency(TransactionId, readWriteStamp.WriteStamp);
+            TransactionLog.AddDependency(TransactionId, readWriteStamp.WriteStamp);
         readWriteStamp.ReadStamp = Math.Max(readWriteStamp.ReadStamp, TransactionId);
         return OptimisticReadAction.Read;
     }
@@ -73,7 +73,7 @@ public sealed class OptimisticTransaction<TKey, TValue>
 
         var combinedValue = 
             new CombinedValue<TValue, long>(value, readWriteStamp.WriteStamp);
-        TransactionManager.AddHistory(TransactionId, key, combinedValue);
+        TransactionLog.AddHistory(TransactionId, key, combinedValue);
         readWriteStamp.WriteStamp = TransactionId;
         return OptimisticWriteAction.Write;
     }

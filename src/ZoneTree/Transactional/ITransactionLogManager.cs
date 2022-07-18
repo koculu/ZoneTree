@@ -2,7 +2,7 @@
 
 namespace ZoneTree.Transactional;
 
-public interface ITransactionManager<TKey, TValue> : IDisposable
+public interface ITransactionLog<TKey, TValue> : IDisposable
 {
     int TransactionCount { get; }
 
