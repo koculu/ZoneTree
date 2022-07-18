@@ -1,4 +1,6 @@
-﻿namespace Tenray;
+﻿using ZoneTree.Transactional;
+
+namespace Tenray;
 
 public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
 {
@@ -10,13 +12,11 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
 
     bool TryGet(long transactionId, in TKey key, out TValue value);
 
-    void Upsert(long transactionId, in TKey key, in TValue value);
+    bool Upsert(long transactionId, in TKey key, in TValue value);
 
-    bool TryDelete(long transactionId, in TKey key);
+    void Delete(long transactionId, in TKey key);
 
-    void ForceDelete(long transactionId, in TKey key);
-
-    TransactionResult CommitTransaction(long transactionId);
+    TransactionCommitResult CommitTransaction(long transactionId);
 
     void AbortTransaction(long transactionId);
 }

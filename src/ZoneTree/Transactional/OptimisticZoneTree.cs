@@ -1,9 +1,7 @@
 ﻿using Tenray;
-using Tenray.Collections;
 using ZoneTree.Collections;
 using ZoneTree.Core;
 using ZoneTree.Serializers;
-using ZoneTree.WAL;
 
 namespace ZoneTree.Transactional;
 
@@ -13,13 +11,23 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     const string TxRecCategory = "txrec";
 
+    readonly ZoneTreeOptions<TKey, TValue> Options;
+
+    readonly ITransactionManager TransactionManager;
+
     readonly IncrementalIdProvider IdProvider = new ();
 
     readonly DictionaryWithWAL<TKey, OptimisticRecord> Records;
 
-    public OptimisticZoneTree(ZoneTreeOptions<TKey, TValue> options)
+    readonly Dictionary<long, OptimisticTransaction<TKey, TValue>> OptimisticTransactions = new();
+
+    public OptimisticZoneTree(
+        ZoneTreeOptions<TKey, TValue> options,
+        ITransactionManager transactionManager)
     {
-        ZoneTree = new ZoneTree<TKey, TValue>(options);
+        Options = options;
+        TransactionManager = transactionManager;
+        ZoneTree = new ZoneTree<TKey, TValue>(options);        
         Records = new(
             0,
             TxRecCategory,
@@ -33,7 +41,24 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     OptimisticTransaction<TKey, TValue> GetOrCreateTransaction(long transactionId)
     {
-        return null;
+        if (OptimisticTransactions.TryGetValue(transactionId, out var transaction))
+            return transaction;
+
+        var state = TransactionManager.GetTransactionState(transactionId);
+        if (state != TransactionState.Uncommitted)
+            throw new InvalidTransactionStateException(transactionId, state);
+
+        transaction = new OptimisticTransaction<TKey, TValue>(transactionId, Options);
+        OptimisticTransactions.Add(transactionId, transaction);
+        return transaction;
+    }
+
+    void DeleteTransaction(long transactionId)
+    {
+        if (!OptimisticTransactions.TryGetValue(transactionId, out var transaction))
+            return;
+        OptimisticTransactions.Remove(transactionId);
+        transaction.Dispose();
     }
 
     public void AbortTransaction(long transactionId)
@@ -45,64 +70,85 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
              For each oldOj, oldWTS(Oj) in OLD(Ti)
                 if WTS(Oj) equals TS(Ti) then restore Oj = oldOj and WTS(Oj) = oldWTS(Oj)
              */
+            DeleteTransaction(transactionId);
+            TransactionManager.TransactionAborted(transactionId);
         }
     }
 
-    public TransactionResult CommitTransaction(long transactionId)
+    public TransactionCommitResult CommitTransaction(long transactionId)
     {
-        /*
-         While there is a transaction DEP(Ti) that has not ended: wait
-         If there is a transaction in DEP(Ti) that aborted then abort
-         Otherwise: commit.
-         */
-
         lock (this)
         {
             var transaction = GetOrCreateTransaction(transactionId);
             var dependencies = transaction.GetDependencyList();
+            var waitList = new List<long>();
             foreach (var dependency in dependencies)
             {
-                //if (IsAborted(dependency))
+                var state = TransactionManager.GetTransactionState(transactionId);
+                if (state == TransactionState.Aborted)
                 {
+                    // If there is a transaction in DEP(Ti) that aborted then abort
                     AbortTransaction(transactionId);
                     throw new TransactionIsAbortedException(transactionId, TransactionResult.AbortedRetry);
                 }
+                if (state == TransactionState.Uncommitted)
+                    waitList.Add(dependency);
             }
 
-            foreach (var dependency in dependencies)
+            if (waitList.Count == 0)
             {
-                //if (IsUncommitted(dependency))
-                    return TransactionResult.WaitUncommittedTransactions;
+                // Commit was successful.
+                DeleteTransaction(transactionId);
+                TransactionManager.TransactionCommitted(transactionId);
+                return TransactionCommitResult.CommittedResult;
             }
 
-            return TransactionResult.Committed;
+            // While there is a transaction DEP(Ti) that has not ended: wait
+            return new TransactionCommitResult(
+                TransactionResult.WaitUncommittedTransactions,
+                waitList);
         }
     }
 
     public bool ContainsKey(long transactionId, in TKey key)
     {
-        throw new NotImplementedException();
+        lock (this)
+        {
+            var transaction = GetOrCreateTransaction(transactionId);
+            var hasOptRecord = Records.TryGetValue(key, out var optRecord);
+            var hasKey = ZoneTree.ContainsKey(in key);
+            transaction.HandleReadKey(ref optRecord);
+            Records.Upsert(key, in optRecord);
+            return hasKey;
+        }
     }
 
     public long CreateTransactionId()
     {
-        return IdProvider.NextId();
+        var transactionId = IdProvider.NextId();
+        TransactionManager.TransactionStarted(transactionId);
+        return transactionId;
     }
 
-    public void Dispose()
+    public void Delete(long transactionId, in TKey key)
     {
-        ZoneTree.Dispose();
-        Records.Dispose();
-    }
+        lock (this)
+        {
+            var transaction = GetOrCreateTransaction(transactionId);
+            var hasOptRecord = Records.TryGetValue(key, out var optRecord);
+            var hasOldValue = ZoneTree.TryGet(in key, out var oldValue);
 
-    public void ForceDelete(long transactionId, in TKey key)
-    {
-        throw new NotImplementedException();
-    }
+            // skip the write based on Thomas Write Rule.
+            if (!transaction.HandleWriteKey(
+                ref optRecord,
+                in key,
+                hasOldValue,
+                in oldValue))
+                return;
 
-    public bool TryDelete(long transactionId, in TKey key)
-    {
-        throw new NotImplementedException();
+            ZoneTree.ForceDelete(in key);
+            Records.Upsert(key, in optRecord);
+        }
     }
 
     public bool TryGet(long transactionId, in TKey key, out TValue value)
@@ -118,7 +164,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         }
     }
 
-    public void Upsert(long transactionId, in TKey key, in TValue value)
+    public bool Upsert(long transactionId, in TKey key, in TValue value)
     {
         lock (this)
         {
@@ -132,10 +178,21 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
                 in key, 
                 hasOldValue,
                 in oldValue))
-                return;
+                return !hasOldValue;
 
             ZoneTree.Upsert(in key, in value);
             Records.Upsert(key, in optRecord);
+            return !hasOldValue;
         }
+    }
+
+    public void Dispose()
+    {
+        foreach (var transaction in OptimisticTransactions.Values.ToArray())
+        {
+            transaction.Dispose();
+        }
+        ZoneTree.Dispose();
+        Records.Dispose();
     }
 }
