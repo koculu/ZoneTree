@@ -40,10 +40,10 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
 
     /// <summary>
     /// Deletes the key.
-    /// <exception cref="TransactionIsAbortedException"></exception>
     /// </summary>
     /// <param name="transactionId"></param>
     /// <param name="key"></param>
+    /// <exception cref="TransactionIsAbortedException"></exception>
     void Delete(long transactionId, in TKey key);
 
     /// <summary>
@@ -60,7 +60,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// <param name="transactionId"></param>
     /// <returns></returns>
     /// <exception cref="TransactionIsAbortedException"></exception>
-    TransactionCommitResult Prepare(long transactionId);
+    CommitResult Prepare(long transactionId);
 
     /// <summary>
     /// Prepares to Commit. Aborts transaction if needed.
@@ -69,7 +69,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// <param name="transactionId"></param>
     /// <returns></returns>
     /// <exception cref="TransactionIsAbortedException"></exception>
-    TransactionCommitResult PrepareAndCommit(long transactionId);
+    CommitResult PrepareAndCommit(long transactionId);
 
     /// <summary>
     /// Commits if the transaction is in ready to commit state.
@@ -78,7 +78,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// <param name="transactionId"></param>
     /// <returns></returns>
     /// <exception cref="TransactionIsNotReadyToCommitException"></exception>
-    TransactionCommitResult Commit(long transactionId);
+    CommitResult Commit(long transactionId);
 
     /// <summary>
     /// Rollsback the transaction by undoing all writes by this transaction.

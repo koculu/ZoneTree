@@ -1,6 +1,6 @@
-﻿namespace Tenray;
+﻿namespace ZoneTree.Transactional;
 
-public enum TransactionResult
+public enum CommitState
 {
     /// <summary>
     /// Transaction is in committable stage.
@@ -15,13 +15,7 @@ public enum TransactionResult
     Committed,
 
     /// <summary>
-    /// Transaction is aborted.
-    /// Retry is caller's responsibility.
-    /// </summary>
-    Aborted,
-
-    /// <summary>
     /// Transaction can not commit due to other uncommitted transactions.
     /// </summary>
-    WaitUncommittedTransactions
+    PendingTransactions
 }

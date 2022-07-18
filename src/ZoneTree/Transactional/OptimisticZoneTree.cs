@@ -41,12 +41,15 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     OptimisticTransaction<TKey, TValue> GetOrCreateTransaction(long transactionId)
     {
+        var state = TransactionManager.GetTransactionState(transactionId);
+        if (state == TransactionState.Aborted)
+            throw new TransactionIsAbortedException(transactionId);
+
+        if (state == TransactionState.Committed)
+            throw new TransactionIsAlreadyCommittedException(transactionId);
+
         if (OptimisticTransactions.TryGetValue(transactionId, out var transaction))
             return transaction;
-
-        var state = TransactionManager.GetTransactionState(transactionId);
-        if (state != TransactionState.Uncommitted)
-            throw new InvalidTransactionStateException(transactionId, state);
 
         transaction = new OptimisticTransaction<TKey, TValue>(transactionId, Options);
         OptimisticTransactions.Add(transactionId, transaction);
@@ -103,7 +106,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         TransactionManager.TransactionAborted(transactionId);
     }
 
-    public TransactionCommitResult Prepare(long transactionId)
+    public CommitResult Prepare(long transactionId)
     {
         lock (this)
         {
@@ -111,7 +114,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         }
     }
 
-    public TransactionCommitResult PrepareAndCommit(long transactionId)
+    public CommitResult PrepareAndCommit(long transactionId)
     {
         lock (this)
         {
@@ -122,7 +125,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         }
     }
 
-    public TransactionCommitResult Commit(long transactionId)
+    public CommitResult Commit(long transactionId)
     {
         lock (this)
         {
@@ -130,17 +133,17 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         }
     }
 
-    TransactionCommitResult DoCommit(long transactionId)
+    CommitResult DoCommit(long transactionId)
     {
         var transaction = GetOrCreateTransaction(transactionId);
         if (!transaction.IsReadyToCommit)
             throw new TransactionIsNotReadyToCommitException(transactionId);
         DeleteTransaction(transaction);
         TransactionManager.TransactionCommitted(transactionId);
-        return TransactionCommitResult.CommittedResult;
+        return CommitResult.Committed;
     }
 
-    TransactionCommitResult DoPrepare(long transactionId)
+    CommitResult DoPrepare(long transactionId)
     {
         var transaction = GetOrCreateTransaction(transactionId);
         var dependencies = transaction.GetDependencyList();
@@ -152,7 +155,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             {
                 // If there is a transaction in DEP(Ti) that aborted then abort
                 AbortTransaction(transaction);
-                throw new TransactionIsAbortedException(transactionId, TransactionResult.Aborted);
+                throw new TransactionIsAbortedException(transactionId);
             }
             if (state == TransactionState.Uncommitted)
                 waitList.Add(dependency);
@@ -161,12 +164,12 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         if (waitList.Count == 0)
         {
             transaction.IsReadyToCommit = true;
-            return TransactionCommitResult.ReadyToCommitResult;
+            return CommitResult.ReadyToCommit;
         }
 
         // While there is a transaction DEP(Ti) that has not ended: wait
-        return new TransactionCommitResult(
-            TransactionResult.WaitUncommittedTransactions,
+        return new CommitResult(
+            CommitState.PendingTransactions,
             waitList);
     }
 
@@ -180,9 +183,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
             {
                 AbortTransaction(transaction);
-                throw new TransactionIsAbortedException(
-                    transactionId,
-                    TransactionResult.Aborted);
+                throw new TransactionIsAbortedException(transactionId);
             }
             ReadWriteStamps.Upsert(key, in readWriteStamp);
             return hasKey;
@@ -199,9 +200,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
             {
                 AbortTransaction(transaction);
-                throw new TransactionIsAbortedException(
-                    transactionId,
-                    TransactionResult.Aborted);
+                throw new TransactionIsAbortedException(transactionId);
             }
 
             ReadWriteStamps.Upsert(key, in readWriteStamp);
@@ -231,9 +230,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             if (action == OptimisticWriteAction.Abort)
             {
                 AbortTransaction(transaction);
-                throw new TransactionIsAbortedException(
-                    transactionId,
-                    TransactionResult.Aborted);
+                throw new TransactionIsAbortedException(transactionId);
             }
 
             // actual write happens.
@@ -265,9 +262,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
             if (action == OptimisticWriteAction.Abort)
             {
                 AbortTransaction(transaction);
-                throw new TransactionIsAbortedException(
-                    transactionId,
-                    TransactionResult.Aborted);
+                throw new TransactionIsAbortedException(transactionId);
             }
             ReadWriteStamps.Upsert(key, in readWriteStamp);
             ZoneTree.ForceDelete(in key);

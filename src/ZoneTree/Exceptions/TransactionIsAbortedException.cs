@@ -1,15 +1,14 @@
-﻿namespace Tenray;
+﻿using ZoneTree.Transactional;
+
+namespace Tenray;
 
 public class TransactionIsAbortedException : ZoneTreeException
 {
-    public TransactionIsAbortedException(long transactionId, TransactionResult result)
-        : base($"Transaction is aborted. {transactionId} Reason: {result}")
+    public TransactionIsAbortedException(long transactionId)
+        : base($"Transaction is aborted. {transactionId}")
     {
         TransactionId = transactionId;
-        Result = result;
     }
 
     public long TransactionId { get; }
-
-    public TransactionResult Result { get; }
 }

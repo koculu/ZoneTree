@@ -2,16 +2,13 @@
 
 namespace Tenray;
 
-public class InvalidTransactionStateException : ZoneTreeException
+public class TransactionIsAlreadyCommittedException : ZoneTreeException
 {
-    public InvalidTransactionStateException(long transactionId, TransactionState state)
-        : base($"Transaction state is not valid for requested operation. {transactionId} State: {state}")
+    public TransactionIsAlreadyCommittedException(long transactionId)
+        : base($"Transaction is already committed.")
     {
         TransactionId = transactionId;
-        State = state;
     }
 
     public long TransactionId { get; }
-
-    public TransactionState State { get; }
 }
