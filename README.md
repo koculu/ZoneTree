@@ -1,10 +1,10 @@
 # ZoneTree
-ZoneTree is a persistent, high-performance and transactional key-value database for .NET.
+ZoneTree is a persistent, high-performance, transactional, and ACID key-value database for .NET.
 It can operate in memory or on disk. (Optimized for SSDs)
 
 [![Download](https://img.shields.io/badge/download-ZoneTree-blue)](https://www.nuget.org/packages/ZoneTree/)
 
-ZoneTree is a fast and high-performance LSM Tree for .NET. 
+ZoneTree is a lightweight, transactional and high-performance LSM Tree for .NET. 
 
 LSM Tree (Log-structured merge-tree) is the most popular data structure and it is being used by many popular databases internally.
 
@@ -12,6 +12,9 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 1. It is pure C#. Easy to maintain, easy to develop new features.
 2. It is faster than using C/C++ based key-value stores like RocksDB. Because ZoneTree does not need to transfer bytes to the native external libraries (Zero Marshaling).
 3. .NET EcoSystem does not have any feature-complete and thread-safe LSM Tree that operates both in memory and on disk.
+4. Supports transactional and non-transactional access with blazing speeds and ACID guarantees.
+5. Why do you need an SQL database or another product for the projects that a persistent tree bundled with your code is sufficient? You don't need to maintain another product shipped with yours!
+6. You decide where to put your data. You can adjust a few parameters to improve performance with more data loaded into memory whenever needed.When you don't need you can drop in memory data without a danger of a data loss.
 
 ## How fast is it?
 
@@ -144,6 +147,31 @@ That is useful for doing prefix search with forward-iterator or with backward-it
     var key = iterator.CurrentKey;
     var value = iterator.CurrentValue;
  } 
+```
+
+
+## Transaction Support
+ZoneTree supports Optimistic Transaction. It is proud to announce that the ZoneTree is ACID compatible. Of course, you can use non-transactional API for the scenarios where eventual consistency is sufficient.
+
+Please note that Transactional reads/writes are roughly three times slower than non-transactional ones.
+
+The following sample shows how to do the transactions with ZoneTree.
+```c#
+ using var zoneTree = new ZoneTreeFactory<int, int>()
+    // Additional stuff goes here
+    .OpenOrCreateTransactional();
+ try 
+ {
+     var txId = zoneTree.BeginTransaction();
+     zoneTree.TryGet(txId, 3, out var value);
+     zoneTree.Upsert(txId, 3, 9);
+     zoneTree.Prepare(txId);
+     var result = zoneTree.Commit(txId); 
+  }
+  catch(TransactionAbortedException e)
+  {
+      //retry or cancel
+  }
 ```
 
 ## I need more information. Where can I find it?
