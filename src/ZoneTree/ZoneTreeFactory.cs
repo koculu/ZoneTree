@@ -1,6 +1,7 @@
 ﻿using Tenray.Collections;
 using ZoneTree.Core;
 using ZoneTree.Segments.Disk;
+using ZoneTree.Transactional;
 using ZoneTree.WAL;
 
 namespace Tenray;
@@ -8,6 +9,8 @@ namespace Tenray;
 public class ZoneTreeFactory<TKey, TValue>
 {
     String WalDirectory;
+
+    ITransactionManager TransactionManager;
 
     public ZoneTreeOptions<TKey, TValue> Options { get; } = new();
 
@@ -88,6 +91,13 @@ public class ZoneTreeFactory<TKey, TValue>
         return this;
     }
 
+    public ZoneTreeFactory<TKey, TValue>
+        SetTransactionManager(ITransactionManager transactionManager)
+    {
+        TransactionManager = transactionManager;
+        return this;
+    }
+
     public IZoneTree<TKey, TValue> OpenOrCreate()
     {
         InitWriteAheadLogProvider();
@@ -115,5 +125,33 @@ public class ZoneTreeFactory<TKey, TValue>
         if (!loader.ZoneTreeMetaExists)
             throw new DatabaseNotFoundException();
         return loader.LoadZoneTree();
+    }
+
+    public ITransactionalZoneTree<TKey, TValue> OpenOrCreateTransactional()
+    {
+        var zoneTree = OpenOrCreate();
+        var transactionManager =
+            TransactionManager ??
+            new BasicTransactionManager(Options.WriteAheadLogProvider);
+
+        return new OptimisticZoneTree<TKey, TValue>(Options, transactionManager, zoneTree);
+    }
+
+    public ITransactionalZoneTree<TKey, TValue> CreateTransactional()
+    {
+        var zoneTree = Create();
+        var transactionManager =
+            TransactionManager ??
+            new BasicTransactionManager(Options.WriteAheadLogProvider);
+        return new OptimisticZoneTree<TKey, TValue>(Options, transactionManager, zoneTree);
+    }
+
+    public ITransactionalZoneTree<TKey, TValue> OpenTransactional()
+    {
+        var zoneTree = Open();
+        var transactionManager =
+            TransactionManager ??
+            new BasicTransactionManager(Options.WriteAheadLogProvider);
+        return new OptimisticZoneTree<TKey, TValue>(Options, transactionManager, zoneTree);
     }
 }

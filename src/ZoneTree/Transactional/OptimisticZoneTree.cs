@@ -23,11 +23,12 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     public OptimisticZoneTree(
         ZoneTreeOptions<TKey, TValue> options,
-        ITransactionManager transactionManager)
+        ITransactionManager transactionManager,
+        IZoneTree<TKey, TValue> zoneTree = null)
     {
         Options = options;
         TransactionManager = transactionManager;
-        ZoneTree = new ZoneTree<TKey, TValue>(options);        
+        ZoneTree = zoneTree ?? new ZoneTree<TKey, TValue>(options);        
         ReadWriteStamps = new(
             0,
             TxStampRecordCategory,

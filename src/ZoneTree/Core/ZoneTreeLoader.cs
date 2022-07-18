@@ -2,6 +2,7 @@
 using Tenray;
 using Tenray.Segments;
 using ZoneTree.Segments.Disk;
+using ZoneTree.Transactional;
 
 namespace ZoneTree.Core;
 
