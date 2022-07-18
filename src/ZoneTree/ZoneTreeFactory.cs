@@ -11,6 +11,8 @@ public class ZoneTreeFactory<TKey, TValue>
     String WalDirectory;
 
     ITransactionLog<TKey, TValue> TransactionLog;
+    
+    int InitialSparseArrayLength = 1_000_000;
 
     public ZoneTreeOptions<TKey, TValue> Options { get; } = new();
 
@@ -97,6 +99,12 @@ public class ZoneTreeFactory<TKey, TValue>
         TransactionLog = transactionLog;
         return this;
     }
+    
+    public ZoneTreeFactory<TKey, TValue> SetInitialSparseArrayLength(int initialSparseArrayLength)
+    {
+        InitialSparseArrayLength = initialSparseArrayLength;
+        return this;
+    }
 
     public IZoneTree<TKey, TValue> OpenOrCreate()
     {
@@ -104,7 +112,9 @@ public class ZoneTreeFactory<TKey, TValue>
         var loader = new ZoneTreeLoader<TKey, TValue>(Options);
         if (loader.ZoneTreeMetaExists)
         {
-            return loader.LoadZoneTree();
+            var zoneTree = loader.LoadZoneTree();
+            zoneTree.Maintenance.DiskSegment.InitSparseArray(InitialSparseArrayLength);
+            return zoneTree;
         }
         return new ZoneTree<TKey, TValue>(Options);
     }

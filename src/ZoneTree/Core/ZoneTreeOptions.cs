@@ -11,7 +11,7 @@ public delegate void MarkValueDeletedDelegate<TValue>(ref TValue value);
 
 public class ZoneTreeOptions<TKey, TValue>
 {
-    public int MutableSegmentMaxItemCount { get; set; } = 762600;
+    public int MutableSegmentMaxItemCount { get; set; } = 1_000_000;
 
     public IRefComparer<TKey> Comparer { get; set; }
 

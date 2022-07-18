@@ -61,8 +61,8 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             new Int64Serializer(),
             new StructSerializer<TransactionMeta>(),
             new Int64ComparerAscending(),
-            (in TransactionMeta x) => x.TransactionId == 0,
-            (ref TransactionMeta x) => x.TransactionId = 0);
+            (in TransactionMeta x) => x.StartedAt == 0,
+            (ref TransactionMeta x) => x.StartedAt = 0);
 
         var combinedSerializer = new CombinedSerializer<TValue, long>(options.ValueSerializer, new Int64Serializer());
         HistoryTable = new(
@@ -160,7 +160,6 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
                 return;
             var transactionMeta = new TransactionMeta
             {
-                TransactionId = transactionId,
                 StartedAt = DateTime.UtcNow.Ticks,
                 State = TransactionState.Uncommitted
             };
@@ -241,15 +240,30 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             DeleteObsoleteReadStamps();
 
             DeleteObsoleteHistory();
-
-            Transactions.CompactWriteAheadLog();
             
+            AddDummyTransactionToPreserveNextTransactionIdInLog();
+            Transactions.CompactWriteAheadLog();
+
             HistoryTable.CompactWriteAheadLog();
 
             DependencyTable.CompactWriteAheadLog();
 
             ReadWriteStamps.CompactWriteAheadLog();
         }
+    }
+
+    private void AddDummyTransactionToPreserveNextTransactionIdInLog()
+    {
+        // Dummy transaction ensures the next transaction id
+        // is not lost on the next load of the transaction log.
+        var transactionId = GetNextTransactionId();
+        var dummyTransaction = new TransactionMeta
+        {
+            StartedAt = DateTime.UtcNow.Ticks,
+            EndedAt = DateTime.UtcNow.Ticks,
+            State = TransactionState.Committed
+        };
+        Transactions.Upsert(transactionId, in dummyTransaction);
     }
 
     private void DeleteObsoleteHistory()

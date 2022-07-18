@@ -10,11 +10,11 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 
     public IZoneTreeMaintenance<TKey, TValue> Maintenance { get; }
 
-    public int MinimumSparseArrayLength = 100000;
+    public int MinimumSparseArrayLength = 1_000_000;
 
     public int SparseArrayStepLength = 128;
 
-    public int ThresholdForMergeOperationStart = 762600;
+    public int ThresholdForMergeOperationStart = 2_000_000;
 
     public List<Task<MergeResult>> Tasks = new();
 

@@ -16,11 +16,9 @@ public class Test1
     public void Run()
     {
         var dataPath = "../../data/SeveralParallelTransactions";
-        /*if (Directory.Exists(dataPath))
-            Directory.Delete(dataPath, true);*/
         var stopWatch = new Stopwatch();
         stopWatch.Start();
-        int n = 100000;
+        int n = 1000000;
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
@@ -31,14 +29,28 @@ public class Test1
         using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree.ZoneTree);
 
         Console.WriteLine("Loaded: " + stopWatch.ElapsedMilliseconds);
-        Parallel.For(0, n, (x) =>
+
+        var transactional = true;
+        if (transactional)
         {
-            var tx = zoneTree.BeginTransaction();
-            zoneTree.Upsert(tx, x, x + x);
-            zoneTree.Upsert(tx, -x, -x - x);
-            zoneTree.Prepare(tx);
-            zoneTree.Commit(tx);
-        });
+            Parallel.For(0, n, (x) =>
+            {
+                var tx = zoneTree.BeginTransaction();
+                zoneTree.Upsert(tx, x, x + x);
+                zoneTree.Upsert(tx, -x, -x - x);
+                zoneTree.Prepare(tx);
+                zoneTree.Commit(tx);
+            });
+        }
+        else
+        {
+            var data = zoneTree.ZoneTree;
+            Parallel.For(0, n, (x) =>
+            {
+                data.Upsert(x, x + x);
+                data.Upsert(-x, -x - x);
+            });
+        }
         Console.WriteLine("Elapsed: " + stopWatch.ElapsedMilliseconds);
         zoneTree.ZoneTree.Maintenance.SaveMetaData();
         basicMaintainer.CompleteRunningTasks().AsTask().Wait();
