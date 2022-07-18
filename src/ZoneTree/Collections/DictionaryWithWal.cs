@@ -83,6 +83,11 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         }
     }
 
+    public bool ContainsKey(in TKey key)
+    {
+        return Dictionary.ContainsKey(key);
+    }
+
     public bool TryGetValue(in TKey key, out TValue value)
     {
         return Dictionary.TryGetValue(key, out value);

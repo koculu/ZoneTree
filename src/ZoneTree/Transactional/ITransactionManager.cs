@@ -2,6 +2,10 @@
 
 public interface ITransactionManager
 {
+    public int TransactionCount { get; }
+
+    public IReadOnlyList<long> TransactionIds { get; }
+
     public void TransactionStarted(long transactionId);
     
     public void TransactionCommitted(long transactionId);
@@ -9,4 +13,6 @@ public interface ITransactionManager
     public void TransactionAborted(long transactionId);
 
     public TransactionState GetTransactionState(long transactionId);
+
+    public TransactionMeta GetTransactionMeta(long transactionId);
 }
