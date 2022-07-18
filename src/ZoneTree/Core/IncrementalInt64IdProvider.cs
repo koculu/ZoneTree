@@ -1,14 +1,14 @@
 ﻿namespace ZoneTree.Core;
 
-public class IncrementalIdProvider : IIncrementalIdProvider
+public class IncrementalInt64IdProvider
 {
-    int lastId = 0;
-    public int NextId()
+    long lastId = 0;
+    public long NextId()
     {
         return Interlocked.Increment(ref lastId);
     }
 
-    public void SetNextId(int id)
+    public void SetNextId(long id)
     {
         Interlocked.Exchange(ref lastId, id - 1);
     }

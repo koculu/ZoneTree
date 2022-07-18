@@ -79,6 +79,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         var len = newKeys.Count;
         for (var i = 0; i < len; ++i)
         {
+            Dictionary.Remove(newKeys[i]);
             Dictionary.Add(newKeys[i], newValues[i]);
         }
     }

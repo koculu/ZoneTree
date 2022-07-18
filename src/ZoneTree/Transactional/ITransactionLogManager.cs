@@ -25,4 +25,6 @@ public interface ITransactionLog<TKey, TValue> : IDisposable
     IDictionary<TKey, CombinedValue<TValue, long>> GetHistory(long transactionId);
     
     IReadOnlyList<long> GetDependencyList(long transactionId);
+
+    long GetNextTransactionId();
 }

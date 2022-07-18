@@ -14,6 +14,8 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
     const string TxDependency = "txd";
 
+    readonly IncrementalInt64IdProvider IncrementalIdProvider = new();
+
     readonly DictionaryWithWAL<long, TransactionMeta> Transactions;
 
     readonly DictionaryOfDictionaryWithWAL<long, TKey, CombinedValue<TValue, long>> HistoryTable;
@@ -73,6 +75,10 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             new Int64Serializer(),
             new BooleanSerializer()
             );
+
+        var keys = Transactions.Keys;
+        if (keys.Count > 0)
+            IncrementalIdProvider.SetNextId(keys.Max() + 1);
     }
 
     public TransactionMeta GetTransactionMeta(long transactionId)
@@ -175,5 +181,10 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
         Transactions?.Dispose();
         DependencyTable?.Dispose();
         HistoryTable?.Dispose();
+    }
+
+    public long GetNextTransactionId()
+    {
+        return IncrementalIdProvider.NextId();
     }
 }

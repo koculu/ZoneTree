@@ -15,8 +15,6 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     readonly ITransactionLog<TKey, TValue> TransactionLog;
 
-    readonly IncrementalIdProvider IdProvider = new ();
-
     readonly DictionaryWithWAL<TKey, ReadWriteStamp> ReadWriteStamps;
 
     readonly Dictionary<long, OptimisticTransaction<TKey, TValue>> OptimisticTransactions = new();
@@ -70,7 +68,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
 
     public long BeginTransaction()
     {
-        var transactionId = IdProvider.NextId();
+        var transactionId = TransactionLog.GetNextTransactionId();
         TransactionLog.TransactionStarted(transactionId);
         return transactionId;
     }

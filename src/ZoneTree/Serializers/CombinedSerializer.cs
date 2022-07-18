@@ -35,7 +35,7 @@ public class CombinedSerializer<TValue1, TValue2> : ISerializer<CombinedValue<TV
         var len2 = bytes2.Length;
         var bytes = new byte[len1 + len2 + sizeof(int)];
         Array.Copy(bytes1, bytes, len1);
-        Array.Copy(bytes2, bytes, len2);
+        Array.Copy(bytes2, 0, bytes, len1, len2);
         Array.Copy(BitConverter.GetBytes(len1), 0, bytes, len1 + len2, sizeof(int));
         return bytes;
     }
