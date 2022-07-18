@@ -1,5 +1,5 @@
 # ZoneTree
-ZoneTree is a persistent, high-performance, transactional, and ACID key-value database for .NET.
+ZoneTree is a persistent, high-performance, transactional, and ACID-compliant key-value database for .NET.
 It can operate in memory or on disk. (Optimized for SSDs)
 
 [![Download](https://img.shields.io/badge/download-ZoneTree-blue)](https://www.nuget.org/packages/ZoneTree/)
@@ -151,7 +151,7 @@ That is useful for doing prefix search with forward-iterator or with backward-it
 
 
 ## Transaction Support
-ZoneTree supports Optimistic Transaction. It is proud to announce that the ZoneTree is ACID compatible. Of course, you can use non-transactional API for the scenarios where eventual consistency is sufficient.
+ZoneTree supports Optimistic Transaction. It is proud to announce that the ZoneTree is ACID-compliant. Of course, you can use non-transactional API for the scenarios where eventual consistency is sufficient.
 
 Please note that Transactional reads/writes are roughly three times slower than non-transactional ones.
 
