@@ -165,8 +165,12 @@ The following sample shows how to do the transactions with ZoneTree.
      var txId = zoneTree.BeginTransaction();
      zoneTree.TryGet(txId, 3, out var value);
      zoneTree.Upsert(txId, 3, 9);
-     zoneTree.Prepare(txId);
-     var result = zoneTree.Commit(txId); 
+     var result = zoneTree.Prepare(txId);
+     while (result.IsPendingTransactions) {
+         Thread.Sleep(100);
+         result = zoneTree.Prepare(txId);
+     }
+     zoneTree.Commit(txId);
   }
   catch(TransactionAbortedException e)
   {
