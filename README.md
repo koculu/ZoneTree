@@ -89,7 +89,7 @@ struct MyDeletableValueType {
    bool IsDeleted; 
 }
 ```
-ZoneTree gives flexibility to micro-manage the the tree size.
+ZoneTree gives flexibility to micro-manage the tree size.
 The following sample shows how to configure the deletion markers for your database.
 ```c#
 using var zoneTree = new ZoneTreeFactory<int, int>()
@@ -151,7 +151,7 @@ That is useful for doing prefix search with forward-iterator or with backward-it
 
 
 ## Transaction Support
-ZoneTree supports Optimistic Transaction. It is proud to announce that the ZoneTree is ACID-compliant. Of course, you can use non-transactional API for the scenarios where eventual consistency is sufficient.
+ZoneTree supports Optimistic Transactions. It is proud to announce that the ZoneTree is ACID-compliant. Of course, you can use non-transactional API for the scenarios where eventual consistency is sufficient.
 
 Please note that Transactional reads/writes are roughly three times slower than non-transactional ones.
 

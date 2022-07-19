@@ -125,7 +125,13 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
     {
         var keys = Dictionary.Keys.ToArray();
         if (keys.Length == 0)
+        {
+            WriteAheadLog.ReplaceWriteAheadLog(
+                keys, 
+                Array.Empty<CombinedValue<TKey2, TValue>>());
+            Dictionary = new();
             return;
+        }
         var values = Dictionary.Values.ToArray();
         var manyKeys = values
             .SelectMany((x, i) => 
@@ -136,8 +142,6 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
             .Select(x => new CombinedValue<TKey2, TValue>(x.Key, x.Value))
             .ToArray();
         var diff = WriteAheadLog.ReplaceWriteAheadLog(manyKeys, manyValues);
-        if (diff <= 0) return;
-
         var len = keys.Length;
 
         // recreate the dictionary to avoid empty space in the hash table.
