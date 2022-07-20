@@ -55,10 +55,8 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="key">The key of the element to upsert.</param>
     /// <param name="value">The value of the element to upsert. It can be null.</param>
-    /// <returns>true if the key/value pair was inserted;
-    /// false if the key/value pair was updated.</returns>
     /// <exception cref="ArgumentNullException">key is null.</exception>
-    bool AtomicUpsert(in TKey key, in TValue value);
+    void AtomicUpsert(in TKey key, in TValue value);
 
     /// <summary>
     /// Adds or updates the specified key/value pair.
@@ -89,10 +87,8 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// </remarks>    
     /// <param name="key">The key of the element to upsert.</param>
     /// <param name="value">The value of the element to upsert. It can be null.</param>
-    /// <returns>true if the key/value pair was inserted;
-    /// false if the key/value pair was updated.</returns>
     /// <exception cref="ArgumentNullException">key is null.</exception>
-    bool Upsert(in TKey key, in TValue value);
+    void Upsert(in TKey key, in TValue value);
 
     /// <summary>
     /// Attempts to delete the specified key.

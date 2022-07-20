@@ -182,7 +182,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         {
             if (ContainsKey(key))
                 return false;
-            return Upsert(key, value);
+            Upsert(key, value);
+            return true;
         }
     }
 
@@ -194,7 +195,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         {
             if (!ContainsKey(key))
                 return false;
-            return Upsert(key, value);
+            Upsert(key, value);
+            return true;
         }
     }
 
@@ -241,15 +243,15 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         }
     }
 
-    public bool AtomicUpsert(in TKey key, in TValue value)
+    public void AtomicUpsert(in TKey key, in TValue value)
     {
         lock (AtomicUpdateLock)
         {
-            return Upsert(in key, in value);
+            Upsert(in key, in value);
         }
     }
 
-    public bool Upsert(in TKey key, in TValue value)
+    public void Upsert(in TKey key, in TValue value)
     {
         if (key == null)
             throw new ArgumentNullException(nameof(key));
@@ -265,7 +267,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                     MoveSegmentZeroForward(segmentZero);
                     continue;
                 default:
-                    return status == AddOrUpdateResult.ADDED;
+                    return;
             }
         }
     }
@@ -351,7 +353,6 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 DiskSegment.SegmentId,
                 ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray());
         }
-
     }
 
     public async ValueTask<MergeResult> StartMergeOperation()

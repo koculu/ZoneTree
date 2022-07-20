@@ -366,21 +366,18 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         }
     }
 
-    public bool UpsertAutoCommit(in TKey key, in TValue value)
+    public void UpsertAutoCommit(in TKey key, in TValue value)
     {
         lock (this)
         {
             var transactionId = BeginTransaction();
             var transaction = GetOrCreateTransaction(transactionId);
-            var readWriteStamp = new ReadWriteStamp
-            {
-                WriteStamp = transactionId
-            };
+            TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
+            readWriteStamp.WriteStamp = transactionId;
             TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
-            var result = ZoneTree.Upsert(in key, in value);
+            ZoneTree.Upsert(in key, in value);
             transaction.IsReadyToCommit = true;
             DoCommit(transaction);
-            return result;
         }
     }
 
@@ -390,10 +387,8 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         {
             var transactionId = BeginTransaction();
             var transaction = GetOrCreateTransaction(transactionId);
-            var readWriteStamp = new ReadWriteStamp
-            {
-                WriteStamp = transactionId
-            };
+            TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
+            readWriteStamp.WriteStamp = transactionId;
             TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
             ZoneTree.ForceDelete(in key);
             transaction.IsReadyToCommit = true;

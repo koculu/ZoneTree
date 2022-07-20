@@ -29,7 +29,8 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// <param name="transactionId">Transaction Id</param>
     /// <param name="key">Key</param>
     /// <param name="value">Value</param>
-    /// <returns></returns>
+    /// /// <returns>true if the key/value pair was inserted;
+    /// false if the key/value pair was updated.</returns>
     /// <exception cref="TransactionAbortedException"></exception>
     bool Upsert(long transactionId, in TKey key, in TValue value);
 
@@ -112,8 +113,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="key">Key</param>
     /// <param name="value">Value</param>
-    /// <returns></returns>
-    bool UpsertAutoCommit(in TKey key, in TValue value);
+    void UpsertAutoCommit(in TKey key, in TValue value);
 
     /// <summary>
     /// Starts a transaction,
