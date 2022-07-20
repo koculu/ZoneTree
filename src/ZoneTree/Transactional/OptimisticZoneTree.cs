@@ -102,7 +102,8 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
     {
         lock (this)
         {
-            return DoPrepare(transactionId);
+            var transaction = GetOrCreateTransaction(transactionId);
+            return DoPrepare(transaction);
         }
     }
 
@@ -110,9 +111,10 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
     {
         lock (this)
         {
-            var result = DoPrepare(transactionId);
+            var transaction = GetOrCreateTransaction(transactionId);
+            var result = DoPrepare(transaction);
             if (result.IsReadyToCommit)
-                return DoCommit(transactionId);
+                return DoCommit(transaction);
             return result;
         }
     }
@@ -121,23 +123,23 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
     {
         lock (this)
         {
-            return DoCommit(transactionId);
+            var transaction = GetOrCreateTransaction(transactionId);
+            return DoCommit(transaction);
         }
     }
 
-    CommitResult DoCommit(long transactionId)
+    CommitResult DoCommit(OptimisticTransaction<TKey, TValue> transaction)
     {
-        var transaction = GetOrCreateTransaction(transactionId);
         if (!transaction.IsReadyToCommit)
-            throw new TransactionIsNotReadyToCommitException(transactionId);
+            throw new TransactionIsNotReadyToCommitException(transaction.TransactionId);
         DeleteTransaction(transaction);
-        TransactionLog.TransactionCommitted(transactionId);
+        TransactionLog.TransactionCommitted(transaction.TransactionId);
         return CommitResult.Committed;
     }
 
-    CommitResult DoPrepare(long transactionId)
+    CommitResult DoPrepare(OptimisticTransaction<TKey, TValue> transaction)
     {
-        var transaction = GetOrCreateTransaction(transactionId);
+        var transactionId = transaction.TransactionId;
         var dependencies = TransactionLog.GetDependencyList(transactionId);
         var waitList = new List<long>();
         foreach (var dependency in dependencies)
@@ -288,6 +290,114 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
                 var tx = GetOrCreateTransaction(u);
                 AbortTransaction(tx);
             }
+        }
+    }
+
+    public bool ReadCommittedContainsKey(in TKey key)
+    {
+        lock (this)
+        {
+            TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
+            var ws = readWriteStamp.WriteStamp;
+            if (TransactionLog.GetTransactionState(ws) == TransactionState.Committed)
+            {
+                // committed write stamp found.
+                // Hence, the tree has committed data.
+                var isFoundInTree = ZoneTree.ContainsKey(key);
+                return isFoundInTree;
+            }
+
+            // Uncommitted write stamp found.
+            // Search the history of the uncommitted transaction in a loop
+            // to find the last committed history record.
+            while (TransactionLog.GetHistory(ws).TryGetValue(key, out var history))
+            {
+                ws = history.Value2;
+                if (TransactionLog.GetTransactionState(ws) == TransactionState.Uncommitted)
+                    continue;
+                // if history.writestamp == 0 then key did not exist before the write.
+                if (ws == 0 || Options.IsValueDeleted(history.Value1))
+                {
+                    return false;
+                }
+                return true;
+            }
+            // cannot find record in history,
+            // this means the key does not exist.
+            return false;
+        }
+    }
+
+    public bool ReadCommittedTryGet(in TKey key, out TValue value)
+    {
+        lock (this)
+        {
+            TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
+            var ws = readWriteStamp.WriteStamp;            
+            if (TransactionLog.GetTransactionState(ws) == TransactionState.Committed)
+            {
+                // committed write stamp found.
+                // Hence, the tree has committed data.
+                var isFoundInTree = ZoneTree.TryGet(key, out value);
+                return isFoundInTree;
+            }
+
+            // Uncommitted write stamp found.
+            // Search the history of the uncommitted transaction in a loop
+            // to find the last committed history record.
+            while (TransactionLog.GetHistory(ws).TryGetValue(key, out var history))
+            {
+                ws = history.Value2;
+                if (TransactionLog.GetTransactionState(ws) == TransactionState.Uncommitted)
+                    continue;
+                // if history.writestamp == 0 then key did not exist before the write.
+                if (ws == 0 || Options.IsValueDeleted(history.Value1))
+                {
+                    value = default;
+                    return false;
+                }
+                value = history.Value1;
+                return true;
+            }
+            // cannot find record in history,
+            // this means the key does not exist.
+            value = default;
+            return false;
+        }
+    }
+
+    public bool UpsertAutoCommit(in TKey key, in TValue value)
+    {
+        lock (this)
+        {
+            var transactionId = BeginTransaction();
+            var transaction = GetOrCreateTransaction(transactionId);
+            var readWriteStamp = new ReadWriteStamp
+            {
+                WriteStamp = transactionId
+            };
+            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
+            var result = ZoneTree.Upsert(in key, in value);
+            transaction.IsReadyToCommit = true;
+            DoCommit(transaction);
+            return result;
+        }
+    }
+
+    public void DeleteAutoCommit(in TKey key)
+    {
+        lock (this)
+        {
+            var transactionId = BeginTransaction();
+            var transaction = GetOrCreateTransaction(transactionId);
+            var readWriteStamp = new ReadWriteStamp
+            {
+                WriteStamp = transactionId
+            };
+            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
+            ZoneTree.ForceDelete(in key);
+            transaction.IsReadyToCommit = true;
+            DoCommit(transaction);
         }
     }
 }

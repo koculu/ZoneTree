@@ -72,10 +72,9 @@ public class ZoneTreeFactory<TKey, TValue>
     }
 
     public ZoneTreeFactory<TKey, TValue>
-        SetWriteAheadLogProvider(
-        Func<ZoneTreeOptions<TKey, TValue>, IWriteAheadLogProvider> walProvider)
+        SetWriteAheadLogProvider(IWriteAheadLogProvider walProvider)
     {
-        Options.WriteAheadLogProvider = walProvider(Options);
+        Options.WriteAheadLogProvider = walProvider;
         return this;
     }
 

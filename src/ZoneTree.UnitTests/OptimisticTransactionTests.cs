@@ -104,4 +104,57 @@ public class OptimisticTransactionTests
 
         zoneTree.Maintenance.DestroyTree();
     }
+
+    [Test]
+    public void ReadCommittedTest()
+    {
+        var dataPath = "data/ReadCommittedTest";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetComparer(new Int32ComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new Int32Serializer())
+            .SetIsValueDeletedDelegate((in int x) => x == -1)
+            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .OpenOrCreateTransactional();
+
+        zoneTree.UpsertAutoCommit(3, 5);
+        var tx1 = zoneTree.BeginTransaction();
+        zoneTree.Upsert(tx1, 3, 9);
+        zoneTree.Upsert(tx1, 7, 21);
+        Assert.That(zoneTree.ReadCommittedContainsKey(3), Is.True);
+        Assert.That(zoneTree.ReadCommittedTryGet(3, out var committed1), Is.True);
+        Assert.That(committed1, Is.EqualTo(5));
+
+        Assert.That(zoneTree.ReadCommittedContainsKey(7), Is.False);
+        Assert.That(zoneTree.ReadCommittedTryGet(7, out var _), Is.False);
+
+        zoneTree.PrepareAndCommit(tx1);
+
+        Assert.That(zoneTree.ReadCommittedContainsKey(3), Is.True);
+        Assert.That(zoneTree.ReadCommittedTryGet(3, out committed1), Is.True);
+        Assert.That(committed1, Is.EqualTo(9));
+
+        Assert.That(zoneTree.ReadCommittedContainsKey(7), Is.True);
+        Assert.That(zoneTree.ReadCommittedTryGet(7, out var committed2), Is.True);
+        Assert.That(committed2, Is.EqualTo(21));
+
+        var tx2 = zoneTree.BeginTransaction();
+        zoneTree.Delete(tx2, 7);
+
+        Assert.That(zoneTree.ReadCommittedContainsKey(7), Is.True);
+        Assert.That(zoneTree.ReadCommittedTryGet(7, out var committed3), Is.True);
+        Assert.That(committed3, Is.EqualTo(21));
+
+        zoneTree.PrepareAndCommit(tx2);
+
+        Assert.That(zoneTree.ReadCommittedContainsKey(7), Is.False);
+        Assert.That(zoneTree.ReadCommittedTryGet(7, out var _), Is.False);
+
+        zoneTree.Maintenance.DestroyTree();
+    }
 }

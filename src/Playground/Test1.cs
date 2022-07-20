@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Tenray;
 using ZoneTree.Maintainers;
 using ZoneTree.Serializers;
+using ZoneTree.WAL;
 
 namespace Playground;
 
