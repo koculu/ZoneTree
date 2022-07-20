@@ -1,8 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
-using ZoneTree.Core;
-using ZoneTree.Serializers;
+using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Serializers;
 
-namespace ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.Disk;
 
 public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey, TValue>
 {
@@ -13,9 +13,9 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
     readonly ISerializer<TValue> ValueSerializer;
 
     readonly IRandomAccessDevice DataHeaderDevice;
-    
+
     readonly IRandomAccessDevice DataDevice;
-    
+
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
     readonly bool HasFixedSizeKey;

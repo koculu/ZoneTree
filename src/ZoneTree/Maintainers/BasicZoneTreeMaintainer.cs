@@ -1,8 +1,7 @@
-﻿using Tenray;
-using ZoneTree.Core;
-using ZoneTree.Segments.Disk;
+﻿using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Segments.Disk;
 
-namespace ZoneTree.Maintainers;
+namespace Tenray.ZoneTree.Maintainers;
 
 public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 {

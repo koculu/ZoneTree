@@ -1,10 +1,8 @@
-﻿using Tenray.Collections;
-using Tenray.Segments;
-using ZoneTree.Collections.TimSort;
-using ZoneTree.Core;
-using ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.WAL;
 
-namespace Tenray;
+namespace Tenray.ZoneTree.Segments;
 
 public class ReadOnlySegmentLoader<TKey, TValue>
 {
@@ -23,7 +21,7 @@ public class ReadOnlySegmentLoader<TKey, TValue>
             Options.KeySerializer,
             Options.ValueSerializer);
         var result = wal.ReadLogEntries(false, false);
-        
+
         if (!result.Success)
         {
             Options.WriteAheadLogProvider.RemoveWAL(segmentId);
@@ -38,9 +36,9 @@ public class ReadOnlySegmentLoader<TKey, TValue>
             Options.IsValueDeleted);
 
         return new ReadOnlySegment<TKey, TValue>(
-            segmentId, 
+            segmentId,
             Options,
-            newKeys, 
+            newKeys,
             newValues);
     }
 }

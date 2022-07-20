@@ -1,6 +1,6 @@
-﻿using ZoneTree.Core;
+﻿using Tenray.ZoneTree.Core;
 
-namespace ZoneTree.Serializers;
+namespace Tenray.ZoneTree.Serializers;
 
 public class StructSerializer<TType> : ISerializer<TType> where TType : unmanaged
 {

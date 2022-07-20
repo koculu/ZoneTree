@@ -1,7 +1,8 @@
-﻿using Tenray;
-using ZoneTree.Serializers;
+﻿using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Serializers;
 
-namespace ZoneTree.UnitTests;
+namespace Tenray.ZoneTree.UnitTests;
 
 public class OptimisticTransactionTests
 {

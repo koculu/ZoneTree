@@ -1,10 +1,8 @@
-﻿using Tenray;
-using Tenray.Collections;
-using Tenray.WAL;
-using ZoneTree.Core;
-using ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.WAL;
 
-namespace ZoneTree.Collections;
+namespace Tenray.ZoneTree.Collections;
 
 /// <summary>
 /// Persistent Dictionary implementation that is combined 
@@ -112,7 +110,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         WriteAheadLog.Append(key, value);
         return true;
     }
-    
+
     public bool TryDeleteFromMemory(in TKey key)
     {
         return Dictionary.Remove(key);
@@ -147,7 +145,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 
         var len = keys.Length;
         // recreate the dictionary to avoid empty space in the hash table.
-        var newDictionary = new Dictionary<TKey, TValue>((int) (len * 1.3));        
+        var newDictionary = new Dictionary<TKey, TValue>((int)(len * 1.3));
         for (var i = 0; i < len; ++i)
         {
             newDictionary.Add(keys[i], values[i]);

@@ -1,7 +1,6 @@
-﻿using Tenray.WAL;
-using ZoneTree.Core;
+﻿using Tenray.ZoneTree.Core;
 
-namespace ZoneTree.WAL;
+namespace Tenray.ZoneTree.WAL;
 
 public class NullWriteAheadLogProvider : IWriteAheadLogProvider
 {

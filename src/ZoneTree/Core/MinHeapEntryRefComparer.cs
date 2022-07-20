@@ -1,6 +1,6 @@
-﻿using Tenray.Collections;
+﻿using Tenray.ZoneTree.Collections;
 
-namespace ZoneTree.Core;
+namespace Tenray.ZoneTree.Core;
 
 public class MinHeapEntryRefComparer<TKey, TValue> : IRefComparer<HeapEntry<TKey, TValue>>
 {

@@ -1,4 +1,4 @@
-﻿namespace Tenray.WAL;
+﻿namespace Tenray.ZoneTree.WAL;
 
 public interface IWriteAheadLog<TKey, TValue> : IDisposable
 {

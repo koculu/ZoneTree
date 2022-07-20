@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Intrinsics.X86;
 
-namespace ZoneTree.WAL;
+namespace Tenray.ZoneTree.WAL;
 
 public class Crc32Computer
 {

@@ -1,10 +1,7 @@
-﻿using Tenray;
-using ZoneTree.Core;
-using ZoneTree.Segments.Disk;
-using ZoneTree.Serializers;
-using ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Serializers;
 
-namespace ZoneTree.UnitTests;
+namespace Tenray.ZoneTree.UnitTests;
 
 public class AtomicUpdateTests
 {
@@ -48,7 +45,7 @@ public class AtomicUpdateTests
                 }
 
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
             }
@@ -211,7 +208,7 @@ public class AtomicUpdateTests
             }
         });
         using var iterator = data.CreateIterator(false);
-        while(iterator.Next())
+        while (iterator.Next())
         {
             var k = iterator.CurrentKey;
             var v = iterator.CurrentValue;

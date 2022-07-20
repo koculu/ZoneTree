@@ -1,4 +1,4 @@
-﻿namespace Tenray;
+﻿namespace Tenray.ZoneTree;
 
 public interface ITransactionalZoneTreeMaintenance<TKey, TValue>
 {

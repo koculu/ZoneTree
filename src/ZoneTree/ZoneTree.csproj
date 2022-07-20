@@ -16,6 +16,7 @@
     <RepositoryType>git</RepositoryType>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <RootNamespace>Tenray.ZoneTree</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\..\README.md">

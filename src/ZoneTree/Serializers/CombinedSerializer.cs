@@ -1,6 +1,6 @@
-﻿using ZoneTree.Core;
+﻿using Tenray.ZoneTree.Core;
 
-namespace ZoneTree.Serializers;
+namespace Tenray.ZoneTree.Serializers;
 
 public class CombinedSerializer<TValue1, TValue2> : ISerializer<CombinedValue<TValue1, TValue2>>
 {

@@ -1,4 +1,4 @@
-﻿namespace ZoneTree.Collections;
+﻿namespace Tenray.ZoneTree.Collections;
 
 public class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 {
@@ -20,7 +20,7 @@ public class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 
     public bool HasCurrent => position >= 0 && position < Length;
 
-    public SeekableIterator(IIndexedReader<TKey, TValue> indexedReader) 
+    public SeekableIterator(IIndexedReader<TKey, TValue> indexedReader)
     {
         IndexedReader = indexedReader;
         // Pin the length of the indexed reader to improve performance.

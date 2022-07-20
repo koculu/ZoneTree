@@ -1,10 +1,8 @@
-﻿using Tenray.Collections;
-using Tenray.Segments;
-using Tenray.WAL;
-using ZoneTree.Collections;
-using ZoneTree.Core;
+﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.WAL;
 
-namespace Tenray;
+namespace Tenray.ZoneTree.Segments;
 
 public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIndexedReader<TKey, TValue>
 {
@@ -15,7 +13,7 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
     readonly IReadOnlyList<TKey> SortedKeys;
 
     readonly IReadOnlyList<TValue> SortedValues;
-    
+
     readonly IRefComparer<TKey> Comparer;
 
     readonly IWriteAheadLog<TKey, TValue> WriteAheadLog;

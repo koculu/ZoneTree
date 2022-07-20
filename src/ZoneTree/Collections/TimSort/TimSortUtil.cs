@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using Tenray.Collections;
+﻿using System.Diagnostics;
 
-namespace ZoneTree.Collections.TimSort;
+namespace Tenray.ZoneTree.Collections.TimSort;
 
 /// <summary>
 /// TimSort static utility methods.

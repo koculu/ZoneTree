@@ -1,4 +1,4 @@
-﻿namespace ZoneTree.Collections;
+﻿namespace Tenray.ZoneTree.Collections;
 
 public class LockFreeSkipListIndexedReader<TKey, TValue> : IIndexedReader<TKey, TValue>
 {
@@ -75,7 +75,7 @@ public class LockFreeSkipListIndexedReader<TKey, TValue> : IIndexedReader<TKey, 
         CurrentNode = node;
         return node.Value;
     }
-    
+
     public void SeekBegin()
     {
         CurrentNode = SkipList.FirstNode;

@@ -1,6 +1,6 @@
-﻿using Tenray.Collections;
+﻿using Tenray.ZoneTree.Collections;
 
-namespace Tenray.Segments;
+namespace Tenray.ZoneTree.Segments;
 
 public interface IMutableSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>
 {
@@ -13,8 +13,8 @@ public interface IMutableSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>
     AddOrUpdateResult Upsert(TKey key, TValue value);
 
     AddOrUpdateResult Delete(TKey key);
-    
+
     IReadOnlySegment<TKey, TValue> CreateReadOnlySegment();
-    
+
     void Freeze();
 }

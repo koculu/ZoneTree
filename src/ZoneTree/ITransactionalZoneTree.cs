@@ -1,6 +1,7 @@
-﻿using ZoneTree.Transactional;
+﻿using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Transactional;
 
-namespace Tenray;
+namespace Tenray.ZoneTree;
 
 public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
 {
@@ -77,7 +78,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     CommitResult Commit(long transactionId);
 
     /// <summary>
-    /// Rollsback the transaction by undoing all writes by this transaction.
+    /// Rollbacks the transaction by undoing all writes by this transaction.
     /// </summary>
     /// <param name="transactionId"></param>
     void Rollback(long transactionId);

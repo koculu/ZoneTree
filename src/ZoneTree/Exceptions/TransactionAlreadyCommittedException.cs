@@ -1,6 +1,4 @@
-﻿using ZoneTree.Transactional;
-
-namespace Tenray;
+﻿namespace Tenray.ZoneTree.Exceptions;
 
 public class TransactionAlreadyCommittedException : ZoneTreeException
 {

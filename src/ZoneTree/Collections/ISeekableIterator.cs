@@ -1,4 +1,4 @@
-﻿namespace ZoneTree.Collections;
+﻿namespace Tenray.ZoneTree.Collections;
 
 public interface ISeekableIterator<TKey, TValue>
 {
@@ -11,7 +11,7 @@ public interface ISeekableIterator<TKey, TValue>
     bool SeekToFirstGreaterOrEqualElement(in TKey key);
 
     bool Next();
-    
+
     bool Prev();
 
     bool HasCurrent { get; }

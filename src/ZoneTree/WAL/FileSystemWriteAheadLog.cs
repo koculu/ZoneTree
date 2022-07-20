@@ -1,7 +1,6 @@
-﻿using ZoneTree.Core;
-using ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Core;
 
-namespace Tenray.WAL;
+namespace Tenray.ZoneTree.WAL;
 
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
 public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
@@ -15,7 +14,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     public string FilePath { get; }
 
     public FileSystemWriteAheadLog(
-        ISerializer<TKey> keySerializer, 
+        ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
         int writeBufferSize = 4096)
@@ -56,7 +55,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
         public uint CreateChecksum()
         {
-            uint crc32 = 0;            
+            uint crc32 = 0;
             crc32 = Crc32Computer.Compute(crc32, KeyLength);
             crc32 = Crc32Computer.Compute(crc32, ValueLength);
             crc32 = Crc32Computer.Compute(crc32, Key);
@@ -128,7 +127,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             }
             catch (EndOfStreamException e)
             {
-                result.Exceptions.Add(i, 
+                result.Exceptions.Add(i,
                     new EndOfStreamException($"ReadLogEntry failed. Index={i}", e));
                 result.Success = false;
                 break;

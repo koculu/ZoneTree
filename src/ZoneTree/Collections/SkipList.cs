@@ -1,7 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
-using Tenray.Collections;
 
-namespace ZoneTree.Collections;
+namespace Tenray.ZoneTree.Collections;
 
 /// <summary>
 /// Thread-safe SkipList implementation.
@@ -14,7 +13,7 @@ public class SkipList<TKey, TValue>
 
     volatile SkipListNode Tail;
 
-    readonly Random Random = new ();
+    readonly Random Random = new();
 
     readonly int MaxLevel;
 
@@ -102,7 +101,7 @@ public class SkipList<TKey, TValue>
         var comparer = Comparer;
         for (int i = MaxLevel - 1; i >= 0; i--)
         {
-            while(true)
+            while (true)
             {
                 var nextNode = node.GetNext(i);
                 if (nextNode == null)
@@ -126,7 +125,7 @@ public class SkipList<TKey, TValue>
         var comparer = Comparer;
         for (int i = MaxLevel - 1; i >= 0; i--)
         {
-            while(true)
+            while (true)
             {
                 node.EnsureNodeIsInserted();
                 var nextNode = node.GetNext(i);
@@ -165,7 +164,7 @@ public class SkipList<TKey, TValue>
                 var nextNode = node.GetNext(i);
                 if (nextNode == null)
                     break;
-                
+
                 var r = comparer.Compare(key, nextNode.Key);
                 if (r == 0)
                 {
@@ -254,7 +253,7 @@ public class SkipList<TKey, TValue>
         var comparer = Comparer;
         for (int i = MaxLevel - 1; i >= 0; i--)
         {
-            while(true)
+            while (true)
             {
                 node.EnsureNodeIsInserted();
                 var nextNode = node.GetNext(i);
@@ -380,7 +379,7 @@ public class SkipList<TKey, TValue>
                     return _value;
                 else
                 {
-                    lock(this)
+                    lock (this)
                     {
                         return _value;
                     }
@@ -395,7 +394,7 @@ public class SkipList<TKey, TValue>
                     _value = value;
                 else
                 {
-                    lock(this)
+                    lock (this)
                     {
                         _value = value;
                     }
@@ -417,7 +416,7 @@ public class SkipList<TKey, TValue>
         {
             Key = key;
             Level = level;
-            Next = new SkipListNode[Level+1];
+            Next = new SkipListNode[Level + 1];
         }
 
         internal SkipListNode(TKey key, TValue value, int level)

@@ -9,12 +9,11 @@
  * in different regions in the list.
  */
 
-using Tenray.Collections;
-using Tenray.WAL;
-using ZoneTree.Collections;
-using ZoneTree.Core;
+using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.WAL;
 
-namespace Tenray.Segments;
+namespace Tenray.ZoneTree.Segments;
 
 public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 {
@@ -23,7 +22,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
     volatile bool IsFrozenFlag = false;
 
     int WritesInProgress = 0;
-    
+
     readonly MarkValueDeletedDelegate<TValue> MarkValueDeleted;
 
     readonly int MutableSegmentMaxItemCount;
@@ -61,7 +60,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public MutableSegment(
         int segmentId,
-        IWriteAheadLog<TKey, TValue> wal, 
+        IWriteAheadLog<TKey, TValue> wal,
         ZoneTreeOptions<TKey, TValue> options,
         IReadOnlyList<TKey> keys,
         IReadOnlyList<TValue> values)
@@ -183,7 +182,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
     {
         if (!IsFullyFrozen)
             throw new Exception("Freeze the segment zero first!");
-                
+
         var (keys, values) = SkipList.ToArray();
 
         var readOnlySegment =

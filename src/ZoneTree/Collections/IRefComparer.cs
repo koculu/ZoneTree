@@ -1,4 +1,4 @@
-﻿namespace Tenray.Collections;
+﻿namespace Tenray.ZoneTree.Collections;
 
 public interface IRefComparer<TKey>
 {

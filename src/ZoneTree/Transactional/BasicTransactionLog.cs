@@ -1,10 +1,9 @@
-﻿using System.Diagnostics;
-using Tenray;
-using ZoneTree.Collections;
-using ZoneTree.Core;
-using ZoneTree.Serializers;
+﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Serializers;
 
-namespace ZoneTree.Transactional;
+namespace Tenray.ZoneTree.Transactional;
 
 public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TValue>, IDisposable
 {
@@ -28,8 +27,10 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
     public int TransactionLogCompactionThreshold { get; set; } = 100000;
 
-    public int TransactionCount {
-        get {
+    public int TransactionCount
+    {
+        get
+        {
             lock (this)
             {
                 return Transactions.Length;
@@ -62,7 +63,6 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             }
         }
     }
-
 
     public BasicTransactionLog(ZoneTreeOptions<TKey, TValue> options)
     {
@@ -155,11 +155,11 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
     {
         lock (this)
         {
-            Transactions.TryGetValue(transactionId, out var transactionMeta);            
+            Transactions.TryGetValue(transactionId, out var transactionMeta);
             transactionMeta.EndedAt = DateTime.UtcNow.Ticks;
             transactionMeta.State = TransactionState.Committed;
             Transactions.Upsert(transactionId, in transactionMeta);
-            
+
             // committed transaction states can be safely dropped from memory.
             DeleteTransactionFromMemory(transactionId);
         }
@@ -167,7 +167,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
     public void TransactionStarted(long transactionId)
     {
-        lock(this)
+        lock (this)
         {
             if (Transactions.LogLength > TransactionLogCompactionThreshold)
                 CompactTransactionLog();
@@ -248,7 +248,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
         {
             var aborted = new List<long>();
             var uncommitted = new List<long>();
-            
+
             // Why do we need transaction log compaction?
 
             // System cannot keep all transaction log forever alive.
@@ -314,7 +314,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             /// This ensures that an uncommitted transaction can be safely rollbacked.
             var minimumCommittedTransactionId = FindMinimumDependentTransactionId(uncommitted);
             DeleteHistoryOfAbortedAndCommittedUntil(minimumCommittedTransactionId);
-            
+
             // Phase 2 begins.
             AddDummyTransactionToPreserveNextTransactionIdInLog();
             Transactions.CompactWriteAheadLog();

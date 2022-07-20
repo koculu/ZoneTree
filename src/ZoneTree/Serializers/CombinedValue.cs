@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace ZoneTree.Serializers;
+namespace Tenray.ZoneTree.Serializers;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct CombinedValue<TValue1, TValue2>

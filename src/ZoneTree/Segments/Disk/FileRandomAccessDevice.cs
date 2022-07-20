@@ -1,4 +1,4 @@
-﻿namespace ZoneTree.Segments.Disk;
+﻿namespace Tenray.ZoneTree.Segments.Disk;
 
 public sealed class FileRandomAccessDevice : IRandomAccessDevice
 {

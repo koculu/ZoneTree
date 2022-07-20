@@ -1,4 +1,4 @@
-﻿namespace Tenray;
+﻿namespace Tenray.ZoneTree.Exceptions;
 
 public class ZoneTreeException : Exception
 {

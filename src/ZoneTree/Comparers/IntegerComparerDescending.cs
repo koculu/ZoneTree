@@ -1,6 +1,6 @@
-﻿using Tenray.Collections;
+﻿using Tenray.ZoneTree.Collections;
 
-namespace Tenray;
+namespace Tenray.ZoneTree.Comparers;
 
 public class Int32ComparerDescending : IRefComparer<int>
 {

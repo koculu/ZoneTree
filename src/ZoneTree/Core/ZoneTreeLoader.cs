@@ -1,10 +1,8 @@
-﻿using System.Text.Json;
-using Tenray;
-using Tenray.Segments;
-using ZoneTree.Segments.Disk;
-using ZoneTree.Transactional;
+﻿using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Segments;
+using Tenray.ZoneTree.Segments.Disk;
 
-namespace ZoneTree.Core;
+namespace Tenray.ZoneTree.Core;
 
 public class ZoneTreeLoader<TKey, TValue>
 {

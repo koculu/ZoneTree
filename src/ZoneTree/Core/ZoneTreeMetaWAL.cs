@@ -1,9 +1,9 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text.Json;
-using ZoneTree.Segments.Disk;
-using ZoneTree.Serializers;
+using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Serializers;
 
-namespace ZoneTree.Core;
+namespace Tenray.ZoneTree.Core;
 
 public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 {

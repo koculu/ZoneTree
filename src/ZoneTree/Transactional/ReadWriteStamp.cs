@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace ZoneTree.Transactional;
+namespace Tenray.ZoneTree.Transactional;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct ReadWriteStamp

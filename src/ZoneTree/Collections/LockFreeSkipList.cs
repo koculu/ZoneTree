@@ -1,7 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
-using Tenray.Collections;
 
-namespace ZoneTree.Collections;
+namespace Tenray.ZoneTree.Collections;
 
 /// <summary>
 /// Lock-Free Thread-Safe SkipList implementation.

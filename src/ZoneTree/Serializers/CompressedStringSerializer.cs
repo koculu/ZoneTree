@@ -1,8 +1,8 @@
 ﻿using System.IO.Compression;
 using System.Text;
-using ZoneTree.Core;
+using Tenray.ZoneTree.Core;
 
-namespace ZoneTree.Serializers;
+namespace Tenray.ZoneTree.Serializers;
 
 public class CompressedStringSerializer : ISerializer<string>
 {

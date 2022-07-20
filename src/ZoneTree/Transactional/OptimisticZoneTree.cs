@@ -1,12 +1,10 @@
 ﻿using System.Diagnostics;
-using Tenray;
-using ZoneTree.Collections;
-using ZoneTree.Core;
-using ZoneTree.Serializers;
+using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Core;
 
-namespace ZoneTree.Transactional;
+namespace Tenray.ZoneTree.Transactional;
 
-public sealed class OptimisticZoneTree<TKey, TValue> : 
+public sealed class OptimisticZoneTree<TKey, TValue> :
     ITransactionalZoneTree<TKey, TValue>,
     ITransactionalZoneTreeMaintenance<TKey, TValue>
 {
@@ -29,7 +27,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
     {
         Options = options;
         TransactionLog = transactionLog;
-        ZoneTree = zoneTree ?? new ZoneTree<TKey, TValue>(options);        
+        ZoneTree = zoneTree ?? new ZoneTree<TKey, TValue>(options);
     }
 
     OptimisticTransaction<TKey, TValue> GetOrCreateTransaction(long transactionId)

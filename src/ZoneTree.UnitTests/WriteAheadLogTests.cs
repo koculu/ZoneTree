@@ -1,8 +1,7 @@
-using System.Text;
-using Tenray.WAL;
-using ZoneTree.Serializers;
+using Tenray.ZoneTree.Serializers;
+using Tenray.ZoneTree.WAL;
 
-namespace ZoneTree.UnitTests
+namespace Tenray.ZoneTree.UnitTests
 {
     public class WriteAheadLogTests
     {
@@ -15,7 +14,7 @@ namespace ZoneTree.UnitTests
             var serializer = new UnicodeStringSerializer();
             var wal = new FileSystemWriteAheadLog<string, string>(serializer, serializer, filePath);
             var len = 1;
-            for (var i = 0; i  < len;++i)
+            for (var i = 0; i < len; ++i)
             {
                 wal.Append("key" + i, "value" + i);
             }

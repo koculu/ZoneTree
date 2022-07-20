@@ -1,4 +1,4 @@
-﻿namespace ZoneTree.Collections;
+﻿namespace Tenray.ZoneTree.Collections;
 
 public class SkipListSeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 {

@@ -1,9 +1,9 @@
-﻿namespace ZoneTree.Segments.Disk;
+﻿namespace Tenray.ZoneTree.Segments.Disk;
 
 public class RandomAccessDeviceManager : IRandomAccessDeviceManager
 {
     readonly Dictionary<string, IRandomAccessDevice> ReadOnlyDevices = new();
-    
+
     readonly Dictionary<string, IRandomAccessDevice> WritableDevices = new();
 
     readonly string DataDirectory;
@@ -13,7 +13,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
     public int ReadOnlyDeviceCount => ReadOnlyDevices.Count;
 
     public int WritableDeviceCount => WritableDevices.Count;
-    
+
     public RandomAccessDeviceManager(string dataDirectory = "data")
     {
         DataDirectory = dataDirectory;

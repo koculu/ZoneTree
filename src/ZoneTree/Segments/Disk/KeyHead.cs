@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.Disk;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct KeyHead

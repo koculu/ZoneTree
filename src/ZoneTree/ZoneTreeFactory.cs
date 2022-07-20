@@ -1,17 +1,18 @@
-﻿using Tenray.Collections;
-using ZoneTree.Core;
-using ZoneTree.Segments.Disk;
-using ZoneTree.Transactional;
-using ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Transactional;
+using Tenray.ZoneTree.WAL;
+using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Core;
 
-namespace Tenray;
+namespace Tenray.ZoneTree;
 
 public class ZoneTreeFactory<TKey, TValue>
 {
-    String WalDirectory;
+    string WalDirectory;
 
     ITransactionLog<TKey, TValue> TransactionLog;
-    
+
     int InitialSparseArrayLength = 1_000_000;
 
     public ZoneTreeOptions<TKey, TValue> Options { get; } = new();
@@ -22,7 +23,7 @@ public class ZoneTreeFactory<TKey, TValue>
         return this;
     }
 
-    public ZoneTreeFactory<TKey, TValue> 
+    public ZoneTreeFactory<TKey, TValue>
         SetMutableSegmentMaxItemCount(int mutableSegmentMaxItemCount)
     {
         Options.MutableSegmentMaxItemCount = mutableSegmentMaxItemCount;
@@ -56,7 +57,7 @@ public class ZoneTreeFactory<TKey, TValue>
         Options.ValueSerializer = valueSerializer;
         return this;
     }
-    
+
     public ZoneTreeFactory<TKey, TValue>
         SetWriteAheadLogDirectory(string walDirectory)
     {
@@ -98,7 +99,7 @@ public class ZoneTreeFactory<TKey, TValue>
         TransactionLog = transactionLog;
         return this;
     }
-    
+
     public ZoneTreeFactory<TKey, TValue> SetInitialSparseArrayLength(int initialSparseArrayLength)
     {
         InitialSparseArrayLength = initialSparseArrayLength;

@@ -1,4 +1,4 @@
-﻿namespace Tenray.WAL;
+﻿namespace Tenray.ZoneTree.WAL;
 
 public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {

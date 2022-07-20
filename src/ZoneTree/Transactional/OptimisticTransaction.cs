@@ -1,14 +1,14 @@
-﻿using ZoneTree.Core;
-using ZoneTree.Serializers;
+﻿using Tenray.ZoneTree.Serializers;
+using Tenray.ZoneTree.Core;
 
-namespace ZoneTree.Transactional;
+namespace Tenray.ZoneTree.Transactional;
 
 public sealed class OptimisticTransaction<TKey, TValue>
 {
     public long TransactionId { get; }
 
     readonly ZoneTreeOptions<TKey, TValue> Options;
-    
+
     readonly ITransactionLog<TKey, TValue> TransactionLog;
 
     public bool IsReadyToCommit { get; set; }
@@ -64,7 +64,7 @@ public sealed class OptimisticTransaction<TKey, TValue>
     public OptimisticWriteAction HandleWriteKey(
         ref ReadWriteStamp readWriteStamp,
         in TKey key,
-        bool hasOldValue, 
+        bool hasOldValue,
         in TValue oldValue)
     {
         if (readWriteStamp.ReadStamp > TransactionId)
@@ -79,7 +79,7 @@ public sealed class OptimisticTransaction<TKey, TValue>
         if (!hasOldValue)
             Options.MarkValueDeleted(ref value);
 
-        var combinedValue = 
+        var combinedValue =
             new CombinedValue<TValue, long>(value, readWriteStamp.WriteStamp);
         TransactionLog.AddHistoryRecord(TransactionId, key, combinedValue);
         readWriteStamp.WriteStamp = TransactionId;

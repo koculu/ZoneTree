@@ -1,11 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using Tenray.Collections;
-using ZoneTree.Collections;
-using ZoneTree.Core;
-using ZoneTree.Serializers;
+using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Serializers;
 
-namespace ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.Disk;
 
 public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
@@ -33,7 +31,7 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     private int ValueSize;
 
-    IReadOnlyList<SparseArrayEntry<TKey, TValue>> SparseArray = Array.Empty<SparseArrayEntry<TKey,TValue>>();
+    IReadOnlyList<SparseArrayEntry<TKey, TValue>> SparseArray = Array.Empty<SparseArrayEntry<TKey, TValue>>();
 
     int ReaderCount;
 
@@ -41,7 +39,7 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     bool IsDropped = false;
 
-    object DropLock = new ();
+    object DropLock = new();
 
     public int Length { get; }
 
@@ -207,7 +205,7 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
             var keyBytes = DataHeaderDevice.GetBytes((long)index * headSize, KeySize);
             return KeySerializer.Deserialize(keyBytes);
         }
-        else if(HasFixedSizeValue)
+        else if (HasFixedSizeValue)
         {
             var headSize = sizeof(KeyHead) + ValueSize;
             var headBytes = DataHeaderDevice.GetBytes((long)index * headSize, sizeof(KeyHead));
@@ -277,7 +275,7 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         }
         return l;
     }
-    
+
     /// <summary>
     /// Finds the position of element that is smaller or equal than key.
     /// </summary>
@@ -394,7 +392,8 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public void RemoveReader()
     {
         Interlocked.Decrement(ref ReaderCount);
-        if (IsDropRequested && ReaderCount == 0) {
+        if (IsDropRequested && ReaderCount == 0)
+        {
             try
             {
                 Drop();
@@ -452,7 +451,7 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
                 return SparseArray[index].Index;
             if (index == -1)
                 return -1;
-            if(index == sparseArrayLength - 1)
+            if (index == sparseArrayLength - 1)
                 return SparseArray[index].Index;
             lower = SparseArray[index].Index;
             upper = SparseArray[index + 1].Index;

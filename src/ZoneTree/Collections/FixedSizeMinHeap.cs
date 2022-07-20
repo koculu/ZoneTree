@@ -1,6 +1,4 @@
-﻿using Tenray.Collections;
-
-namespace Tenray;
+﻿namespace Tenray.ZoneTree.Collections;
 
 public class FixedSizeMinHeap<TKey>
 {
@@ -107,7 +105,7 @@ public class FixedSizeMinHeap<TKey>
         while (i < n)
         {
             // Calculate the current child node indexes.
-            int n0 = ((i + 1) * 2) - 1;
+            int n0 = (i + 1) * 2 - 1;
             int n1 = n0 + 1;
 
             if (n0 < n && comparer.Compare(keys[i], keys[n0]) > 0)
@@ -147,7 +145,7 @@ public class FixedSizeMinHeap<TKey>
         int i = count - 1;
         while (i > 0)
         {
-            int j = ((i + 1) / 2) - 1;
+            int j = (i + 1) / 2 - 1;
 
             if (comparer.Compare(keys[i], keys[j]) < 0)
             {

@@ -1,9 +1,8 @@
-﻿using Tenray;
-using Tenray.Collections;
-using ZoneTree.Collections;
-using ZoneTree.Segments.Disk;
+﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Segments.Disk;
 
-namespace ZoneTree.Core;
+namespace Tenray.ZoneTree.Core;
 
 public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
 {
@@ -20,7 +19,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
     readonly IsValueDeletedDelegate<TValue> IsValueDeleted;
 
     readonly IRefComparer<TKey> Comparer;
-    
+
     readonly bool IncludeDeletedRecords;
 
     readonly bool IncludeSegmentZero;

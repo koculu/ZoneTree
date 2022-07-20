@@ -1,6 +1,4 @@
-﻿using ZoneTree.Segments.Disk;
-
-namespace ZoneTree;
+﻿namespace Tenray.ZoneTree;
 
 public interface IZoneTreeIterator<TKey, TValue> : IDisposable
 {
@@ -13,7 +11,7 @@ public interface IZoneTreeIterator<TKey, TValue> : IDisposable
     /// Returns the element value if there is an element in the iterator position.
     /// </summary>
     TValue CurrentValue { get; }
-    
+
     /// <summary>
     /// Returns true if there is an element in the iterator position.
     /// </summary>

@@ -1,12 +1,11 @@
-﻿using Tenray.WAL;
-using ZoneTree.Core;
+﻿using Tenray.ZoneTree.Core;
 
-namespace ZoneTree.WAL;
+namespace Tenray.ZoneTree.WAL;
 
 public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 {
     readonly Dictionary<string, object> WALTable = new();
-    
+
     public string WalDirectory { get; }
 
     public BasicWriteAheadLogProvider(string walDirectory = "data/wal")
@@ -32,7 +31,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
         var walPath = Path.Combine(WalDirectory, category, segmentId + ".wal");
         if (WALTable.TryGetValue(segmentId + category, out var value))
         {
-            return (IWriteAheadLog<TKey, TValue>) value;
+            return (IWriteAheadLog<TKey, TValue>)value;
         }
         var wal = new FileSystemWriteAheadLog<TKey, TValue>(
             keySerializer,
@@ -51,7 +50,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
     {
         if (WALTable.TryGetValue(segmentId + category, out var value))
         {
-            return (IWriteAheadLog<TKey, TValue>) value;
+            return (IWriteAheadLog<TKey, TValue>)value;
         }
         return null;
     }

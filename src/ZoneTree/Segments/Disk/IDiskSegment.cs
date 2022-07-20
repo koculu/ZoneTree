@@ -1,7 +1,6 @@
-﻿using Tenray.Segments;
-using ZoneTree.Collections;
+﻿using Tenray.ZoneTree.Collections;
 
-namespace ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.Disk;
 
 public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIndexedReader<TKey, TValue>, IDisposable
 {

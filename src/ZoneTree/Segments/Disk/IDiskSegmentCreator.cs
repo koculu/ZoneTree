@@ -1,4 +1,4 @@
-﻿namespace ZoneTree.Segments.Disk;
+﻿namespace Tenray.ZoneTree.Segments.Disk;
 
 public interface IDiskSegmentCreator<TKey, TValue> : IDisposable
 {

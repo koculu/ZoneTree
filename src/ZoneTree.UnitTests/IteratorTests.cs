@@ -1,10 +1,7 @@
-﻿using Tenray;
-using ZoneTree.Core;
-using ZoneTree.Segments.Disk;
-using ZoneTree.Serializers;
-using ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Serializers;
 
-namespace ZoneTree.UnitTests;
+namespace Tenray.ZoneTree.UnitTests;
 
 public class IteratorTests
 {
@@ -45,7 +42,7 @@ public class IteratorTests
         }
 
         using var iterator = zoneTree.CreateIterator(true);
-        
+
         for (var i = 0; i < b; ++i)
         {
             if (i == 19 || i == 20 || i == 21 || i == 127)
@@ -54,7 +51,7 @@ public class IteratorTests
             Assert.That(iterator.CurrentKey, Is.EqualTo(i));
             Assert.That(iterator.CurrentValue, Is.EqualTo(i + i));
         }
-        
+
         Assert.That(iterator.Next(), Is.False);
         Assert.That(zoneTree.Count(), Is.EqualTo(b - 4));
 
@@ -74,8 +71,8 @@ public class IteratorTests
         zoneTree.Maintenance.MoveSegmentZeroForward();
         zoneTree.Maintenance.StartMergeOperation().AsTask().Wait();
 
-        Assert.That(zoneTree.Maintenance.DiskSegment.Length, Is.EqualTo(b - 4));        
-        zoneTree.Maintenance.SaveMetaData(); 
+        Assert.That(zoneTree.Maintenance.DiskSegment.Length, Is.EqualTo(b - 4));
+        zoneTree.Maintenance.SaveMetaData();
         iterator.Dispose();
         reverseIterator.Dispose();
         zoneTree.Maintenance.DestroyTree();
@@ -118,7 +115,7 @@ public class IteratorTests
         }
 
         using var iterator = zoneTree.CreateIterator(true);
-        iterator.Seek(13);        
+        iterator.Seek(13);
         for (var i = 13; i < b; ++i)
         {
             if (i == 19 || i == 20 || i == 21 || i == 127)
@@ -162,7 +159,7 @@ public class IteratorTests
         reverseIterator.SeekFirst();
         Assert.That(reverseIterator.Next(), Is.True);
         Assert.That(reverseIterator.Next(), Is.True);
-        Assert.That(reverseIterator.CurrentKey, Is.EqualTo(b-2));
+        Assert.That(reverseIterator.CurrentKey, Is.EqualTo(b - 2));
         Assert.That(zoneTree.Count(), Is.EqualTo(b - 4));
 
         zoneTree.Maintenance.MoveSegmentZeroForward();
@@ -222,7 +219,7 @@ public class IteratorTests
 
         Assert.That(iterator.Next(), Is.False);
         Assert.That(iterator.Next(), Is.False);
-        Assert.That(zoneTree.Count(), Is.EqualTo(b/2 - 2));
+        Assert.That(zoneTree.Count(), Is.EqualTo(b / 2 - 2));
         zoneTree.Maintenance.SaveMetaData();
         iterator.Dispose();
         zoneTree.Maintenance.DestroyTree();
@@ -263,13 +260,13 @@ public class IteratorTests
             iterator.Seek(0);
             var counter = 0;
             var isValidData = true;
-            while(iterator.Next())
+            while (iterator.Next())
             {
                 var expected = iterator.CurrentKey + iterator.CurrentKey;
                 if (iterator.CurrentValue != expected)
                     isValidData = false;
                 ++counter;
-            }            
+            }
             Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
             Assert.That(isValidData, Is.True);
         });

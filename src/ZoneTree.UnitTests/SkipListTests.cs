@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tenray;
-using Tenray.Collections;
-using ZoneTree.Collections;
+﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Comparers;
 
-namespace ZoneTree.UnitTests;
+namespace Tenray.ZoneTree.UnitTests;
 
 public class SkipListTests
 {
@@ -18,7 +12,7 @@ public class SkipListTests
         var skipList = new SkipList<int, int>(new Int32ComparerAscending(), (int)Math.Log2(n) + 1);
         for (var i = 0; i < n; ++i)
             skipList.TryInsert(i, i + i);
-        
+
         var node = skipList.FirstNode;
         for (var i = 0; i < n; ++i)
         {

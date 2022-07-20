@@ -1,11 +1,9 @@
 ﻿using System.Collections.Concurrent;
-using Tenray;
-using Tenray.Collections;
-using Tenray.Segments;
-using ZoneTree.Collections;
-using ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Segments;
+using Tenray.ZoneTree.Segments.Disk;
 
-namespace ZoneTree.Core;
+namespace Tenray.ZoneTree.Core;
 
 public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeMaintenance<TKey, TValue>
 {
@@ -48,7 +46,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public int ReadOnlySegmentsRecordCount => ReadOnlySegmentQueue.Sum(x => x.Length);
 
-    public int InMemoryRecordCount => 
+    public int InMemoryRecordCount =>
         SegmentZero.Length + ReadOnlySegmentsRecordCount;
 
     public int TotalRecordCount => InMemoryRecordCount + DiskSegment.Length;
@@ -62,7 +60,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     public event MergeOperationEnded<TKey, TValue> OnMergeOperationEnded;
 
     public event DiskSegmentCreated<TKey, TValue> OnDiskSegmentCreated;
-    
+
     public event DiskSegmentCreated<TKey, TValue> OnDiskSegmentActivated;
 
     public event CanNotDropReadOnlySegment<TKey, TValue> OnCanNotDropReadOnlySegment;
@@ -255,7 +253,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     {
         if (key == null)
             throw new ArgumentNullException(nameof(key));
-        while(true)
+        while (true)
         {
             var segmentZero = SegmentZero;
             var status = segmentZero.Upsert(key, value);
@@ -286,7 +284,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     {
         if (key == null)
             throw new ArgumentNullException(nameof(key));
-        while(true)
+        while (true)
         {
             var segmentZero = SegmentZero;
             var status = segmentZero.Delete(key);
@@ -345,14 +343,14 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     public void SaveMetaData()
     {
         lock (ShortMergerLock)
-        lock (AtomicUpdateLock)
-        {
-            MetaWal.SaveMetaData(
-                ZoneTreeMeta,
-                SegmentZero.SegmentId,
-                DiskSegment.SegmentId,
-                ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray());
-        }
+            lock (AtomicUpdateLock)
+            {
+                MetaWal.SaveMetaData(
+                    ZoneTreeMeta,
+                    SegmentZero.SegmentId,
+                    DiskSegment.SegmentId,
+                    ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray());
+            }
     }
 
     public async ValueTask<MergeResult> StartMergeOperation()
@@ -560,17 +558,17 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             includeDeletedRecords: true);
 
         IDiskSegment<TKey, TValue> diskSegment = null;
-        lock(ShortMergerLock)
-        lock (AtomicUpdateLock)
-        {
-            // 2 things to synchronize with
-            // MoveSegmentForward and disk merger segment swap.
-            diskSegment = DiskSegment;
-            iterator.Refresh();
-        }        
+        lock (ShortMergerLock)
+            lock (AtomicUpdateLock)
+            {
+                // 2 things to synchronize with
+                // MoveSegmentForward and disk merger segment swap.
+                diskSegment = DiskSegment;
+                iterator.Refresh();
+            }
         var count = diskSegment.Length;
-        
-        while(iterator.Next())
+
+        while (iterator.Next())
         {
             var hasKey = diskSegment.ContainsKey(iterator.CurrentKey);
             var isValueDeleted = IsValueDeleted(iterator.CurrentValue);
@@ -581,7 +579,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             }
             else
             {
-                if(!isValueDeleted)
+                if (!isValueDeleted)
                     ++count;
             }
         }
@@ -593,30 +591,30 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         bool includeDiskSegment)
     {
         lock (ShortMergerLock)
-        lock (AtomicUpdateLock)
-        {
-            var roSegments = ReadOnlySegmentQueue.ToArray();
-            var seekableIterators = new List<ISeekableIterator<TKey, TValue>>();
-            if (includeSegmentZero)
-                seekableIterators.Add(SegmentZero.GetSeekableIterator());
-
-            var readOnlySegmentsArray = roSegments.Select(x => x.GetSeekableIterator()).ToArray();
-            seekableIterators.AddRange(readOnlySegmentsArray.Reverse());
-
-            var result = new SegmentCollection
+            lock (AtomicUpdateLock)
             {
-                SeekableIterators = seekableIterators
-            };
+                var roSegments = ReadOnlySegmentQueue.ToArray();
+                var seekableIterators = new List<ISeekableIterator<TKey, TValue>>();
+                if (includeSegmentZero)
+                    seekableIterators.Add(SegmentZero.GetSeekableIterator());
 
-            if (includeDiskSegment)
-            {
-                var diskSegment = DiskSegment;
-                diskSegment.AddReader();
-                result.DiskSegment = diskSegment;
-                seekableIterators.Add(diskSegment.GetSeekableIterator());
+                var readOnlySegmentsArray = roSegments.Select(x => x.GetSeekableIterator()).ToArray();
+                seekableIterators.AddRange(readOnlySegmentsArray.Reverse());
+
+                var result = new SegmentCollection
+                {
+                    SeekableIterators = seekableIterators
+                };
+
+                if (includeDiskSegment)
+                {
+                    var diskSegment = DiskSegment;
+                    diskSegment.AddReader();
+                    result.DiskSegment = diskSegment;
+                    seekableIterators.Add(diskSegment.GetSeekableIterator());
+                }
+                return result;
             }
-            return result;
-        }
     }
 
     public class SegmentCollection
@@ -678,7 +676,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     /// </summary>
     /// <param name="includeDeletedRecords">if true the deleted records are included in iteration.</param>
     /// <returns>ZoneTree Iterator</returns>
-    public IZoneTreeIterator<TKey, TValue> 
+    public IZoneTreeIterator<TKey, TValue>
         CreateInMemorySegmentsIterator(bool autoRefresh, bool includeDeletedRecords)
     {
         var iterator = new ZoneTreeIterator<TKey, TValue>(

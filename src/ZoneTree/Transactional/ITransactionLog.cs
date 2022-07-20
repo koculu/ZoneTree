@@ -1,6 +1,6 @@
-﻿using ZoneTree.Serializers;
+﻿using Tenray.ZoneTree.Serializers;
 
-namespace ZoneTree.Transactional;
+namespace Tenray.ZoneTree.Transactional;
 
 public interface ITransactionLog<TKey, TValue> : IDisposable
 {
@@ -13,7 +13,7 @@ public interface ITransactionLog<TKey, TValue> : IDisposable
     long GetNextTransactionId();
 
     void TransactionStarted(long transactionId);
-    
+
     void TransactionCommitted(long transactionId);
 
     void TransactionAborted(long transactionId);
@@ -21,7 +21,7 @@ public interface ITransactionLog<TKey, TValue> : IDisposable
     TransactionState GetTransactionState(long transactionId);
 
     TransactionMeta GetTransactionMeta(long transactionId);
-    
+
     void AddDependency(long src, long dest);
 
     IReadOnlyList<long> GetDependencyList(long transactionId);
@@ -30,7 +30,7 @@ public interface ITransactionLog<TKey, TValue> : IDisposable
         long transactionId,
         TKey key,
         CombinedValue<TValue, long> combinedValue);
-    
+
     IDictionary<TKey, CombinedValue<TValue, long>> GetHistory(long transactionId);
 
     bool TryGetReadWriteStamp(in TKey key, out ReadWriteStamp readWriteStamp);

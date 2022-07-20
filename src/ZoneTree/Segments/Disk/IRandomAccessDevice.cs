@@ -1,4 +1,4 @@
-﻿namespace ZoneTree.Segments.Disk;
+﻿namespace Tenray.ZoneTree.Segments.Disk;
 
 public interface IRandomAccessDevice : IDisposable
 {
@@ -11,7 +11,7 @@ public interface IRandomAccessDevice : IDisposable
     void ClearContent();
 
     long AppendBytes(byte[] bytes);
-    
+
     byte[] GetBytes(long offset, int length);
 
     int GetBytes(long offset, byte[] buffer);
@@ -19,6 +19,6 @@ public interface IRandomAccessDevice : IDisposable
     void Close();
 
     void Delete();
-    
+
     void Flush();
 }

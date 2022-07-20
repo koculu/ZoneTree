@@ -1,8 +1,8 @@
-﻿using Tenray.Collections;
-using ZoneTree.Collections.TimSort;
-using ZoneTree.Core;
+﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.TimSort;
+using Tenray.ZoneTree.Core;
 
-namespace ZoneTree.WAL;
+namespace Tenray.ZoneTree.WAL;
 
 public static class WriteAheadLogUtility
 {

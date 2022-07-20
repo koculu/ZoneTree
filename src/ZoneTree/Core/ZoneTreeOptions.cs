@@ -1,9 +1,9 @@
-﻿using Tenray;
-using Tenray.Collections;
-using ZoneTree.Segments.Disk;
-using ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.WAL;
 
-namespace ZoneTree.Core;
+namespace Tenray.ZoneTree.Core;
 
 public delegate bool IsValueDeletedDelegate<TValue>(in TValue value);
 

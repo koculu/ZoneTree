@@ -1,6 +1,6 @@
-﻿using ZoneTree.Collections;
+﻿using Tenray.ZoneTree.Collections;
 
-namespace ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.Disk;
 
 public class NullDiskSegmentSeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 {

@@ -1,11 +1,7 @@
-﻿using Tenray;
-using Tenray.WAL;
-using ZoneTree.Core;
-using ZoneTree.Segments.Disk;
-using ZoneTree.Serializers;
-using ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Serializers;
 
-namespace ZoneTree.UnitTests;
+namespace Tenray.ZoneTree.UnitTests;
 
 public class FixedSizeKeyAndValueTests
 {
@@ -23,7 +19,7 @@ public class FixedSizeKeyAndValueTests
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
- 
+
         for (var i = 0; i < 2000; ++i)
         {
             data.Upsert(i, i + i);
@@ -105,7 +101,7 @@ public class FixedSizeKeyAndValueTests
             Assert.That(v, Is.EqualTo(i + i));
             Assert.That(data.ContainsKey(i.ToString()), Is.True);
         }
-        Assert.That(data.TryGet(n+1.ToString(), out var _), Is.False);
+        Assert.That(data.TryGet(n + 1.ToString(), out var _), Is.False);
         data.Maintenance.DestroyTree();
     }
 
@@ -158,7 +154,7 @@ public class FixedSizeKeyAndValueTests
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .OpenOrCreate();
         var n = 2000;
-        var deleted = new HashSet<int>() { 11, 99, 273, 200, 333, 441, 203, 499, 666}; 
+        var deleted = new HashSet<int>() { 11, 99, 273, 200, 333, 441, 203, 499, 666 };
         for (var i = 0; i < n; ++i)
         {
             data.Upsert(i, i + i);

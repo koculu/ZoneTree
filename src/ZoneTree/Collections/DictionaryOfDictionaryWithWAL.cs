@@ -1,12 +1,9 @@
-﻿using System.Diagnostics;
-using Tenray;
-using Tenray.Collections;
-using Tenray.WAL;
-using ZoneTree.Core;
-using ZoneTree.Serializers;
-using ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Serializers;
+using Tenray.ZoneTree.WAL;
 
-namespace ZoneTree.Collections;
+namespace Tenray.ZoneTree.Collections;
 
 /// <summary>
 /// Persistent Dictionary of dictionary implementation that is combined 
@@ -92,7 +89,7 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
         {
             dic.Remove(key2);
             dic.Add(key2, value);
-            WriteAheadLog.Append(key1, new CombinedValue<TKey2,TValue>(key2, value));
+            WriteAheadLog.Append(key1, new CombinedValue<TKey2, TValue>(key2, value));
             return true;
         }
         dic = new Dictionary<TKey2, TValue>
@@ -127,14 +124,14 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
         if (keys.Length == 0)
         {
             WriteAheadLog.ReplaceWriteAheadLog(
-                keys, 
+                keys,
                 Array.Empty<CombinedValue<TKey2, TValue>>());
             Dictionary = new();
             return;
         }
         var values = Dictionary.Values.ToArray();
         var manyKeys = values
-            .SelectMany((x, i) => 
+            .SelectMany((x, i) =>
                 Enumerable.Range(0, x.Count)
                 .Select(y => keys[i])).ToArray();
         var manyValues = values
