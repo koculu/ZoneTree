@@ -49,11 +49,6 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         return transaction;
     }
 
-    /// <summary>
-    /// Deletes the transaction instance from memory and disposes the resources.
-    /// Transaction Manager holds the permanenet status of the transaction.
-    /// </summary>
-    /// <param name="transaction"></param>
     void DeleteTransaction(OptimisticTransaction<TKey, TValue> transaction)
     {
         OptimisticTransactions.Remove(transaction.TransactionId);
