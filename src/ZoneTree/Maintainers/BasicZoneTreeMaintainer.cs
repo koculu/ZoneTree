@@ -25,6 +25,13 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
         AttachEvents();
     }
 
+    public BasicZoneTreeMaintainer(ITransactionalZoneTree<TKey, TValue> zoneTree)
+    {
+        ZoneTree = zoneTree.Maintenance.ZoneTree;
+        Maintenance = ZoneTree.Maintenance;
+        AttachEvents();
+    }
+
     private void AttachEvents()
     {
         Maintenance.OnSegmentZeroMovedForward += OnSegmentZeroMovedForward;

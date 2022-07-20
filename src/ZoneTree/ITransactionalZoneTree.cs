@@ -5,11 +5,6 @@ namespace Tenray;
 public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
 {
     /// <summary>
-    /// Underlying non-transactional ZoneTree.
-    /// </summary>
-    IZoneTree<TKey, TValue> ZoneTree { get; }
-
-    /// <summary>
     /// Contains Key query.
     /// </summary>
     /// <param name="transactionId"></param>
@@ -87,7 +82,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     void Rollback(long transactionId);
 
     /// <summary>
-    /// Removes the tree from the universe.
+    /// Returns maintenance object belongs to this ZoneTree.
     /// </summary>
-    void DestroyTree();
+    ITransactionalZoneTreeMaintenance<TKey, TValue> Maintenance { get; }
 }

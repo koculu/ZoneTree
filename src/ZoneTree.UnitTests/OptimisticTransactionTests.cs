@@ -48,7 +48,7 @@ public class OptimisticTransactionTests
 
         Assert.Throws<TransactionAlreadyCommittedException>(() => zoneTree.Commit(tx1));
 
-        zoneTree.DestroyTree();
+        zoneTree.Maintenance.DestroyTree();
     }
 
     [Test]
@@ -76,7 +76,7 @@ public class OptimisticTransactionTests
             zoneTree.Commit(tx);
         });
 
-        zoneTree.DestroyTree();
+        zoneTree.Maintenance.DestroyTree();
     }
 
 

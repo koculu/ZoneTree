@@ -26,7 +26,7 @@ public class Test1
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();
-        using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree.ZoneTree);
+        using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
 
         Console.WriteLine("Loaded: " + stopWatch.ElapsedMilliseconds);
 
@@ -44,7 +44,7 @@ public class Test1
         }
         else
         {
-            var data = zoneTree.ZoneTree;
+            var data = zoneTree.Maintenance.ZoneTree;
             Parallel.For(0, n, (x) =>
             {
                 data.Upsert(x, x + x);
@@ -52,7 +52,7 @@ public class Test1
             });
         }
         Console.WriteLine("Elapsed: " + stopWatch.ElapsedMilliseconds);
-        zoneTree.ZoneTree.Maintenance.SaveMetaData();
+        zoneTree.Maintenance.SaveMetaData();
         basicMaintainer.CompleteRunningTasks().AsTask().Wait();
     }
 }

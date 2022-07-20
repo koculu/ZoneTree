@@ -48,6 +48,22 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
         }
     }
 
+    public IReadOnlyList<long> UncommittedTransactionIds
+    {
+        get
+        {
+            lock (this)
+            {
+                var transactionIds = Transactions.Keys;
+                return TransactionIds.Where(x =>
+                    Transactions.TryGetValue(x, out var meta)
+                    && meta.State == TransactionState.Committed)
+                .ToArray();
+            }
+        }
+    }
+
+
     public BasicTransactionLog(ZoneTreeOptions<TKey, TValue> options)
     {
         var writeAheadLogProvider = options.WriteAheadLogProvider;

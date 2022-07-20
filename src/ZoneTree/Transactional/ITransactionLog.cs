@@ -8,6 +8,8 @@ public interface ITransactionLog<TKey, TValue> : IDisposable
 
     IReadOnlyList<long> TransactionIds { get; }
 
+    IReadOnlyList<long> UncommittedTransactionIds { get; }
+
     long GetNextTransactionId();
 
     void TransactionStarted(long transactionId);

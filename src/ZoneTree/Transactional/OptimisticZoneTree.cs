@@ -5,15 +5,21 @@ using ZoneTree.Serializers;
 
 namespace ZoneTree.Transactional;
 
-public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TKey, TValue>
+public sealed class OptimisticZoneTree<TKey, TValue> : 
+    ITransactionalZoneTree<TKey, TValue>,
+    ITransactionalZoneTreeMaintenance<TKey, TValue>
 {
-    public IZoneTree<TKey, TValue> ZoneTree { get; }
-
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
     readonly ITransactionLog<TKey, TValue> TransactionLog;
 
     readonly Dictionary<long, OptimisticTransaction<TKey, TValue>> OptimisticTransactions = new();
+
+    public IZoneTree<TKey, TValue> ZoneTree { get; }
+
+    public ITransactionalZoneTreeMaintenance<TKey, TValue> Maintenance => this;
+
+    public IReadOnlyList<long> UncommittedTransactionIds => TransactionLog.UncommittedTransactionIds;
 
     public OptimisticZoneTree(
         ZoneTreeOptions<TKey, TValue> options,
@@ -255,14 +261,33 @@ public sealed class OptimisticZoneTree<TKey, TValue> : ITransactionalZoneTree<TK
         }
     }
 
-    public void Dispose()
-    {
-        ZoneTree.Dispose();
-    }
-
     public void DestroyTree()
     {
         TransactionLog.Dispose();
         ZoneTree.Maintenance.DestroyTree();
+    }
+
+    public void SaveMetaData()
+    {
+        ZoneTree.Maintenance.SaveMetaData();
+    }
+
+    public void Dispose()
+    {
+        TransactionLog.Dispose();
+        ZoneTree.Dispose();
+    }
+
+    public void RollbackUncommittedTransactions()
+    {
+        lock (this)
+        {
+            var uncommitted = TransactionLog.UncommittedTransactionIds;
+            foreach (var u in uncommitted)
+            {
+                var tx = GetOrCreateTransaction(u);
+                AbortTransaction(tx);
+            }
+        }
     }
 }
