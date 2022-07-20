@@ -1,4 +1,5 @@
-﻿using Tenray;
+﻿using System.Diagnostics;
+using Tenray;
 using ZoneTree.Collections;
 using ZoneTree.Core;
 using ZoneTree.Serializers;
@@ -299,7 +300,8 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         {
             TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             var ws = readWriteStamp.WriteStamp;
-            if (TransactionLog.GetTransactionState(ws) == TransactionState.Committed)
+            var state = TransactionLog.GetTransactionState(ws);
+            if (state == TransactionState.Committed)
             {
                 // committed write stamp found.
                 // Hence, the tree has committed data.
@@ -307,16 +309,23 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
                 return isFoundInTree;
             }
 
+            // At this stage, the write stamp cannot be an aborted transaction,
+            // because it is already rollbacked.
+            Debug.Assert(state != TransactionState.Aborted);
+
             // Uncommitted write stamp found.
             // Search the history of the uncommitted transaction in a loop
             // to find the last committed history record.
             while (TransactionLog.GetHistory(ws).TryGetValue(key, out var history))
             {
                 ws = history.Value2;
-                if (TransactionLog.GetTransactionState(ws) == TransactionState.Uncommitted)
+                state = TransactionLog.GetTransactionState(ws);
+                if (state == TransactionState.Uncommitted)
                     continue;
-                // if history.writestamp == 0 then key did not exist before the write.
-                if (ws == 0 || Options.IsValueDeleted(history.Value1))
+
+                Debug.Assert(state != TransactionState.Aborted);
+
+                if (Options.IsValueDeleted(history.Value1))
                 {
                     return false;
                 }
@@ -333,8 +342,9 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         lock (this)
         {
             TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
-            var ws = readWriteStamp.WriteStamp;            
-            if (TransactionLog.GetTransactionState(ws) == TransactionState.Committed)
+            var ws = readWriteStamp.WriteStamp;
+            var state = TransactionLog.GetTransactionState(ws);
+            if (state == TransactionState.Committed)
             {
                 // committed write stamp found.
                 // Hence, the tree has committed data.
@@ -342,16 +352,23 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
                 return isFoundInTree;
             }
 
+            // At this stage, the write stamp cannot be an aborted transaction,
+            // because it is already rollbacked.
+            Debug.Assert(state != TransactionState.Aborted);
+
             // Uncommitted write stamp found.
             // Search the history of the uncommitted transaction in a loop
             // to find the last committed history record.
             while (TransactionLog.GetHistory(ws).TryGetValue(key, out var history))
             {
                 ws = history.Value2;
-                if (TransactionLog.GetTransactionState(ws) == TransactionState.Uncommitted)
+                state = TransactionLog.GetTransactionState(ws);
+                if (state == TransactionState.Uncommitted)
                     continue;
-                // if history.writestamp == 0 then key did not exist before the write.
-                if (ws == 0 || Options.IsValueDeleted(history.Value1))
+
+                Debug.Assert(state != TransactionState.Aborted);
+
+                if (Options.IsValueDeleted(history.Value1))
                 {
                     value = default;
                     return false;

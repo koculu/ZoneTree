@@ -281,7 +281,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             // Answer: Aborted Transaction states are guaranteed to be never queried.
             // Because the aborted transactions do not
             // leave any write stamp after the rollback.
-            // Besides that, there is no harm if an aborted transaction leaves read stamp.
+            // Besides that, there is no harm if an aborted transaction leaves a read stamp.
             // Because read stamp is required to abort transactions in write stage.
             DeleteCommittedAndCollectAbortedAndUncommittedTransactions(aborted, uncommitted);
 
