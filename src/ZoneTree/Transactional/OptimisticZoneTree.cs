@@ -10,11 +10,11 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 {
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
-    readonly ITransactionLog<TKey, TValue> TransactionLog;
-
     readonly Dictionary<long, OptimisticTransaction<TKey, TValue>> OptimisticTransactions = new();
 
     public IZoneTree<TKey, TValue> ZoneTree { get; }
+
+    public ITransactionLog<TKey, TValue> TransactionLog { get; }
 
     public ITransactionalZoneTreeMaintenance<TKey, TValue> Maintenance => this;
 

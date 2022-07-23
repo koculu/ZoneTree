@@ -1,13 +1,16 @@
 ﻿using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Serializers;
+using Tenray.ZoneTree.Transactional;
+using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.UnitTests;
 
 public class OptimisticTransactionTests
 {
-    [Test]
-    public void FirstTransaction()
+    [TestCase(0)]
+    [TestCase(100000)]
+    public void FirstTransaction(int compactionThreshold)
     {
         var dataPath = "data/FirstTransaction";
         if (Directory.Exists(dataPath))
@@ -20,6 +23,8 @@ public class OptimisticTransactionTests
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();
+
+        zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
 
         var tx1 = zoneTree.BeginTransaction();
         zoneTree.Upsert(tx1, 3, 9);
@@ -106,8 +111,9 @@ public class OptimisticTransactionTests
         zoneTree.Maintenance.DestroyTree();
     }
 
-    [Test]
-    public void ReadCommittedTest()
+    [TestCase(0)]
+    [TestCase(100000)]
+    public void ReadCommittedTest(int compactionThreshold)
     {
         var dataPath = "data/ReadCommittedTest";
         if (Directory.Exists(dataPath))
@@ -122,6 +128,8 @@ public class OptimisticTransactionTests
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .OpenOrCreateTransactional();
+
+        zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
 
         zoneTree.UpsertAutoCommit(3, 5);
         var tx1 = zoneTree.BeginTransaction();
@@ -155,6 +163,94 @@ public class OptimisticTransactionTests
 
         Assert.That(zoneTree.ReadCommittedContainsKey(7), Is.False);
         Assert.That(zoneTree.ReadCommittedTryGet(7, out var _), Is.False);
+
+        zoneTree.Maintenance.DestroyTree();
+    }
+
+    [TestCase(0)]
+    [TestCase(100000)]
+    public void TransactionLogCompactionTest(int compactionThreshold)
+    {
+        var dataPath = "data/TransactionLogCompactionTest";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+        
+        using var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetComparer(new Int32ComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new Int32Serializer())
+            .SetIsValueDeletedDelegate((in int x) => x == -1)
+            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .OpenOrCreateTransactional();
+
+        zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
+
+        var tx1 = zoneTree.BeginTransaction();
+        zoneTree.Upsert(tx1, 5, 11);
+        zoneTree.Upsert(tx1, 6, 13);
+
+        var tx2 = zoneTree.BeginTransaction();
+        zoneTree.Upsert(tx2, 5, 12);
+        zoneTree.Upsert(tx2, 6, 14);
+
+        zoneTree.PrepareAndCommit(tx2);
+
+        Assert.That(zoneTree.ReadCommittedTryGet(5, out var v5), Is.True);
+        Assert.That(v5, Is.EqualTo(12));
+
+        Assert.That(zoneTree.ReadCommittedTryGet(6, out var v6), Is.True);
+        Assert.That(v6, Is.EqualTo(14));
+
+        var tx3 = zoneTree.BeginTransaction();
+        zoneTree.Upsert(tx3, 6, 14);
+        zoneTree.Rollback(tx1);
+
+        Assert.That(zoneTree.ReadCommittedTryGet(5, out v5), Is.True);
+        Assert.That(v5, Is.EqualTo(12));
+
+        Assert.That(zoneTree.ReadCommittedTryGet(6, out v6), Is.True);
+        Assert.That(v6, Is.EqualTo(14));
+
+        zoneTree.Rollback(tx3);
+        zoneTree.Maintenance.DestroyTree();
+    }
+
+    [TestCase(0)]
+    [TestCase(100000)]
+    public void TransactionLogCompactionWithSkipWriteRule(int compactionThreshold)
+    {
+        var dataPath = "data/TransactionLogSkipWriteRule";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetComparer(new Int32ComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new Int32Serializer())
+            .SetIsValueDeletedDelegate((in int x) => x == -1)
+            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .OpenOrCreateTransactional();
+
+        zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
+
+        var tx1 = zoneTree.BeginTransaction();
+        var tx2 = zoneTree.BeginTransaction();
+        zoneTree.Upsert(tx2, 5, 12);
+        zoneTree.PrepareAndCommit(tx2);
+
+        // start new transaction to compact transaction log.
+        var tx3 = zoneTree.BeginTransaction();
+
+        // the following write should be skipped bcs of tx2 write.
+        zoneTree.Upsert(tx1, 5, 13);
+        zoneTree.PrepareAndCommit(tx1);
+
+        Assert.That(zoneTree.ReadCommittedTryGet(5, out var v5), Is.True);
+        Assert.That(v5, Is.EqualTo(12));
 
         zoneTree.Maintenance.DestroyTree();
     }

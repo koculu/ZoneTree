@@ -25,7 +25,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
     readonly DictionaryWithWAL<TKey, ReadWriteStamp> ReadWriteStamps;
 
-    public int TransactionLogCompactionThreshold { get; set; } = 100000;
+    public int CompactionThreshold { get; set; } = 100000;
 
     public int TransactionCount
     {
@@ -169,7 +169,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
     {
         lock (this)
         {
-            if (Transactions.LogLength > TransactionLogCompactionThreshold)
+            if (Transactions.LogLength > CompactionThreshold)
                 CompactTransactionLog();
 
             if (Transactions.ContainsKey(transactionId))
@@ -274,7 +274,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             // This will not cause any trouble because
             // the GetTransactionState method
             // always returns the state "Committed" for non-existent transaction states.
-            // Hence, it doesn't matter to keep the state in memory.            
+            // Hence, it doesn't matter to keep the state in memory.
             //
             // Question: Why returning the committed state
             // for possibly aborted transaction is harmless?
@@ -291,29 +291,21 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             // the uncommitted transaction that depends on the aborted one.
             DeleteAbortedTransactions(aborted, uncommitted);
 
-            /// 3. We can delete the obsolete history of
+            /// 3. We can delete the entire history of
             /// the aborted and committed transactions.
             /// Because we require the history just 
-            /// for rollback operation of uncommitted transactions.
+            /// for the rollback operation of uncommitted transactions.
             /// Committed and aborted transactions can not be rollbacked at all.
             DeleteHistoryOfAbortedAndCommittedTransactions();
 
-            /// 4. We can delete all aborted transaction read-write stamps.
-            /// Because it is guaranteed that there can't be any write stamp
-            /// that refers to the aborted transaction.
-            /// Any read stamps left by aborted transactions can also be deleted,
-            /// because it is only used to abort a transaction on a write.
-            /// It is obvious that a write should never
-            /// be aborted because of an aborted transaction's
-            /// read.
-            /// On the other hand,
-            /// we can delete all committed transaction read-write stamps
-            /// under one condition:
-            /// There isn't any uncommitted transaction that contains a history record
-            /// (write stamp) that matches the committed transaction id.
-            /// This ensures that an uncommitted transaction can be safely rollbacked.
-            var minimumCommittedTransactionId = FindMinimumDependentTransactionId(uncommitted);
-            DeleteHistoryOfAbortedAndCommittedUntil(minimumCommittedTransactionId);
+            /// 4. We can delete all aborted transactions read-write stamps.
+            /// we can delete committed transaction read-write stamps
+            /// up to the first uncommitted transaction id to not to break the skip write rule.            
+            /// Because the Rollback operation depends
+            /// on equality of uncommitted transaction write stamps.
+            /// rollback cancel condition: readWriteStamp.WriteStamp != uncommittedTransactionId
+            var minimumUncommittedTransactionId = uncommitted.Count == 0 ? long.MaxValue : uncommitted.Min();
+            DeleteReadWriteStampsOfAbortedAndCommitted(minimumUncommittedTransactionId);
 
             // Phase 2 begins.
             AddDummyTransactionToPreserveNextTransactionIdInLog();
@@ -379,26 +371,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
         }
     }
 
-    private long FindMinimumDependentTransactionId(IReadOnlyList<long> uncommitted)
-    {
-        var minimumDependentTransactionId = long.MaxValue;
-        var len = uncommitted.Count;
-        for (var i = 0; i < len; ++i)
-        {
-            var u = uncommitted[i];
-            if (DependencyTable.TryGetDictionary(u, out var dic))
-            {
-                foreach (var k in dic.Keys)
-                {
-                    minimumDependentTransactionId = Math.Min(k, minimumDependentTransactionId);
-                }
-            }
-        }
-        return minimumDependentTransactionId;
-    }
-
-
-    private void DeleteHistoryOfAbortedAndCommittedUntil(long untilCommittedTransactionId)
+    private void DeleteReadWriteStampsOfAbortedAndCommitted(long minimumUncommittedTransactionId)
     {
         var keys = ReadWriteStamps.Keys;
         var values = ReadWriteStamps.Values;
@@ -408,13 +381,20 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             var key = keys[i];
             var value = values[i];
             var writeStamp = value.WriteStamp;
+            if (writeStamp >= minimumUncommittedTransactionId)
+                continue;
+
             if (Transactions.TryGetValue(writeStamp, out var meta))
             {
                 var state = meta.State;
                 if (state == TransactionState.Uncommitted)
                     continue;
-                if (state == TransactionState.Committed &&
-                    writeStamp >= untilCommittedTransactionId)
+            }
+            var readStamp = value.ReadStamp;
+            if (Transactions.TryGetValue(readStamp, out meta))
+            {
+                var state = meta.State;
+                if (state == TransactionState.Uncommitted)
                     continue;
             }
             ReadWriteStamps.TryDeleteFromMemory(in key);

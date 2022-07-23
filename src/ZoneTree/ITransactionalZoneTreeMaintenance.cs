@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree;
+﻿using Tenray.ZoneTree.Transactional;
+
+namespace Tenray.ZoneTree;
 
 public interface ITransactionalZoneTreeMaintenance<TKey, TValue>
 {
@@ -6,6 +8,11 @@ public interface ITransactionalZoneTreeMaintenance<TKey, TValue>
     /// Underlying non-transactional ZoneTree.
     /// </summary>
     IZoneTree<TKey, TValue> ZoneTree { get; }
+
+    /// <summary>
+    /// Transaction Log instance.
+    /// </summary>
+    ITransactionLog<TKey, TValue> TransactionLog { get; }
 
     /// <summary>
     /// Retrieves uncommitted transaction ids.

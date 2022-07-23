@@ -4,6 +4,11 @@ namespace Tenray.ZoneTree.Transactional;
 
 public interface ITransactionLog<TKey, TValue> : IDisposable
 {
+    /// <summary>
+    /// The total amount of transactions to be kept in memory.
+    /// </summary>
+    int CompactionThreshold { get; set; }
+
     int TransactionCount { get; }
 
     IReadOnlyList<long> TransactionIds { get; }
