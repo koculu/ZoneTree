@@ -40,7 +40,17 @@ public interface ITransactionalZoneTreeMaintenance<TKey, TValue>
     void DestroyTree();
 
     /// <summary>
-    /// Aborts and rollback all uncommitted transactions.
+    /// Rollbacks all uncommitted transactions.
     /// </summary>
-    void RollbackUncommittedTransactions();
+    /// <returns>Count of rollbacked transactions.</returns>
+    int RollbackAllUncommitted();
+
+    /// <summary>
+    /// Rollbacks all uncommitted transaction ids started before given date-time.
+    /// Transaction log memory usage increases by state uncommitted transaction ids.
+    /// Those must be rollbacked.
+    /// </summary>
+    /// <param name="dateTime">Max start time (exclusive)</param>
+    /// <returns>Count of rollbacked transactions.</returns>
+    int RollbackUncommittedTransactionIdsBefore(DateTime dateTime);
 }

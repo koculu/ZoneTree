@@ -123,9 +123,4 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="key">Key</param>
     void DeleteAutoCommit(in TKey key);
-
-    /// <summary>
-    /// Rollbacks all uncommitted transactions.
-    /// </summary>
-    int RollbackAllUncommitted();
 }

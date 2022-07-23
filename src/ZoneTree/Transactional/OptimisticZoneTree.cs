@@ -417,4 +417,16 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         }
         return count;
     }
+
+    public int RollbackUncommittedTransactionIdsBefore(DateTime dateTime)
+    {
+        var count = 0;
+        var uncommitted = TransactionLog.GetUncommittedTransactionIdsBefore(dateTime);
+        foreach (var u in uncommitted)
+        {
+            Rollback(u);
+            ++count;
+        }
+        return count;
+    }
 }

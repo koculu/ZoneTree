@@ -429,4 +429,18 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
         HistoryTable.TryDeleteFromMemory(id);
         DependencyTable.TryDeleteFromMemory(id);
     }
+
+    public IReadOnlyList<long> GetUncommittedTransactionIdsBefore(DateTime dateTime)
+    {
+        var ticks = dateTime.Ticks;
+        lock (this)
+        {
+            var transactionIds = Transactions.Keys;
+            return TransactionIds.Where(x =>
+                Transactions.TryGetValue(x, out var meta)
+                && meta.State == TransactionState.Uncommitted
+                && meta.StartedAt < ticks)
+            .ToArray();
+        }
+    }
 }

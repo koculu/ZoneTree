@@ -131,21 +131,21 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     event CanNotDropReadOnlySegment<TKey, TValue> OnCanNotDropReadOnlySegment;
 
     /// <summary>
-    /// Event is fired when a write ahead log cannot be dropped.
+    /// Event is fired when a disk segment cannot be dropped.
     /// This does not harm the database consistency.
     /// The cleanup task can be done later.
     /// </summary>
     event CanNotDropDiskSegment<TKey, TValue> OnCanNotDropDiskSegment;
 
     /// <summary>
-    /// Event is fired when a write ahead log cannot be dropped.
+    /// Event is fired when a disk segment creator cannot be dropped.
     /// This does not harm the database consistency.
     /// The cleanup task can be done later.
     /// </summary>
     event CanNotDropDiskSegmentCreator<TKey, TValue> OnCanNotDropDiskSegmentCreator;
 
     /// <summary>
-    /// Event is fired the ZoneTree is disposing.
+    /// Event is fired when the ZoneTree is disposing.
     /// </summary>
     event ZoneTreeIsDisposing<TKey, TValue> OnZoneTreeIsDisposing;
 }
