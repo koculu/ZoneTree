@@ -225,11 +225,16 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             if (lengthInTheFile1 != lengthInTheFile2)
             {
                 if (lengthInTheFile1 == lengthInTheFile3)
-                    lengthInTheFile1 = lengthInTheFile2;
+                    lengthInTheFile1 = lengthInTheFile3;
                 else if (lengthInTheFile2 == lengthInTheFile3)
                     lengthInTheFile1 = lengthInTheFile2;
                 else
                 {
+                    // 3 length-stamps are different from each other.
+                    // We might copy the corrupted file to a backup location
+                    // and start a new backup file immediately
+                    // to not to interrupt the system on full log corruption.
+                    // For now, we prefer throwing an exception.
                     throw new WriteAheadLogFullLogCorruptionException(backupFile);
                 }
             }
