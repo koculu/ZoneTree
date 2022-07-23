@@ -9,9 +9,9 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 {
     const string TxMetaCategory = "txm";
 
-    const string TxHistory = "txh";
+    const string TxHistoryCategory = "txh";
 
-    const string TxDependency = "txd";
+    const string TxDependencyCategory = "txd";
 
     const string TxReadWriteStampCategory = "txs";
 
@@ -68,8 +68,8 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
     {
         var writeAheadLogProvider = options.WriteAheadLogProvider;
         writeAheadLogProvider.InitCategory(TxMetaCategory);
-        writeAheadLogProvider.InitCategory(TxHistory);
-        writeAheadLogProvider.InitCategory(TxDependency);
+        writeAheadLogProvider.InitCategory(TxHistoryCategory);
+        writeAheadLogProvider.InitCategory(TxDependencyCategory);
         Transactions = new(
             0,
             TxMetaCategory,
@@ -83,7 +83,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
         var combinedSerializer = new CombinedSerializer<TValue, long>(options.ValueSerializer, new Int64Serializer());
         HistoryTable = new(
             0,
-            TxHistory,
+            TxHistoryCategory,
             writeAheadLogProvider,
             new Int64Serializer(),
             options.KeySerializer,
@@ -91,7 +91,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
         DependencyTable = new(
             0,
-            TxDependency,
+            TxDependencyCategory,
             writeAheadLogProvider,
             new Int64Serializer(),
             new Int64Serializer(),

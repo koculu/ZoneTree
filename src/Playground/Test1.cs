@@ -58,7 +58,7 @@ public class Test1
             });
         }
         Console.WriteLine("Elapsed: " + stopWatch.ElapsedMilliseconds);
-        zoneTree.Maintenance.SaveMetaData();
         basicMaintainer.CompleteRunningTasks().AsTask().Wait();
+        zoneTree.Maintenance.SaveMetaData();
     }
 }

@@ -103,13 +103,13 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
 
     public void Drop()
     {
-        WriteAheadLogProvider.RemoveWAL(SegmentId);
+        WriteAheadLogProvider.RemoveWAL(SegmentId, Category);
         WriteAheadLog?.Drop();
     }
 
     public void Dispose()
     {
-        WriteAheadLogProvider.RemoveWAL(SegmentId);
+        WriteAheadLogProvider.RemoveWAL(SegmentId, Category);
         WriteAheadLog?.Dispose();
     }
 

@@ -39,7 +39,9 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
         Comparer = options.Comparer;
         SortedKeys = sortedKeys;
         SortedValues = sortedValues;
-        WriteAheadLog = options.WriteAheadLogProvider.GetWAL<TKey, TValue>(SegmentId);
+        WriteAheadLog = options.WriteAheadLogProvider.GetWAL<TKey, TValue>(
+            SegmentId,
+            ZoneTree<TKey, TValue>.SegmentWalCategory);
     }
 
     public bool TryGet(in TKey key, out TValue value)
@@ -100,7 +102,7 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
 
     public void Drop()
     {
-        Options.WriteAheadLogProvider.RemoveWAL(SegmentId);
+        Options.WriteAheadLogProvider.RemoveWAL(SegmentId, ZoneTree<TKey, TValue>.SegmentWalCategory);
         WriteAheadLog?.Drop();
     }
 
@@ -155,7 +157,7 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
 
     public void ReleaseResources()
     {
-        Options.WriteAheadLogProvider.RemoveWAL(SegmentId);
+        Options.WriteAheadLogProvider.RemoveWAL(SegmentId, ZoneTree<TKey, TValue>.SegmentWalCategory);
         WriteAheadLog?.Dispose();
     }
 }

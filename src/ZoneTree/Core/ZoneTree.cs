@@ -7,6 +7,8 @@ namespace Tenray.ZoneTree.Core;
 
 public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeMaintenance<TKey, TValue>
 {
+    public const string SegmentWalCategory = "seg";
+
     readonly ZoneTreeMeta ZoneTreeMeta = new();
 
     readonly ZoneTreeMetaWAL<TKey, TValue> MetaWal;
@@ -73,6 +75,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public ZoneTree(ZoneTreeOptions<TKey, TValue> options)
     {
+        options.WriteAheadLogProvider.InitCategory(SegmentWalCategory);
         MetaWal = new ZoneTreeMetaWAL<TKey, TValue>(options, false);
         Options = options;
         MinHeapEntryComparer = new MinHeapEntryRefComparer<TKey, TValue>(options.Comparer);
@@ -96,6 +99,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         int maximumSegmentId
         )
     {
+        options.WriteAheadLogProvider.InitCategory(SegmentWalCategory);
         IncrementalIdProvider.SetNextId(maximumSegmentId + 1);
         MetaWal = new ZoneTreeMetaWAL<TKey, TValue>(options, false);
         ZoneTreeMeta = meta;

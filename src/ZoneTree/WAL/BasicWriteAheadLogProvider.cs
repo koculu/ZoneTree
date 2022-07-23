@@ -8,18 +8,10 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public string WalDirectory { get; }
 
-    public BasicWriteAheadLogProvider(string walDirectory = "data/wal")
+    public BasicWriteAheadLogProvider(string walDirectory = "data")
     {
         WalDirectory = walDirectory;
         Directory.CreateDirectory(walDirectory);
-    }
-
-    public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(
-        long segmentId,
-        ISerializer<TKey> keySerializer,
-        ISerializer<TValue> valueSerializer)
-    {
-        return GetOrCreateWAL(segmentId, string.Empty, keySerializer, valueSerializer);
     }
 
     public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(
@@ -41,11 +33,6 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
         return wal;
     }
 
-    public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(long segmentId)
-    {
-        return GetWAL<TKey, TValue>(segmentId, string.Empty);
-    }
-
     public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(long segmentId, string category)
     {
         if (WALTable.TryGetValue(segmentId + category, out var value))
@@ -53,11 +40,6 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
             return (IWriteAheadLog<TKey, TValue>)value;
         }
         return null;
-    }
-
-    public bool RemoveWAL(long segmentId)
-    {
-        return RemoveWAL(segmentId, string.Empty);
     }
 
     public bool RemoveWAL(long segmentId, string category)

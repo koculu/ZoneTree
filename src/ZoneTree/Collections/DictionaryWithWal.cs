@@ -127,13 +127,13 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 
     public void Drop()
     {
-        WriteAheadLogProvider.RemoveWAL(SegmentId);
+        WriteAheadLogProvider.RemoveWAL(SegmentId, Category);
         WriteAheadLog?.Drop();
     }
 
     public void Dispose()
     {
-        WriteAheadLogProvider.RemoveWAL(SegmentId);
+        WriteAheadLogProvider.RemoveWAL(SegmentId, Category);
         WriteAheadLog?.Dispose();
     }
 
