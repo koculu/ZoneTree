@@ -8,6 +8,8 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public string WalDirectory { get; }
 
+    public WriteAheadLogMode WriteAheadLogMode { get; set; }
+
     public BasicWriteAheadLogProvider(string walDirectory = "data")
     {
         WalDirectory = walDirectory;

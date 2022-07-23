@@ -4,6 +4,8 @@ namespace Tenray.ZoneTree.WAL;
 
 public interface IWriteAheadLogProvider
 {
+    WriteAheadLogMode WriteAheadLogMode { get; set; }
+
     void InitCategory(string category);
 
     IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(

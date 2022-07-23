@@ -3,6 +3,7 @@ using Tenray.ZoneTree;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Maintainers;
 using Tenray.ZoneTree.Serializers;
+using Tenray.ZoneTree.WAL;
 
 namespace Playground;
 
@@ -18,6 +19,7 @@ public class Test1
             .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = WriteAheadLogMode.Lazy)
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();

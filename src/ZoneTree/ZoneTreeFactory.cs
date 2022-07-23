@@ -11,11 +11,24 @@ public class ZoneTreeFactory<TKey, TValue>
 {
     string WalDirectory;
 
-    ITransactionLog<TKey, TValue> TransactionLog;
-
     int InitialSparseArrayLength = 1_000_000;
 
+    Func<ZoneTreeOptions<TKey, TValue>, IWriteAheadLogProvider> GetWriteAheadLogProvider;
+
+    Func<ZoneTreeOptions<TKey, TValue>, ITransactionLog<TKey, TValue>> GetTransactionLog
+        = (options) => new BasicTransactionLog<TKey, TValue>(options);
+
+    ITransactionLog<TKey, TValue> TransactionLog;
+
     public ZoneTreeOptions<TKey, TValue> Options { get; } = new();
+
+    public ZoneTreeFactory()
+    {
+        GetWriteAheadLogProvider = (options) =>
+            WalDirectory == null ? 
+            new BasicWriteAheadLogProvider() :
+            new BasicWriteAheadLogProvider(WalDirectory);
+    }
 
     public ZoneTreeFactory<TKey, TValue> SetComparer(IRefComparer<TKey> comparer)
     {
@@ -67,15 +80,38 @@ public class ZoneTreeFactory<TKey, TValue>
 
     private void InitWriteAheadLogProvider()
     {
-        if (WalDirectory == null || Options.WriteAheadLogProvider != null)
+        if (Options.WriteAheadLogProvider != null)
             return;
-        Options.WriteAheadLogProvider = new BasicWriteAheadLogProvider(WalDirectory);
+        Options.WriteAheadLogProvider = GetWriteAheadLogProvider(Options);
+    }
+
+    private void InitTransactionLog()
+    {
+        if (TransactionLog != null)
+            return;
+        TransactionLog = GetTransactionLog(Options);
     }
 
     public ZoneTreeFactory<TKey, TValue>
-        SetWriteAheadLogProvider(IWriteAheadLogProvider walProvider)
+        SetWriteAheadLogProvider(Func<ZoneTreeOptions<TKey, TValue>, IWriteAheadLogProvider> walProviderGetter)
     {
-        Options.WriteAheadLogProvider = walProvider;
+        GetWriteAheadLogProvider = walProviderGetter;
+        return this;
+    }
+
+    public ZoneTreeFactory<TKey, TValue>
+        ConfigureWriteAheadLogProvider(Action<IWriteAheadLogProvider> configure)
+    {
+        InitWriteAheadLogProvider();
+        configure(Options.WriteAheadLogProvider);
+        return this;
+    }
+
+    public ZoneTreeFactory<TKey, TValue>
+        ConfigureTransactionLog(Action<ITransactionLog<TKey, TValue>> configure)
+    {
+        InitTransactionLog();
+        configure(TransactionLog);
         return this;
     }
 
@@ -94,9 +130,9 @@ public class ZoneTreeFactory<TKey, TValue>
     }
 
     public ZoneTreeFactory<TKey, TValue>
-        SetTransactionLog(ITransactionLog<TKey, TValue> transactionLog)
+        SetTransactionLog(Func<ZoneTreeOptions<TKey, TValue>, ITransactionLog<TKey, TValue>> transactionLogGetter)
     {
-        TransactionLog = transactionLog;
+        GetTransactionLog = transactionLogGetter;
         return this;
     }
 
@@ -139,29 +175,20 @@ public class ZoneTreeFactory<TKey, TValue>
 
     public ITransactionalZoneTree<TKey, TValue> OpenOrCreateTransactional()
     {
-        var zoneTree = OpenOrCreate();
-        var transactionLog =
-            TransactionLog ??
-            new BasicTransactionLog<TKey, TValue>(Options);
-
-        return new OptimisticZoneTree<TKey, TValue>(Options, transactionLog, zoneTree);
+        var zoneTree = OpenOrCreate(); InitTransactionLog();
+        return new OptimisticZoneTree<TKey, TValue>(Options, TransactionLog, zoneTree);
     }
 
     public ITransactionalZoneTree<TKey, TValue> CreateTransactional()
     {
-        var zoneTree = Create();
-        var transactionLog =
-            TransactionLog ??
-            new BasicTransactionLog<TKey, TValue>(Options);
-        return new OptimisticZoneTree<TKey, TValue>(Options, transactionLog, zoneTree);
+        var zoneTree = Create(); InitTransactionLog();
+        return new OptimisticZoneTree<TKey, TValue>(Options, TransactionLog, zoneTree);
     }
 
     public ITransactionalZoneTree<TKey, TValue> OpenTransactional()
     {
         var zoneTree = Open();
-        var transactionLog =
-            TransactionLog ??
-            new BasicTransactionLog<TKey, TValue>(Options);
-        return new OptimisticZoneTree<TKey, TValue>(Options, transactionLog, zoneTree);
+        InitTransactionLog();
+        return new OptimisticZoneTree<TKey, TValue>(Options, TransactionLog, zoneTree);
     }
 }
