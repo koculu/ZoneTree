@@ -51,7 +51,7 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 3. .NET EcoSystem does not have any feature-complete and thread-safe LSM Tree that operates both in memory and on disk.
 4. Supports transactional and non-transactional access with blazing speeds and ACID guarantees.
 5. Why do you need an SQL database or another product for the projects that a persistent tree bundled with your code is sufficient? You don't need to maintain another product shipped with yours!
-6. You decide where to put your data. You can adjust a few parameters to improve performance with more data loaded into memory whenever needed.When you don't need you can drop in memory data without a danger of a data loss.
+6. You decide where to put your data. You can adjust a few parameters to improve performance with more data loaded into memory whenever needed. When you don't need you can drop in memory data without a danger of a data loss.
 
 ## How fast is it?
 
@@ -190,9 +190,35 @@ That is useful for doing prefix search with forward-iterator or with backward-it
 ## Transaction Support
 ZoneTree supports Optimistic Transactions. It is proud to announce that the ZoneTree is ACID-compliant. Of course, you can use non-transactional API for the scenarios where eventual consistency is sufficient.
 
-Please note that Transactional reads/writes are roughly three times slower than non-transactional ones.
+ZoneTree supports 3 way of doing transactions.
+1. Fluent Transactions with ready to use retry capability.
+2. Classical Transaction API.
+3. Exceptionless Transaction API.
 
-The following sample shows how to do the transactions with ZoneTree.
+The following sample shows how to do the transactions with ZoneTree Fluent Transaction API.
+
+```c#
+ using var zoneTree = new ZoneTreeFactory<int, int>()
+    // Additional stuff goes here
+    .OpenOrCreateTransactional();
+using var transaction =
+    zoneTree
+        .BeginFluentTransaction()
+        .Do((tx) => zoneTree.UpsertNoThrow(tx, 3, 9))
+        .Do((tx) =>
+        {
+            if (zoneTree.TryGetNoThrow(tx, 3, out var value).IsAborted)
+                return TransactionResult.Aborted();
+            if (zoneTree.UpsertNoThrow(tx, 3, 9).IsAborted)
+                return TransactionResult.Aborted();
+            return TransactionResult.Success();
+        })
+        .SetRetryCountForPendingTransactions(100)
+        .SetRetryCountForAbortedTransactions(10);
+        await transaction.CommitAsync();
+```
+
+The following sample shows traditional way of doing transactions with ZoneTree.
 ```c#
  using var zoneTree = new ZoneTreeFactory<int, int>()
     // Additional stuff goes here
