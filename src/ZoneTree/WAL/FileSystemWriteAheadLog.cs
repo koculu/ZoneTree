@@ -1,4 +1,5 @@
 ﻿using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Exceptions;
 
 namespace Tenray.ZoneTree.WAL;
 
@@ -201,7 +202,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     private void AppendCurrentWalToTheFullLog()
     {
         var backupFile = FilePath + ".full";
-        var backupDataOffset = sizeof(long) * 2;
+        var backupDataOffset = sizeof(long) * 3;
         FileStream.Seek(0, SeekOrigin.Begin);
         var existingLength = (int)FileStream.Length;
         var bytes = new byte[existingLength];
@@ -216,12 +217,22 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         bool hasLengthStamp = fs.Length > backupDataOffset;
         if (hasLengthStamp)
         {
-            // read length twice and get the greater one.
-            // to ensure length was not written partially to the file.
+            // read the length-stamp three times and select the most common one,
+            // to ensure the length was not written partially to the file.
             var lengthInTheFile1 = br.ReadInt64();
             var lengthInTheFile2 = br.ReadInt64();
+            var lengthInTheFile3 = br.ReadInt64();
             if (lengthInTheFile1 != lengthInTheFile2)
-                lengthInTheFile1 = Math.Max(lengthInTheFile1, lengthInTheFile2);
+            {
+                if (lengthInTheFile1 == lengthInTheFile3)
+                    lengthInTheFile1 = lengthInTheFile2;
+                else if (lengthInTheFile2 == lengthInTheFile3)
+                    lengthInTheFile1 = lengthInTheFile2;
+                else
+                {
+                    throw new WriteAheadLogFullLogCorruptionException(backupFile);
+                }
+            }
 
             // make sure the file has no crashed backup data.
             if (fs.Length > lengthInTheFile1)
@@ -229,13 +240,25 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                 fs.SetLength(lengthInTheFile1);
             }
         }
-        fs.Position = backupDataOffset;
+        else
+        {
+            fs.SetLength(0);
+            fs.Write(BitConverter.GetBytes(fs.Length));
+            fs.Write(BitConverter.GetBytes(fs.Length));
+            fs.Write(BitConverter.GetBytes(fs.Length));
+            fs.Flush();
+        }
+        // first append the additional data.
+        fs.Seek(0, SeekOrigin.End);
         fs.Write(bytes, 0, existingLength);
         fs.Flush();
-        // write file length stamp.
-        // what happens if crash happens with partial write of the fs Length?
-        // Hence, we write it twice.
+        
+        // then write file length stamp.
+        // what happens if a crash happens with partial write of the fs Length?
+        // To prevent that, we write and flush the length-stamp three times with separate flushes..
         fs.Position = 0;
+        fs.Write(BitConverter.GetBytes(fs.Length));
+        fs.Flush();
         fs.Write(BitConverter.GetBytes(fs.Length));
         fs.Flush();
         fs.Write(BitConverter.GetBytes(fs.Length));
