@@ -22,8 +22,19 @@ public class Test1
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();
         using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
-
+        
         Console.WriteLine("Loaded: " + stopWatch.ElapsedMilliseconds);
+
+        stopWatch.Restart();
+        var uncommitted = zoneTree.Maintenance.TransactionLog.UncommittedTransactionIds;
+        Console.WriteLine($"found {uncommitted.Count} uncommitted transactions.");
+        foreach (var u in uncommitted)
+        {
+            zoneTree.Rollback(u);
+        }
+        Console.WriteLine("uncommitted transactions are rollbacked. Elapsed:"
+            + stopWatch.ElapsedMilliseconds);
+        stopWatch.Restart();
 
         var transactional = true;
         if (transactional)

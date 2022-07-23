@@ -405,4 +405,16 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
             DoCommit(transaction);
         }
     }
+
+    public int RollbackAllUncommitted()
+    {
+        var count = 0;
+        var uncommitted = TransactionLog.UncommittedTransactionIds;        
+        foreach (var u in uncommitted)
+        {
+            Rollback(u);
+            ++count;
+        }
+        return count;
+    }
 }

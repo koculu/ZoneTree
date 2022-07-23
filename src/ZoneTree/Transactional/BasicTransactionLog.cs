@@ -58,7 +58,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
                 var transactionIds = Transactions.Keys;
                 return TransactionIds.Where(x =>
                     Transactions.TryGetValue(x, out var meta)
-                    && meta.State == TransactionState.Committed)
+                    && meta.State == TransactionState.Uncommitted)
                 .ToArray();
             }
         }
@@ -313,6 +313,13 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             HistoryTable.CompactWriteAheadLog();
             DependencyTable.CompactWriteAheadLog();
             ReadWriteStamps.CompactWriteAheadLog();
+
+#if DEBUG
+            Console.WriteLine("t" + Transactions.Length +
+                "-h" + HistoryTable.Length +
+                "-d" + DependencyTable.Length +
+                "-s" + ReadWriteStamps.Length);
+#endif
         }
     }
 
@@ -348,7 +355,8 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             foreach (var u in uncommitted)
             {
                 DependencyTable.TryGetDictionary(u, out var dic);
-                if (dic.ContainsKey(a))
+                if (dic != null &&
+                    dic.ContainsKey(a))
                 {
                     isDependentA = true;
                     break;
