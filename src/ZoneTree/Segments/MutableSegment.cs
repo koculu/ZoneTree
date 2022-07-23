@@ -21,7 +21,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     volatile bool IsFrozenFlag = false;
 
-    int WritesInProgress = 0;
+    volatile int WritesInProgress = 0;
 
     readonly MarkValueDeletedDelegate<TValue> MarkValueDeleted;
 
@@ -185,7 +185,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
     public IReadOnlySegment<TKey, TValue> CreateReadOnlySegment()
     {
         if (!IsFullyFrozen)
-            throw new Exception("Freeze the segment zero first!");
+            throw new Exception("MarkFrozen the segment zero first!");
 
         var (keys, values) = SkipList.ToArray();
 
@@ -197,6 +197,16 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
     public void Freeze()
     {
         IsFrozenFlag = true;
+        Task.Factory.StartNew(() => FreezeWriteAheadLog());
+    }
+
+    private void FreezeWriteAheadLog()
+    {
+        while (WritesInProgress > 0)
+        {
+            Thread.Yield();
+        }
+        WriteAheadLog.MarkFrozen();
     }
 
     public void Drop()

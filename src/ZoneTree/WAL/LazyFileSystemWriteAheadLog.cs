@@ -1,9 +1,10 @@
-﻿using Tenray.ZoneTree.Core;
+﻿using System.Collections.Concurrent;
+using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
 
-// https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
-public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
+public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
     readonly FileStream FileStream;
 
@@ -11,9 +12,17 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     readonly ISerializer<TValue> ValueSerializer;
 
+    readonly ConcurrentQueue<CombinedValue<TKey, TValue>> Queue = new();
+
+    volatile bool isRunning = false;
+
+    Task WriteTask;
+
+    readonly object fileLock = new();
+
     public string FilePath { get; }
 
-    public FileSystemWriteAheadLog(
+    public LazyFileSystemWriteAheadLog(
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
@@ -29,18 +38,46 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         ValueSerializer = valueSerializer;
     }
 
+    private void StartWriter()
+    {
+        isRunning = true;
+        WriteTask = Task.Factory.StartNew(() => DoWrite(), TaskCreationOptions.LongRunning);
+    }
+
+    private void StopWriter()
+    {
+        isRunning = false;
+        WriteTask?.Wait();
+    }
+
+    private void DoWrite()
+    {
+        while (isRunning)
+        {
+            while (Queue.TryDequeue(out var q))
+            {
+                var keyBytes = KeySerializer.Serialize(q.Value1);
+                var valueBytes = ValueSerializer.Serialize(q.Value2);
+                AppendLogEntry(keyBytes, valueBytes);
+            }
+            if (isRunning && Queue.IsEmpty)
+                Thread.Yield();
+        }
+    }
+
     public void Append(in TKey key, in TValue value)
     {
-        var keyBytes = KeySerializer.Serialize(key);
-        var valueBytes = ValueSerializer.Serialize(value);
-        lock (this)
+        lock (fileLock)
         {
-            AppendLogEntry(keyBytes, valueBytes);
+            if (!isRunning)
+                StartWriter();
+            Queue.Enqueue(new CombinedValue<TKey, TValue>(in key, in value));
         }
     }
 
     public void Drop()
     {
+        StopWriter();
         FileStream.Dispose();
         File.Delete(FilePath);
     }
@@ -172,6 +209,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     public void Dispose()
     {
+        StopWriter();
         FileStream.Dispose();
     }
 
@@ -185,22 +223,24 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         // TODO: backup existing WAL.
         // Track completion.
         // Ensure durability.
-        lock (this)
+        lock (fileLock)
         {
+            Queue.Clear();
+            StopWriter();
+            StartWriter();
             var existingLength = FileStream.Length;
             FileStream.SetLength(0);
             var len = keys.Length;
             for (var i = 0; i < len; ++i)
             {
-                Append(keys[i], values[i]);
+                Queue.Enqueue(new CombinedValue<TKey, TValue>(in keys[i], in values[i]));
             }
-            var diff = existingLength - FileStream.Length;
-            return diff;
+            return 0;
         }
     }
 
     public void MarkFrozen()
     {
-        // nop
+        StopWriter();
     }
 }

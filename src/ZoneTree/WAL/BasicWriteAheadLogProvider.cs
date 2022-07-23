@@ -27,12 +27,30 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
         {
             return (IWriteAheadLog<TKey, TValue>)value;
         }
-        var wal = new FileSystemWriteAheadLog<TKey, TValue>(
-            keySerializer,
-            valueSerializer,
-            walPath);
-        WALTable.Add(segmentId + category, wal);
-        return wal;
+
+        switch (WriteAheadLogMode)
+        {
+            case WriteAheadLogMode.Immediate:
+                {
+                    var wal = new FileSystemWriteAheadLog<TKey, TValue>(
+                        keySerializer,
+                        valueSerializer,
+                        walPath);
+                    WALTable.Add(segmentId + category, wal);
+                    return wal;
+                }
+
+            case WriteAheadLogMode.Lazy:
+                {
+                    var wal = new LazyFileSystemWriteAheadLog<TKey, TValue>(
+                        keySerializer,
+                        valueSerializer,
+                        walPath);
+                    WALTable.Add(segmentId + category, wal);
+                    return wal;
+                }
+        }
+        return null;
     }
 
     public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(long segmentId, string category)

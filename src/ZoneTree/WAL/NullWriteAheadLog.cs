@@ -32,4 +32,8 @@ public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValu
     {
         return 0;
     }
+
+    public void MarkFrozen()
+    {
+    }
 }

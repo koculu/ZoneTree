@@ -20,4 +20,10 @@ public interface IWriteAheadLog<TKey, TValue> : IDisposable
     /// <param name="values">new values</param>
     /// <returns>the difference: old file length - new file length.</returns>
     long ReplaceWriteAheadLog(TKey[] keys, TValue[] values);
+    
+    /// <summary>
+    /// Informs the write ahead log that no further writes will be sent.
+    /// to let WAL optimize itself.
+    /// </summary>
+    void MarkFrozen();
 }

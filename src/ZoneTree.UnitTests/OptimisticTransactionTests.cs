@@ -57,8 +57,9 @@ public class OptimisticTransactionTests
         zoneTree.Maintenance.DestroyTree();
     }
 
-    [Test]
-    public void SeveralParallelTransactions()
+    [TestCase(WriteAheadLogMode.Immediate)]
+    [TestCase(WriteAheadLogMode.Lazy)]
+    public void SeveralParallelTransactions(WriteAheadLogMode walMode)
     {
         var dataPath = "data/SeveralParallelTransactions";
         if (Directory.Exists(dataPath))
@@ -69,6 +70,7 @@ public class OptimisticTransactionTests
             .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();
@@ -85,9 +87,9 @@ public class OptimisticTransactionTests
         zoneTree.Maintenance.DestroyTree();
     }
 
-
-    [Test]
-    public void SeveralParallelUpserts()
+    [TestCase(WriteAheadLogMode.Immediate)]
+    [TestCase(WriteAheadLogMode.Lazy)]
+    public void SeveralParallelUpserts(WriteAheadLogMode walMode)
     {
         var dataPath = "data/SeveralParallelUpserts";
         if (Directory.Exists(dataPath))
@@ -98,6 +100,7 @@ public class OptimisticTransactionTests
             .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();

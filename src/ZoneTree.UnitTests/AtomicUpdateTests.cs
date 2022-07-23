@@ -1,12 +1,14 @@
 ﻿using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Serializers;
+using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.UnitTests;
 
 public class AtomicUpdateTests
 {
-    [Test]
-    public void IntIntAtomicIncrement()
+    [TestCase(WriteAheadLogMode.Immediate)]
+    [TestCase(WriteAheadLogMode.Lazy)]
+    public void IntIntAtomicIncrement(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntAtomicIncrement";
         if (Directory.Exists(dataPath))
@@ -17,6 +19,7 @@ public class AtomicUpdateTests
             .SetMutableSegmentMaxItemCount(500)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
@@ -65,8 +68,9 @@ public class AtomicUpdateTests
         data.Maintenance.DestroyTree();
     }
 
-    [Test]
-    public void IntIntAtomicIncrementForSkipList()
+    [TestCase(WriteAheadLogMode.Immediate)]
+    [TestCase(WriteAheadLogMode.Lazy)]
+    public void IntIntAtomicIncrementForSkipList(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntAtomicIncrementForSkipList";
         if (Directory.Exists(dataPath))
@@ -76,6 +80,7 @@ public class AtomicUpdateTests
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
@@ -120,8 +125,9 @@ public class AtomicUpdateTests
         data.Maintenance.DestroyTree();
     }
 
-    [Test]
-    public void IntIntMutableSegmentOnlyAtomicIncrement()
+    [TestCase(WriteAheadLogMode.Immediate)]
+    [TestCase(WriteAheadLogMode.Lazy)]
+    public void IntIntMutableSegmentOnlyAtomicIncrement(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntMutableSegmentOnlyAtomicIncrement";
         if (Directory.Exists(dataPath))
@@ -131,6 +137,7 @@ public class AtomicUpdateTests
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
@@ -175,8 +182,9 @@ public class AtomicUpdateTests
         data.Maintenance.DestroyTree();
     }
 
-    [Test]
-    public void IntIntMutableSegmentSeveralUpserts()
+    [TestCase(WriteAheadLogMode.Immediate)]
+    [TestCase(WriteAheadLogMode.Lazy)]
+    public void IntIntMutableSegmentSeveralUpserts(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntMutableSegmentSeveralUpserts";
         if (Directory.Exists(dataPath))
@@ -185,6 +193,7 @@ public class AtomicUpdateTests
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
