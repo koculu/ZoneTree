@@ -185,8 +185,8 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     {
         lock (this)
         {
-            var existingLength = (int)FileStream.Length;
             AppendCurrentWalToTheFullLog();
+            var existingLength = (int)FileStream.Length;
             FileStream.SetLength(0);
 
             var len = keys.Length;
@@ -201,6 +201,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     private void AppendCurrentWalToTheFullLog()
     {
+        FileStream.Flush();
         var backupFile = FilePath + ".full";
         var backupDataOffset = sizeof(long) * 3;
         FileStream.Seek(0, SeekOrigin.Begin);
@@ -258,7 +259,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         fs.Write(bytes, 0, existingLength);
         fs.Flush();
         
-        // then write file length stamp.
+        // now write the file length-stamps.
         // what happens if a crash happens with partial write of the fs Length?
         // To prevent that, we write and flush the length-stamp three times with separate flushes..
         fs.Position = 0;
