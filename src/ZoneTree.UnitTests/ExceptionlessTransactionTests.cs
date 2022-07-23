@@ -1,6 +1,7 @@
 ﻿using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Serializers;
+using Tenray.ZoneTree.Transactional;
 
 namespace Tenray.ZoneTree.UnitTests;
 
@@ -57,7 +58,7 @@ public class ExceptionlessTransactionTests
 
     [TestCase(0)]
     [TestCase(100000)]
-    public void TransactionWithFluentAPI(int compactionThreshold)
+    public async Task TransactionWithFluentAPI(int compactionThreshold)
     {
         var dataPath = "data/TransactionWithFluentAPI" + compactionThreshold;
         if (Directory.Exists(dataPath))
@@ -73,22 +74,30 @@ public class ExceptionlessTransactionTests
 
         zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
 
-        /*
-         * 
-         * 
-         zoneTree
+        var random = new Random();
+        await Parallel.ForEachAsync(Enumerable.Range(0, 1000), async (x, cancel) =>
+        {
+            using var transaction =
+            zoneTree
             .BeginFluentTransaction()
-            .Do((tx) => zoneTree.UpsertNoThrow(tx1, 3, 9))
-            .Do((tx) => 
+            .Do((tx) => zoneTree.UpsertNoThrow(tx, 3, 9))
+            .Do((tx) =>
             {
                 if (zoneTree.TryGetNoThrow(tx, 3, out var value).IsAborted)
-                    return TransactionResult.Aborted;
+                    return TransactionResult.Aborted();
                 if (zoneTree.UpsertNoThrow(tx, 3, 9).IsAborted)
-                    return TransactionResult.Aborted;
+                    return TransactionResult.Aborted();
+                return TransactionResult.Success();
             })
-            .RetryAborted(10)
-            .CommitAsync();
-        */
+            .SetRetryCountForPendingTransactions(100)
+            .SetRetryCountForAbortedTransactions(10);
+            await transaction.CommitAsync();
+            if (transaction.TotalAbortRetried > 0)
+                Console.WriteLine("abort:" + transaction.TotalAbortRetried);
+            if (transaction.TotalPendingTransactionsRetried > 0)
+                Console.WriteLine("pending:" + transaction.TotalPendingTransactionsRetried);
+        });
+        
         zoneTree.Maintenance.DestroyTree();
     }
 }

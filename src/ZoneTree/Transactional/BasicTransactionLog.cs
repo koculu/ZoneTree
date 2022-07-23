@@ -185,6 +185,8 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
     public void AddDependency(long src, long dest)
     {
+        if (src == dest)
+            return;
         lock (this)
         {
             DependencyTable.Upsert(src, dest, false);

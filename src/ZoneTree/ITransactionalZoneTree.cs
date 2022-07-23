@@ -78,12 +78,25 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     TransactionResult DeleteNoThrow(long transactionId, in TKey key);
 
     /// <summary>
+    /// Retrieves transaction state of given transaction id.
+    /// </summary>
+    /// <param name="transactionId">Transaction Id</param>
+    /// <returns>Transaction State</returns>
+    TransactionState GetTransactionState(long transactionId);
+
+    /// <summary>
     /// Begins the transaction. 
     /// Creates a transaction id and informs the transaction manager
     /// that a new transaction started.
     /// </summary>
     /// <returns>Transaction Id</returns>
     long BeginTransaction();
+
+    /// <summary>
+    /// Creates a fluent transaction.
+    /// </summary>
+    /// <returns>Fluent transaction.</returns>
+    FluentTransaction<TKey, TValue> BeginFluentTransaction();
 
     /// <summary>
     /// Prepares to Commit. Aborts transaction if needed.

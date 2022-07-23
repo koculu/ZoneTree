@@ -67,6 +67,11 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         return transactionId;
     }
 
+    public FluentTransaction<TKey, TValue> BeginFluentTransaction()
+    {
+        return new FluentTransaction<TKey, TValue>(this);
+    }
+
     public void Rollback(long transactionId)
     {
         lock (this)
@@ -106,6 +111,11 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         if (result.IsAborted)
             throw new TransactionAbortedException(transactionId);
         return result;
+    }
+
+    public TransactionState GetTransactionState(long transactionId)
+    {
+        return TransactionLog.GetTransactionState(transactionId);
     }
 
     public CommitResult PrepareNoThrow(long transactionId)
