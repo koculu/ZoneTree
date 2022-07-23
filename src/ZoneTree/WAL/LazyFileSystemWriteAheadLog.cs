@@ -46,8 +46,9 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     private void StopWriter()
     {
-        isRunning = false;
+        isRunning = false;        
         WriteTask?.Wait();
+        WriteTask = null;
     }
 
     private void DoWrite()
@@ -242,5 +243,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     public void MarkFrozen()
     {
         StopWriter();
+        Flush();
+        FileStream.Dispose();
     }
 }

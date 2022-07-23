@@ -201,6 +201,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     public void MarkFrozen()
     {
-        // nop
+        Flush();
+        FileStream.Dispose();
     }
 }

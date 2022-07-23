@@ -10,7 +10,7 @@ public class AtomicUpdateTests
     [TestCase(WriteAheadLogMode.Lazy)]
     public void IntIntAtomicIncrement(WriteAheadLogMode walMode)
     {
-        var dataPath = "data/IntIntAtomicIncrement";
+        var dataPath = "data/IntIntAtomicIncrement." + walMode;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         var counterKey = -3999;
@@ -72,7 +72,7 @@ public class AtomicUpdateTests
     [TestCase(WriteAheadLogMode.Lazy)]
     public void IntIntAtomicIncrementForSkipList(WriteAheadLogMode walMode)
     {
-        var dataPath = "data/IntIntAtomicIncrementForSkipList";
+        var dataPath = "data/IntIntAtomicIncrementForSkipList." + walMode;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
@@ -129,7 +129,7 @@ public class AtomicUpdateTests
     [TestCase(WriteAheadLogMode.Lazy)]
     public void IntIntMutableSegmentOnlyAtomicIncrement(WriteAheadLogMode walMode)
     {
-        var dataPath = "data/IntIntMutableSegmentOnlyAtomicIncrement";
+        var dataPath = "data/IntIntMutableSegmentOnlyAtomicIncrement." + walMode;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         var counterKey = -3999;
@@ -186,7 +186,7 @@ public class AtomicUpdateTests
     [TestCase(WriteAheadLogMode.Lazy)]
     public void IntIntMutableSegmentSeveralUpserts(WriteAheadLogMode walMode)
     {
-        var dataPath = "data/IntIntMutableSegmentSeveralUpserts";
+        var dataPath = "data/IntIntMutableSegmentSeveralUpserts." + walMode;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         using var data = new ZoneTreeFactory<int, int>()

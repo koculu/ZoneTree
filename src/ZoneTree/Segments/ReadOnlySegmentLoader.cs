@@ -22,7 +22,7 @@ public class ReadOnlySegmentLoader<TKey, TValue>
             Options.KeySerializer,
             Options.ValueSerializer);
         var result = wal.ReadLogEntries(false, false);
-
+        wal.MarkFrozen();
         if (!result.Success)
         {
             Options.WriteAheadLogProvider.RemoveWAL(

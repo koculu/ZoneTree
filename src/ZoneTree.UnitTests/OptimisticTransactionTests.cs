@@ -12,7 +12,7 @@ public class OptimisticTransactionTests
     [TestCase(100000)]
     public void FirstTransaction(int compactionThreshold)
     {
-        var dataPath = "data/FirstTransaction";
+        var dataPath = "data/FirstTransaction" + compactionThreshold;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
@@ -61,7 +61,7 @@ public class OptimisticTransactionTests
     [TestCase(WriteAheadLogMode.Lazy)]
     public void SeveralParallelTransactions(WriteAheadLogMode walMode)
     {
-        var dataPath = "data/SeveralParallelTransactions";
+        var dataPath = "data/SeveralParallelTransactions." + walMode;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
@@ -91,7 +91,7 @@ public class OptimisticTransactionTests
     [TestCase(WriteAheadLogMode.Lazy)]
     public void SeveralParallelUpserts(WriteAheadLogMode walMode)
     {
-        var dataPath = "data/SeveralParallelUpserts";
+        var dataPath = "data/SeveralParallelUpserts." + walMode;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
@@ -118,7 +118,7 @@ public class OptimisticTransactionTests
     [TestCase(100000)]
     public void ReadCommittedTest(int compactionThreshold)
     {
-        var dataPath = "data/ReadCommittedTest";
+        var dataPath = "data/ReadCommittedTest" + compactionThreshold;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
@@ -174,7 +174,7 @@ public class OptimisticTransactionTests
     [TestCase(100000)]
     public void TransactionLogCompactionTest(int compactionThreshold)
     {
-        var dataPath = "data/TransactionLogCompactionTest";
+        var dataPath = "data/TransactionLogCompactionTest" + compactionThreshold;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         
@@ -224,7 +224,7 @@ public class OptimisticTransactionTests
     [TestCase(100000)]
     public void TransactionLogCompactionWithSkipWriteRule(int compactionThreshold)
     {
-        var dataPath = "data/TransactionLogSkipWriteRule";
+        var dataPath = "data/TransactionLogSkipWriteRule" + compactionThreshold;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
