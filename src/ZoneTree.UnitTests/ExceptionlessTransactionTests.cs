@@ -1,0 +1,94 @@
+﻿using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Serializers;
+
+namespace Tenray.ZoneTree.UnitTests;
+
+public class ExceptionlessTransactionTests
+{
+    [TestCase(0)]
+    [TestCase(100000)]
+    public void TransactionWithNoThrowAPI(int compactionThreshold)
+    {
+        var dataPath = "data/TransactionWithNoThrowAPI" + compactionThreshold;
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetComparer(new Int32ComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new Int32Serializer())
+            .OpenOrCreateTransactional();
+
+        zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
+
+        var tx1 = zoneTree.BeginTransaction();
+        Assert.That(zoneTree.UpsertNoThrow(tx1, 3, 9).Succeeded, Is.True);
+        zoneTree.PrepareNoThrow(tx1);
+        var result = zoneTree.CommitNoThrow(tx1);
+        Assert.That(result.IsCommitted, Is.True);
+
+        var tx2 = zoneTree.BeginTransaction();
+        zoneTree.UpsertNoThrow(tx2, 3, 10);
+
+        var tx3 = zoneTree.BeginTransaction();
+        zoneTree.TryGetNoThrow(tx3, 3, out var value);
+        Assert.That(value, Is.EqualTo(10));
+
+        Assert.That(zoneTree.UpsertNoThrow(tx2, 3, 6).IsAborted, Is.True);
+        //tx2 is aborted. changes made by tx2 is rolled back.
+        //tx3 depends on tx2 and it is also aborted.
+
+        zoneTree.TryGetNoThrow(tx3, 3, out value);
+        Assert.That(value, Is.EqualTo(9));
+
+        Assert.That(zoneTree.PrepareAndCommitNoThrow(tx2).IsAborted, Is.True);
+
+        Assert.That(zoneTree.PrepareAndCommitNoThrow(tx3).IsAborted, Is.True);
+
+        Assert.Throws<TransactionAlreadyCommittedException>(() => zoneTree.PrepareAndCommitNoThrow(tx1));
+
+        Assert.Throws<TransactionAlreadyCommittedException>(() => zoneTree.CommitNoThrow(tx1));
+
+        zoneTree.Maintenance.DestroyTree();
+    }
+
+    [TestCase(0)]
+    [TestCase(100000)]
+    public void TransactionWithFluentAPI(int compactionThreshold)
+    {
+        var dataPath = "data/TransactionWithFluentAPI" + compactionThreshold;
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetComparer(new Int32ComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new Int32Serializer())
+            .OpenOrCreateTransactional();
+
+        zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
+
+        /*
+         * 
+         * 
+         zoneTree
+            .BeginFluentTransaction()
+            .Do((tx) => zoneTree.UpsertNoThrow(tx1, 3, 9))
+            .Do((tx) => 
+            {
+                if (zoneTree.TryGetNoThrow(tx, 3, out var value).IsAborted)
+                    return TransactionResult.Aborted;
+                if (zoneTree.UpsertNoThrow(tx, 3, 9).IsAborted)
+                    return TransactionResult.Aborted;
+            })
+            .RetryAborted(10)
+            .CommitAsync();
+        */
+        zoneTree.Maintenance.DestroyTree();
+    }
+}

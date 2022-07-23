@@ -141,7 +141,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
     {
         var keys = Dictionary.Keys.ToArray();
         var values = Dictionary.Values.ToArray();
-        var diff = WriteAheadLog.ReplaceWriteAheadLog(keys, values);
+        WriteAheadLog.ReplaceWriteAheadLog(keys, values, false);
 
         var len = keys.Length;
         // recreate the dictionary to avoid empty space in the hash table.

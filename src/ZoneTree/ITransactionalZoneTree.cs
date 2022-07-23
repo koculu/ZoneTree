@@ -15,14 +15,31 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     bool ContainsKey(long transactionId, in TKey key);
 
     /// <summary>
+    /// Contains Key query without abort exception.
+    /// </summary>
+    /// <param name="transactionId">Transaction Id</param>
+    /// <param name="key">Key</param>
+    /// <returns></returns>
+    TransactionResult<bool> ContainsKeyNoThrow(long transactionId, in TKey key);
+
+    /// <summary>
     /// Tries to get the value of given key.
     /// </summary>
     /// <param name="transactionId">Transaction Id</param>
     /// <param name="key">Key</param>
     /// <param name="value">Value</param>
-    /// <returns></returns>
+    /// <returns>true if key is found, otherwise false.</returns>
     /// <exception cref="TransactionAbortedException"></exception>
     bool TryGet(long transactionId, in TKey key, out TValue value);
+
+    /// <summary>
+    /// Tries to get the value of given key without abort exception.
+    /// </summary>
+    /// <param name="transactionId">Transaction Id</param>
+    /// <param name="key">Key</param>
+    /// <param name="value">Value</param>
+    /// <returns>true if key is found, otherwise false.</returns>
+    TransactionResult<bool> TryGetNoThrow(long transactionId, in TKey key, out TValue value);
 
     /// <summary>
     /// Upserts the key and value.
@@ -36,12 +53,29 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     bool Upsert(long transactionId, in TKey key, in TValue value);
 
     /// <summary>
+    /// Upserts the key and value without abort exception.
+    /// </summary>
+    /// <param name="transactionId">Transaction Id</param>
+    /// <param name="key">Key</param>
+    /// <param name="value">Value</param>
+    /// /// <returns>true if the key/value pair was inserted;
+    /// false if the key/value pair was updated.</returns>
+    TransactionResult<bool> UpsertNoThrow(long transactionId, in TKey key, in TValue value);
+
+    /// <summary>
     /// Deletes the key.
     /// </summary>
     /// <param name="transactionId">Transaction Id</param>
     /// <param name="key">Key</param>
     /// <exception cref="TransactionAbortedException"></exception>
     void Delete(long transactionId, in TKey key);
+
+    /// <summary>
+    /// Deletes the key without abort exception.
+    /// </summary>
+    /// <param name="transactionId">Transaction Id</param>
+    /// <param name="key">Key</param>
+    TransactionResult DeleteNoThrow(long transactionId, in TKey key);
 
     /// <summary>
     /// Begins the transaction. 
@@ -60,6 +94,14 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     CommitResult Prepare(long transactionId);
 
     /// <summary>
+    /// Prepares to Commit. Aborts transaction if needed. 
+    /// This method does not throw transaction aborted exception.
+    /// </summary>
+    /// <param name="transactionId">Transaction Id</param>
+    /// <returns></returns>
+    CommitResult PrepareNoThrow(long transactionId);
+
+    /// <summary>
     /// Prepares to Commit. Aborts transaction if needed.
     /// If commit is possible does the commit.
     /// </summary>
@@ -69,13 +111,33 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     CommitResult PrepareAndCommit(long transactionId);
 
     /// <summary>
+    /// Prepares to Commit. Aborts transaction if needed.
+    /// If commit is possible does the commit.
+    /// This method does not throw transaction aborted exception.
+    /// </summary>
+    /// <param name="transactionId">Transaction Id</param>
+    /// <returns></returns>
+    CommitResult PrepareAndCommitNoThrow(long transactionId);
+
+    /// <summary>
     /// Commits if the transaction is in ready to commit state.
     /// It is necessary to call PrepareCommit before calling this method.
     /// </summary>
     /// <param name="transactionId"></param>
     /// <returns></returns>
     /// <exception cref="TransactionIsNotReadyToCommitException"></exception>
+    /// <exception cref="TransactionAbortedException"></exception>
     CommitResult Commit(long transactionId);
+
+    /// <summary>
+    /// Commits if the transaction is in ready to commit state.
+    /// It is necessary to call PrepareCommit before calling this method.
+    /// This method does not throw transaction aborted exception.
+    /// </summary>
+    /// <param name="transactionId"></param>
+    /// <returns></returns>
+    /// <exception cref="TransactionIsNotReadyToCommitException"></exception>
+    CommitResult CommitNoThrow(long transactionId);
 
     /// <summary>
     /// Rollbacks the transaction by undoing all writes by this transaction.

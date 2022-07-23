@@ -19,7 +19,11 @@ public class Test1
             .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = WriteAheadLogMode.Lazy)
+            .ConfigureWriteAheadLogProvider(x =>
+            {
+                x.WriteAheadLogMode = WriteAheadLogMode.Lazy;
+                x.EnableIncrementalBackup = true;
+            })
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();

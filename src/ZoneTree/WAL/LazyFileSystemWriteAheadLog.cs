@@ -23,6 +23,8 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public string FilePath { get; }
 
+    public bool EnableIncrementalBackup { get; set; }
+
     public LazyFileSystemWriteAheadLog(
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
@@ -45,18 +47,30 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         WriteTask = Task.Factory.StartNew(() => DoWrite(), TaskCreationOptions.LongRunning);
     }
 
-    private void StopWriter()
+    private void StopWriter(bool consumeAll)
     {
-        isRunning = false;        
+        isRunning = false;
         WriteTask?.Wait();
         WriteTask = null;
+        if (consumeAll)
+            ConsumeQueue();
+    }
+
+    private void ConsumeQueue()
+    {
+        while (Queue.TryDequeue(out var q))
+        {
+            var keyBytes = KeySerializer.Serialize(q.Value1);
+            var valueBytes = ValueSerializer.Serialize(q.Value2);
+            AppendLogEntry(keyBytes, valueBytes);
+        }
     }
 
     private void DoWrite()
     {
         while (isRunning)
         {
-            while (Queue.TryDequeue(out var q))
+            while (isRunning && Queue.TryDequeue(out var q))
             {
                 var keyBytes = KeySerializer.Serialize(q.Value1);
                 var valueBytes = ValueSerializer.Serialize(q.Value2);
@@ -79,7 +93,8 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public void Drop()
     {
-        StopWriter();
+        Queue.Clear();
+        StopWriter(false);
         FileStream.Dispose();
         File.Delete(FilePath);
     }
@@ -211,7 +226,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public void Dispose()
     {
-        StopWriter();
+        StopWriter(true);
         FileStream.Dispose();
     }
 
@@ -220,16 +235,22 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         FileStream.Flush();
     }
 
-    public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values)
+    public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values, bool disableBackup)
     {
-        // TODO: backup existing WAL.
-        // Track completion.
-        // Ensure durability.
         lock (fileLock)
         {
-            StopWriter();
-            Queue.Clear();
-            AppendCurrentWalToTheFullLog();
+            
+            if (!disableBackup && EnableIncrementalBackup)
+            {
+                StopWriter(true);
+                ConsumeQueue();
+                AppendCurrentWalToTheFullLog();                
+            }
+            else
+            {
+                StopWriter(false);
+                Queue.Clear();
+            }
             StartWriter();
             var existingLength = FileStream.Length;
             FileStream.SetLength(0);
@@ -316,8 +337,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public void MarkFrozen()
     {
-        StopWriter();
-        Flush();
+        StopWriter(true);
         FileStream.Dispose();
     }
 }

@@ -32,9 +32,17 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
     OptimisticTransaction<TKey, TValue> GetOrCreateTransaction(long transactionId)
     {
+        var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
+        if (transaction == null)
+            throw new TransactionAbortedException(transactionId);
+        return transaction;
+    }
+
+    OptimisticTransaction<TKey, TValue> GetOrCreateTransactionNoAbortThrow(long transactionId)
+    {
         var state = TransactionLog.GetTransactionState(transactionId);
         if (state == TransactionState.Aborted)
-            throw new TransactionAbortedException(transactionId);
+            return null;
 
         if (state == TransactionState.Committed)
             throw new TransactionAlreadyCommittedException(transactionId);
@@ -94,9 +102,19 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
     public CommitResult Prepare(long transactionId)
     {
+        var result = PrepareNoThrow(transactionId);
+        if (result.IsAborted)
+            throw new TransactionAbortedException(transactionId);
+        return result;
+    }
+
+    public CommitResult PrepareNoThrow(long transactionId)
+    {
         lock (this)
         {
-            var transaction = GetOrCreateTransaction(transactionId);
+            var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
+            if (transaction == null)
+                return CommitResult.Aborted;
             return DoPrepare(transaction);
         }
     }
@@ -105,7 +123,20 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
     {
         lock (this)
         {
-            var transaction = GetOrCreateTransaction(transactionId);
+            var result = PrepareAndCommitNoThrow(transactionId);
+            if (result.IsAborted)
+                throw new TransactionAbortedException(transactionId);
+            return result;
+        }
+    }
+
+    public CommitResult PrepareAndCommitNoThrow(long transactionId)
+    {
+        lock (this)
+        {
+            var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
+            if (transaction == null)
+                return CommitResult.Aborted;
             var result = DoPrepare(transaction);
             if (result.IsReadyToCommit)
                 return DoCommit(transaction);
@@ -118,6 +149,17 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         lock (this)
         {
             var transaction = GetOrCreateTransaction(transactionId);
+            return DoCommit(transaction);
+        }
+    }
+
+    public CommitResult CommitNoThrow(long transactionId)
+    {
+        lock (this)
+        {
+            var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
+            if (transaction == null)
+                return CommitResult.Aborted;
             return DoCommit(transaction);
         }
     }
@@ -143,7 +185,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
             {
                 // If there is a transaction in DEP(Ti) that aborted then abort
                 AbortTransaction(transaction);
-                throw new TransactionAbortedException(transactionId);
+                return CommitResult.Aborted;
             }
             if (state == TransactionState.Uncommitted)
                 waitList.Add(dependency);
@@ -163,98 +205,33 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
     public bool ContainsKey(long transactionId, in TKey key)
     {
-        lock (this)
-        {
-            var transaction = GetOrCreateTransaction(transactionId);
-            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
-            var hasKey = ZoneTree.ContainsKey(in key);
-            if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
-            {
-                AbortTransaction(transaction);
-                throw new TransactionAbortedException(transactionId);
-            }
-            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
-            return hasKey;
-        }
+        var result = ContainsKeyNoThrow(transactionId, in key);
+        if (result.IsAborted)
+            throw new TransactionAbortedException(transactionId);
+        return result.Result;
     }
 
     public bool TryGet(long transactionId, in TKey key, out TValue value)
     {
-        lock (this)
-        {
-            var transaction = GetOrCreateTransaction(transactionId);
-            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
-            var hasValue = ZoneTree.TryGet(in key, out value);
-            if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
-            {
-                AbortTransaction(transaction);
-                throw new TransactionAbortedException(transactionId);
-            }
-
-            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
-            return hasValue;
-        }
+        var result = TryGetNoThrow(transactionId, in key, out value);
+        if (result.IsAborted)
+            throw new TransactionAbortedException(transactionId);
+        return result.Result;
     }
 
     public bool Upsert(long transactionId, in TKey key, in TValue value)
     {
-        lock (this)
-        {
-            var transaction = GetOrCreateTransaction(transactionId);
-            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
-            var hasOldValue = ZoneTree.TryGet(in key, out var oldValue);
-
-            var action = transaction.HandleWriteKey(
-                ref readWriteStamp,
-                in key,
-                hasOldValue,
-                in oldValue);
-
-            // skip the write based on Thomas Write Rule.
-            if (action == OptimisticWriteAction.SkipWrite)
-                return !hasOldValue;
-
-            // abort case
-            if (action == OptimisticWriteAction.Abort)
-            {
-                AbortTransaction(transaction);
-                throw new TransactionAbortedException(transactionId);
-            }
-
-            // actual write happens.
-            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
-            ZoneTree.Upsert(in key, in value);
-            return !hasOldValue;
-        }
+        var result = UpsertNoThrow(transactionId, in key, in value);
+        if (result.IsAborted)
+            throw new TransactionAbortedException(transactionId);
+        return result.Result;
     }
 
     public void Delete(long transactionId, in TKey key)
     {
-        lock (this)
-        {
-            var transaction = GetOrCreateTransaction(transactionId);
-            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
-            var hasOldValue = ZoneTree.TryGet(in key, out var oldValue);
-
-            var action = transaction.HandleWriteKey(
-               ref readWriteStamp,
-               in key,
-               hasOldValue,
-               in oldValue);
-
-            // skip the write based on Thomas Write Rule.
-            if (action == OptimisticWriteAction.SkipWrite)
-                return;
-
-            // abort case
-            if (action == OptimisticWriteAction.Abort)
-            {
-                AbortTransaction(transaction);
-                throw new TransactionAbortedException(transactionId);
-            }
-            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
-            ZoneTree.ForceDelete(in key);
-        }
+        var result = DeleteNoThrow(transactionId, in key);
+        if (result.IsAborted)
+            throw new TransactionAbortedException(transactionId);
     }
 
     public void DestroyTree()
@@ -428,5 +405,116 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
             ++count;
         }
         return count;
+    }
+
+    public TransactionResult<bool> ContainsKeyNoThrow(long transactionId, in TKey key)
+    {
+        lock (this)
+        {
+            var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
+            if (transaction == null)
+                return TransactionResult<bool>.Aborted();
+            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
+            var hasKey = ZoneTree.ContainsKey(in key);
+            if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
+            {
+                AbortTransaction(transaction);
+                return TransactionResult<bool>.Aborted();
+            }
+            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
+            return TransactionResult<bool>.Success(hasKey);
+        }
+    }
+
+    public TransactionResult<bool> TryGetNoThrow(long transactionId, in TKey key, out TValue value)
+    {
+        lock (this)
+        {
+            var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
+            if (transaction == null)
+            {
+                value = default;
+                return TransactionResult<bool>.Aborted();
+            }
+            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
+            var hasValue = ZoneTree.TryGet(in key, out value);
+            if (transaction.HandleReadKey(ref readWriteStamp) == OptimisticReadAction.Abort)
+            {
+                AbortTransaction(transaction);
+                return TransactionResult<bool>.Aborted();
+            }
+
+            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
+            return TransactionResult<bool>.Success(hasValue);
+        }
+    }
+
+
+    public TransactionResult<bool> UpsertNoThrow(long transactionId, in TKey key, in TValue value)
+    {
+        lock (this)
+        {
+            var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
+            if (transaction == null)
+                return TransactionResult<bool>.Aborted();
+
+            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
+            var hasOldValue = ZoneTree.TryGet(in key, out var oldValue);
+
+            var action = transaction.HandleWriteKey(
+                ref readWriteStamp,
+                in key,
+                hasOldValue,
+                in oldValue);
+
+            // skip the write based on Thomas Write Rule.
+            if (action == OptimisticWriteAction.SkipWrite)
+                return TransactionResult<bool>.Success(!hasOldValue);
+
+            // abort case
+            if (action == OptimisticWriteAction.Abort)
+            {
+                AbortTransaction(transaction);
+                return TransactionResult<bool>.Aborted();
+            }
+
+            // actual write happens.
+            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
+            ZoneTree.Upsert(in key, in value);
+            return TransactionResult<bool>.Success(!hasOldValue);
+        }        
+    }
+
+    public TransactionResult DeleteNoThrow(long transactionId, in TKey key)
+    {
+        lock (this)
+        {
+            var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
+            if (transaction == null)
+                return TransactionResult.Aborted();
+
+            var hasReadWriteStamp = TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
+            var hasOldValue = ZoneTree.TryGet(in key, out var oldValue);
+
+            var action = transaction.HandleWriteKey(
+               ref readWriteStamp,
+               in key,
+               hasOldValue,
+               in oldValue);
+
+            // skip the write based on Thomas Write Rule.
+            if (action == OptimisticWriteAction.SkipWrite)
+                return TransactionResult.Success();
+
+            // abort case
+            if (action == OptimisticWriteAction.Abort)
+            {
+                AbortTransaction(transaction);
+                return TransactionResult.Aborted();
+            }
+            TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
+            ZoneTree.ForceDelete(in key);
+            return TransactionResult.Success();
+        }
     }
 }

@@ -6,6 +6,8 @@ public class CommitResult
 
     public readonly static CommitResult Committed = new(CommitState.Committed);
 
+    public readonly static CommitResult Aborted = new(CommitState.Aborted);
+
     /// <summary>
     /// Represents the commit state.
     /// </summary>
@@ -19,6 +21,8 @@ public class CommitResult
     /// this transaction also aborts.
     /// </summary>
     public IReadOnlyList<long> PendingTransactionList { get; }
+
+    public bool IsAborted => Result == CommitState.Aborted;
 
     public bool IsReadyToCommit => Result == CommitState.ReadyToCommit;
 

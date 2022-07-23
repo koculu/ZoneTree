@@ -10,6 +10,8 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public WriteAheadLogMode WriteAheadLogMode { get; set; }
 
+    public bool EnableIncrementalBackup { get; set; }
+
     public BasicWriteAheadLogProvider(string walDirectory = "data")
     {
         WalDirectory = walDirectory;

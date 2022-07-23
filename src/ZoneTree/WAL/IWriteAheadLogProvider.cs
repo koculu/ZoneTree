@@ -6,6 +6,14 @@ public interface IWriteAheadLogProvider
 {
     WriteAheadLogMode WriteAheadLogMode { get; set; }
 
+    /// <summary>
+    /// Incremental backup is a WAL feature which moves
+    /// all WAL data to another incremental log file.
+    /// It is required to compact WAL in memory without data loss in 
+    /// persistent device.
+    /// </summary>
+    bool EnableIncrementalBackup { get; set; }
+
     void InitCategory(string category);
 
     IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(

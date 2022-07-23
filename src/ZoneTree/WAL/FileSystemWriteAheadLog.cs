@@ -14,6 +14,8 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     public string FilePath { get; }
 
+    public bool EnableIncrementalBackup { get; set; }
+
     public FileSystemWriteAheadLog(
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
@@ -181,11 +183,13 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         FileStream.Flush();
     }
 
-    public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values)
+    public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values, bool disableBackup)
     {
         lock (this)
         {
-            AppendCurrentWalToTheFullLog();
+            if (!disableBackup && EnableIncrementalBackup)
+                AppendCurrentWalToTheFullLog();
+
             var existingLength = (int)FileStream.Length;
             FileStream.SetLength(0);
 
