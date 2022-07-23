@@ -274,12 +274,19 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         }
     }
 
-    public bool ReadCommittedContainsKey(in TKey key)
+    public bool ReadCommittedContainsKey(in TKey key, long currentTransactionId = -1)
     {
         lock (this)
         {
             TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             var ws = readWriteStamp.WriteStamp;
+            if (ws == currentTransactionId)
+            {
+                // given transaction matches write-stamp.
+                // we can read uncommitted for current transaction.
+                var isFoundInTree = ZoneTree.ContainsKey(key);
+                return isFoundInTree;
+            }
             var state = TransactionLog.GetTransactionState(ws);
             if (state == TransactionState.Committed)
             {
@@ -317,12 +324,20 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         }
     }
 
-    public bool ReadCommittedTryGet(in TKey key, out TValue value)
+    public bool ReadCommittedTryGet(in TKey key, out TValue value, long currentTransactionId = -1)
     {
         lock (this)
         {
             TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             var ws = readWriteStamp.WriteStamp;
+            if (ws == currentTransactionId)
+            {
+                // given transaction matches write-stamp.
+                // we can read uncommitted for current transaction.
+                var isFoundInTree = ZoneTree.TryGet(key, out value);
+                return isFoundInTree;
+            }
+
             var state = TransactionLog.GetTransactionState(ws);
             if (state == TransactionState.Committed)
             {

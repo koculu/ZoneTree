@@ -167,20 +167,28 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// Contains Key query without a transaction.
     /// This method avoids dirty reads.
     /// The query is executed on committed data.
+    /// If current transaction id given, 
+    /// this method reads uncommitted key for given transaction
+    /// and committed keys for other transactions.
     /// </summary>
     /// <param name="key">Key</param>
+    /// <param name="currentTransactionId">Current transaction.</param>
     /// <returns></returns>
-    bool ReadCommittedContainsKey(in TKey key);
+    bool ReadCommittedContainsKey(in TKey key, long currentTransactionId = -1);
 
     /// <summary>
     /// Tries to get the value of given key without a transaction.
     /// This method avoids dirty reads.
     /// The query is executed on committed data.
+    /// If current transaction id given, 
+    /// this method reads uncommitted key for given transaction
+    /// and committed keys for other transactions.
     /// </summary>
     /// <param name="key">Key</param>
     /// <param name="value">Value</param>
+    /// <param name="currentTransactionId">Current transaction.</param>
     /// <returns></returns>
-    bool ReadCommittedTryGet(in TKey key, out TValue value);
+    bool ReadCommittedTryGet(in TKey key, out TValue value, long currentTransactionId = -1);
 
     /// <summary>
     /// Starts a transaction,
