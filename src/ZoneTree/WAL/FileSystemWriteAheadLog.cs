@@ -182,13 +182,12 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values)
     {
-        // TODO: backup existing WAL.
-        // Track completion.
-        // Ensure durability.
         lock (this)
         {
-            var existingLength = FileStream.Length;
+            var existingLength = (int)FileStream.Length;
+            AppendCurrentWalToTheFullLog();
             FileStream.SetLength(0);
+
             var len = keys.Length;
             for (var i = 0; i < len; ++i)
             {
@@ -197,6 +196,50 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             var diff = existingLength - FileStream.Length;
             return diff;
         }
+    }
+
+    private void AppendCurrentWalToTheFullLog()
+    {
+        var backupFile = FilePath + ".full";
+        var backupDataOffset = sizeof(long) * 2;
+        FileStream.Seek(0, SeekOrigin.Begin);
+        var existingLength = (int)FileStream.Length;
+        var bytes = new byte[existingLength];
+        FileStream.Read(bytes, 0, existingLength);
+        using var fs = new FileStream(
+                backupFile,
+                FileMode.OpenOrCreate,
+                FileAccess.ReadWrite,
+                FileShare.Read,
+                existingLength, false);
+        var br = new BinaryReader(fs);
+        bool hasLengthStamp = fs.Length > backupDataOffset;
+        if (hasLengthStamp)
+        {
+            // read length twice and get the greater one.
+            // to ensure length was not written partially to the file.
+            var lengthInTheFile1 = br.ReadInt64();
+            var lengthInTheFile2 = br.ReadInt64();
+            if (lengthInTheFile1 != lengthInTheFile2)
+                lengthInTheFile1 = Math.Max(lengthInTheFile1, lengthInTheFile2);
+
+            // make sure the file has no crashed backup data.
+            if (fs.Length > lengthInTheFile1)
+            {
+                fs.SetLength(lengthInTheFile1);
+            }
+        }
+        fs.Position = backupDataOffset;
+        fs.Write(bytes, 0, existingLength);
+        fs.Flush();
+        // write file length stamp.
+        // what happens if crash happens with partial write of the fs Length?
+        // Hence, we write it twice.
+        fs.Position = 0;
+        fs.Write(BitConverter.GetBytes(fs.Length));
+        fs.Flush();
+        fs.Write(BitConverter.GetBytes(fs.Length));
+        fs.Flush();
     }
 
     public void MarkFrozen()
