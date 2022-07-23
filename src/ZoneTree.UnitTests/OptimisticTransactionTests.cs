@@ -257,4 +257,43 @@ public class OptimisticTransactionTests
 
         zoneTree.Maintenance.DestroyTree();
     }
+
+    [TestCase(0)]
+    [TestCase(100000)]
+    public void TransactionIsolationTest(int compactionThreshold)
+    {
+        var dataPath = "data/TransactionIsolationTest" + compactionThreshold;
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetComparer(new Int32ComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new Int32Serializer())
+            .SetIsValueDeletedDelegate((in int x) => x == -1)
+            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .OpenOrCreateTransactional();
+
+        zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
+
+        var tx1 = zoneTree.BeginTransaction();
+        var tx2 = zoneTree.BeginTransaction();
+        zoneTree.Upsert(tx1, 9, 21);
+        zoneTree.Upsert(tx2, 5, 12);
+
+        Assert.IsTrue(zoneTree.TryGet(tx2, 9, out var v9));
+        Assert.IsTrue(zoneTree.TryGet(tx1, 9, out v9));
+        Assert.That(v9, Is.EqualTo(21));
+
+        Assert.IsTrue(zoneTree.TryGetNoThrow(tx1, 5, out var v5).IsAborted);
+        Assert.IsTrue(zoneTree.TryGetNoThrow(tx2, 5, out v5).Succeeded);
+        Assert.That(v5, Is.EqualTo(12));
+        
+        // tx2 depends on tx1 bcs of read of key 9. tx1 aborted and so tx2.
+        Assert.That(zoneTree.PrepareAndCommitNoThrow(tx2).IsAborted, Is.True);
+
+        zoneTree.Maintenance.DestroyTree();
+    }
 }
