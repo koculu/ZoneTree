@@ -23,6 +23,7 @@ public class ZoneTree2
         stopWatch.Start();
         using var zoneTree = new ZoneTreeFactory<string, string>()
             .SetComparer(new StringOrdinalComparerAscending())
+            .SetMutableSegmentMaxItemCount(1_000_000)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x =>
@@ -34,7 +35,7 @@ public class ZoneTree2
             .SetValueSerializer(new Utf8StringSerializer())
             .OpenOrCreate();
         using var basicMaintainer = new BasicZoneTreeMaintainer<string, string>(zoneTree);
-
+        basicMaintainer.ThresholdForMergeOperationStart = 2_000_000;
         Console.WriteLine("Loaded in: " + stopWatch.ElapsedMilliseconds);
 
         Parallel.For(0, count, (x) =>

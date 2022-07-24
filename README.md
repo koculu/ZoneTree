@@ -55,26 +55,20 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 
 ## How fast is it?
 
-
-| Insert Benchmarks                | 1M      | 2M       | 3M         |
-| ---------------------------------|---------|----------|------------|
-| int-int tree immediate WAL       | 5760 ms | 10796 ms | 16006 ms   |
-| int-int tree lazy WAL            | 1198 ms | 2379 ms  | 3831 ms    |
-| string-string tree immediate WAL | 7872 ms | 16065 ms | 24220 ms   |
-| string-string tree lazy WAL      | 2556 ms | 5240 ms  | 7934 ms    |
-| RocksDb string-string            | 8215 ms | 16146 ms  | 23760 ms  |
+| Insert Benchmarks                | 1M      | 2M       | 3M         | 10M        |
+| ---------------------------------|---------|----------|------------|------------|
+| int-int tree immediate WAL       | 5760 ms | 10796 ms | 16006 ms   | 54768 ms   |
+| int-int tree lazy WAL            | 1198 ms | 2379 ms  | 3831 ms    | 15338 ms   |
+| string-string tree immediate WAL | 7872 ms | 16065 ms | 24220 ms   | 90901 ms   |
+| string-string tree lazy WAL      | 2556 ms | 5240 ms  | 7934 ms    | 29815 ms   |
+| RocksDb string-string            | 8215 ms | 16146 ms | 23760 ms   | 61547 ms   |
 
 ### Environment:
 ```
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
 Intel Core i7-6850K CPU 3.60GHz (Skylake), 1 CPU, 12 logical and 6 physical cores
 64 GB DDR4 Memory
-.NET SDK=5.0.402
-  [Host]     : .NET 5.0.11 (5.0.1121.47308), X64 RyuJIT
-  Job-YXUPLH : .NET 5.0.11 (5.0.1121.47308), X64 RyuJIT
-
 SSD: Samsung SSD 850 EVO 1TB
-
 Config: 1M mutable segment size, 2M readonly segments merge-threshold
 ```
 
