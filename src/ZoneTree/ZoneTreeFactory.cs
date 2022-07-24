@@ -51,6 +51,13 @@ public class ZoneTreeFactory<TKey, TValue>
     }
 
     public ZoneTreeFactory<TKey, TValue>
+        SetDiskSegmentCompression(bool enabled)
+    {
+        Options.EnableDiskSegmentCompression = enabled;
+        return this;
+    }
+
+    public ZoneTreeFactory<TKey, TValue>
         SetRandomAccessDeviceManager(IRandomAccessDeviceManager randomAccessDeviceManager)
     {
         Options.RandomAccessDeviceManager = randomAccessDeviceManager;

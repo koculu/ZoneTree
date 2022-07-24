@@ -67,8 +67,8 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         var randomDeviceManager = options.RandomAccessDeviceManager;
 
         if (!HasFixedSizeKeyAndValue)
-            DataHeaderDevice = randomDeviceManager.GetReadOnlyDevice(SegmentId, DiskSegmentConstants.DataHeaderCategory);
-        DataDevice = randomDeviceManager.GetReadOnlyDevice(SegmentId, DiskSegmentConstants.DataCategory);
+            DataHeaderDevice = randomDeviceManager.GetReadOnlyDevice(SegmentId, DiskSegmentConstants.DataHeaderCategory, options.EnableDiskSegmentCompression);
+        DataDevice = randomDeviceManager.GetReadOnlyDevice(SegmentId, DiskSegmentConstants.DataCategory, options.EnableDiskSegmentCompression);
 
         KeySize = Unsafe.SizeOf<TKey>();
         ValueSize = Unsafe.SizeOf<TValue>();
@@ -484,5 +484,12 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         if (!HasFixedSizeKeyAndValue)
             DataHeaderDevice.Dispose();
         DataDevice.Dispose();
+    }
+
+    public int ReleaseReadBuffers(long ticks)
+    {
+        var a = DataHeaderDevice?.ReleaseReadBuffers(ticks) ?? 0;
+        var b = DataDevice?.ReleaseReadBuffers(ticks) ?? 0;
+        return a + b;
     }
 }

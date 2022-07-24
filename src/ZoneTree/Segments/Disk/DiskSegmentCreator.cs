@@ -39,8 +39,8 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         HasFixedSizeKeyAndValue = HasFixedSizeKey && HasFixedSizeValue;
 
         if (!HasFixedSizeKeyAndValue)
-            DataHeaderDevice = randomDeviceManager.CreateWritableDevice(SegmentId, DiskSegmentConstants.DataHeaderCategory);
-        DataDevice = randomDeviceManager.CreateWritableDevice(SegmentId, DiskSegmentConstants.DataCategory);
+            DataHeaderDevice = randomDeviceManager.CreateWritableDevice(SegmentId, DiskSegmentConstants.DataHeaderCategory, options.EnableDiskSegmentCompression);
+        DataDevice = randomDeviceManager.CreateWritableDevice(SegmentId, DiskSegmentConstants.DataCategory, options.EnableDiskSegmentCompression);
         Options = options;
     }
 
@@ -50,8 +50,8 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         var valueBytes = ValueSerializer.Serialize(value);
         if (HasFixedSizeKeyAndValue)
         {
-            DataDevice.AppendBytes(keyBytes);
-            DataDevice.AppendBytes(valueBytes);
+            DataDevice.AppendBytesReturnPosition(keyBytes);
+            DataDevice.AppendBytesReturnPosition(valueBytes);
             return;
         }
 
@@ -60,11 +60,11 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
             var valueHead = new ValueHead
             {
                 ValueLength = valueBytes.Length,
-                ValueOffset = DataDevice.AppendBytes(valueBytes)
+                ValueOffset = DataDevice.AppendBytesReturnPosition(valueBytes)
             };
-            DataHeaderDevice.AppendBytes(keyBytes);
+            DataHeaderDevice.AppendBytesReturnPosition(keyBytes);
             var valueHeadBytes = BinarySerializerHelper.ToByteArray(valueHead);
-            DataHeaderDevice.AppendBytes(valueHeadBytes);
+            DataHeaderDevice.AppendBytesReturnPosition(valueHeadBytes);
             return;
         }
 
@@ -73,16 +73,16 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
             var keyHead = new KeyHead
             {
                 KeyLength = keyBytes.Length,
-                KeyOffset = DataDevice.AppendBytes(keyBytes),
+                KeyOffset = DataDevice.AppendBytesReturnPosition(keyBytes),
             };
             var keyHeadBytes = BinarySerializerHelper.ToByteArray(keyHead);
-            DataHeaderDevice.AppendBytes(keyHeadBytes);
-            DataHeaderDevice.AppendBytes(valueBytes);
+            DataHeaderDevice.AppendBytesReturnPosition(keyHeadBytes);
+            DataHeaderDevice.AppendBytesReturnPosition(valueBytes);
             return;
         }
 
-        var off1 = DataDevice.AppendBytes(keyBytes);
-        var off2 = DataDevice.AppendBytes(valueBytes);
+        var off1 = DataDevice.AppendBytesReturnPosition(keyBytes);
+        var off2 = DataDevice.AppendBytesReturnPosition(valueBytes);
 
         var head = new EntryHead
         {
@@ -92,11 +92,13 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
             ValueOffset = off2
         };
         var headBytes = BinarySerializerHelper.ToByteArray(head);
-        DataHeaderDevice.AppendBytes(headBytes);
+        DataHeaderDevice.AppendBytesReturnPosition(headBytes);
     }
 
     public IDiskSegment<TKey, TValue> CreateReadOnlyDiskSegment()
     {
+        DataHeaderDevice?.SealDevice();
+        DataDevice?.SealDevice();
         Close();
         var diskSegment = new DiskSegment<TKey, TValue>(SegmentId, Options);
         return diskSegment;

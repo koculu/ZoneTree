@@ -33,6 +33,13 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     void RemoveReader();
 
     /// <summary>
+    /// Release internal read buffers 
+    /// that are not used after given ticks.
+    /// </summary>
+    /// <returns>Total released read buffer count.</returns>
+    int ReleaseReadBuffers(long ticks);
+
+    /// <summary>
     /// Exceptions occurs in delayed drops (eg: iterators delays segment drops)
     /// are being reported to the IZoneTreeMaintenance interface events 
     /// through this delegate.

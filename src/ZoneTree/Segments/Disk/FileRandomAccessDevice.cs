@@ -40,10 +40,11 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
         }
     }
 
-    public long AppendBytes(byte[] bytes)
+    public long AppendBytesReturnPosition(byte[] bytes)
     {
         var pos = FileStream.Position;
         FileStream.Write(bytes);
+        FileStream.Flush();
         return pos;
     }
 
@@ -93,14 +94,20 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
         File.Delete(FilePath);
     }
 
-    public void Flush()
-    {
-        FileStream.Flush();
-    }
-
     public void ClearContent()
     {
         FileStream.SetLength(0);
         FileStream.Seek(0, SeekOrigin.Begin);
+    }
+
+    public void SealDevice()
+    {
+        // nothing todo here.
+    }
+
+    public int ReleaseReadBuffers(long ticks)
+    {
+        // no buffer
+        return 0;
     }
 }

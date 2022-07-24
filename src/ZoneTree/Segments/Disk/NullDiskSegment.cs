@@ -87,5 +87,10 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     {
         // Nothing to release.
     }
+
+    public int ReleaseReadBuffers(long ticks)
+    {
+        return 0;
+    }
 }
 

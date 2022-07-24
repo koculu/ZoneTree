@@ -13,7 +13,7 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 | ---------------------------------------------------------- |
 | Works with .NET primitives, structs and classes.           |
 | High Speed and Low Memory consumption.                     |
-| Uses low disk space.                                       |
+| Optimum disk space utilization with data compression.      |
 | Very fast load/unload.                                     |
 | Standard read/upsert/delete functions.                     |
 | Optimistic Transaction Support                             |

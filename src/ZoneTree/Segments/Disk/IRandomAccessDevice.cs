@@ -10,7 +10,12 @@ public interface IRandomAccessDevice : IDisposable
 
     void ClearContent();
 
-    long AppendBytes(byte[] bytes);
+    /// <summary>
+    /// Appends bytes and returns the position of the appended bytes.
+    /// </summary>
+    /// <param name="bytes">Bytes</param>
+    /// <returns>Position of the bytes.</returns>
+    long AppendBytesReturnPosition(byte[] bytes);
 
     byte[] GetBytes(long offset, int length);
 
@@ -20,5 +25,17 @@ public interface IRandomAccessDevice : IDisposable
 
     void Delete();
 
-    void Flush();
+    /// <summary>
+    /// Seals the device.
+    /// Sealed devices can not accept new writes
+    /// and becomes immutable.
+    /// </summary>
+    void SealDevice();
+
+    /// <summary>
+    /// Release internal read buffers 
+    /// that are not used after given ticks.
+    /// </summary>
+    /// <returns>Total released read buffer count.</returns>
+    int ReleaseReadBuffers(long ticks);
 }

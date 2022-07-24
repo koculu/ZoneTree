@@ -32,7 +32,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         }
     }
 
-    public IRandomAccessDevice CreateWritableDevice(int segmentId, string category)
+    public IRandomAccessDevice CreateWritableDevice(int segmentId, string category, bool isCompressed)
     {
         var key = GetDeviceKey(segmentId, category);
         if (WritableDevices.ContainsKey(key))
@@ -40,7 +40,9 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
             throw new Exception($"Writable device can be created only once. guid: {segmentId:X} category: {category}");
         }
         var filePath = GetFilePath(segmentId, category);
-        var device = new FileRandomAccessDevice(segmentId, category, this, filePath, true);
+        IRandomAccessDevice device = isCompressed ?
+            new CompressedFileRandomAccessDevice(segmentId, category, this, filePath, true) :
+            new FileRandomAccessDevice(segmentId, category, this, filePath, true);
         WritableDevices.Add(key, device);
         return device;
     }
@@ -62,7 +64,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         return Path.Combine(DataDirectory, segmentId + category);
     }
 
-    public IRandomAccessDevice GetReadOnlyDevice(int segmentId, string category)
+    public IRandomAccessDevice GetReadOnlyDevice(int segmentId, string category,bool isCompressed)
     {
         var key = GetDeviceKey(segmentId, category);
         if (ReadOnlyDevices.TryGetValue(key, out var device))
@@ -73,7 +75,9 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
             throw new Exception($"ReadOnly device can be created after writable device is closed. segmentId: {segmentId} category: {category}");
         }
         var filePath = GetFilePath(segmentId, category);
-        device = new FileRandomAccessDevice(segmentId, category, this, filePath, false);
+        device = isCompressed ?
+            new CompressedFileRandomAccessDevice(segmentId, category, this, filePath, false) :
+            new FileRandomAccessDevice(segmentId, category, this, filePath, false);
         ReadOnlyDevices.Add(key, device);
         return device;
     }

@@ -20,10 +20,10 @@ public class CompressedStringSerializer : ISerializer<string>
     {
         CompressionLevel level = CompressionLevel.Fastest;
         var bytes = Encoding.UTF8.GetBytes(value);
-        using var input = new MemoryStream(bytes);
         using var output = new MemoryStream();
         using var stream = new GZipStream(output, level);
-        input.CopyTo(stream);
+        stream.Write(bytes);
+        stream.Flush();
         return output.ToArray();
     }
 
@@ -32,10 +32,7 @@ public class CompressedStringSerializer : ISerializer<string>
         using var input = new MemoryStream(bytes);
         using var output = new MemoryStream();
         using var stream = new GZipStream(input, CompressionMode.Decompress);
-
         stream.CopyTo(output);
-        stream.Flush();
-
         return Encoding.UTF8.GetString(output.ToArray());
     }
 }

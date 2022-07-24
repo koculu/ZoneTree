@@ -27,14 +27,14 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         {
             Device = Options
                 .RandomAccessDeviceManager
-                .GetReadOnlyDevice(ZoneTreeMetaId, MetaWalCategory);
+                .GetReadOnlyDevice(ZoneTreeMetaId, MetaWalCategory, false);
         }
         else
         {
 
             Device = Options
                 .RandomAccessDeviceManager
-                .CreateWritableDevice(ZoneTreeMetaId, MetaWalCategory);
+                .CreateWritableDevice(ZoneTreeMetaId, MetaWalCategory, false);
         }
     }
 
@@ -119,8 +119,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
     private void AppendRecord(in MetaWalRecord record)
     {
         var bytes = BinarySerializerHelper.ToByteArray(record);
-        Device.AppendBytes(bytes);
-        Device.Flush();
+        Device.AppendBytesReturnPosition(bytes);
     }
 
     public unsafe IReadOnlyList<MetaWalRecord> GetAllRecords()
@@ -164,7 +163,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             });
         var deviceManager = Options.RandomAccessDeviceManager;
 
-        using var device = deviceManager.CreateWritableDevice(ZoneTreeMetaId, MetaFileCategory);
+        using var device = deviceManager.CreateWritableDevice(ZoneTreeMetaId, MetaFileCategory, false);
 
         // If crash occurs during following 3 operations,
         // the tree meta file would become corrupted.
@@ -175,7 +174,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         // 1. clear the target json meta file.
         device.ClearContent();
         // 2. save the json meta file
-        device.AppendBytes(bytes);
+        device.AppendBytesReturnPosition(bytes);
         // 3. clear the meta WAL file
         ClearContent();
 
@@ -189,7 +188,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
     public static ZoneTreeMeta LoadZoneTreeMetaWithoutWALRecords(ZoneTreeOptions<TKey, TValue> options)
     {
         var deviceManager = options.RandomAccessDeviceManager;
-        using var device = deviceManager.GetReadOnlyDevice(ZoneTreeMetaId, MetaFileCategory);
+        using var device = deviceManager.GetReadOnlyDevice(ZoneTreeMetaId, MetaFileCategory, false);
         var bytes = device.GetBytes(0, (int)device.Length);
         device.Close();
         deviceManager.RemoveReadOnlyDevice(device.SegmentId, MetaFileCategory);

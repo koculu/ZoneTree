@@ -23,6 +23,8 @@ public class ZoneTreeOptions<TKey, TValue>
 
     public MarkValueDeletedDelegate<TValue> MarkValueDeleted = (ref TValue x) => { x = default; };
 
+    public bool EnableDiskSegmentCompression { get; set; } = true;
+
     public bool TryValidate(out Exception exception)
     {
         if (KeySerializer == null)
