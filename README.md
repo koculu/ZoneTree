@@ -61,7 +61,7 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 | int-int tree lazy WAL            | 1198 ms | 2379 ms  | 3831 ms    | 15338 ms   |
 | string-string tree immediate WAL | 7872 ms | 16065 ms | 24220 ms   | 90901 ms   |
 | string-string tree lazy WAL      | 2556 ms | 5240 ms  | 7934 ms    | 29815 ms   |
-| RocksDb string-string            | 8215 ms | 16146 ms | 23760 ms   | 61547 ms   |
+| RocksDb string-string            | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
 
 ### Environment:
 ```
@@ -201,7 +201,7 @@ ZoneTree supports 3 way of doing transactions.
 The following sample shows how to do the transactions with ZoneTree Fluent Transaction API.
 
 ```c#
- using var zoneTree = new ZoneTreeFactory<int, int>()
+using var zoneTree = new ZoneTreeFactory<int, int>()
     // Additional stuff goes here
     .OpenOrCreateTransactional();
 using var transaction =

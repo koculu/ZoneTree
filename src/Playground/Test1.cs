@@ -9,7 +9,7 @@ namespace Playground;
 
 public class Test1
 {
-    public void Run()
+    public static void Run()
     {
         var dataPath = "../../data/SeveralParallelTransactions";
         var stopWatch = new Stopwatch();
@@ -21,7 +21,7 @@ public class Test1
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x =>
             {
-                x.WriteAheadLogMode = WriteAheadLogMode.Lazy;
+                x.WriteAheadLogMode = WriteAheadLogMode.Immediate;
                 x.EnableIncrementalBackup = true;
             })
             .SetKeySerializer(new Int32Serializer())

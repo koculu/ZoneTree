@@ -1,3 +1,3 @@
 ﻿using Playground.Benchmark;
 
-BenchmarkGroups.InsertBenchmark();
+BenchmarkGroups.InsertBenchmark1();

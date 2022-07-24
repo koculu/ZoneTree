@@ -9,7 +9,7 @@ namespace Playground.Benchmark;
 
 public class ZoneTree2
 {
-    public static void TestStringTree(WriteAheadLogMode mode, int count)
+    public static void TestInsertStringTree(WriteAheadLogMode mode, int count)
     {
         Console.WriteLine("\r\nTestStringTree\r\n");
         Console.WriteLine("Record count = " + count);
@@ -21,19 +21,7 @@ public class ZoneTree2
 
         var stopWatch = new Stopwatch();
         stopWatch.Start();
-        using var zoneTree = new ZoneTreeFactory<string, string>()
-            .SetComparer(new StringOrdinalComparerAscending())
-            .SetMutableSegmentMaxItemCount(1_000_000)
-            .SetDataDirectory(dataPath)
-            .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x =>
-            {
-                x.WriteAheadLogMode = mode;
-                x.EnableIncrementalBackup = false;
-            })
-            .SetKeySerializer(new Utf8StringSerializer())
-            .SetValueSerializer(new Utf8StringSerializer())
-            .OpenOrCreate();
+        using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
         using var basicMaintainer = new BasicZoneTreeMaintainer<string, string>(zoneTree);
         basicMaintainer.ThresholdForMergeOperationStart = 2_000_000;
         Console.WriteLine("Loaded in: " + stopWatch.ElapsedMilliseconds);
@@ -47,5 +35,53 @@ public class ZoneTree2
         Console.WriteLine("Completed in: " + stopWatch.ElapsedMilliseconds);
         basicMaintainer.CompleteRunningTasks().Wait();
         Console.WriteLine("\r\n-------------------------\r\n");
+    }
+
+    public static void TestIterateStringTree(WriteAheadLogMode mode, int count)
+    {
+        Console.WriteLine("\r\nTestStringTree\r\n");
+        Console.WriteLine("Record count = " + count);
+        Console.WriteLine("WriteAheadLogMode: = " + mode);
+
+        var dataPath = "../../data/TestStringTree" + mode + count;
+
+        var stopWatch = new Stopwatch();
+        stopWatch.Start();
+        using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
+        using var basicMaintainer = new BasicZoneTreeMaintainer<string, string>(zoneTree);
+        basicMaintainer.ThresholdForMergeOperationStart = 2_000_000;
+        Console.WriteLine("Loaded in: " + stopWatch.ElapsedMilliseconds);
+
+        var off = 0;
+        using var iterator = zoneTree.CreateIterator();
+        while (iterator.Next())
+        {
+            if (iterator.CurrentKey != iterator.CurrentValue)
+                throw new Exception("invalid key or value");
+            ++off;
+        }
+        if (off != count)
+            throw new Exception($"missing records. {off} != {count}");
+
+        Console.WriteLine("Completed in: " + stopWatch.ElapsedMilliseconds);
+        basicMaintainer.CompleteRunningTasks().Wait();
+        Console.WriteLine("\r\n-------------------------\r\n");
+    }
+
+    private static IZoneTree<string, string> OpenOrCreateZoneTree(WriteAheadLogMode mode, string dataPath)
+    {
+        return new ZoneTreeFactory<string, string>()
+            .SetComparer(new StringOrdinalComparerAscending())
+            .SetMutableSegmentMaxItemCount(1_000_000)
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x =>
+            {
+                x.WriteAheadLogMode = mode;
+                x.EnableIncrementalBackup = false;
+            })
+            .SetKeySerializer(new Utf8StringSerializer())
+            .SetValueSerializer(new Utf8StringSerializer())
+            .OpenOrCreate();
     }
 }

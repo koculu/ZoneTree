@@ -7,15 +7,15 @@ using Tenray.ZoneTree.WAL;
 
 namespace Playground.Benchmark;
 
-public class ZoneTree1
+public class ZoneTree3
 {
-    public static void TestInsertIntTree(WriteAheadLogMode mode, int count)
+    public static void TestInsertTransactionIntTree(WriteAheadLogMode mode, int count)
     {
         Console.WriteLine("\r\nTestIntTree\r\n");
         Console.WriteLine("Record count = " + count);
         Console.WriteLine("WriteAheadLogMode: = " + mode);
 
-        var dataPath = "../../data/TestIntTree" + mode + count;
+        var dataPath = "../../data/TestInsertTransactionIntTree" + mode + count;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
@@ -29,7 +29,7 @@ public class ZoneTree1
 
         Parallel.For(0, count, (x) =>
         {
-            zoneTree.Upsert(x, x + x);
+            zoneTree.UpsertAutoCommit(x, x + x);
         });
 
         Console.WriteLine("Completed in: " + stopWatch.ElapsedMilliseconds);
@@ -42,7 +42,7 @@ public class ZoneTree1
         Console.WriteLine("Record count = " + count);
         Console.WriteLine("WriteAheadLogMode: = " + mode);
 
-        var dataPath = "../../data/TestIntTree" + mode + count;
+        var dataPath = "../../data/TestInsertTransactionIntTree" + mode + count;
         var stopWatch = new Stopwatch();
         stopWatch.Start();
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
@@ -52,7 +52,7 @@ public class ZoneTree1
         Console.WriteLine("Loaded in: " + stopWatch.ElapsedMilliseconds);
 
         var off = 0;
-        using var iterator = zoneTree.CreateIterator();
+        using var iterator = zoneTree.Maintenance.ZoneTree.CreateIterator();
         while (iterator.Next())
         {
             if (iterator.CurrentKey * 2 != iterator.CurrentValue)
@@ -66,7 +66,7 @@ public class ZoneTree1
         basicMaintainer.CompleteRunningTasks().Wait();
     }
 
-    private static IZoneTree<int, int> OpenOrCreateZoneTree(WriteAheadLogMode mode, string dataPath)
+    private static ITransactionalZoneTree<int, int> OpenOrCreateZoneTree(WriteAheadLogMode mode, string dataPath)
     {
         return new ZoneTreeFactory<int, int>()
             .SetComparer(new Int32ComparerAscending())
@@ -80,6 +80,6 @@ public class ZoneTree1
             })
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
-            .OpenOrCreate();
+            .OpenOrCreateTransactional();
     }
 }
