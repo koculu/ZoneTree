@@ -68,7 +68,7 @@ The Immediate mode gives the best durability with slower write speeds.
 The Lazy mode is faster with less durability.
 In case of crashes/power cuts, the immediate mode ensures that the inserted data is not lost.
 RocksDb does not have immediate WAL mode.
-(reference:|http://rocksdb.org/blog/2017/08/25/flushwal.html)
+(reference:http://rocksdb.org/blog/2017/08/25/flushwal.html)
 
 ### Environment:
 ```
@@ -136,7 +136,7 @@ struct MyDeletableValueType {
    bool IsDeleted; 
 }
 ```
-ZoneTree gives flexibility to micro-manage the tree size.
+You can micro-manage the tree size with ZoneTree.
 The following sample shows how to configure the deletion markers for your database.
 ```c#
 using var zoneTree = new ZoneTreeFactory<int, int>()

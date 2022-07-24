@@ -25,6 +25,12 @@ public class ZoneTreeOptions<TKey, TValue>
 
     public bool EnableDiskSegmentCompression { get; set; } = true;
 
+    /// <summary>
+    /// Disk Segment compression block size.
+    /// Default: 32 KB
+    /// </summary>
+    public int DiskSegmentCompressionBlockSize { get; set; } = 32768;
+
     public bool TryValidate(out Exception exception)
     {
         if (KeySerializer == null)

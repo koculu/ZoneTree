@@ -27,14 +27,14 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         {
             Device = Options
                 .RandomAccessDeviceManager
-                .GetReadOnlyDevice(ZoneTreeMetaId, MetaWalCategory, false);
+                .GetReadOnlyDevice(ZoneTreeMetaId, MetaWalCategory, false, 0);
         }
         else
         {
 
             Device = Options
                 .RandomAccessDeviceManager
-                .CreateWritableDevice(ZoneTreeMetaId, MetaWalCategory, false);
+                .CreateWritableDevice(ZoneTreeMetaId, MetaWalCategory, false, 0);
         }
     }
 
@@ -163,7 +163,8 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             });
         var deviceManager = Options.RandomAccessDeviceManager;
 
-        using var device = deviceManager.CreateWritableDevice(ZoneTreeMetaId, MetaFileCategory, false);
+        using var device = deviceManager
+            .CreateWritableDevice(ZoneTreeMetaId, MetaFileCategory, false, 0);
 
         // If crash occurs during following 3 operations,
         // the tree meta file would become corrupted.
@@ -188,7 +189,8 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
     public static ZoneTreeMeta LoadZoneTreeMetaWithoutWALRecords(ZoneTreeOptions<TKey, TValue> options)
     {
         var deviceManager = options.RandomAccessDeviceManager;
-        using var device = deviceManager.GetReadOnlyDevice(ZoneTreeMetaId, MetaFileCategory, false);
+        using var device = deviceManager
+            .GetReadOnlyDevice(ZoneTreeMetaId, MetaFileCategory, false, 0);
         var bytes = device.GetBytes(0, (int)device.Length);
         device.Close();
         deviceManager.RemoveReadOnlyDevice(device.SegmentId, MetaFileCategory);

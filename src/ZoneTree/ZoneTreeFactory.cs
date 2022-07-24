@@ -58,6 +58,17 @@ public class ZoneTreeFactory<TKey, TValue>
     }
 
     public ZoneTreeFactory<TKey, TValue>
+        SetDiskSegmentCompressionBlockSize(int blockSize)
+    {
+        if (blockSize < 8 * 1024)
+            throw new Exception("Compression Block size cannot be smaller than 8KB");
+        if (blockSize > 1024 * 1024 * 1024)
+            throw new Exception("Compression Block size cannot be greater than 1GB");
+        Options.DiskSegmentCompressionBlockSize = blockSize;
+        return this;
+    }
+
+    public ZoneTreeFactory<TKey, TValue>
         SetRandomAccessDeviceManager(IRandomAccessDeviceManager randomAccessDeviceManager)
     {
         Options.RandomAccessDeviceManager = randomAccessDeviceManager;
@@ -103,6 +114,13 @@ public class ZoneTreeFactory<TKey, TValue>
         SetWriteAheadLogProvider(Func<ZoneTreeOptions<TKey, TValue>, IWriteAheadLogProvider> walProviderGetter)
     {
         GetWriteAheadLogProvider = walProviderGetter;
+        return this;
+    }
+
+    public ZoneTreeFactory<TKey, TValue>
+        Configure(Action<ZoneTreeOptions<TKey, TValue>> configure)
+    {
+        configure(Options);
         return this;
     }
 

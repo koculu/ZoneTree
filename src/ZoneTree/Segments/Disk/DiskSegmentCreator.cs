@@ -39,8 +39,18 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         HasFixedSizeKeyAndValue = HasFixedSizeKey && HasFixedSizeValue;
 
         if (!HasFixedSizeKeyAndValue)
-            DataHeaderDevice = randomDeviceManager.CreateWritableDevice(SegmentId, DiskSegmentConstants.DataHeaderCategory, options.EnableDiskSegmentCompression);
-        DataDevice = randomDeviceManager.CreateWritableDevice(SegmentId, DiskSegmentConstants.DataCategory, options.EnableDiskSegmentCompression);
+            DataHeaderDevice = randomDeviceManager
+                .CreateWritableDevice(
+                SegmentId,
+                DiskSegmentConstants.DataHeaderCategory,
+                options.EnableDiskSegmentCompression,
+                options.DiskSegmentCompressionBlockSize);
+        DataDevice = randomDeviceManager
+            .CreateWritableDevice(
+                SegmentId,
+                DiskSegmentConstants.DataCategory,
+                options.EnableDiskSegmentCompression,
+                options.DiskSegmentCompressionBlockSize);
         Options = options;
     }
 

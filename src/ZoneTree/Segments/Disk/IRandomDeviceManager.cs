@@ -2,9 +2,11 @@
 
 public interface IRandomAccessDeviceManager
 {
-    IRandomAccessDevice GetReadOnlyDevice(int segmentId, string category, bool isCompressed);
+    IRandomAccessDevice GetReadOnlyDevice(
+        int segmentId, string category, bool isCompressed, int compressionBlockSize);
 
-    IRandomAccessDevice CreateWritableDevice(int segmentId, string category, bool isCompressed);
+    IRandomAccessDevice CreateWritableDevice(
+        int segmentId, string category, bool isCompressed, int compressionBlockSize);
 
     bool DeviceExists(int segmentId, string category);
 

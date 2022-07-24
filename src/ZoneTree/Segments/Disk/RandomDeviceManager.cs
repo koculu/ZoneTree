@@ -32,7 +32,8 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         }
     }
 
-    public IRandomAccessDevice CreateWritableDevice(int segmentId, string category, bool isCompressed)
+    public IRandomAccessDevice CreateWritableDevice(
+        int segmentId, string category, bool isCompressed, int compressionBlockSize)
     {
         var key = GetDeviceKey(segmentId, category);
         if (WritableDevices.ContainsKey(key))
@@ -41,7 +42,8 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         }
         var filePath = GetFilePath(segmentId, category);
         IRandomAccessDevice device = isCompressed ?
-            new CompressedFileRandomAccessDevice(segmentId, category, this, filePath, true) :
+            new CompressedFileRandomAccessDevice(
+                segmentId, category, this, filePath, true, compressionBlockSize) :
             new FileRandomAccessDevice(segmentId, category, this, filePath, true);
         WritableDevices.Add(key, device);
         return device;
@@ -64,7 +66,8 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         return Path.Combine(DataDirectory, segmentId + category);
     }
 
-    public IRandomAccessDevice GetReadOnlyDevice(int segmentId, string category,bool isCompressed)
+    public IRandomAccessDevice GetReadOnlyDevice(
+        int segmentId, string category,bool isCompressed, int compressionBlockSize)
     {
         var key = GetDeviceKey(segmentId, category);
         if (ReadOnlyDevices.TryGetValue(key, out var device))
@@ -76,7 +79,8 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         }
         var filePath = GetFilePath(segmentId, category);
         device = isCompressed ?
-            new CompressedFileRandomAccessDevice(segmentId, category, this, filePath, false) :
+            new CompressedFileRandomAccessDevice(
+                segmentId, category, this, filePath, false, compressionBlockSize) :
             new FileRandomAccessDevice(segmentId, category, this, filePath, false);
         ReadOnlyDevices.Add(key, device);
         return device;
