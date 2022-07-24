@@ -8,6 +8,11 @@ public interface IRandomAccessDevice : IDisposable
 
     long Length { get; }
 
+    /// <summary>
+    /// Returns read buffer count.
+    /// </summary>
+    int ReadBufferCount { get; }
+
     void ClearContent();
 
     /// <summary>

@@ -51,6 +51,10 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public bool IsIterativeIndexReader => false;
 
+    public int ReadBufferCount => 
+                    (DataDevice?.ReadBufferCount ?? 0) +
+                    (DataHeaderDevice?.ReadBufferCount ?? 0);
+
     public unsafe DiskSegment(
         int segmentId,
         ZoneTreeOptions<TKey, TValue> options)

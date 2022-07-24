@@ -16,6 +16,8 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
 
     public long Length => FileStream.Length;
 
+    public int ReadBufferCount => 0;
+
     public FileRandomAccessDevice(
         int segmentId,
         string category,

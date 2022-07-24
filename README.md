@@ -46,12 +46,11 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 | Use your custom comparer. |
 
 ## Why ZoneTree?
-1. It is pure C#. Easy to maintain, easy to develop new features.
-2. It is faster than using C/C++ based key-value stores like RocksDB. Because ZoneTree does not need to transfer bytes to the native external libraries (Zero Marshaling).
-3. .NET EcoSystem does not have any feature-complete and thread-safe LSM Tree that operates both in memory and on disk.
+1. It is pure C#.
+2. It is fast. See benchmark below.
+3. Your data is protected against crashes / power cuts.
 4. Supports transactional and non-transactional access with blazing speeds and ACID guarantees.
-5. Why do you need an SQL database or another product for the projects that a persistent tree bundled with your code is sufficient? You don't need to maintain another product shipped with yours!
-6. You decide where to put your data. You can adjust a few parameters to improve performance with more data loaded into memory whenever needed. When you don't need you can drop in memory data without a danger of a data loss.
+5. You can embed your database into your assembly. Therefore, you don't have to pay the cost of maintaining/shipping another database product along with yours.
 
 ## How fast is it?
 
@@ -62,6 +61,14 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 | string-string tree immediate WAL | 7872 ms | 16065 ms | 24220 ms   | 90901 ms   |
 | string-string tree lazy WAL      | 2556 ms | 5240 ms  | 7934 ms    | 29815 ms   |
 | RocksDb string-string            | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
+
+Notes:
+The bottleneck is the disk flushes on the write-ahead log. ZoneTree offers 2 WAL modes.
+The Immediate mode gives the best durability with slower write speeds.
+The Lazy mode is faster with less durability.
+In case of crashes/power cuts, the immediate mode ensures that the inserted data is not lost.
+RocksDb does not have immediate WAL mode.
+(reference:|http://rocksdb.org/blog/2017/08/25/flushwal.html)
 
 ### Environment:
 ```
@@ -247,7 +254,7 @@ The following sample shows traditional way of doing transactions with ZoneTree.
 ## I need more information. Where can I find it?
 I am going to write more detailed documentation as soon as possible.
 
-## I want to contribute. What should I do?
+## I want to contribute. What can I do?
 I appreciate any contribution to the project.
 These are the things I do think we need at the moment:
 1. Write tests / benchmarks.

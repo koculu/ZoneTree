@@ -10,6 +10,11 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     new int Length { get; }
 
     /// <summary>
+    /// Returns read buffer count.
+    /// </summary>
+    int ReadBufferCount { get; }
+
+    /// <summary>
     /// Inits sparse array.
     /// </summary>
     /// <param name="size"></param>

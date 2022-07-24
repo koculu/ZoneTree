@@ -12,6 +12,8 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
+    public int ReadBufferCount => 0;
+
     public bool ContainsKey(in TKey key)
     {
         return false;
