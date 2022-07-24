@@ -77,11 +77,9 @@ Config: 1M mutable segment size, 2M readonly segments merge-threshold
 The following sample demonstrates creating a database.
 ```c#
   var dataPath = "data/mydatabase";
-  var walPath = "data/mydatabase/wal";
   using var zoneTree = new ZoneTreeFactory<int, string>()
     .SetComparer(new Int32ComparerAscending())
     .SetDataDirectory(dataPath)
-    .SetWriteAheadLogDirectory(walPath)
     .SetKeySerializer(new Int32Serializer())
     .SetValueSerializer(new Utf8StringSerializer())
     .OpenOrCreate();
@@ -99,13 +97,11 @@ You can start using the default maintainer like in the following sample code.
 Note: For small data you don't need a maintainer.
 ```c#
   var dataPath = "data/mydatabase";
-  var walPath = "data/mydatabase/wal";
 
   // 1. Create your ZoneTree
   using var zoneTree = new ZoneTreeFactory<int, string>()
     .SetComparer(new Int32ComparerAscending())
     .SetDataDirectory(dataPath)
-    .SetWriteAheadLogDirectory(walPath)
     .SetKeySerializer(new Int32Serializer())
     .SetValueSerializer(new Utf8StringSerializer())
     .OpenOrCreate();

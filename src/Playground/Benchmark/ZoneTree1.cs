@@ -15,7 +15,7 @@ public class ZoneTree1
         Console.WriteLine("Record count = " + count);
         Console.WriteLine("WriteAheadLogMode: = " + mode);
 
-        var dataPath = "../../data/TestIntTree";
+        var dataPath = "../../data/TestIntTree" + mode + count;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         
