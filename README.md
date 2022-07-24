@@ -35,7 +35,7 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 | Exceptionless Transaction API.                             |
 | Fluent Transaction API with ready to use retry capabilities. |
 | Easy Maintenance.                                          |
-| Configurable LSM merger                                    |
+| Configurable LSM merger.                                   |
 | Transparent and simple implementation that reveals your database's internals. |
 | Fully open-source with unrestrictive MIT license.          |
 | Transaction Log compaction. |
@@ -55,15 +55,27 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 
 ## How fast is it?
 
-2 Million int key and int value inserts in 7 seconds. (Config: 1M mutable segment size, 2M readonly segments merge-threshold)
 
-20 Million int key and int value inserts in 73 seconds. (Config: 1M mutable segment size, 2M readonly segments merge-threshold)
+| Insert Benchmarks                | 1M      | 2M       | 3M       |
+| ---------------------------------|---------|----------|----------|
+| int-int tree immediate WAL       | 5760 ms | 10796 ms | 16006 ms |
+| int-int tree lazy WAL            | 1198 ms | 2379 ms  | 3831 ms  |
+| string-string tree immediate WAL | 7872 ms | 16065 ms | 24220 ms |
+| string-string tree lazy WAL      | 2556 ms | 5240 ms  | 7934 ms  |
 
-20 Million int key and int value reads in 16 seconds. (Config: 1M mutable segment size, 2M readonly segments merge-threshold)
+### Environment:
+```
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
+Intel Core i7-6850K CPU 3.60GHz (Skylake), 1 CPU, 12 logical and 6 physical cores
+64 GB DDR4 Memory
+.NET SDK=5.0.402
+  [Host]     : .NET 5.0.11 (5.0.1121.47308), X64 RyuJIT
+  Job-YXUPLH : .NET 5.0.11 (5.0.1121.47308), X64 RyuJIT
 
-Doing database benchmark is tough. A proper and fair performance analysis requires a lot of work. 
+SSD: Samsung SSD 850 EVO 1TB
 
-For now, we are confident that ZoneTree is fast enough to be used in production.
+Config: 1M mutable segment size, 2M readonly segments merge-threshold
+```
 
 ## How to use ZoneTree?
 
@@ -209,13 +221,13 @@ using var transaction =
         {
             if (zoneTree.TryGetNoThrow(tx, 3, out var value).IsAborted)
                 return TransactionResult.Aborted();
-            if (zoneTree.UpsertNoThrow(tx, 3, 9).IsAborted)
+            if (zoneTree.UpsertNoThrow(tx, 3, 21).IsAborted)
                 return TransactionResult.Aborted();
             return TransactionResult.Success();
         })
         .SetRetryCountForPendingTransactions(100)
         .SetRetryCountForAbortedTransactions(10);
-        await transaction.CommitAsync();
+    await transaction.CommitAsync();
 ```
 
 The following sample shows traditional way of doing transactions with ZoneTree.

@@ -61,7 +61,7 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
         }
     }
 
-    public async ValueTask CompleteRunningTasks()
+    public async Task CompleteRunningTasks()
     {
         await Task.WhenAll(Tasks);
     }
