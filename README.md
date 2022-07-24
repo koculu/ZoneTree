@@ -56,12 +56,13 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 ## How fast is it?
 
 
-| Insert Benchmarks                | 1M      | 2M       | 3M       |
-| ---------------------------------|---------|----------|----------|
-| int-int tree immediate WAL       | 5760 ms | 10796 ms | 16006 ms |
-| int-int tree lazy WAL            | 1198 ms | 2379 ms  | 3831 ms  |
-| string-string tree immediate WAL | 7872 ms | 16065 ms | 24220 ms |
-| string-string tree lazy WAL      | 2556 ms | 5240 ms  | 7934 ms  |
+| Insert Benchmarks                | 1M      | 2M       | 3M         |
+| ---------------------------------|---------|----------|------------|
+| int-int tree immediate WAL       | 5760 ms | 10796 ms | 16006 ms   |
+| int-int tree lazy WAL            | 1198 ms | 2379 ms  | 3831 ms    |
+| string-string tree immediate WAL | 7872 ms | 16065 ms | 24220 ms   |
+| string-string tree lazy WAL      | 2556 ms | 5240 ms  | 7934 ms    |
+| RocksDb string-string            | 8215 ms | 16146 ms  | 23760 ms  |
 
 ### Environment:
 ```
