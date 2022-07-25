@@ -64,12 +64,18 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 | RocksDb string-string            | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
 
 Notes:
-The bottleneck is the disk flushes on the write-ahead log. ZoneTree offers 3 WAL modes.
-The Immediate mode gives the best durability with slower write speeds.
-The CompressedImmediate mode gives medium durability with faster speed. (Compression requires chunks to be filled before flush.)
-The Lazy mode is faster with less durability.
-In case of crashes/power cuts, the immediate mode ensures that the inserted data is not lost.
-RocksDb does not have immediate WAL mode.
+The bottleneck is the disk flushes on the write-ahead log. 
+
+### ZoneTree offers 3 WAL modes to let you make a flexible tradeoff.
+
+* The Immediate mode provides maximum durability but slower write speed.
+
+* The CompressedImmediate mode provides faster write speed but less durability. (Compression requires chunks to be filled before the flush.)
+
+* The Lazy mode provides faster write speed but less durability. (Log entries are queued to be written in a separate thread.)
+
+In case of a crash/power cut, the immediate mode ensures that the inserted data is not lost.
+RocksDb does not have immediate WAL mode. It is similar to the CompressedImmediate mode.
 (reference:http://rocksdb.org/blog/2017/08/25/flushwal.html)
 
 ### Environment:
