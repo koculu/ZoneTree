@@ -140,7 +140,20 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         lock (this)
         {
             if (!disableBackup && EnableIncrementalBackup)
-                AppendCurrentWalToTheFullLog();
+            {
+                IncrementalLogAppender
+                    .AppendLogToTheBackupFile(
+                        FilePath + ".full",
+                        () =>
+                        {
+                            FileStream.Flush();
+                            FileStream.Seek(0, SeekOrigin.Begin);
+                            var existingLength = (int)FileStream.Length;
+                            var bytes = new byte[existingLength];
+                            FileStream.Read(bytes);
+                            return bytes;
+                        });
+            }
 
             var existingLength = (int)FileStream.Length;
             FileStream.SetLength(0);
@@ -153,79 +166,6 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             var diff = existingLength - FileStream.Length;
             return diff;
         }
-    }
-
-    void AppendCurrentWalToTheFullLog()
-    {
-        var backupFile = FilePath + ".full";
-        var backupDataOffset = sizeof(long) * 3;
-        using var fs = new FileStream(
-                backupFile,
-                FileMode.OpenOrCreate,
-                FileAccess.ReadWrite,
-                FileShare.Read,
-                4096, false);
-        var br = new BinaryReader(fs);
-        bool hasLengthStamp = fs.Length > backupDataOffset;
-        if (hasLengthStamp)
-        {
-            // read the length-stamp three times and select the most common one,
-            // to ensure the length was not written partially to the file.
-            var lengthInTheFile1 = br.ReadInt64();
-            var lengthInTheFile2 = br.ReadInt64();
-            var lengthInTheFile3 = br.ReadInt64();
-            if (lengthInTheFile1 != lengthInTheFile2)
-            {
-                if (lengthInTheFile1 == lengthInTheFile3)
-                    lengthInTheFile1 = lengthInTheFile3;
-                else if (lengthInTheFile2 == lengthInTheFile3)
-                    lengthInTheFile1 = lengthInTheFile2;
-                else
-                {
-                    // 3 length-stamps are different from each other.
-                    // We might copy the corrupted file to a backup location
-                    // and start a new backup file immediately
-                    // to not to interrupt the system on full log corruption.
-                    // For now, we prefer throwing an exception.
-                    throw new WriteAheadLogFullLogCorruptionException(backupFile);
-                }
-            }
-
-            // make sure the file has no crashed backup data.
-            if (fs.Length > lengthInTheFile1)
-            {
-                fs.SetLength(lengthInTheFile1);
-            }
-        }
-        else
-        {
-            fs.SetLength(0);
-            fs.Write(BitConverter.GetBytes(fs.Length));
-            fs.Write(BitConverter.GetBytes(fs.Length));
-            fs.Write(BitConverter.GetBytes(fs.Length));
-            fs.Flush();
-        }
-
-        // first append the additional data.
-        FileStream.Flush();
-        FileStream.Seek(0, SeekOrigin.Begin);
-        var existingLength = (int)FileStream.Length;
-        var bytes = new byte[existingLength];
-        FileStream.Read(bytes);
-        fs.Seek(0, SeekOrigin.End);
-        fs.Write(bytes, 0, existingLength);
-        fs.Flush();
-        
-        // now write the file length-stamps.
-        // what happens if a crash happens with partial write of the fs Length?
-        // To prevent that, we write and flush the length-stamp three times with separate flushes..
-        fs.Position = 0;
-        fs.Write(BitConverter.GetBytes(fs.Length));
-        fs.Flush();
-        fs.Write(BitConverter.GetBytes(fs.Length));
-        fs.Flush();
-        fs.Write(BitConverter.GetBytes(fs.Length));
-        fs.Flush();
     }
 
     public void MarkFrozen()

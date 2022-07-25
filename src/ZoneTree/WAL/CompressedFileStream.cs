@@ -225,7 +225,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
     public void SealStream()
     {
-        if (NextBlock != null && !NextBlock.IsFull && NextBlock.Length > 0)
+        if (NextBlock != null && NextBlock.Length > 0)
             CompressBlockAndWrite();
     }
 
