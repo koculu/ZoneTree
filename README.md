@@ -13,7 +13,8 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 | ---------------------------------------------------------- |
 | Works with .NET primitives, structs and classes.           |
 | High Speed and Low Memory consumption.                     |
-| Optimum disk space utilization with data compression.      |
+| Optimum disk space utilization.                            |
+| WAL and DiskSegment data compression.                      |
 | Very fast load/unload.                                     |
 | Standard read/upsert/delete functions.                     |
 | Optimistic Transaction Support                             |
@@ -63,8 +64,9 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 | RocksDb string-string            | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
 
 Notes:
-The bottleneck is the disk flushes on the write-ahead log. ZoneTree offers 2 WAL modes.
+The bottleneck is the disk flushes on the write-ahead log. ZoneTree offers 3 WAL modes.
 The Immediate mode gives the best durability with slower write speeds.
+The CompressedImmediate mode gives medium durability with faster speed. (Compression requires chunks to be filled before flush.)
 The Lazy mode is faster with less durability.
 In case of crashes/power cuts, the immediate mode ensures that the inserted data is not lost.
 RocksDb does not have immediate WAL mode.

@@ -175,12 +175,14 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     public void Dispose()
     {
+        Flush();
         FileStream.Dispose();
     }
 
     private void Flush()
     {
-        FileStream.Flush();
+        if (FileStream.CanWrite)
+            FileStream.Flush();
     }
 
     public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values, bool disableBackup)
@@ -205,13 +207,8 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     private void AppendCurrentWalToTheFullLog()
     {
-        FileStream.Flush();
         var backupFile = FilePath + ".full";
         var backupDataOffset = sizeof(long) * 3;
-        FileStream.Seek(0, SeekOrigin.Begin);
-        var existingLength = (int)FileStream.Length;
-        var bytes = new byte[existingLength];
-        FileStream.Read(bytes, 0, existingLength);
         using var fs = new FileStream(
                 backupFile,
                 FileMode.OpenOrCreate,
@@ -258,7 +255,13 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             fs.Write(BitConverter.GetBytes(fs.Length));
             fs.Flush();
         }
+
         // first append the additional data.
+        FileStream.Flush();
+        FileStream.Seek(0, SeekOrigin.Begin);
+        var existingLength = (int)FileStream.Length;
+        var bytes = new byte[existingLength];
+        FileStream.Read(bytes);
         fs.Seek(0, SeekOrigin.End);
         fs.Write(bytes, 0, existingLength);
         fs.Flush();

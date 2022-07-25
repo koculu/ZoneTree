@@ -235,6 +235,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public void ReleaseResources()
     {
+        WriteAheadLog?.MarkFrozen();
         Options.WriteAheadLogProvider.RemoveWAL(SegmentId, ZoneTree<TKey, TValue>.SegmentWalCategory);
         WriteAheadLog?.Dispose();
     }

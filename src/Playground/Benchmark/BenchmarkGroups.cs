@@ -4,75 +4,69 @@ namespace Playground.Benchmark;
 
 public static class BenchmarkGroups
 {
-    public static void InsertBenchmark1()
+    static int[] TestCounts = new[] {
+        1_000_000,
+        2_000_000,
+        3_000_000,
+        10_000_000
+    };
+
+    static WriteAheadLogMode[] TestWALModes = new[] {
+        WriteAheadLogMode.Lazy,
+        WriteAheadLogMode.CompressedImmediate,
+        WriteAheadLogMode.Immediate
+    };
+
+    static void Run(int count, WriteAheadLogMode? mode, Action<WriteAheadLogMode, int> job)
     {
-        ZoneTree1.TestInsertIntTree(WriteAheadLogMode.Immediate, 1_000_000);
-        ZoneTree1.TestInsertIntTree(WriteAheadLogMode.Immediate, 2_000_000);
-        ZoneTree1.TestInsertIntTree(WriteAheadLogMode.Immediate, 3_000_000);
-        ZoneTree1.TestInsertIntTree(WriteAheadLogMode.Immediate, 10_000_000);
-        ZoneTree1.TestInsertIntTree(WriteAheadLogMode.Lazy, 1_000_000);
-        ZoneTree1.TestInsertIntTree(WriteAheadLogMode.Lazy, 2_000_000);
-        ZoneTree1.TestInsertIntTree(WriteAheadLogMode.Lazy, 3_000_000);
-        ZoneTree1.TestInsertIntTree(WriteAheadLogMode.Lazy, 10_000_000);
+        var counts = TestCounts.ToList();
+        if (count != 0)
+        {
+            counts.Clear();
+            counts.Add(count);
+        }
+
+        var modes = TestWALModes.ToList();
+        if (mode.HasValue)
+        {
+            modes.Clear();
+            modes.Add(mode.Value);
+        }
+        foreach (var m in modes)
+        {
+            foreach (var c in counts)
+            {
+                job(m, c);                
+            }
+        }
+    }
+    public static void InsertBenchmark1(int count = 0, WriteAheadLogMode? mode = null)
+    {
+        Run(count, mode, (m,c) => ZoneTree1.TestInsertIntTree(m, c));
     }
 
-    public static void InsertBenchmark2()
+    public static void InsertBenchmark2(int count = 0, WriteAheadLogMode? mode = null)
     {
-        ZoneTree2.TestInsertStringTree(WriteAheadLogMode.Immediate, 1_000_000);
-        ZoneTree2.TestInsertStringTree(WriteAheadLogMode.Immediate, 2_000_000);
-        ZoneTree2.TestInsertStringTree(WriteAheadLogMode.Immediate, 3_000_000);
-        ZoneTree2.TestInsertStringTree(WriteAheadLogMode.Immediate, 10_000_000);
-        ZoneTree2.TestInsertStringTree(WriteAheadLogMode.Lazy, 1_000_000);
-        ZoneTree2.TestInsertStringTree(WriteAheadLogMode.Lazy, 2_000_000);
-        ZoneTree2.TestInsertStringTree(WriteAheadLogMode.Lazy, 3_000_000);
-        ZoneTree2.TestInsertStringTree(WriteAheadLogMode.Lazy, 10_000_000);
+        Run(count, mode, (m, c) => ZoneTree2.TestInsertStringTree(m, c));
     }
 
-    public static void InsertBenchmark3()
+    public static void InsertBenchmark3(int count = 0, WriteAheadLogMode? mode = null)
     {
-        ZoneTree3.TestInsertTransactionIntTree(WriteAheadLogMode.Immediate, 1_000_000);
-        ZoneTree3.TestInsertTransactionIntTree(WriteAheadLogMode.Immediate, 2_000_000);
-        ZoneTree3.TestInsertTransactionIntTree(WriteAheadLogMode.Immediate, 3_000_000);
-        ZoneTree3.TestInsertTransactionIntTree(WriteAheadLogMode.Immediate, 10_000_000);
-        ZoneTree3.TestInsertTransactionIntTree(WriteAheadLogMode.Lazy, 1_000_000);
-        ZoneTree3.TestInsertTransactionIntTree(WriteAheadLogMode.Lazy, 2_000_000);
-        ZoneTree3.TestInsertTransactionIntTree(WriteAheadLogMode.Lazy, 3_000_000);
-        ZoneTree3.TestInsertTransactionIntTree(WriteAheadLogMode.Lazy, 10_000_000);
+        Run(count, mode, (m, c) => ZoneTree3.TestInsertTransactionIntTree(m, c));
     }
 
-    public static void LoadAndIterateBenchmark1()
+    public static void LoadAndIterateBenchmark1(int count = 0, WriteAheadLogMode? mode = null)
     {
-        ZoneTree1.TestIterateIntTree(WriteAheadLogMode.Immediate, 1_000_000);
-        ZoneTree1.TestIterateIntTree(WriteAheadLogMode.Immediate, 2_000_000);
-        ZoneTree1.TestIterateIntTree(WriteAheadLogMode.Immediate, 3_000_000);
-        ZoneTree1.TestIterateIntTree(WriteAheadLogMode.Immediate, 10_000_000);
-        ZoneTree1.TestIterateIntTree(WriteAheadLogMode.Lazy, 1_000_000);
-        ZoneTree1.TestIterateIntTree(WriteAheadLogMode.Lazy, 2_000_000);
-        ZoneTree1.TestIterateIntTree(WriteAheadLogMode.Lazy, 3_000_000);
-        ZoneTree1.TestIterateIntTree(WriteAheadLogMode.Lazy, 10_000_000);
+        Run(count, mode, (m, c) => ZoneTree1.TestIterateIntTree(m, c));
     }
 
-    public static void LoadAndIterateBenchmark2()
+    public static void LoadAndIterateBenchmark2(int count = 0, WriteAheadLogMode? mode = null)
     {
-        ZoneTree2.TestIterateStringTree(WriteAheadLogMode.Immediate, 1_000_000);
-        ZoneTree2.TestIterateStringTree(WriteAheadLogMode.Immediate, 2_000_000);
-        ZoneTree2.TestIterateStringTree(WriteAheadLogMode.Immediate, 3_000_000);
-        ZoneTree2.TestIterateStringTree(WriteAheadLogMode.Immediate, 10_000_000);
-        ZoneTree2.TestIterateStringTree(WriteAheadLogMode.Lazy, 1_000_000);
-        ZoneTree2.TestIterateStringTree(WriteAheadLogMode.Lazy, 2_000_000);
-        ZoneTree2.TestIterateStringTree(WriteAheadLogMode.Lazy, 3_000_000);
-        ZoneTree2.TestIterateStringTree(WriteAheadLogMode.Lazy, 10_000_000);
+        Run(count, mode, (m, c) => ZoneTree2.TestIterateStringTree(m, c));
     }
 
-    public static void LoadAndIterateBenchmark3()
+    public static void LoadAndIterateBenchmark3(int count = 0, WriteAheadLogMode? mode = null)
     {
-        ZoneTree3.TestIterateIntTree(WriteAheadLogMode.Immediate, 1_000_000);
-        ZoneTree3.TestIterateIntTree(WriteAheadLogMode.Immediate, 2_000_000);
-        ZoneTree3.TestIterateIntTree(WriteAheadLogMode.Immediate, 3_000_000);
-        ZoneTree3.TestIterateIntTree(WriteAheadLogMode.Immediate, 10_000_000);
-        ZoneTree3.TestIterateIntTree(WriteAheadLogMode.Lazy, 1_000_000);
-        ZoneTree3.TestIterateIntTree(WriteAheadLogMode.Lazy, 2_000_000);
-        ZoneTree3.TestIterateIntTree(WriteAheadLogMode.Lazy, 3_000_000);
-        ZoneTree3.TestIterateIntTree(WriteAheadLogMode.Lazy, 10_000_000);
+        Run(count, mode, (m, c) => ZoneTree3.TestIterateIntTree(m, c));
     }
 }

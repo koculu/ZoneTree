@@ -10,6 +10,8 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public WriteAheadLogMode WriteAheadLogMode { get; set; }
 
+    public int CompressionBlockSize { get; set; } = 32768;
+
     public bool EnableIncrementalBackup { get; set; }
 
     public BasicWriteAheadLogProvider(string walDirectory = "data")
@@ -37,7 +39,23 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                     var wal = new FileSystemWriteAheadLog<TKey, TValue>(
                         keySerializer,
                         valueSerializer,
-                        walPath);
+                        walPath)
+                    {
+                        EnableIncrementalBackup = EnableIncrementalBackup
+                    };
+                    WALTable.Add(segmentId + category, wal);
+                    return wal;
+                }
+            case WriteAheadLogMode.CompressedImmediate:
+                {
+                    var wal = new CompressedFileSystemWriteAheadLog<TKey, TValue>(
+                        keySerializer,
+                        valueSerializer,
+                        walPath,
+                        CompressionBlockSize)
+                    {
+                        EnableIncrementalBackup = EnableIncrementalBackup
+                    };
                     WALTable.Add(segmentId + category, wal);
                     return wal;
                 }
@@ -47,7 +65,11 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                     var wal = new LazyFileSystemWriteAheadLog<TKey, TValue>(
                         keySerializer,
                         valueSerializer,
-                        walPath);
+                        walPath,
+                        CompressionBlockSize)
+                    {
+                        EnableIncrementalBackup = EnableIncrementalBackup
+                    };
                     WALTable.Add(segmentId + category, wal);
                     return wal;
                 }

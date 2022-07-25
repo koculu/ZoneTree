@@ -1,11 +1,10 @@
-﻿using System.Collections.Concurrent;
-using Tenray.ZoneTree.Core;
+﻿using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
 
-public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
+// https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
+public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
     readonly CompressedFileStream FileStream;
 
@@ -13,19 +12,11 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     readonly ISerializer<TValue> ValueSerializer;
 
-    readonly ConcurrentQueue<CombinedValue<TKey, TValue>> Queue = new();
-
-    volatile bool isRunning = false;
-
-    Task WriteTask;
-
-    readonly object fileLock = new();
-
     public string FilePath { get; }
 
     public bool EnableIncrementalBackup { get; set; }
 
-    public LazyFileSystemWriteAheadLog(
+    public CompressedFileSystemWriteAheadLog(
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
@@ -33,65 +24,22 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     {
         FilePath = filePath;
         FileStream = new CompressedFileStream(filePath, compressionBlockSize);
-        FileStream.Seek(0, SeekOrigin.End);
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
     }
 
-    private void StartWriter()
-    {
-        isRunning = true;
-        WriteTask = Task.Factory.StartNew(() => DoWrite(), TaskCreationOptions.LongRunning);
-    }
-
-    private void StopWriter(bool consumeAll)
-    {
-        isRunning = false;
-        WriteTask?.Wait();
-        WriteTask = null;
-        if (consumeAll)
-            ConsumeQueue();
-    }
-
-    private void ConsumeQueue()
-    {
-        while (Queue.TryDequeue(out var q))
-        {
-            var keyBytes = KeySerializer.Serialize(q.Value1);
-            var valueBytes = ValueSerializer.Serialize(q.Value2);
-            AppendLogEntry(keyBytes, valueBytes);
-        }
-    }
-
-    private void DoWrite()
-    {
-        while (isRunning)
-        {
-            while (isRunning && Queue.TryDequeue(out var q))
-            {
-                var keyBytes = KeySerializer.Serialize(q.Value1);
-                var valueBytes = ValueSerializer.Serialize(q.Value2);
-                AppendLogEntry(keyBytes, valueBytes);
-            }
-            if (isRunning && Queue.IsEmpty)
-                Thread.Yield();
-        }
-    }
-
     public void Append(in TKey key, in TValue value)
     {
-        lock (fileLock)
+        var keyBytes = KeySerializer.Serialize(key);
+        var valueBytes = ValueSerializer.Serialize(value);
+        lock (this)
         {
-            if (!isRunning)
-                StartWriter();
-            Queue.Enqueue(new CombinedValue<TKey, TValue>(in key, in value));
+            AppendLogEntry(keyBytes, valueBytes);
         }
     }
 
     public void Drop()
     {
-        Queue.Clear();
-        StopWriter(false);
         FileStream.Dispose();
         File.Delete(FilePath);
     }
@@ -222,34 +170,26 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public void Dispose()
     {
-        StopWriter(true);
         FileStream.Dispose();
     }
 
     public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values, bool disableBackup)
     {
-        lock (fileLock)
+        lock (this)
         {
             if (!disableBackup && EnableIncrementalBackup)
-            {
-                StopWriter(true);
-                ConsumeQueue();
-                AppendCurrentWalToTheFullLog();                
-            }
-            else
-            {
-                StopWriter(false);
-                Queue.Clear();
-            }
-            StartWriter();
-            var existingLength = FileStream.Length;
+                AppendCurrentWalToTheFullLog();
+
+            var existingLength = (int)FileStream.Length;
             FileStream.SetLength(0);
+
             var len = keys.Length;
             for (var i = 0; i < len; ++i)
             {
-                Queue.Enqueue(new CombinedValue<TKey, TValue>(in keys[i], in values[i]));
+                Append(keys[i], values[i]);
             }
-            return 0;
+            var diff = existingLength - FileStream.Length;
+            return diff;
         }
     }
 
@@ -311,7 +251,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         fs.Seek(0, SeekOrigin.End);
         fs.Write(bytes);
         fs.Flush();
-
+        
         // now write the file length-stamps.
         // what happens if a crash happens with partial write of the fs Length?
         // To prevent that, we write and flush the length-stamp three times with separate flushes..
@@ -326,7 +266,6 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public void MarkFrozen()
     {
-        StopWriter(true);
         FileStream.SealStream();
         FileStream.Dispose();
     }

@@ -76,7 +76,7 @@ public class ZoneTree3
             .ConfigureWriteAheadLogProvider(x =>
             {
                 x.WriteAheadLogMode = mode;
-                x.EnableIncrementalBackup = false;
+                x.EnableIncrementalBackup = true;
             })
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
