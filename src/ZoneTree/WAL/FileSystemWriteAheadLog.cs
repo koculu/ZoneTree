@@ -217,7 +217,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                 FileMode.OpenOrCreate,
                 FileAccess.ReadWrite,
                 FileShare.Read,
-                existingLength, false);
+                4096, false);
         var br = new BinaryReader(fs);
         bool hasLengthStamp = fs.Length > backupDataOffset;
         if (hasLengthStamp)
