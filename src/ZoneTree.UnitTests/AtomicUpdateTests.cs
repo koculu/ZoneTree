@@ -8,6 +8,7 @@ public class AtomicUpdateTests
 {
     [TestCase(WriteAheadLogMode.Immediate)]
     [TestCase(WriteAheadLogMode.Lazy)]
+    [TestCase(WriteAheadLogMode.CompressedImmediate)]
     public void IntIntAtomicIncrement(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntAtomicIncrement." + walMode;
@@ -70,6 +71,7 @@ public class AtomicUpdateTests
 
     [TestCase(WriteAheadLogMode.Immediate)]
     [TestCase(WriteAheadLogMode.Lazy)]
+    [TestCase(WriteAheadLogMode.CompressedImmediate)]
     public void IntIntAtomicIncrementForSkipList(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntAtomicIncrementForSkipList." + walMode;
@@ -127,6 +129,7 @@ public class AtomicUpdateTests
 
     [TestCase(WriteAheadLogMode.Immediate)]
     [TestCase(WriteAheadLogMode.Lazy)]
+    [TestCase(WriteAheadLogMode.CompressedImmediate)]
     public void IntIntMutableSegmentOnlyAtomicIncrement(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntMutableSegmentOnlyAtomicIncrement." + walMode;
@@ -184,6 +187,7 @@ public class AtomicUpdateTests
 
     [TestCase(WriteAheadLogMode.Immediate)]
     [TestCase(WriteAheadLogMode.Lazy)]
+    [TestCase(WriteAheadLogMode.CompressedImmediate)]
     public void IntIntMutableSegmentSeveralUpserts(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntMutableSegmentSeveralUpserts." + walMode;

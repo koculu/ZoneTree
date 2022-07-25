@@ -68,7 +68,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         }
     }
 
-    private void AppendLogEntry(byte[] keyBytes, byte[] valueBytes)
+    void AppendLogEntry(byte[] keyBytes, byte[] valueBytes)
     {
         var entry = new LogEntry
         {
@@ -89,83 +89,33 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         binaryWriter.Write(entry.Checksum);
     }
 
-    private static LogEntry ReadLogEntry(BinaryReader reader, ref LogEntry entry)
+    static void ReadLogEntry(BinaryReader reader, ref LogEntry entry)
     {
         entry.KeyLength = reader.ReadInt32();
         entry.ValueLength = reader.ReadInt32();
         entry.Key = reader.ReadBytes(entry.KeyLength);
         entry.Value = reader.ReadBytes(entry.ValueLength);
         entry.Checksum = reader.ReadUInt32();
-        return entry;
     }
 
     public WriteAheadLogReadLogEntriesResult<TKey, TValue> ReadLogEntries(
         bool stopReadOnException,
         bool stopReadOnChecksumFailure)
     {
-        var result = new WriteAheadLogReadLogEntriesResult<TKey, TValue>
-        {
-            Success = true
-        };
-        FileStream.Seek(0, SeekOrigin.Begin);
-        var binaryReader = new BinaryReader(FileStream);
-        LogEntry entry = default;
+        return WriteAheadLogEntryReader.ReadLogEntries<TKey, TValue, LogEntry>(
+            FileStream,
+            stopReadOnException,
+            stopReadOnChecksumFailure,
+            ReadLogEntry,
+            DeserializeLogEntry);
+    }
 
-        var keyList = new List<TKey>();
-        var valuesList = new List<TValue>();
-        var i = 0;
-        var length = FileStream.Length;
-        while (true)
-        {
-            try
-            {
-                if (FileStream.Position == length)
-                    break;
-                ReadLogEntry(binaryReader, ref entry);
-            }
-            catch (EndOfStreamException e)
-            {
-                result.Exceptions.Add(i,
-                    new EndOfStreamException($"ReadLogEntry failed. Index={i}", e));
-                result.Success = false;
-                break;
-            }
-            catch (ObjectDisposedException e)
-            {
-                result.Exceptions.Add(i, new ObjectDisposedException($"ReadLogEntry failed. Index={i}", e));
-                result.Success = false;
-                break;
-            }
-            catch (IOException e)
-            {
-                result.Exceptions.Add(i, new IOException($"ReadLogEntry failed. Index={i}", e));
-                result.Success = false;
-                if (stopReadOnException) break;
-            }
-            catch (Exception e)
-            {
-                result.Exceptions.Add(i, new InvalidOperationException($"ReadLogEntry failed. Index={i}", e));
-                result.Success = false;
-                if (stopReadOnException) break;
-            }
-
-            if (!entry.ValidateChecksum())
-            {
-                result.Exceptions.Add(i, new InvalidDataException($"Checksum failed. Index={i}"));
-                result.Success = false;
-                if (stopReadOnChecksumFailure) break;
-            }
-
-            var key = KeySerializer.Deserialize(entry.Key);
-            var value = ValueSerializer.Deserialize(entry.Value);
-            keyList.Add(key);
-            valuesList.Add(value);
-            ++i;
-        }
-        result.Keys = keyList;
-        result.Values = valuesList;
-        FileStream.Seek(0, SeekOrigin.End);
-        return result;
+    (bool isValid, TKey key, TValue value) DeserializeLogEntry(in LogEntry logEntry)
+    {
+        var isValid = logEntry.ValidateChecksum();
+        var key = KeySerializer.Deserialize(logEntry.Key);
+        var value = ValueSerializer.Deserialize(logEntry.Value);
+        return (isValid, key, value);
     }
 
     public void Dispose()
@@ -193,7 +143,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         }
     }
 
-    private void AppendCurrentWalToTheFullLog()
+    void AppendCurrentWalToTheFullLog()
     {
         var backupFile = FilePath + ".full";
         var backupDataOffset = sizeof(long) * 3;
