@@ -67,9 +67,17 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         var result = WriteAheadLog.ReadLogEntries(false, false);
         if (!result.Success)
         {
-            WriteAheadLogProvider.RemoveWAL(SegmentId, Category);
-            using var disposeWal = WriteAheadLog;
-            throw new WriteAheadLogCorruptionException(SegmentId, result.Exceptions);
+            if (result.HasFoundIncompleteTailRecord)
+            {
+                var incompleteTailException = result.IncompleteTailRecord;
+                WriteAheadLog.TruncateIncompleteTailRecord(incompleteTailException);
+            }
+            else
+            {
+                WriteAheadLogProvider.RemoveWAL(SegmentId, Category);
+                using var disposeWal = WriteAheadLog;
+                throw new WriteAheadLogCorruptionException(SegmentId, result.Exceptions);
+            }
         }
 
         (var newKeys, var newValues) = WriteAheadLogUtility

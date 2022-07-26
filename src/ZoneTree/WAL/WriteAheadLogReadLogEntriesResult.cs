@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Exceptions.WAL;
+
+namespace Tenray.ZoneTree.WAL;
 
 public class WriteAheadLogReadLogEntriesResult<TKey, TValue>
 {
@@ -9,4 +11,12 @@ public class WriteAheadLogReadLogEntriesResult<TKey, TValue>
     public IReadOnlyList<TKey> Keys { get; set; }
 
     public IReadOnlyList<TValue> Values { get; set; }
+
+    public bool HasFoundIncompleteTailRecord =>
+        Exceptions.Count == 1 && Exceptions.Values.First() is IncompleteTailRecordFoundException;
+
+    public IncompleteTailRecordFoundException IncompleteTailRecord =>
+        HasFoundIncompleteTailRecord ?
+        Exceptions.Values.First() as IncompleteTailRecordFoundException :
+        null;
 }

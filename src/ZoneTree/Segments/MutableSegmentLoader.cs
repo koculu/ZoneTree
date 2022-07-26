@@ -23,11 +23,19 @@ public class MutableSegmentLoader<TKey, TValue>
         var result = wal.ReadLogEntries(false, false);
         if (!result.Success)
         {
-            Options.WriteAheadLogProvider.RemoveWAL(
-                segmentId,
-                ZoneTree<TKey, TValue>.SegmentWalCategory);
-            using var disposeWal = wal;
-            throw new WriteAheadLogCorruptionException(segmentId, result.Exceptions);
+            if (result.HasFoundIncompleteTailRecord)
+            {
+                var incompleteTailException = result.IncompleteTailRecord;
+                wal.TruncateIncompleteTailRecord(incompleteTailException);
+            }
+            else
+            {
+                Options.WriteAheadLogProvider.RemoveWAL(
+                    segmentId,
+                    ZoneTree<TKey, TValue>.SegmentWalCategory);
+                using var disposeWal = wal;
+                throw new WriteAheadLogCorruptionException(segmentId, result.Exceptions);
+            }
         }
         return new MutableSegment<TKey, TValue>(segmentId, wal, Options, result.Keys, result.Values);
     }

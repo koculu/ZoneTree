@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Exceptions.WAL;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
@@ -18,8 +19,6 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     volatile bool isRunning = false;
 
     Task WriteTask;
-
-    readonly object fileLock = new();
 
     public string FilePath { get; }
 
@@ -80,7 +79,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public void Append(in TKey key, in TValue value)
     {
-        lock (fileLock)
+        lock (this)
         {
             if (!isRunning)
                 StartWriter();
@@ -178,7 +177,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values, bool disableBackup)
     {
-        lock (fileLock)
+        lock (this)
         {
             if (!disableBackup && EnableIncrementalBackup)
             {
@@ -215,5 +214,13 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         StopWriter(true);
         FileStream.SealStream();
         FileStream.Dispose();
+    }
+
+    public void TruncateIncompleteTailRecord(IncompleteTailRecordFoundException incompleteTailException)
+    {
+        lock (this)
+        {
+            FileStream.SetLength(incompleteTailException.RecordPosition);
+        }
     }
 }

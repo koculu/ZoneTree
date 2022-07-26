@@ -1,5 +1,6 @@
 ﻿using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Exceptions.WAL;
 
 namespace Tenray.ZoneTree.WAL;
 
@@ -156,5 +157,13 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
     {
         FileStream.SealStream();
         FileStream.Dispose();
+    }
+
+    public void TruncateIncompleteTailRecord(IncompleteTailRecordFoundException incompleteTailException)
+    {
+        lock (this)
+        {
+            FileStream.SetLength(incompleteTailException.RecordPosition);
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Exceptions.WAL;
+
+namespace Tenray.ZoneTree.WAL;
 
 public interface IWriteAheadLog<TKey, TValue> : IDisposable
 {
@@ -30,4 +32,10 @@ public interface IWriteAheadLog<TKey, TValue> : IDisposable
     /// to let WAL optimize itself.
     /// </summary>
     void MarkFrozen();
+    
+    /// <summary>
+    /// Truncates incomplete tail record.
+    /// </summary>
+    /// <param name="incompleteTailException"></param>
+    void TruncateIncompleteTailRecord(IncompleteTailRecordFoundException incompleteTailException);
 }

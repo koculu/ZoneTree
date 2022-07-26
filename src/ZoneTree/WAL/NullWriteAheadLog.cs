@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Exceptions.WAL;
+
+namespace Tenray.ZoneTree.WAL;
 
 public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
@@ -36,6 +38,10 @@ public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValu
     }
 
     public void MarkFrozen()
+    {
+    }
+
+    public void TruncateIncompleteTailRecord(IncompleteTailRecordFoundException incompleteTailException)
     {
     }
 }

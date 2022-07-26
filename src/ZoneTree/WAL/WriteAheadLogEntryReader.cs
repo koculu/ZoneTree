@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Exceptions.WAL;
+
+namespace Tenray.ZoneTree.WAL;
 
 public static class WriteAheadLogEntryReader
 {
@@ -27,6 +29,7 @@ public static class WriteAheadLogEntryReader
         var length = stream.Length;
         while (true)
         {
+            var logEntryPosition = stream.Position;
             try
             {
                 if (stream.Position == length)
@@ -35,8 +38,13 @@ public static class WriteAheadLogEntryReader
             }
             catch (EndOfStreamException e)
             {
-                result.Exceptions.Add(i,
-                    new EndOfStreamException($"ReadLogEntry failed. Index={i}", e));
+                var ex = new IncompleteTailRecordFoundException(e)
+                {
+                    FileLength = length,
+                    RecordPosition = logEntryPosition,
+                    RecordIndex = i
+                };
+                result.Exceptions.Add(i, ex);
                 result.Success = false;
                 break;
             }

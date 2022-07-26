@@ -15,9 +15,9 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
     int BlockPosition;
 
-    BinaryReader BinaryReader;
+    readonly BinaryReader BinaryReader;
 
-    BinaryWriter BinaryWriter;
+    readonly BinaryWriter BinaryWriter;
 
     int _length;
 
@@ -85,6 +85,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
                 break;
             var compressedBlockSize = BinaryReader.ReadInt32();
             var blockSize = BinaryReader.ReadInt32();
+            var blockStartPosition = position;
             position += sizeof(int) * 2;
             position += compressedBlockSize;
             FileStream.Position = position;
@@ -92,11 +93,10 @@ public sealed class CompressedFileStream : Stream, IDisposable
             _length += blockSize;
             if (position > len)
             {
-                position -= compressedBlockSize;
-                position -= sizeof(int) * 2;
-                FileStream.Position = position;
-                _length -= blockSize;
-                FileStream.SetLength(position);
+                // fixes partially written compression block size.
+                FileStream.Position = blockStartPosition;
+                BinaryWriter.Write(len - blockStartPosition);
+                FileStream.Position = len;
                 break;
             }
         }
@@ -176,14 +176,56 @@ public sealed class CompressedFileStream : Stream, IDisposable
         return Position;
     }
 
-    public override void SetLength(long value)
+    public override void SetLength(long length)
     {
-        if (value != 0)
-            throw new NotSupportedException();
+        if (length < 0)
+            throw new Exception("File truncatedLength cannot be negative number!");
+
+        if (length > _length)
+            throw new Exception("Compressed file cannot be expanded with empty bytes.");
+
+        if (length != 0)
+        {
+            TruncateFile(length);
+            return;
+        }
         FileStream.SetLength(0);
         SkipToTheEnd();
         ReadNextBlock();
         BlockPosition = NextBlock.Length;
+    }
+
+    private void TruncateFile(long truncatedLength)
+    {
+        FileStream.Position = 0;
+        var len = FileStream.Length;
+        var physicalPosition = 0;
+        var off = 0;
+        while (true)
+        {
+            if (physicalPosition >= len)
+                break;
+            var compressedBlockSize = BinaryReader.ReadInt32();
+            var blockSize = BinaryReader.ReadInt32();
+            if (off + blockSize > truncatedLength)
+            {
+                var diff = (int)(truncatedLength - off);
+                var bytes = BinaryReader.ReadBytes(compressedBlockSize);
+                var truncatedBytes = DecompressedBlock.FromCompressed(0, bytes).GetBytes(0, diff);
+                var compressedBytes = new DecompressedBlock(0, truncatedBytes).Compress();
+                FileStream.Position = physicalPosition;
+                BinaryWriter.Write(compressedBytes.Length);
+                BinaryWriter.Write(truncatedBytes.Length);
+                BinaryWriter.Write(compressedBytes);
+                FileStream.SetLength(FileStream.Position);
+                return;
+            }
+            physicalPosition += sizeof(int) * 2;
+            physicalPosition += compressedBlockSize;
+            FileStream.Position = physicalPosition;
+            off += blockSize;
+        }
+        FileStream.Position = FileStream.Length;
     }
 
     public override void Write(byte[] buffer, int offset, int count)

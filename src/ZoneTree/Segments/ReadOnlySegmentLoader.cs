@@ -22,15 +22,23 @@ public class ReadOnlySegmentLoader<TKey, TValue>
             Options.KeySerializer,
             Options.ValueSerializer);
         var result = wal.ReadLogEntries(false, false);
-        wal.MarkFrozen();
         if (!result.Success)
         {
-            Options.WriteAheadLogProvider.RemoveWAL(
-                segmentId,
-                ZoneTree<TKey, TValue>.SegmentWalCategory);
-            using var disposeWal = wal;
-            throw new WriteAheadLogCorruptionException(segmentId, result.Exceptions);
+            if (result.HasFoundIncompleteTailRecord)
+            {
+                var incompleteTailException = result.IncompleteTailRecord;
+                wal.TruncateIncompleteTailRecord(incompleteTailException);
+            }
+            else
+            {
+                Options.WriteAheadLogProvider.RemoveWAL(
+                    segmentId,
+                    ZoneTree<TKey, TValue>.SegmentWalCategory);
+                using var disposeWal = wal;
+                throw new WriteAheadLogCorruptionException(segmentId, result.Exceptions);
+            }
         }
+        wal.MarkFrozen();
 
         (var newKeys, var newValues) = WriteAheadLogUtility.StableSortAndCleanUpDeletedKeys(
             result.Keys,
