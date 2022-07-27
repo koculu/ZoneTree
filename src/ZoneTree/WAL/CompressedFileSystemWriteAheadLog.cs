@@ -21,10 +21,16 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
-        int compressionBlockSize)
+        int compressionBlockSize,
+        bool enableTailWriterJob,
+        int tailWriterJobInterval)
     {
         FilePath = filePath;
-        FileStream = new CompressedFileStream(filePath, compressionBlockSize);
+        FileStream = new CompressedFileStream(
+            filePath,
+            compressionBlockSize,
+            enableTailWriterJob,
+            tailWriterJobInterval);
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
     }
@@ -42,7 +48,11 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
     public void Drop()
     {
         FileStream.Dispose();
-        File.Delete(FilePath);
+        if (File.Exists(FilePath))
+            File.Delete(FilePath);
+        var tailPath = FilePath + ".tail";
+        if (File.Exists(tailPath))
+            File.Delete(tailPath);
     }
 
     struct LogEntry

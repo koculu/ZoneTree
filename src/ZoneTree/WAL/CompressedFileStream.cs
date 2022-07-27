@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.IO.Compression;
+using System.Text;
 using Tenray.ZoneTree.Segments.Disk;
 
 namespace Tenray.ZoneTree.WAL;
@@ -9,99 +10,218 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
     readonly FileStream FileStream;
 
-    DecompressedBlock NextBlock;
+    readonly FileStream TailStream;
 
-    int NextBlockIndex;
+    DecompressedBlock TailBlock;
 
-    int BlockPosition;
+    DecompressedBlock CurrentBlock;
+
+    int CurrentBlockPosition;
 
     readonly BinaryReader BinaryReader;
 
     readonly BinaryWriter BinaryWriter;
 
+    readonly BinaryReader BinaryChunkReader;
+    
+    readonly BinaryWriter BinaryChunkWriter;
+
     int _length;
+
+    readonly Task TailWriter;
+
+    volatile bool IsTailWriterRunning;
+
+    readonly int TailWriterJobInterval;
+
+    volatile int LastWrittenTailIndex = -1;
+
+    volatile int LastWrittenTailLength = 0;
 
     public string FilePath { get; }
 
-    public override bool CanRead => true;
+    public override bool CanRead => FileStream.CanRead;
 
-    public override bool CanSeek => true;
+    public override bool CanSeek => FileStream.CanRead;
 
-    public override bool CanWrite => true;
+    public override bool CanWrite => FileStream.CanWrite;
 
     public override long Length => _length;
 
     public override long Position { get; set; }
 
-    public CompressedFileStream(string filePath, int blockSize)
+    public CompressedFileStream(
+        string filePath,
+        int blockSize,
+        bool enableTailWriterJob,
+        int tailWriterJobInterval)
     {
         FilePath = filePath;
         FileStream = new FileStream(filePath,
             FileMode.OpenOrCreate,
             FileAccess.ReadWrite,
-            FileShare.Read, 4096, false);
+            FileShare.Read, BlockSize, false);
+
+        TailStream = new FileStream(filePath + ".tail",
+            FileMode.OpenOrCreate,
+            FileAccess.ReadWrite,
+            FileShare.Read, BlockSize, false);
+
         BinaryReader = new BinaryReader(FileStream, Encoding.UTF8, true);
         BinaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
+
+        BinaryChunkReader = new BinaryReader(TailStream, Encoding.UTF8, true);
+        BinaryChunkWriter = new BinaryWriter(TailStream, Encoding.UTF8, true);
+
         BlockSize = blockSize;
-        NextBlockIndex = -1;
-        SkipToTheEnd();
-        ReadNextBlock();
-        BlockPosition = NextBlock.Length;
+        LoadTail();
+        var lastBlockIndex = SkipToTheEnd();
+
+        // discard tail record if a greater block index exists in the main file.
+        if (lastBlockIndex >= TailBlock.BlockIndex)
+        {
+            _length -= TailBlock.Length;
+            Position -= TailBlock.Length;
+            TailBlock = new DecompressedBlock(lastBlockIndex + 1, BlockSize);
+        }
+        CurrentBlockPosition = 0;
+        CurrentBlock = TailBlock;
+        TailWriterJobInterval = tailWriterJobInterval;
+        if (enableTailWriterJob)
+        {
+            TailWriter = Task.Factory.StartNew(
+                async () => await TailWriteLoop(),
+                TaskCreationOptions.LongRunning);
+        }
     }
 
-    void ReadNextBlock()
+    async Task TailWriteLoop()
     {
-        ++NextBlockIndex;
-        BlockPosition = 0;
-        if (FileStream.Position == FileStream.Length)
+        IsTailWriterRunning = true;
+        while(IsTailWriterRunning)
         {
-            AddNewBlock();
+            WriteTail();
+            await Task.Delay(TailWriterJobInterval);
+        }
+    }
+
+    void StopTailWriter()
+    {
+        IsTailWriterRunning = false;
+        TailWriter?.Wait();
+    }
+
+    void LoadTail()
+    {
+        // read tail with tail tolerance.
+        TailStream.Position = 0;
+        var len = TailStream.Length;
+        if(len < sizeof(int))
+        {
+            TailBlock = new DecompressedBlock(0, BlockSize);
             return;
         }
+        var blockIndex = BinaryChunkReader.ReadInt32();
+        if (len < 2 * sizeof(int))
+        {
+            TailBlock = new DecompressedBlock(blockIndex, BlockSize);
+            return;
+        }
+        var decompressedLength = BinaryChunkReader.ReadInt32();
+
+        if (len < 2 * sizeof(int) + decompressedLength)
+        {
+            decompressedLength = (int)(len - 2 * sizeof(int));
+            if (decompressedLength <= 0)
+            {
+                TailBlock = new DecompressedBlock(blockIndex, BlockSize);
+                return;
+            }
+        }
+        var decompressed = BinaryChunkReader.ReadBytes(decompressedLength);
+        TailBlock = new DecompressedBlock(blockIndex, decompressed);
+    }
+
+    void WriteTail()
+    {
+        if (!TailStream.CanWrite)
+            return;
+        var tailBlock = TailBlock;
+        lock (tailBlock)
+        {
+            if (tailBlock.BlockIndex == LastWrittenTailIndex &&
+                tailBlock.Length == LastWrittenTailLength)
+                return;
+            TailStream.Position = 0;
+            BinaryChunkWriter.Write(tailBlock.BlockIndex);
+            BinaryChunkWriter.Write(tailBlock.Length);
+            var bytes = tailBlock.GetBytes(0, tailBlock.Length);
+            BinaryChunkWriter.Write(bytes);
+            TailStream.Flush();
+            LastWrittenTailIndex = tailBlock.BlockIndex;
+            LastWrittenTailLength = tailBlock.Length;
+        }
+    }
+
+    bool LoadNextBlock()
+    {
+        if (FileStream.Position == FileStream.Length)
+        {
+            if (CurrentBlock.BlockIndex == TailBlock.BlockIndex)
+                return false;
+            CurrentBlockPosition = 0;
+            CurrentBlock = TailBlock;
+            return true;
+        }
+        CurrentBlockPosition = 0;
+        var blockIndex = BinaryReader.ReadInt32();
         var compressedBlockSize = BinaryReader.ReadInt32();
         var blockSize = BinaryReader.ReadInt32();
         var bytes = BinaryReader.ReadBytes(compressedBlockSize);
-        NextBlock = DecompressedBlock.FromCompressed(NextBlockIndex, bytes);
+
+        var nextBlock = DecompressedBlock.FromCompressed(blockIndex, bytes);
+        CurrentBlock = nextBlock;
+        return true;
     }
 
-    void AddNewBlock()
-    {
-        NextBlock = new DecompressedBlock(NextBlockIndex, BlockSize);
-    }
-
-    void SkipToTheEnd()
+    int SkipToTheEnd()
     {
         Position = 0;
         _length = 0;
-        NextBlockIndex = -1;
-        NextBlock = null;
         FileStream.Position = 0;
         var len = FileStream.Length;
-        var position = 0;
+        var physicalPosition = 0;
+        var lastBlockIndex = 0;
         while (true)
         {
-            ++NextBlockIndex;
-            if (position == len)
+            if (physicalPosition == len)
                 break;
+            
+            var blockIndex = BinaryReader.ReadInt32();
             var compressedBlockSize = BinaryReader.ReadInt32();
             var blockSize = BinaryReader.ReadInt32();
-            var blockStartPosition = position;
-            position += sizeof(int) * 2;
-            position += compressedBlockSize;
-            FileStream.Position = position;
+            var blockStartPosition = physicalPosition;
+            physicalPosition += sizeof(int) * 3;
+            physicalPosition += compressedBlockSize;
+            FileStream.Position = physicalPosition;
 
             _length += blockSize;
-            if (position > len)
+            if (physicalPosition > len)
             {
-                // fixes partially written compression block size.
+                // truncates partially written compressed block.
+                // complete content should be in tail block.
                 FileStream.Position = blockStartPosition;
-                BinaryWriter.Write(len - blockStartPosition);
-                FileStream.Position = len;
+                FileStream.SetLength(blockStartPosition);
+                _length -= blockSize;
                 break;
             }
+            lastBlockIndex = blockIndex;
         }
-        --NextBlockIndex;
+        _length += TailBlock.Length;
+        CurrentBlock = TailBlock;
+        CurrentBlockPosition = TailBlock.Length;
         Position = _length;
+        return lastBlockIndex;
     }
 
     public override void Flush()
@@ -110,8 +230,8 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
     int ReadInternal(byte[] buffer, int offset, int count)
     {
-        var bytes = NextBlock.GetBytes(BlockPosition, count);
-        BlockPosition += bytes.Length;
+        var bytes = CurrentBlock.GetBytes(CurrentBlockPosition, count);
+        CurrentBlockPosition += bytes.Length;
         Position += bytes.Length;
         Array.Copy(bytes, 0, buffer, offset, bytes.Length);
         return bytes.Length;
@@ -127,11 +247,12 @@ public sealed class CompressedFileStream : Stream, IDisposable
             len += readLen;
             if (len == initialCount)
                 return len;
-            if (!NextBlock.IsFull)
+            if (!CurrentBlock.IsFull)
                 return len;
             offset += readLen;
             count -= readLen;
-            ReadNextBlock();
+            if (!LoadNextBlock())
+                return len;
         }
     }
 
@@ -139,16 +260,17 @@ public sealed class CompressedFileStream : Stream, IDisposable
     {
         if (offset <= 0)
             return;
-        var b = BlockPosition + offset;
-        while (b > NextBlock.Length)
+        var b = CurrentBlockPosition + offset;
+        while (b > CurrentBlock.Length)
         {
-            if(!NextBlock.IsFull)
+            if(!CurrentBlock.IsFull)
                 break;
-            ReadNextBlock();
-            b -= NextBlock.Length;
+            if (!LoadNextBlock())
+                break;
+            b -= CurrentBlock.Length;
         }
         Position += (int)offset;
-        BlockPosition = (int)b;
+        CurrentBlockPosition = (int)b;
     }
 
     public override long Seek(long offset, SeekOrigin origin)
@@ -160,9 +282,9 @@ public sealed class CompressedFileStream : Stream, IDisposable
             case SeekOrigin.Begin:
                 Position = 0;
                 FileStream.Position = 0;
+                CurrentBlockPosition = 0;
                 Position = 0;
-                NextBlockIndex = -1;
-                ReadNextBlock();
+                LoadNextBlock();
                 Skip(offset);
                 break;
             case SeekOrigin.Current:
@@ -170,7 +292,6 @@ public sealed class CompressedFileStream : Stream, IDisposable
                 break;
             case SeekOrigin.End:
                 SkipToTheEnd();
-                ReadNextBlock();
                 break;
         }
         return Position;
@@ -190,21 +311,32 @@ public sealed class CompressedFileStream : Stream, IDisposable
             return;
         }
         FileStream.SetLength(0);
+        TailBlock = new DecompressedBlock(TailBlock.BlockIndex, BlockSize);        
         SkipToTheEnd();
-        ReadNextBlock();
-        BlockPosition = NextBlock.Length;
+        CurrentBlockPosition = 0;
     }
 
     private void TruncateFile(long truncatedLength)
     {
         FileStream.Position = 0;
         var len = FileStream.Length;
+        var remainingTruncation = (int)(_length - truncatedLength);
+        var trimmed = TailBlock.TrimRight(remainingTruncation);
+        truncatedLength -= trimmed;
+        _length -= trimmed;
+        if (truncatedLength == 0)
+            return;
+        LastWrittenTailLength = 0;
+        WriteTail();
+
+        remainingTruncation = (int)(_length - truncatedLength);
         var physicalPosition = 0;
         var off = 0;
         while (true)
         {
             if (physicalPosition >= len)
                 break;
+            var blockIndex = BinaryReader.ReadInt32();
             var compressedBlockSize = BinaryReader.ReadInt32();
             var blockSize = BinaryReader.ReadInt32();
             if (off + blockSize > truncatedLength)
@@ -213,77 +345,93 @@ public sealed class CompressedFileStream : Stream, IDisposable
                 var bytes = BinaryReader.ReadBytes(compressedBlockSize);
                 var truncatedBytes = DecompressedBlock.FromCompressed(0, bytes).GetBytes(0, diff);
                 var compressedBytes = new DecompressedBlock(0, truncatedBytes).Compress();
-                FileStream.Position = physicalPosition;
+                FileStream.Position = physicalPosition + sizeof(int);
                 BinaryWriter.Write(compressedBytes.Length);
                 BinaryWriter.Write(truncatedBytes.Length);
                 BinaryWriter.Write(compressedBytes);
                 FileStream.SetLength(FileStream.Position);
-                return;
+                _length -= remainingTruncation;
+                break;
             }
-            physicalPosition += sizeof(int) * 2;
+            physicalPosition += sizeof(int) * 3;
             physicalPosition += compressedBlockSize;
             FileStream.Position = physicalPosition;
             off += blockSize;
         }
         FileStream.Position = FileStream.Length;
+        CurrentBlock = TailBlock;
+        CurrentBlockPosition = TailBlock.Length;
+        Position = _length;
     }
 
     public override void Write(byte[] buffer, int offset, int count)
     {
-        var totalWriteLen = 0;
-        var totalCount = count;
-        while (true)
+        if (Position != Length)
+            throw new Exception("Compressed File Stream can only write to the end of the file.");
+        lock (this)
         {
-            var writeLen = NextBlock.Append(buffer.AsSpan(offset, count));
-            totalWriteLen += writeLen;
-            _length += writeLen;
-            Position += writeLen;
-            offset += writeLen;
-            count -= writeLen;
-            BlockPosition = NextBlock.Length;
-            if (NextBlock.IsFull)
+            var totalWriteLen = 0;
+            var totalCount = count;
+            while (true)
             {
-                CompressBlockAndWrite();
-                ReadNextBlock();
+                var writeLen = TailBlock.Append(buffer.AsSpan(offset, count));                
+                totalWriteLen += writeLen;
+                _length += writeLen;
+                Position += writeLen;
+                offset += writeLen;
+                count -= writeLen;
+                CurrentBlockPosition = CurrentBlock.Length;
+                if (TailBlock.IsFull)
+                {
+                    CommitTailBlock();
+                    CurrentBlock = TailBlock;
+                    CurrentBlockPosition = 0;
+                }
+                if (totalWriteLen < totalCount)
+                    continue;
+                else
+                    return;
             }
-            if (totalWriteLen < totalCount)
-                continue;
-            else
-                return;
         }
     }
 
-    private void CompressBlockAndWrite()
+    private void CommitTailBlock()
     {
-        if (!FileStream.CanWrite || NextBlock == null)
+        if (!FileStream.CanWrite)
             return;
-        var compressedBytes = NextBlock.Compress();
+        var compressedBytes = TailBlock.Compress();
+        BinaryWriter.Write(TailBlock.BlockIndex);
         BinaryWriter.Write(compressedBytes.Length);
-        BinaryWriter.Write(NextBlock.Length);
+        BinaryWriter.Write(CurrentBlock.Length);
         BinaryWriter.Write(compressedBytes);
         BinaryWriter.Flush();
-        NextBlock = null;
+        TailBlock = new DecompressedBlock(TailBlock.BlockIndex + 1, BlockSize);
     }
 
     public void SealStream()
     {
-        if (NextBlock != null && NextBlock.Length > 0)
-            CompressBlockAndWrite();
+        WriteTail();
     }
 
     void IDisposable.Dispose()
     {
+        StopTailWriter();
         SealStream();
         BinaryReader.Dispose();
         BinaryWriter.Dispose();
         FileStream.Dispose();
+        BinaryChunkReader.Dispose();
+        BinaryChunkWriter.Dispose();
+        TailStream.Dispose();
         base.Dispose();
     }
 
     public override void Close()
     {
+        StopTailWriter();
         SealStream();
         FileStream.Close();
+        TailStream.Close();
         base.Close();
     }
 

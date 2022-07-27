@@ -8,6 +8,10 @@ public class NullWriteAheadLogProvider : IWriteAheadLogProvider
 
     public bool EnableIncrementalBackup { get; set; }
 
+    public bool EnableTailWriterJob { get; set; }
+
+    public int TailWriterJobInterval { get; set; }
+
     public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(long segmentId, string category, ISerializer<TKey> keySerializer, ISerializer<TValue> valueSerialize)
     {
         return new NullWriteAheadLog<TKey, TValue>();

@@ -72,4 +72,12 @@ public class DecompressedBlock
             return Bytes;
         return Bytes.AsSpan().Slice(offset, length).ToArray();
     }
+
+    public int TrimRight(int length)
+    {
+        var amount = Math.Min(length, Length);
+        var newSize = Length - amount;
+        Bytes = Bytes.AsSpan(0, newSize).ToArray();
+        return amount;
+    }
 }

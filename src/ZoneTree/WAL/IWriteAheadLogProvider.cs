@@ -7,6 +7,19 @@ public interface IWriteAheadLogProvider
     WriteAheadLogMode WriteAheadLogMode { get; set; }
 
     /// <summary>
+    /// In compressed WAL mode, if enabled
+    /// a separate thread started to write the tail block to the file
+    /// periodically.
+    /// This improves durability in compressed WALs.
+    /// </summary>
+    bool EnableTailWriterJob { get; set; }
+
+    /// <summary>
+    /// The delay in milliseconds before the next tail write.
+    /// </summary>
+    int TailWriterJobInterval { get; set; }
+
+    /// <summary>
     /// Incremental backup is a WAL feature which moves
     /// all WAL data to another incremental log file.
     /// It is required to compact WAL in memory without data loss in 

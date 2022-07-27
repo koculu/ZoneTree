@@ -14,6 +14,10 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public bool EnableIncrementalBackup { get; set; }
 
+    public bool EnableTailWriterJob { get; set; } = true;
+
+    public int TailWriterJobInterval { get; set; } = 100;
+
     public BasicWriteAheadLogProvider(string walDirectory = "data")
     {
         WalDirectory = walDirectory;
@@ -52,7 +56,9 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                         keySerializer,
                         valueSerializer,
                         walPath,
-                        CompressionBlockSize)
+                        CompressionBlockSize,
+                        EnableTailWriterJob,
+                        TailWriterJobInterval)
                     {
                         EnableIncrementalBackup = EnableIncrementalBackup
                     };
@@ -66,7 +72,9 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                         keySerializer,
                         valueSerializer,
                         walPath,
-                        CompressionBlockSize)
+                        CompressionBlockSize,
+                        EnableTailWriterJob,
+                        TailWriterJobInterval)
                     {
                         EnableIncrementalBackup = EnableIncrementalBackup
                     };

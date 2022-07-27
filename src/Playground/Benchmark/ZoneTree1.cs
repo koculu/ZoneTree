@@ -6,7 +6,6 @@ using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
 
 namespace Playground.Benchmark;
-
 public class ZoneTree1
 {
     public static void TestInsertIntTree(WriteAheadLogMode mode, int count)
@@ -16,7 +15,7 @@ public class ZoneTree1
         Console.WriteLine("WriteAheadLogMode: = " + mode);
 
         var dataPath = "../../data/TestIntTree" + mode + count;
-        if (Directory.Exists(dataPath))
+        if (TestConfig.RecreateDatabases && Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
         var stopWatch = new Stopwatch();

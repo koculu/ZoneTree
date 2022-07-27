@@ -16,7 +16,7 @@ public class ZoneTree3
         Console.WriteLine("WriteAheadLogMode: = " + mode);
 
         var dataPath = "../../data/TestInsertTransactionIntTree" + mode + count;
-        if (Directory.Exists(dataPath))
+        if (TestConfig.RecreateDatabases && Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
         var stopWatch = new Stopwatch();

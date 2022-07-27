@@ -5,7 +5,8 @@ public enum WriteAheadLogMode
     /// <summary>
     /// Immediate mode write ahead log ensures that the data is flushed to the device
     /// immediately.
-    /// This provides maximum durability in case of a crash/power cut.
+    /// It provides maximum durability in case of a crash/power cut,
+    /// but slower write speed.
     /// </summary>
     Immediate,
 
@@ -15,14 +16,14 @@ public enum WriteAheadLogMode
     /// written to the device in another thread.
     /// Lazy mode improves the performance with the cost of reduced durability 
     /// (crashes might cause data loss.)
-    /// Lazy mode writes to the WAL with compression.
+    /// Lazy mode writes to the WAL with compression enabled.
     /// </summary>
     Lazy,
 
     /// <summary>
     /// Immediate mode with compression.
-    /// Compression requires chunks and reduces the durability in case of a crash/power cut.
-    /// Use Immediate mode for maximum durability.
+    /// It provides faster write speed but less durability.
+    /// (crashes might cause data loss.)
     /// </summary>
     CompressedImmediate
 }
