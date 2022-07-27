@@ -4,15 +4,17 @@ It can operate in memory or on disk. (Optimized for SSDs)
 
 [![Download](https://img.shields.io/badge/download-ZoneTree-blue)](https://www.nuget.org/packages/ZoneTree/)
 
-ZoneTree is a lightweight, transactional and high-performance LSM Tree for .NET. 
+ZoneTree is a lightweight, transactional and high-performance LSM Tree for .NET.
+It is x4 times faster than Facebook's RocksDB.
 
-LSM Tree (Log-structured merge-tree) is the most popular data structure and it is being used by many popular databases internally.
+LSM Tree (Log-structured merge-tree) is the heart of many popular databases like MYSQL, MSSQL, and ORACLE.
 
 ## Features
 | ZoneTree Features                                          |
 | ---------------------------------------------------------- |
 | Works with .NET primitives, structs and classes.           |
 | High Speed and Low Memory consumption.                     |
+| Crash Resilience                                           |
 | Optimum disk space utilization.                            |
 | WAL and DiskSegment data compression.                      |
 | Very fast load/unload.                                     |
@@ -55,13 +57,17 @@ LSM Tree (Log-structured merge-tree) is the most popular data structure and it i
 
 ## How fast is it?
 
-| Insert Benchmarks                | 1M      | 2M       | 3M         | 10M        |
-| ---------------------------------|---------|----------|------------|------------|
-| int-int tree immediate WAL       | 5760 ms | 10796 ms | 16006 ms   | 54768 ms   |
-| int-int tree lazy WAL            | 1198 ms | 2379 ms  | 3831 ms    | 15338 ms   |
-| string-string tree immediate WAL | 7872 ms | 16065 ms | 24220 ms   | 90901 ms   |
-| string-string tree lazy WAL      | 2556 ms | 5240 ms  | 7934 ms    | 29815 ms   |
-| RocksDb string-string            | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
+| Insert Benchmarks                               | 1M      | 2M       | 3M         | 10M        |
+| ------------------------------------------------|---------|----------|------------|------------|
+| int-int ZoneTree immediate WAL                  | 5760 ms | 10796 ms | 16006 ms   | 54768 ms   |
+| int-int ZoneTree compressed-immediate WAL       | 2171 ms | 3650 ms  | 5618 ms    | 20006 ms   |
+| int-int ZoneTree lazy WAL                       | 1198 ms | 2288 ms  | 3656 ms    | 12178 ms   |
+| str-str ZoneTree immediate WAL                  | 7872 ms | 16065 ms | 24220 ms   | 87314 ms   |
+| str-str ZoneTree compressed-immediate WAL       | 3332 ms | 7257 ms  | 9927 ms    | 35069 ms   |
+| str-str ZoneTree lazy WAL                       | 2556 ms | 4497 ms  | 7201 ms    | 25292 ms   |
+| int-int RocksDb                                 | NOT SUPPORTED                                |
+| str-str RocksDb  immediate WAL                  | NOT SUPPORTED                                |
+| str-str RocksDb  compressed-immediate WAL       | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
 
 Notes:
 The bottleneck is the disk flushes on the write-ahead log. 
