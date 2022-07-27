@@ -145,8 +145,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
                         FilePath + ".full",
                         () =>
                         {
-                            FileStream.WriteTail();
-                            return FileStream.GetFileContent();
+                            return FileStream.GetFileContentIncludingTail();
                         });
             }
 

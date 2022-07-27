@@ -220,8 +220,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                         FilePath + ".full",
                         () =>
                         {
-                            FileStream.WriteTail();
-                            return FileStream.GetFileContent();
+                            return FileStream.GetFileContentIncludingTail();
                         });
             }
             else

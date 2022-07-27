@@ -400,13 +400,14 @@ public sealed class CompressedFileStream : Stream, IDisposable
     {
         if (!FileStream.CanWrite)
             return;
-        var compressedBytes = TailBlock.Compress();
-        BinaryWriter.Write(TailBlock.BlockIndex);
+        var tailBlock = TailBlock;
+        var compressedBytes = tailBlock.Compress();
+        BinaryWriter.Write(tailBlock.BlockIndex);
         BinaryWriter.Write(compressedBytes.Length);
-        BinaryWriter.Write(CurrentBlock.Length);
+        BinaryWriter.Write(tailBlock.Length);
         BinaryWriter.Write(compressedBytes);
         BinaryWriter.Flush();
-        TailBlock = new DecompressedBlock(TailBlock.BlockIndex + 1, BlockSize);
+        TailBlock = new DecompressedBlock(tailBlock.BlockIndex + 1, BlockSize);
     }
 
     void IDisposable.Dispose()
@@ -439,5 +440,27 @@ public sealed class CompressedFileStream : Stream, IDisposable
         FileStream.Read(bytes);
         FileStream.Position = currentPosition;
         return bytes;
+    }
+
+    public byte[] GetFileContentIncludingTail()
+    {
+        lock (this)
+        {
+            var tailBlock = TailBlock;
+            var compressedBytes = tailBlock.Compress();
+            var currentPosition = FileStream.Position;
+            FileStream.Position = 0;
+            var bytes = new byte[(int)FileStream.Length + tailBlock.Length + 3 * sizeof(int)];
+            using var ms = new MemoryStream(bytes);
+            using var br = new BinaryWriter(ms);
+            FileStream.CopyTo(ms);
+            br.Write(tailBlock.BlockIndex);
+            br.Write(compressedBytes.Length);
+            br.Write(tailBlock.Length);
+            br.Write(compressedBytes);
+            ms.Flush();
+            FileStream.Position = currentPosition;
+            return bytes;
+        }
     }
 }
