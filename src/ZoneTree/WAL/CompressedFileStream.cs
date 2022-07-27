@@ -142,16 +142,16 @@ public sealed class CompressedFileStream : Stream, IDisposable
         TailBlock = new DecompressedBlock(blockIndex, decompressed);
     }
 
-    void WriteTail()
+    public void WriteTail()
     {
+        var tailBlock = TailBlock;
+        if (tailBlock.BlockIndex == LastWrittenTailIndex &&
+            tailBlock.Length == LastWrittenTailLength)
+            return;
         if (!TailStream.CanWrite)
             return;
-        var tailBlock = TailBlock;
         lock (tailBlock)
         {
-            if (tailBlock.BlockIndex == LastWrittenTailIndex &&
-                tailBlock.Length == LastWrittenTailLength)
-                return;
             TailStream.Position = 0;
             BinaryChunkWriter.Write(tailBlock.BlockIndex);
             BinaryChunkWriter.Write(tailBlock.Length);
@@ -408,15 +408,10 @@ public sealed class CompressedFileStream : Stream, IDisposable
         TailBlock = new DecompressedBlock(TailBlock.BlockIndex + 1, BlockSize);
     }
 
-    public void SealStream()
-    {
-        WriteTail();
-    }
-
     void IDisposable.Dispose()
     {
         StopTailWriter();
-        SealStream();
+        WriteTail();
         BinaryReader.Dispose();
         BinaryWriter.Dispose();
         FileStream.Dispose();
@@ -429,7 +424,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
     public override void Close()
     {
         StopTailWriter();
-        SealStream();
+        WriteTail();
         FileStream.Close();
         TailStream.Close();
         base.Close();

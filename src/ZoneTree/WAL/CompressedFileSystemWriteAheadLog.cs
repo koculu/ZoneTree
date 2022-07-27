@@ -145,7 +145,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
                         FilePath + ".full",
                         () =>
                         {
-                            FileStream.SealStream();
+                            FileStream.WriteTail();
                             return FileStream.GetFileContent();
                         });
             }
@@ -165,7 +165,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
 
     public void MarkFrozen()
     {
-        FileStream.SealStream();
+        FileStream.WriteTail();
         FileStream.Dispose();
     }
 

@@ -13,6 +13,8 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     readonly ISerializer<TKey> KeySerializer;
 
     readonly ISerializer<TValue> ValueSerializer;
+    
+    readonly int EmptyQueuePollInterval;
 
     readonly ConcurrentQueue<CombinedValue<TKey, TValue>> Queue = new();
 
@@ -29,15 +31,15 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         ISerializer<TValue> valueSerializer,
         string filePath,
         int compressionBlockSize,
-        bool enableTailWriterJob,
-        int tailWriterJobInterval)
+        int emptyQueuePollInterval)
     {
         FilePath = filePath;
+        EmptyQueuePollInterval = emptyQueuePollInterval;
         FileStream = new CompressedFileStream(
             filePath,
             compressionBlockSize,
-            enableTailWriterJob,
-            tailWriterJobInterval);
+            false,
+            0);
         FileStream.Seek(0, SeekOrigin.End);
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
@@ -46,7 +48,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     void StartWriter()
     {
         isRunning = true;
-        WriteTask = Task.Factory.StartNew(() => DoWrite(), TaskCreationOptions.LongRunning);
+        WriteTask = Task.Factory.StartNew(async () => await DoWrite(), TaskCreationOptions.LongRunning);
     }
 
     void StopWriter(bool consumeAll)
@@ -66,9 +68,10 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
             var valueBytes = ValueSerializer.Serialize(q.Value2);
             AppendLogEntry(keyBytes, valueBytes);
         }
+        FileStream.WriteTail();
     }
 
-    void DoWrite()
+    async Task DoWrite()
     {
         while (isRunning)
         {
@@ -79,7 +82,10 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 AppendLogEntry(keyBytes, valueBytes);
             }
             if (isRunning && Queue.IsEmpty)
-                Thread.Yield();
+            {
+                FileStream.WriteTail();
+                await Task.Delay(EmptyQueuePollInterval);
+            }
         }
     }
 
@@ -198,7 +204,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                         FilePath + ".full",
                         () =>
                         {
-                            FileStream.SealStream();
+                            FileStream.WriteTail();
                             return FileStream.GetFileContent();
                         });
             }
@@ -222,7 +228,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     public void MarkFrozen()
     {
         StopWriter(true);
-        FileStream.SealStream();
+        FileStream.WriteTail();
         FileStream.Dispose();
     }
 

@@ -12,6 +12,10 @@ public class NullWriteAheadLogProvider : IWriteAheadLogProvider
 
     public int TailWriterJobInterval { get; set; }
 
+    public CompressedImmediateModeOptions CompressedImmediateModeOptions { get; } = new();
+
+    public LazyModeOptions LazyModeOptions { get; } = new();
+
     public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(long segmentId, string category, ISerializer<TKey> keySerializer, ISerializer<TValue> valueSerialize)
     {
         return new NullWriteAheadLog<TKey, TValue>();

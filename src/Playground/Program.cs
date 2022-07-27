@@ -1,7 +1,7 @@
 ﻿using Playground.Benchmark;
 using Tenray.ZoneTree.WAL;
 
-TestConfig.RecreateDatabases = false;
+TestConfig.RecreateDatabases = true;
 bool testAll = true;
 if (testAll)
 {

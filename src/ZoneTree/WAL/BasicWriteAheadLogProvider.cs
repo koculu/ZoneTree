@@ -14,9 +14,9 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public bool EnableIncrementalBackup { get; set; }
 
-    public bool EnableTailWriterJob { get; set; } = true;
+    public CompressedImmediateModeOptions CompressedImmediateModeOptions { get; } = new();
 
-    public int TailWriterJobInterval { get; set; } = 100;
+    public LazyModeOptions LazyModeOptions { get; } = new();
 
     public BasicWriteAheadLogProvider(string walDirectory = "data")
     {
@@ -57,8 +57,8 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                         valueSerializer,
                         walPath,
                         CompressionBlockSize,
-                        EnableTailWriterJob,
-                        TailWriterJobInterval)
+                        CompressedImmediateModeOptions.EnableTailWriterJob,
+                        CompressedImmediateModeOptions.TailWriterJobInterval)
                     {
                         EnableIncrementalBackup = EnableIncrementalBackup
                     };
@@ -73,8 +73,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                         valueSerializer,
                         walPath,
                         CompressionBlockSize,
-                        EnableTailWriterJob,
-                        TailWriterJobInterval)
+                        LazyModeOptions.EmptyQueuePollInterval)
                     {
                         EnableIncrementalBackup = EnableIncrementalBackup
                     };
