@@ -14,8 +14,8 @@ var testAll = true;
 
 if (testAll)
 {
-    BenchmarkGroups.InsertBenchmark1();
-    BenchmarkGroups.LoadAndIterateBenchmark1();
+    BenchmarkGroups.InsertBenchmark3();
+    BenchmarkGroups.LoadAndIterateBenchmark3();
 }
 else
 {

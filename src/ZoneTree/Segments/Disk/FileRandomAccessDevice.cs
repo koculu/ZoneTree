@@ -104,7 +104,7 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
 
     public void SealDevice()
     {
-        // nothing todo here.
+        // nothing here.
     }
 
     public int ReleaseReadBuffers(long ticks)

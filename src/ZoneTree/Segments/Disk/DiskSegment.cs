@@ -163,7 +163,10 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         var len = Length;
         size = Math.Min(size, len);
         if (size < 1)
+        {
+            SparseArray = Array.Empty<SparseArrayEntry<TKey, TValue>>();
             return;
+        }
         var step = len / size;
         if (step < 1)
             return;

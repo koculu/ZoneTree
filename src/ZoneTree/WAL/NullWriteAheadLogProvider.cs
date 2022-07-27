@@ -8,10 +8,6 @@ public class NullWriteAheadLogProvider : IWriteAheadLogProvider
 
     public bool EnableIncrementalBackup { get; set; }
 
-    public bool EnableTailWriterJob { get; set; }
-
-    public int TailWriterJobInterval { get; set; }
-
     public CompressedImmediateModeOptions CompressedImmediateModeOptions { get; } = new();
 
     public LazyModeOptions LazyModeOptions { get; } = new();

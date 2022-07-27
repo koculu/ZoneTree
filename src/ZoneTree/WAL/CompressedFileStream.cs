@@ -450,7 +450,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
             var compressedBytes = tailBlock.Compress();
             var currentPosition = FileStream.Position;
             FileStream.Position = 0;
-            var bytes = new byte[(int)FileStream.Length + tailBlock.Length + 3 * sizeof(int)];
+            var bytes = new byte[(int)FileStream.Length + compressedBytes.Length + 3 * sizeof(int)];
             using var ms = new MemoryStream(bytes);
             using var br = new BinaryWriter(ms);
             FileStream.CopyTo(ms);
