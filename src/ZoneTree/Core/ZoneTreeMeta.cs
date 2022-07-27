@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Core;
+﻿using Tenray.ZoneTree.WAL;
+
+namespace Tenray.ZoneTree.Core;
 
 public class ZoneTreeMeta
 {
@@ -11,6 +13,12 @@ public class ZoneTreeMeta
     public string KeySerializerType { get; set; }
 
     public string ValueSerializerType { get; set; }
+
+    public WriteAheadLogMode WriteAheadLogMode { get; set; }
+    
+    public bool EnableDiskSegmentCompression { get; set; }
+
+    public int DiskSegmentCompressionBlockSize { get; set; }
 
     public int SegmentZero { get; set; }
 

@@ -152,7 +152,10 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             ReadOnlySegments = readOnlySegments,
             SegmentZero = segmentZero,
             KeySerializerType = zoneTreeMeta.KeySerializerType,
-            ValueSerializerType = zoneTreeMeta.ValueSerializerType
+            ValueSerializerType = zoneTreeMeta.ValueSerializerType,
+            WriteAheadLogMode = zoneTreeMeta.WriteAheadLogMode,
+            EnableDiskSegmentCompression = zoneTreeMeta.EnableDiskSegmentCompression,
+            DiskSegmentCompressionBlockSize = zoneTreeMeta.DiskSegmentCompressionBlockSize,
         };
 
         var bytes = JsonSerializer.SerializeToUtf8Bytes(

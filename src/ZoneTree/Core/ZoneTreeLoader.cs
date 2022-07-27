@@ -43,28 +43,43 @@ public class ZoneTreeLoader<TKey, TValue>
     {
         if (!string.Equals(ZoneTreeMeta.KeyType, typeof(TKey).FullName))
             throw new TreeKeyTypeMismatchException(
-                typeof(TKey).FullName,
-                ZoneTreeMeta.KeyType);
+                ZoneTreeMeta.KeyType,
+                typeof(TKey).FullName);
 
         if (!string.Equals(ZoneTreeMeta.ValueType, typeof(TKey).FullName))
-            throw new TreeValueTypeMismatchException(
-                typeof(TValue).FullName,
-                ZoneTreeMeta.ValueType);
+            throw new TreeValueTypeMismatchException(                
+                ZoneTreeMeta.ValueType,
+                typeof(TValue).FullName);
 
         if (!string.Equals(ZoneTreeMeta.ComparerType, Options.Comparer.GetType().FullName))
             throw new TreeComparerMismatchException(
-                Options.Comparer.GetType().FullName,
-                ZoneTreeMeta.ComparerType);
+                ZoneTreeMeta.ComparerType,
+                Options.Comparer.GetType().FullName);
 
         if (!string.Equals(ZoneTreeMeta.KeySerializerType, Options.KeySerializer.GetType().FullName))
-            throw new TreeKeySerializerTypeMismatchException(
-                Options.KeySerializer.GetType().FullName,
-                ZoneTreeMeta.KeySerializerType);
+            throw new TreeKeySerializerTypeMismatchException(                
+                ZoneTreeMeta.KeySerializerType,
+                Options.KeySerializer.GetType().FullName);
 
         if (!string.Equals(ZoneTreeMeta.ValueSerializerType, Options.ValueSerializer.GetType().FullName))
             throw new TreeValueSerializerTypeMismatchException(
-                Options.KeySerializer.GetType().FullName,
-                ZoneTreeMeta.KeySerializerType);
+                ZoneTreeMeta.KeySerializerType,
+                Options.KeySerializer.GetType().FullName);
+
+        if (ZoneTreeMeta.WriteAheadLogMode != Options.WriteAheadLogProvider.WriteAheadLogMode)
+            throw new WriteAheadLogModeMismatchException(
+                ZoneTreeMeta.WriteAheadLogMode,
+                Options.WriteAheadLogProvider.WriteAheadLogMode);
+
+        if (ZoneTreeMeta.EnableDiskSegmentCompression != Options.EnableDiskSegmentCompression)
+            throw new DiskSegmentCompressionModeMismatchException(
+                ZoneTreeMeta.EnableDiskSegmentCompression,
+                Options.EnableDiskSegmentCompression);
+
+        if (ZoneTreeMeta.DiskSegmentCompressionBlockSize != Options.DiskSegmentCompressionBlockSize)
+            throw new DiskSegmentCompressionBlockSizeMismatchException(
+                ZoneTreeMeta.DiskSegmentCompressionBlockSize,
+                Options.DiskSegmentCompressionBlockSize);
     }
 
     void LoadZoneTreeMetaWAL()

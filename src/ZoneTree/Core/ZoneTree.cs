@@ -124,7 +124,11 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         ZoneTreeMeta.ValueSerializerType = Options.ValueSerializer.GetType().FullName;
         ZoneTreeMeta.DiskSegment = DiskSegment.SegmentId;
         ZoneTreeMeta.ReadOnlySegments = ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray();
-    }
+
+        ZoneTreeMeta.WriteAheadLogMode = Options.WriteAheadLogProvider.WriteAheadLogMode;
+        ZoneTreeMeta.EnableDiskSegmentCompression = Options.EnableDiskSegmentCompression;
+        ZoneTreeMeta.DiskSegmentCompressionBlockSize = Options.DiskSegmentCompressionBlockSize;
+}
 
     public bool ContainsKey(in TKey key)
     {
