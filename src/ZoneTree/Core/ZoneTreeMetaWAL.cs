@@ -118,8 +118,11 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
     private void AppendRecord(in MetaWalRecord record)
     {
-        var bytes = BinarySerializerHelper.ToByteArray(record);
-        Device.AppendBytesReturnPosition(bytes);
+        lock (this)
+        {
+            var bytes = BinarySerializerHelper.ToByteArray(record);
+            Device.AppendBytesReturnPosition(bytes);
+        }
     }
 
     public unsafe IReadOnlyList<MetaWalRecord> GetAllRecords()

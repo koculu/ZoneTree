@@ -20,7 +20,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     volatile bool isRunning = false;
 
-    Task WriteTask;
+    volatile Task WriteTask;
 
     public string FilePath { get; }
 
@@ -43,12 +43,14 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         FileStream.Seek(0, SeekOrigin.End);
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
+        StartWriter();
     }
 
     void StartWriter()
     {
+        StopWriter(false);
         isRunning = true;
-        WriteTask = Task.Factory.StartNew(async () => await DoWrite(), TaskCreationOptions.LongRunning);
+        WriteTask = Task.Factory.StartNew(() => DoWrite(), TaskCreationOptions.LongRunning);
     }
 
     void StopWriter(bool consumeAll)
@@ -71,20 +73,36 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         FileStream.WriteTail();
     }
 
-    async Task DoWrite()
+    void DoWrite()
     {
         while (isRunning)
         {
             while (isRunning && Queue.TryDequeue(out var q))
             {
-                var keyBytes = KeySerializer.Serialize(q.Value1);
-                var valueBytes = ValueSerializer.Serialize(q.Value2);
-                AppendLogEntry(keyBytes, valueBytes);
+                try
+                {
+                    var keyBytes = KeySerializer.Serialize(q.Value1);
+                    var valueBytes = ValueSerializer.Serialize(q.Value2);
+                    AppendLogEntry(keyBytes, valueBytes);
+                }
+                catch (Exception e)
+                {
+                    // todo log the exception.
+                    //Console.WriteLine(e.Message);
+                }
             }
             if (isRunning && Queue.IsEmpty)
             {
-                FileStream.WriteTail();
-                await Task.Delay(EmptyQueuePollInterval);
+                try
+                {
+                    FileStream.WriteTail();
+                }
+                catch(Exception e)
+                {
+                    // todo log the exception.
+                    // Console.WriteLine(e.Message);
+                }
+                Thread.Sleep(EmptyQueuePollInterval);
             }
         }
     }
@@ -93,8 +111,6 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     {
         lock (this)
         {
-            if (!isRunning)
-                StartWriter();
             Queue.Enqueue(new CombinedValue<TKey, TValue>(in key, in value));
         }
     }
@@ -213,9 +229,9 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 StopWriter(false);
                 Queue.Clear();
             }
-            StartWriter();
             var existingLength = FileStream.Length;
             FileStream.SetLength(0);
+            StartWriter();
             var len = keys.Length;
             for (var i = 0; i < len; ++i)
             {

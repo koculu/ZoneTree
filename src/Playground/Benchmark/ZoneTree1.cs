@@ -22,7 +22,7 @@ public class ZoneTree1
         stopWatch.Start();
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
         using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
-        basicMaintainer.ThresholdForMergeOperationStart = 2_000_000;
+        basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
 
         Console.WriteLine("Loaded in: " + stopWatch.ElapsedMilliseconds);
 
@@ -46,7 +46,7 @@ public class ZoneTree1
         stopWatch.Start();
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
         using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
-        basicMaintainer.ThresholdForMergeOperationStart = 2_000_000;
+        basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
 
         Console.WriteLine("Loaded in: " + stopWatch.ElapsedMilliseconds);
 
@@ -69,13 +69,15 @@ public class ZoneTree1
     {
         return new ZoneTreeFactory<int, int>()
             .SetComparer(new Int32ComparerAscending())
-            .SetMutableSegmentMaxItemCount(1_000_000)
+            .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentCount)
+            .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x =>
             {
+                x.CompressionBlockSize = TestConfig.WALCompressionBlockSize;
                 x.WriteAheadLogMode = mode;
-                x.EnableIncrementalBackup = false;
+                x.EnableIncrementalBackup = TestConfig.EnableIncrementalBackup;
             })
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())

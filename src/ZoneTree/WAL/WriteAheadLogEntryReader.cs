@@ -66,11 +66,23 @@ public static class WriteAheadLogEntryReader
                 result.Success = false;
                 if (stopReadOnException) break;
             }
-            (var isValid, var key, var value) = logEntryDeserializer(in entry);
-            if (!isValid)
+            TKey key = default;
+            TValue value = default;
+            try
+            {
+                (var isValid, key, value) = logEntryDeserializer(in entry);
+                if (!isValid)
+                {
+                    if (!result.Exceptions.ContainsKey(i))
+                        result.Exceptions.Add(i, new InvalidDataException($"Checksum failed. Index={i}"));
+                    result.Success = false;
+                    if (stopReadOnChecksumFailure) break;
+                }
+            }
+            catch (Exception e)
             {
                 if (!result.Exceptions.ContainsKey(i))
-                    result.Exceptions.Add(i, new InvalidDataException($"Checksum failed. Index={i}"));
+                    result.Exceptions.Add(i, new InvalidDataException($"Deserilization of log entry failed. Index={i}", e));
                 result.Success = false;
                 if (stopReadOnChecksumFailure) break;
             }

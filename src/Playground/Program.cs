@@ -1,8 +1,17 @@
 ﻿using Playground.Benchmark;
 using Tenray.ZoneTree.WAL;
 
-TestConfig.RecreateDatabases = true;
-bool testAll = true;
+var custom = false;
+if (custom)
+{
+    TestConfig.RecreateDatabases = true;
+    TestConfig.MutableSegmentCount = 100000;
+    TestConfig.ThresholdForMergeOperationStart = 300000;
+    TestConfig.WALCompressionBlockSize = 16384;
+}
+
+var testAll = true;
+
 if (testAll)
 {
     BenchmarkGroups.InsertBenchmark1();
@@ -10,6 +19,6 @@ if (testAll)
 }
 else
 {
-    BenchmarkGroups.InsertBenchmark1(1_000_000, WriteAheadLogMode.CompressedImmediate);
-    BenchmarkGroups.LoadAndIterateBenchmark1(1_000_000, WriteAheadLogMode.CompressedImmediate);
+    BenchmarkGroups.InsertBenchmark1(3_000_000, WriteAheadLogMode.Lazy);
+    BenchmarkGroups.LoadAndIterateBenchmark1(3_000_000, WriteAheadLogMode.Lazy);
 }

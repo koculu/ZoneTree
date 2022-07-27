@@ -89,19 +89,18 @@ public sealed class CompressedFileStream : Stream, IDisposable
         TailWriterJobInterval = tailWriterJobInterval;
         if (enableTailWriterJob)
         {
-            TailWriter = Task.Factory.StartNew(
-                async () => await TailWriteLoop(),
+            TailWriter = Task.Factory.StartNew(() => TailWriteLoop(),
                 TaskCreationOptions.LongRunning);
         }
     }
 
-    async Task TailWriteLoop()
+    void TailWriteLoop()
     {
         IsTailWriterRunning = true;
         while(IsTailWriterRunning)
         {
             WriteTail();
-            await Task.Delay(TailWriterJobInterval);
+            Thread.Sleep(TailWriterJobInterval);
         }
     }
 
@@ -311,9 +310,11 @@ public sealed class CompressedFileStream : Stream, IDisposable
             return;
         }
         FileStream.SetLength(0);
-        TailBlock = new DecompressedBlock(TailBlock.BlockIndex, BlockSize);        
+        TailBlock = new DecompressedBlock(TailBlock.BlockIndex, BlockSize);
         SkipToTheEnd();
         CurrentBlockPosition = 0;
+        LastWrittenTailIndex = -1;
+        WriteTail();
     }
 
     private void TruncateFile(long truncatedLength)

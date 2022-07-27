@@ -24,6 +24,11 @@ public interface IWriteAheadLogProvider
     /// </summary>
     bool EnableIncrementalBackup { get; set; }
 
+    /// <summary>
+    /// WAL compressin block size.
+    /// </summary>
+    int CompressionBlockSize { get; set; }
+
     void InitCategory(string category);
 
     IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(

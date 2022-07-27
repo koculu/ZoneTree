@@ -16,6 +16,8 @@ public class NullWriteAheadLogProvider : IWriteAheadLogProvider
 
     public LazyModeOptions LazyModeOptions { get; } = new();
 
+    public int CompressionBlockSize { get; set; }
+
     public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(long segmentId, string category, ISerializer<TKey> keySerializer, ISerializer<TValue> valueSerialize)
     {
         return new NullWriteAheadLog<TKey, TValue>();

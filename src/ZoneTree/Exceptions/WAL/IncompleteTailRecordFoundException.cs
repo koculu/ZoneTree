@@ -10,7 +10,7 @@ public class IncompleteTailRecordFoundException : ZoneTreeException
 
     public long TruncationAmount => FileLength - RecordPosition;
 
-    public IncompleteTailRecordFoundException(Exception innerException) 
+    public IncompleteTailRecordFoundException(Exception innerException)
         : base("Incomplete tail record found.", innerException)
     {
     }
