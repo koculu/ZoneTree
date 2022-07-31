@@ -80,9 +80,10 @@ public sealed class CompressedFileStream : Stream, IDisposable
         // discard tail record if a greater block index exists in the main file.
         if (lastBlockIndex >= TailBlock.BlockIndex)
         {
-            // TODO: if lastBlockIndex == TailBlock.BlockIndex
-            // if WAL is corrupted, the tail block might contain healthy data.
-            // discard the corrupted one if any.
+            // if WAL had incomplete block in the end,
+            // it was truncated in the skip to the end method.
+            // Hence it is safe to discard the tail block
+            // if the block index is equal or smaller.
             _length -= TailBlock.Length;
             Position -= TailBlock.Length;
             TailBlock = new DecompressedBlock(lastBlockIndex + 1, BlockSize);
