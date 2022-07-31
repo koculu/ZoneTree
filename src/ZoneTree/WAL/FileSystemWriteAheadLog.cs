@@ -156,6 +156,12 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                         });
             }
 
+            // Todo: Implement replacement crash recovery.
+            // 1. Take backup of the existing WAL
+            // 2. Replace the current WAL
+            // 3. Delete the backup
+            // 4. Add backup recovery to the constructor if one exists.
+
             var existingLength = (int)FileStream.Length;
             FileStream.SetLength(0);
 

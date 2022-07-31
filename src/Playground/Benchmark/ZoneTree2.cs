@@ -72,7 +72,7 @@ public class ZoneTree2
     {
         return new ZoneTreeFactory<string, string>()
             .SetComparer(new StringOrdinalComparerAscending())
-            .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentCount)
+            .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
             .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)

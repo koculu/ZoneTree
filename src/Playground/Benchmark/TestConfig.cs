@@ -6,7 +6,7 @@ public static class TestConfig
 
     public static int ThresholdForMergeOperationStart = 2_000_000;
 
-    public static int MutableSegmentCount = 1_000_000;
+    public static int MutableSegmentMaxItemCount = 1_000_000;
 
     public static bool EnableIncrementalBackup = true;
 

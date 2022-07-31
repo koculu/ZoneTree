@@ -5,7 +5,7 @@ var custom = false;
 if (custom)
 {
     TestConfig.RecreateDatabases = true;
-    TestConfig.MutableSegmentCount = 100000;
+    TestConfig.MutableSegmentMaxItemCount = 100000;
     TestConfig.ThresholdForMergeOperationStart = 300000;
     TestConfig.WALCompressionBlockSize = 16384;
 }

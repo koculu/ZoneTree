@@ -200,13 +200,15 @@ public class ZoneTreeFactory<TKey, TValue>
 
     public ITransactionalZoneTree<TKey, TValue> OpenOrCreateTransactional()
     {
-        var zoneTree = OpenOrCreate(); InitTransactionLog();
+        var zoneTree = OpenOrCreate(); 
+        InitTransactionLog();
         return new OptimisticZoneTree<TKey, TValue>(Options, TransactionLog, zoneTree);
     }
 
     public ITransactionalZoneTree<TKey, TValue> CreateTransactional()
     {
-        var zoneTree = Create(); InitTransactionLog();
+        var zoneTree = Create(); 
+        InitTransactionLog();
         return new OptimisticZoneTree<TKey, TValue>(Options, TransactionLog, zoneTree);
     }
 

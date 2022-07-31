@@ -228,6 +228,9 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 StopWriter(false);
                 Queue.Clear();
             }
+            // Replacement crash recovery is not required here,
+            // because the lazy write ahead log is not durable.
+            // implementing crash recovery here does not make it durable.
             var existingLength = FileStream.Length;
             FileStream.SetLength(0);
             StartWriter();
