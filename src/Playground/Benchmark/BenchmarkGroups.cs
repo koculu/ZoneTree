@@ -57,6 +57,24 @@ public static class BenchmarkGroups
             ZoneTree2.Iterate(m, c);
         });
     }
+
+    public static void LogWithColor(string msg, ConsoleColor color)
+    {
+        var existingColor = Console.ForegroundColor;
+        Console.ForegroundColor = color;
+        Console.WriteLine(msg);
+        Console.ForegroundColor = existingColor;
+    }
+
+    public static void LogWithColor(string msg, long duration, ConsoleColor color)
+    {
+        Console.Write(msg + " ");
+        var existingColor = Console.ForegroundColor;
+        Console.ForegroundColor = color;
+        Console.WriteLine(duration);
+        Console.ForegroundColor = existingColor;
+    }
+
     public static void InsertIterate3(int count = 0, WriteAheadLogMode? mode = null)
     {
         Run(count, mode, (m, c) =>

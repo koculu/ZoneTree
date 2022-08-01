@@ -19,7 +19,7 @@ public class ZoneTree1
     public static void Insert(WriteAheadLogMode mode, int count)
     {
         Console.WriteLine("\r\n--------------------------");
-        Console.WriteLine($"\r\n{mode} Insert <int,int>\r\n");
+        BenchmarkGroups.LogWithColor($"\r\n{mode} Insert <int,int>\r\n", ConsoleColor.Cyan);      
         Console.WriteLine("Record count = " + count);
         string dataPath = GetDataPath(mode, count);
         if (TestConfig.RecreateDatabases && Directory.Exists(dataPath))
@@ -31,20 +31,25 @@ public class ZoneTree1
         using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
 
-        Console.WriteLine("Loaded in: " + stopWatch.ElapsedMilliseconds);
+        BenchmarkGroups.LogWithColor(
+            "Loaded in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.DarkYellow);
 
         Parallel.For(0, count, (x) =>
         {
             zoneTree.Upsert(x, x + x);
         });
-
-        Console.WriteLine("Completed in: " + stopWatch.ElapsedMilliseconds);
+        BenchmarkGroups.LogWithColor(
+            "Completed in:",
+            stopWatch.ElapsedMilliseconds, 
+            ConsoleColor.Green);
         basicMaintainer.CompleteRunningTasks().Wait();
     }
 
     public static void Iterate(WriteAheadLogMode mode, int count)
     {
-        Console.WriteLine($"\r\n{mode} Iterate <int,int>\r\n");
+        BenchmarkGroups.LogWithColor($"\r\n{mode} Iterate <int,int>\r\n", ConsoleColor.Cyan);
         Console.WriteLine("Record count = " + count);
 
         string dataPath = GetDataPath(mode, count);
@@ -54,7 +59,10 @@ public class ZoneTree1
         using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
 
-        Console.WriteLine("Loaded in: " + stopWatch.ElapsedMilliseconds);
+        BenchmarkGroups.LogWithColor(
+            "Loaded in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.DarkYellow);
 
         var off = 0;
         using var iterator = zoneTree.CreateIterator();
@@ -67,7 +75,10 @@ public class ZoneTree1
         if (off != count)
             throw new Exception($"missing records. {off} != {count}");
 
-        Console.WriteLine("Completed in: " + stopWatch.ElapsedMilliseconds);
+        BenchmarkGroups.LogWithColor(
+            "Completed in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.Green);
         basicMaintainer.CompleteRunningTasks().Wait();
     }
 

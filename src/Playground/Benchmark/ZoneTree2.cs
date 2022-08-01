@@ -20,7 +20,7 @@ public class ZoneTree2
     public static void Insert(WriteAheadLogMode mode, int count)
     {
         Console.WriteLine("\r\n--------------------------");
-        Console.WriteLine($"\r\n{mode} Insert <string,string>\r\n");
+        BenchmarkGroups.LogWithColor($"\r\n{mode} Insert <string,string>\r\n", ConsoleColor.Cyan);
         Console.WriteLine("Record count = " + count);
 
         string dataPath = GetDataPath(mode, count);
@@ -32,7 +32,11 @@ public class ZoneTree2
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
         using var basicMaintainer = new BasicZoneTreeMaintainer<string, string>(zoneTree);
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
-        Console.WriteLine("Loaded in: " + stopWatch.ElapsedMilliseconds);
+
+        BenchmarkGroups.LogWithColor(
+            "Loaded in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.DarkYellow);
 
         Parallel.For(0, count, (x) =>
         {
@@ -40,13 +44,16 @@ public class ZoneTree2
             zoneTree.Upsert(str, str);
         });
 
-        Console.WriteLine("Completed in: " + stopWatch.ElapsedMilliseconds);
+        BenchmarkGroups.LogWithColor(
+            "Completed in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.Green);
         basicMaintainer.CompleteRunningTasks().Wait();
     }
 
     public static void Iterate(WriteAheadLogMode mode, int count)
     {
-        Console.WriteLine($"\r\n{mode} Iterate <string,string>\r\n");
+        BenchmarkGroups.LogWithColor($"\r\n{mode} Iterate <string,string>\r\n", ConsoleColor.Cyan);
         Console.WriteLine("Record count = " + count);
 
         string dataPath = GetDataPath(mode, count);
@@ -56,7 +63,11 @@ public class ZoneTree2
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
         using var basicMaintainer = new BasicZoneTreeMaintainer<string, string>(zoneTree);
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
-        Console.WriteLine("Loaded in: " + stopWatch.ElapsedMilliseconds);
+
+        BenchmarkGroups.LogWithColor(
+            "Loaded in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.DarkYellow);
 
         var off = 0;
         using var iterator = zoneTree.CreateIterator();
@@ -69,7 +80,10 @@ public class ZoneTree2
         if (off != count)
             throw new Exception($"missing records. {off} != {count}");
 
-        Console.WriteLine("Completed in: " + stopWatch.ElapsedMilliseconds);
+        BenchmarkGroups.LogWithColor(
+            "Completed in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.Green);
         basicMaintainer.CompleteRunningTasks().Wait();
     }
 

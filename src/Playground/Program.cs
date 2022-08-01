@@ -15,7 +15,7 @@ var testAll = true;
 
 if (testAll)
 {
-    BenchmarkGroups.Insert1();
+    BenchmarkGroups.InsertIterate1();
 }
 else
 {
