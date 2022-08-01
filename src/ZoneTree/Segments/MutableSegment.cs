@@ -197,7 +197,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
     public void Freeze()
     {
         IsFrozenFlag = true;
-        Task.Factory.StartNew(() => FreezeWriteAheadLog());
+        Task.Factory.StartNew(FreezeWriteAheadLog);
     }
 
     private void FreezeWriteAheadLog()
