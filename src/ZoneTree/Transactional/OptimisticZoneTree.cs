@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Transactional;
 
@@ -378,7 +379,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         }
     }
 
-    public void UpsertAutoCommit(in TKey key, in TValue value)
+    public void UpsertAutoCommit(in TKey key, in TValue oldVal)
     {
         lock (this)
         {
@@ -386,8 +387,18 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
             var transaction = GetOrCreateTransaction(transactionId);
             TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             readWriteStamp.WriteStamp = transactionId;
+            if (Options.WriteAheadLogProvider.EnableIncrementalBackup)
+            {
+                // if incremental backup is enabled,
+                // add the history record.
+                if (!ZoneTree.TryGet(in key, out var oldValue))
+                    Options.MarkValueDeleted(ref oldValue);
+                var combinedValue =
+                    new CombinedValue<TValue, long>(oldValue, readWriteStamp.WriteStamp);
+                TransactionLog.AddHistoryRecord(transactionId, key, combinedValue);
+            }
             TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
-            ZoneTree.Upsert(in key, in value);
+            ZoneTree.Upsert(in key, in oldVal);
             transaction.IsReadyToCommit = true;
             DoCommit(transaction);
         }
@@ -401,6 +412,16 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
             var transaction = GetOrCreateTransaction(transactionId);
             TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             readWriteStamp.WriteStamp = transactionId;
+            if (Options.WriteAheadLogProvider.EnableIncrementalBackup)
+            {
+                // if incremental backup is enabled,
+                // add the history record.
+                if (!ZoneTree.TryGet(in key, out var oldValue))
+                    Options.MarkValueDeleted(ref oldValue);
+                var combinedValue =
+                    new CombinedValue<TValue, long>(oldValue, readWriteStamp.WriteStamp);
+                TransactionLog.AddHistoryRecord(transactionId, key, combinedValue);
+            }
             TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
             ZoneTree.ForceDelete(in key);
             transaction.IsReadyToCommit = true;

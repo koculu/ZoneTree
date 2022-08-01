@@ -4,7 +4,8 @@ using Tenray.ZoneTree.WAL;
 var custom = false;
 if (custom)
 {
-    TestConfig.RecreateDatabases = true;
+    TestConfig.EnableIncrementalBackup = true;
+    TestConfig.RecreateDatabases = false;
     TestConfig.MutableSegmentMaxItemCount = 100000;
     TestConfig.ThresholdForMergeOperationStart = 300000;
     TestConfig.WALCompressionBlockSize = 16384;
@@ -14,8 +15,8 @@ var testAll = true;
 
 if (testAll)
 {
-    BenchmarkGroups.InsertBenchmark3();
-    BenchmarkGroups.LoadAndIterateBenchmark3();
+    BenchmarkGroups.InsertBenchmark1();
+    BenchmarkGroups.LoadAndIterateBenchmark1();
 }
 else
 {
