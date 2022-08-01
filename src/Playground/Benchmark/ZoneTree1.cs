@@ -8,13 +8,20 @@ using Tenray.ZoneTree.WAL;
 namespace Playground.Benchmark;
 public class ZoneTree1
 {
-    public static void TestInsertIntTree(WriteAheadLogMode mode, int count)
-    {
-        Console.WriteLine("\r\nTestIntTree\r\n");
-        Console.WriteLine("Record count = " + count);
-        Console.WriteLine("WriteAheadLogMode: = " + mode);
+    const string DataPath = "../../data/";
+    const string FolderName = "-int-int";
 
-        var dataPath = "../../data/TestIntTree" + mode + count;
+    private static string GetDataPath(WriteAheadLogMode mode, int count)
+    {
+        return DataPath + mode + "-" + count / 1_000_000.0 + "M" + FolderName;
+    }
+
+    public static void Insert(WriteAheadLogMode mode, int count)
+    {
+        Console.WriteLine("\r\n--------------------------");
+        Console.WriteLine($"\r\n{mode} Insert <int,int>\r\n");
+        Console.WriteLine("Record count = " + count);
+        string dataPath = GetDataPath(mode, count);
         if (TestConfig.RecreateDatabases && Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
@@ -35,13 +42,12 @@ public class ZoneTree1
         basicMaintainer.CompleteRunningTasks().Wait();
     }
 
-    public static void TestIterateIntTree(WriteAheadLogMode mode, int count)
+    public static void Iterate(WriteAheadLogMode mode, int count)
     {
-        Console.WriteLine("\r\nTestIterationIntTree\r\n");
+        Console.WriteLine($"\r\n{mode} Iterate <int,int>\r\n");
         Console.WriteLine("Record count = " + count);
-        Console.WriteLine("WriteAheadLogMode: = " + mode);
 
-        var dataPath = "../../data/TestIntTree" + mode + count;
+        string dataPath = GetDataPath(mode, count);
         var stopWatch = new Stopwatch();
         stopWatch.Start();
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);

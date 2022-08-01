@@ -5,7 +5,7 @@ var custom = false;
 if (custom)
 {
     TestConfig.EnableIncrementalBackup = true;
-    TestConfig.RecreateDatabases = false;
+    TestConfig.RecreateDatabases = true;
     TestConfig.MutableSegmentMaxItemCount = 100000;
     TestConfig.ThresholdForMergeOperationStart = 300000;
     TestConfig.WALCompressionBlockSize = 16384;
@@ -15,11 +15,10 @@ var testAll = true;
 
 if (testAll)
 {
-    BenchmarkGroups.InsertBenchmark1();
-    BenchmarkGroups.LoadAndIterateBenchmark1();
+    BenchmarkGroups.Insert1();
 }
 else
 {
-    BenchmarkGroups.InsertBenchmark1(3_000_000, WriteAheadLogMode.Lazy);
-    BenchmarkGroups.LoadAndIterateBenchmark1(3_000_000, WriteAheadLogMode.Lazy);
+    BenchmarkGroups.Insert1(3_000_000, WriteAheadLogMode.Lazy);
+    BenchmarkGroups.Iterate1(3_000_000, WriteAheadLogMode.Lazy);
 }

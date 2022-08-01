@@ -40,33 +40,59 @@ public static class BenchmarkGroups
             }
         }
     }
-    public static void InsertBenchmark1(int count = 0, WriteAheadLogMode? mode = null)
+
+    public static void InsertIterate1(int count = 0, WriteAheadLogMode? mode = null)
     {
-        Run(count, mode, (m,c) => ZoneTree1.TestInsertIntTree(m, c));
+        Run(count, mode, (m, c) =>
+        {
+            ZoneTree1.Insert(m, c);
+            ZoneTree1.Iterate(m, c);
+        });
+    }
+    public static void InsertIterate2(int count = 0, WriteAheadLogMode? mode = null)
+    {
+        Run(count, mode, (m, c) =>
+        {
+            ZoneTree2.Insert(m, c);
+            ZoneTree2.Iterate(m, c);
+        });
+    }
+    public static void InsertIterate3(int count = 0, WriteAheadLogMode? mode = null)
+    {
+        Run(count, mode, (m, c) =>
+        {
+            ZoneTree3.Insert(m, c);
+            ZoneTree3.Iterate(m, c);
+        });
     }
 
-    public static void InsertBenchmark2(int count = 0, WriteAheadLogMode? mode = null)
+    public static void Insert1(int count = 0, WriteAheadLogMode? mode = null)
     {
-        Run(count, mode, (m, c) => ZoneTree2.TestInsertStringTree(m, c));
+        Run(count, mode, (m,c) => ZoneTree1.Insert(m, c));
     }
 
-    public static void InsertBenchmark3(int count = 0, WriteAheadLogMode? mode = null)
+    public static void Insert2(int count = 0, WriteAheadLogMode? mode = null)
     {
-        Run(count, mode, (m, c) => ZoneTree3.TestInsertTransactionIntTree(m, c));
+        Run(count, mode, (m, c) => ZoneTree2.Insert(m, c));
     }
 
-    public static void LoadAndIterateBenchmark1(int count = 0, WriteAheadLogMode? mode = null)
+    public static void Insert3(int count = 0, WriteAheadLogMode? mode = null)
     {
-        Run(count, mode, (m, c) => ZoneTree1.TestIterateIntTree(m, c));
+        Run(count, mode, (m, c) => ZoneTree3.Insert(m, c));
     }
 
-    public static void LoadAndIterateBenchmark2(int count = 0, WriteAheadLogMode? mode = null)
+    public static void Iterate1(int count = 0, WriteAheadLogMode? mode = null)
     {
-        Run(count, mode, (m, c) => ZoneTree2.TestIterateStringTree(m, c));
+        Run(count, mode, (m, c) => ZoneTree1.Iterate(m, c));
     }
 
-    public static void LoadAndIterateBenchmark3(int count = 0, WriteAheadLogMode? mode = null)
+    public static void Iterate2(int count = 0, WriteAheadLogMode? mode = null)
     {
-        Run(count, mode, (m, c) => ZoneTree3.TestIterateIntTree(m, c));
+        Run(count, mode, (m, c) => ZoneTree2.Iterate(m, c));
+    }
+
+    public static void Iterate3(int count = 0, WriteAheadLogMode? mode = null)
+    {
+        Run(count, mode, (m, c) => ZoneTree3.Iterate(m, c));
     }
 }
