@@ -160,7 +160,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
             BinaryChunkWriter.Write(tailBlock.Length);
             var bytes = tailBlock.GetBytes(0, tailBlock.Length);
             BinaryChunkWriter.Write(bytes);
-            TailStream.Flush();
+            TailStream.Flush(true);
             LastWrittenTailIndex = tailBlock.BlockIndex;
             LastWrittenTailLength = tailBlock.Length;
         }

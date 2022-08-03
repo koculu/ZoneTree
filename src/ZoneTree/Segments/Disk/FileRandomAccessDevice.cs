@@ -46,7 +46,7 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
     {
         var pos = FileStream.Position;
         FileStream.Write(bytes);
-        FileStream.Flush();
+        FileStream.Flush(true);
         return pos;
     }
 
@@ -81,7 +81,7 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
     {
         if (FileStream == null)
             return;
-        FileStream.Flush();
+        FileStream.Flush(true);
         FileStream.Dispose();
         FileStream = null;
         if (Writable)

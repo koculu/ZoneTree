@@ -133,7 +133,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     private void Flush()
     {
         if (FileStream.CanWrite)
-            FileStream.Flush();
+            FileStream.Flush(true);
     }
 
     public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values, bool disableBackup)
@@ -147,7 +147,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                         FilePath + ".full",
                         () =>
                         {
-                            FileStream.Flush();
+                            FileStream.Flush(true);
                             FileStream.Seek(0, SeekOrigin.Begin);
                             var existingLength = (int)FileStream.Length;
                             var bytes = new byte[existingLength];

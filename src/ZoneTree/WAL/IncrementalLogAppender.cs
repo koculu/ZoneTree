@@ -51,7 +51,7 @@ public static class IncrementalLogAppender
             fs.Write(BitConverter.GetBytes(fs.Length));
             fs.Write(BitConverter.GetBytes(fs.Length));
             fs.Write(BitConverter.GetBytes(fs.Length));
-            fs.Flush();
+            fs.Flush(true);
         }
 
         // first append the additional data.
@@ -59,17 +59,17 @@ public static class IncrementalLogAppender
 
         fs.Seek(0, SeekOrigin.End);
         fs.Write(bytes);
-        fs.Flush();
+        fs.Flush(true);
 
         // now write the file length-stamps.
         // what happens if a crash happens with partial write of the fs Length?
         // To prevent that, we write and flush the length-stamp three times with separate flushes..
         fs.Position = 0;
         fs.Write(BitConverter.GetBytes(fs.Length));
-        fs.Flush();
+        fs.Flush(true);
         fs.Write(BitConverter.GetBytes(fs.Length));
-        fs.Flush();
+        fs.Flush(true);
         fs.Write(BitConverter.GetBytes(fs.Length));
-        fs.Flush();
+        fs.Flush(true);
     }
 }

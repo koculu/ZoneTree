@@ -139,7 +139,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         CompressedBlockPositions.Add(offset);
         CompressedBlockLengths.Add(compressedBytes.Length);
         FileStream.Write(compressedBytes);
-        FileStream.Flush();
+        FileStream.Flush(true);
         DecompressedBlocks.TryRemove(nextBlock.BlockIndex, out _);
         ++NextBlockIndex;
         LastBlockLength = 0;
@@ -219,7 +219,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         DecompressedBlocks.Clear();
         if (FileStream == null)
             return;
-        FileStream.Flush();
+        FileStream.Flush(true);
         FileStream.Dispose();
         FileStream = null;
         if (Writable)
@@ -274,7 +274,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         }
         bw.Write(positions.Count);
         bw.Write(offset);
-        FileStream.Flush();
+        FileStream.Flush(true);
     }
 
     (List<long> positions, List<int> lengths) ReadCompressedBlockPositionsAndLengths()
