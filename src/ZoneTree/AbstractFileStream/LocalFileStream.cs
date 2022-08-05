@@ -30,11 +30,16 @@ public class LocalFileStream : Stream, IFileStream
 
     public override void Flush()
     {
-        FileStream.Flush();
+        // All flush operations are written directly to the disk.
+        // (no OS Kernel intermediate buffers remains after flush)
+        // It is the best option.
+        // Because it prevents unexpected file corruptions with little overhead.
+        FileStream.Flush(true);
     }
 
     public void Flush(bool flushToDisk)
     {
+        // All flush operations are written directly to the disk.
         FileStream.Flush(true);
     }
 
