@@ -30,7 +30,7 @@ public class LocalFileStream : Stream, IFileStream
 
     public override void Flush()
     {
-        // All flush operations are written directly to the disk.
+        // All flush operations are synced to the disk.
         // (no OS Kernel intermediate buffers remain after flush)
         // It is the best option.
         // Because it prevents unexpected file corruptions with little overhead.
@@ -39,7 +39,7 @@ public class LocalFileStream : Stream, IFileStream
 
     public void Flush(bool flushToDisk)
     {
-        // All flush operations are written directly to the disk.
+        // All flush operations are synced to the disk.
         FileStream.Flush(true);
     }
 
