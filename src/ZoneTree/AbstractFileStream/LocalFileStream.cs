@@ -75,7 +75,6 @@ public class LocalFileStream : Stream, IFileStream
 
     public new void Dispose()
     {
-        FileStream.Close();
         FileStream.Dispose();
         GC.SuppressFinalize(this);
     }
