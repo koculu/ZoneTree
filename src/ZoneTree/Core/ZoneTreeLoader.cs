@@ -46,7 +46,7 @@ public class ZoneTreeLoader<TKey, TValue>
                 ZoneTreeMeta.KeyType,
                 typeof(TKey).FullName);
 
-        if (!string.Equals(ZoneTreeMeta.ValueType, typeof(TKey).FullName))
+        if (!string.Equals(ZoneTreeMeta.ValueType, typeof(TValue).FullName))
             throw new TreeValueTypeMismatchException(                
                 ZoneTreeMeta.ValueType,
                 typeof(TValue).FullName);
