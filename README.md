@@ -6,7 +6,7 @@ It can operate in memory or on disk. (Optimized for SSDs)
 
 ZoneTree is a lightweight, transactional and high-performance LSM Tree for .NET.
 
-It is x4 times faster than Facebook's RocksDB.
+It is four times faster than Facebook's RocksDB.
 
 ## Features
 | ZoneTree Features                                          |
