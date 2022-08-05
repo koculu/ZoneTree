@@ -4,6 +4,7 @@ using Tenray.ZoneTree.Transactional;
 using Tenray.ZoneTree.WAL;
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.AbstractFileStream;
 
 namespace Tenray.ZoneTree;
 
@@ -12,6 +13,8 @@ public class ZoneTreeFactory<TKey, TValue>
     string WalDirectory;
 
     int InitialSparseArrayLength = 1_000_000;
+
+    readonly IFileStreamProvider FileStreamProvider;
 
     Func<ZoneTreeOptions<TKey, TValue>, IWriteAheadLogProvider> GetWriteAheadLogProvider;
 
@@ -22,12 +25,17 @@ public class ZoneTreeFactory<TKey, TValue>
 
     public ZoneTreeOptions<TKey, TValue> Options { get; } = new();
 
-    public ZoneTreeFactory()
+
+    public ZoneTreeFactory(IFileStreamProvider fileStreamProvider = null)
     {
+        if (fileStreamProvider == null)
+            fileStreamProvider = new LocalFileStreamProvider();
+        FileStreamProvider = fileStreamProvider;
+
         GetWriteAheadLogProvider = (options) =>
             WalDirectory == null ? 
-            new BasicWriteAheadLogProvider() :
-            new BasicWriteAheadLogProvider(WalDirectory);
+            new BasicWriteAheadLogProvider(fileStreamProvider) :
+            new BasicWriteAheadLogProvider(fileStreamProvider, WalDirectory);
     }
 
     public ZoneTreeFactory<TKey, TValue> SetComparer(IRefComparer<TKey> comparer)
@@ -46,7 +54,8 @@ public class ZoneTreeFactory<TKey, TValue>
     public ZoneTreeFactory<TKey, TValue>
         SetDataDirectory(string dataDirectory)
     {
-        Options.RandomAccessDeviceManager = new RandomAccessDeviceManager(dataDirectory);
+        Options.RandomAccessDeviceManager = new RandomAccessDeviceManager(
+            FileStreamProvider, dataDirectory);
         return this;
     }
 

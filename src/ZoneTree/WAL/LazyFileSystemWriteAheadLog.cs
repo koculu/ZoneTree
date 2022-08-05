@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Exceptions.WAL;
@@ -8,6 +9,8 @@ namespace Tenray.ZoneTree.WAL;
 
 public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
+    readonly IFileStreamProvider FileStreamProvider;
+
     readonly CompressedFileStream FileStream;
 
     readonly ISerializer<TKey> KeySerializer;
@@ -27,6 +30,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     public bool EnableIncrementalBackup { get; set; }
 
     public LazyFileSystemWriteAheadLog(
+        IFileStreamProvider fileStreamProvider,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
@@ -36,11 +40,13 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         FilePath = filePath;
         EmptyQueuePollInterval = emptyQueuePollInterval;
         FileStream = new CompressedFileStream(
+            fileStreamProvider,
             filePath,
             compressionBlockSize,
             false,
             0);
         FileStream.Seek(0, SeekOrigin.End);
+        FileStreamProvider = fileStreamProvider;
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
         StartWriter();
@@ -120,11 +126,11 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         Queue.Clear();
         StopWriter(false);
         FileStream.Dispose();
-        if (File.Exists(FilePath))
-            File.Delete(FilePath);
+        if (FileStreamProvider.FileExists(FilePath))
+            FileStreamProvider.DeleteFile(FilePath);
         var tailPath = FilePath + ".tail";
-        if (File.Exists(tailPath))
-            File.Delete(tailPath);
+        if (FileStreamProvider.FileExists(tailPath))
+            FileStreamProvider.DeleteFile(tailPath);
     }
 
     struct LogEntry
@@ -217,6 +223,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 ConsumeQueue();
                 IncrementalLogAppender
                     .AppendLogToTheBackupFile(
+                        FileStreamProvider,
                         FilePath + ".full",
                         () =>
                         {

@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.Core;
+﻿using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Exceptions.WAL;
 
@@ -7,7 +8,9 @@ namespace Tenray.ZoneTree.WAL;
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
 public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
-    readonly FileStream FileStream;
+    readonly IFileStreamProvider FileStreamProvider;
+
+    readonly IFileStream FileStream;
 
     readonly ISerializer<TKey> KeySerializer;
 
@@ -18,17 +21,19 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     public bool EnableIncrementalBackup { get; set; }
 
     public FileSystemWriteAheadLog(
+        IFileStreamProvider fileStreamProvider,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
         int writeBufferSize = 4096)
     {
         FilePath = filePath;
-        FileStream = new FileStream(filePath,
+        FileStream = fileStreamProvider.CreateFileStream(filePath,
             FileMode.OpenOrCreate,
             FileAccess.ReadWrite,
-            FileShare.Read, writeBufferSize, false);
+            FileShare.Read, writeBufferSize);
         FileStream.Seek(0, SeekOrigin.End);
+        FileStreamProvider = fileStreamProvider;
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
     }
@@ -46,7 +51,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     public void Drop()
     {
         FileStream.Dispose();
-        File.Delete(FilePath);
+        FileStreamProvider.DeleteFile(FilePath);
     }
 
     struct LogEntry
@@ -84,7 +89,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         };
         entry.Checksum = entry.CreateChecksum();
 
-        var binaryWriter = new BinaryWriter(FileStream);
+        var binaryWriter = new BinaryWriter(FileStream.ToStream());
         binaryWriter.Write(entry.KeyLength);
         binaryWriter.Write(entry.ValueLength);
         if (entry.Key != null)
@@ -109,7 +114,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         bool stopReadOnChecksumFailure)
     {
         return WriteAheadLogEntryReader.ReadLogEntries<TKey, TValue, LogEntry>(
-            FileStream,
+            FileStream.ToStream(),
             stopReadOnException,
             stopReadOnChecksumFailure,
             ReadLogEntry,
@@ -144,6 +149,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             {
                 IncrementalLogAppender
                     .AppendLogToTheBackupFile(
+                        FileStreamProvider,
                         FilePath + ".full",
                         () =>
                         {

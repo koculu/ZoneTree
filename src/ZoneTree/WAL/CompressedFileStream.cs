@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using System.Text;
+using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Segments.Disk;
 
 namespace Tenray.ZoneTree.WAL;
@@ -8,9 +9,9 @@ public sealed class CompressedFileStream : Stream, IDisposable
 {
     readonly int BlockSize;
 
-    readonly FileStream FileStream;
+    readonly IFileStream FileStream;
 
-    readonly FileStream TailStream;
+    readonly IFileStream TailStream;
 
     DecompressedBlock TailBlock;
 
@@ -51,27 +52,28 @@ public sealed class CompressedFileStream : Stream, IDisposable
     public override long Position { get; set; }
 
     public CompressedFileStream(
+        IFileStreamProvider fileStreamProvider,
         string filePath,
         int blockSize,
         bool enableTailWriterJob,
         int tailWriterJobInterval)
     {
         FilePath = filePath;
-        FileStream = new FileStream(filePath,
+        FileStream = fileStreamProvider.CreateFileStream(filePath,
             FileMode.OpenOrCreate,
             FileAccess.ReadWrite,
-            FileShare.Read, BlockSize, false);
+            FileShare.Read, BlockSize);
 
-        TailStream = new FileStream(filePath + ".tail",
+        TailStream = fileStreamProvider.CreateFileStream(filePath + ".tail",
             FileMode.OpenOrCreate,
             FileAccess.ReadWrite,
-            FileShare.Read, BlockSize, false);
+            FileShare.Read, BlockSize);
 
-        BinaryReader = new BinaryReader(FileStream, Encoding.UTF8, true);
-        BinaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
+        BinaryReader = new BinaryReader(FileStream.ToStream(), Encoding.UTF8, true);
+        BinaryWriter = new BinaryWriter(FileStream.ToStream(), Encoding.UTF8, true);
 
-        BinaryChunkReader = new BinaryReader(TailStream, Encoding.UTF8, true);
-        BinaryChunkWriter = new BinaryWriter(TailStream, Encoding.UTF8, true);
+        BinaryChunkReader = new BinaryReader(TailStream.ToStream(), Encoding.UTF8, true);
+        BinaryChunkWriter = new BinaryWriter(TailStream.ToStream(), Encoding.UTF8, true);
 
         BlockSize = blockSize;
         LoadTail();

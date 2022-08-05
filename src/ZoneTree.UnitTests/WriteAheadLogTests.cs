@@ -1,3 +1,4 @@
+using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
 
@@ -12,7 +13,9 @@ namespace Tenray.ZoneTree.UnitTests
             if (File.Exists(filePath))
                 File.Delete(filePath);
             var serializer = new UnicodeStringSerializer();
-            var wal = new FileSystemWriteAheadLog<string, string>(serializer, serializer, filePath);
+            var wal = new FileSystemWriteAheadLog<string, string>(
+                new LocalFileStreamProvider(),
+                serializer, serializer, filePath);
             var len = 1;
             for (var i = 0; i < len; ++i)
             {

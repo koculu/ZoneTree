@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.Core;
+﻿using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Exceptions.WAL;
 
@@ -7,6 +8,8 @@ namespace Tenray.ZoneTree.WAL;
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
 public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
+    readonly IFileStreamProvider FileStreamProvider;
+
     readonly CompressedFileStream FileStream;
 
     readonly ISerializer<TKey> KeySerializer;
@@ -18,6 +21,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
     public bool EnableIncrementalBackup { get; set; }
 
     public CompressedFileSystemWriteAheadLog(
+        IFileStreamProvider fileStreamProvider,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
@@ -25,8 +29,10 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         bool enableTailWriterJob,
         int tailWriterJobInterval)
     {
+        FileStreamProvider = fileStreamProvider;
         FilePath = filePath;
         FileStream = new CompressedFileStream(
+            fileStreamProvider,
             filePath,
             compressionBlockSize,
             enableTailWriterJob,
@@ -48,11 +54,11 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
     public void Drop()
     {
         FileStream.Dispose();
-        if (File.Exists(FilePath))
-            File.Delete(FilePath);
+        if (FileStreamProvider.FileExists(FilePath))
+            FileStreamProvider.DeleteFile(FilePath);
         var tailPath = FilePath + ".tail";
-        if (File.Exists(tailPath))
-            File.Delete(tailPath);
+        if (FileStreamProvider.FileExists(tailPath))
+            FileStreamProvider.DeleteFile(tailPath);
     }
 
     struct LogEntry
@@ -142,6 +148,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
             {
                 IncrementalLogAppender
                     .AppendLogToTheBackupFile(
+                        FileStreamProvider,
                         FilePath + ".full",
                         () =>
                         {

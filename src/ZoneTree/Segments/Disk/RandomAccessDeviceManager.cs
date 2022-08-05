@@ -1,7 +1,11 @@
-﻿namespace Tenray.ZoneTree.Segments.Disk;
+﻿using Tenray.ZoneTree.AbstractFileStream;
+
+namespace Tenray.ZoneTree.Segments.Disk;
 
 public class RandomAccessDeviceManager : IRandomAccessDeviceManager
 {
+    readonly IFileStreamProvider FileStreamProvider;
+
     readonly Dictionary<string, IRandomAccessDevice> ReadOnlyDevices = new();
 
     readonly Dictionary<string, IRandomAccessDevice> WritableDevices = new();
@@ -14,10 +18,11 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
     public int WritableDeviceCount => WritableDevices.Count;
 
-    public RandomAccessDeviceManager(string dataDirectory = "data")
+    public RandomAccessDeviceManager(IFileStreamProvider fileStreamProvider, string dataDirectory = "data")
     {
+        FileStreamProvider = fileStreamProvider;
         DataDirectory = dataDirectory;
-        Directory.CreateDirectory(dataDirectory);
+        FileStreamProvider.CreateDirectory(dataDirectory);
     }
 
     public void CloseAllDevices()
@@ -43,8 +48,11 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         var filePath = GetFilePath(segmentId, category);
         IRandomAccessDevice device = isCompressed ?
             new CompressedFileRandomAccessDevice(
+                FileStreamProvider,
                 segmentId, category, this, filePath, true, compressionBlockSize) :
-            new FileRandomAccessDevice(segmentId, category, this, filePath, true);
+            new FileRandomAccessDevice(
+                FileStreamProvider,
+                segmentId, category, this, filePath, true);
         WritableDevices.Add(key, device);
         return device;
     }
@@ -80,8 +88,11 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         var filePath = GetFilePath(segmentId, category);
         device = isCompressed ?
             new CompressedFileRandomAccessDevice(
+                FileStreamProvider,
                 segmentId, category, this, filePath, false, compressionBlockSize) :
-            new FileRandomAccessDevice(segmentId, category, this, filePath, false);
+            new FileRandomAccessDevice(
+                FileStreamProvider,
+                segmentId, category, this, filePath, false);
         ReadOnlyDevices.Add(key, device);
         return device;
     }
@@ -111,12 +122,12 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
     public bool DeviceExists(int segmentId, string category)
     {
         var filePath = GetFilePath(segmentId, category);
-        return File.Exists(filePath);
+        return FileStreamProvider.FileExists(filePath);
     }
 
     public void DropStore()
     {
-        if (Directory.Exists(DataDirectory))
-            Directory.Delete(DataDirectory, true);
+        if (FileStreamProvider.DirectoryExists(DataDirectory))
+            FileStreamProvider.DeleteDirectory(DataDirectory, true);
     }
 }

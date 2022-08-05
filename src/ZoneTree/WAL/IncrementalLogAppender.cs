@@ -1,19 +1,23 @@
-﻿using Tenray.ZoneTree.Exceptions;
+﻿using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Exceptions;
 
 namespace Tenray.ZoneTree.WAL;
 
 public static class IncrementalLogAppender
 {
-    public static void AppendLogToTheBackupFile(string backupFile, Func<byte[]> getBytesDelegate)
+    public static void AppendLogToTheBackupFile(
+        IFileStreamProvider fileStreamProvider, 
+        string backupFile, 
+        Func<byte[]> getBytesDelegate)
     {
         var backupDataOffset = sizeof(long) * 3;
-        using var fs = new FileStream(
+        using var fs = fileStreamProvider.CreateFileStream(
                 backupFile,
                 FileMode.OpenOrCreate,
                 FileAccess.ReadWrite,
                 FileShare.Read,
-                4096, false);
-        var br = new BinaryReader(fs);
+                4096);
+        var br = new BinaryReader(fs.ToStream());
         bool hasLengthStamp = fs.Length > backupDataOffset;
         if (hasLengthStamp)
         {

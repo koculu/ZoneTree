@@ -1,15 +1,18 @@
-﻿namespace Tenray.ZoneTree.Segments.Disk;
+﻿using Tenray.ZoneTree.AbstractFileStream;
+
+namespace Tenray.ZoneTree.Segments.Disk;
 
 public sealed class FileRandomAccessDevice : IRandomAccessDevice
 {
     readonly string Category;
 
-    FileStream FileStream;
+    IFileStream FileStream;
+
+    readonly IFileStreamProvider FileStreamProvider;
 
     readonly IRandomAccessDeviceManager RandomDeviceManager;
 
     public string FilePath { get; }
-
     public int SegmentId { get; }
 
     public bool Writable { get; }
@@ -19,11 +22,13 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
     public int ReadBufferCount => 0;
 
     public FileRandomAccessDevice(
+        IFileStreamProvider fileStreamProvider,
         int segmentId,
         string category,
         IRandomAccessDeviceManager randomDeviceManager,
         string filePath, bool writable, int fileIOBufferSize = 4096)
     {
+        FileStreamProvider = fileStreamProvider;
         SegmentId = segmentId;
         Category = category;
         RandomDeviceManager = randomDeviceManager;
@@ -32,10 +37,10 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
         var fileMode = writable ? FileMode.OpenOrCreate : FileMode.Open;
         var fileAccess = writable ? FileAccess.ReadWrite : FileAccess.Read;
         var fileShare = writable ? FileShare.None : FileShare.Read;
-        FileStream = new FileStream(filePath,
+        FileStream = fileStreamProvider.CreateFileStream(filePath,
             fileMode,
             fileAccess,
-            fileShare, fileIOBufferSize, false);
+            fileShare, fileIOBufferSize);
         if (writable)
         {
             FileStream.Seek(0, SeekOrigin.End);
@@ -93,7 +98,7 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
     public void Delete()
     {
         Dispose();
-        File.Delete(FilePath);
+        FileStreamProvider.DeleteFile(FilePath);
     }
 
     public void ClearContent()

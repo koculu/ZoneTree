@@ -1,9 +1,12 @@
-﻿using Tenray.ZoneTree.Core;
+﻿using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Core;
 
 namespace Tenray.ZoneTree.WAL;
 
 public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 {
+    readonly IFileStreamProvider FileStreamProvider;
+
     readonly Dictionary<string, object> WALTable = new();
 
     public string WalDirectory { get; }
@@ -18,10 +21,13 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public LazyModeOptions LazyModeOptions { get; } = new();
 
-    public BasicWriteAheadLogProvider(string walDirectory = "data")
+    public BasicWriteAheadLogProvider(
+        IFileStreamProvider fileStreamProvider,
+        string walDirectory = "data")
     {
+        FileStreamProvider = fileStreamProvider;
         WalDirectory = walDirectory;
-        Directory.CreateDirectory(walDirectory);
+        FileStreamProvider.CreateDirectory(walDirectory);
     }
 
     public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(
@@ -41,6 +47,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
             case WriteAheadLogMode.Immediate:
                 {
                     var wal = new FileSystemWriteAheadLog<TKey, TValue>(
+                        FileStreamProvider,
                         keySerializer,
                         valueSerializer,
                         walPath)
@@ -53,6 +60,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
             case WriteAheadLogMode.CompressedImmediate:
                 {
                     var wal = new CompressedFileSystemWriteAheadLog<TKey, TValue>(
+                        FileStreamProvider,
                         keySerializer,
                         valueSerializer,
                         walPath,
@@ -69,6 +77,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
             case WriteAheadLogMode.Lazy:
                 {
                     var wal = new LazyFileSystemWriteAheadLog<TKey, TValue>(
+                        FileStreamProvider,
                         keySerializer,
                         valueSerializer,
                         walPath,
@@ -100,13 +109,13 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public void DropStore()
     {
-        if (Directory.Exists(WalDirectory))
-            Directory.Delete(WalDirectory, true);
+        if (FileStreamProvider.DirectoryExists(WalDirectory))
+            FileStreamProvider.DeleteDirectory(WalDirectory, true);
     }
 
     public void InitCategory(string category)
     {
         var categoryPath = Path.Combine(WalDirectory, category);
-        Directory.CreateDirectory(categoryPath);
+        FileStreamProvider.CreateDirectory(categoryPath);
     }
 }
