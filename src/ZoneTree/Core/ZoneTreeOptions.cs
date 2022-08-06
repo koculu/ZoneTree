@@ -27,9 +27,17 @@ public class ZoneTreeOptions<TKey, TValue>
 
     /// <summary>
     /// Disk Segment compression block size.
-    /// Default: 32 KB
+    /// Default: 1 MB
     /// </summary>
-    public int DiskSegmentCompressionBlockSize { get; set; } = 32768;
+    public int DiskSegmentCompressionBlockSize { get; set; } = 1024 * 1024;
+
+    /// <summary>
+    /// Disk segment maximum cache block count.
+    /// Total memory space that block cache can take is
+    /// = DiskSegmentCompressionBlockSize X DiskSegmentMaximumCachedBlockCount
+    /// Default: 1024 * 1024 * 32 = 32 MB
+    /// </summary>
+    public int DiskSegmentMaximumCachedBlockCount { get; set; } = 32;
 
     public bool TryValidate(out Exception exception)
     {

@@ -12,11 +12,15 @@ if (custom)
     TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 100;
 }
 
+TestConfig.DiskSegmentMaximumCachedBlockCount = 32;
+TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 1;
+TestConfig.WALCompressionBlockSize = 32768;
+TestConfig.MinimumSparseArrayLength = 1_000;
 var testAll = true;
 
 if (testAll)
 {
-    BenchmarkGroups.InsertIterate1();
+    BenchmarkGroups.InsertIterate2(0);
 }
 else
 {

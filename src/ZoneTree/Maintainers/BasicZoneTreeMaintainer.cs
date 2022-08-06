@@ -12,11 +12,17 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 
     public IZoneTreeMaintenance<TKey, TValue> Maintenance { get; }
 
-    public int MinimumSparseArrayLength = 1_000_000;
+    public int MinimumSparseArrayLength = 1_000;
 
-    public int SparseArrayStepLength = 128;
+    public int SparseArrayStepLength = 1_000;
 
     public int ThresholdForMergeOperationStart = 2_000_000;
+
+    public bool EnablePeriodicTimer { get; set; } = false;
+
+    public long DiskSegmentBufferLifeTime = TimeSpan.FromSeconds(1).Ticks;
+    
+    public TimeSpan PeriodicTimerInterval { get; set; } = TimeSpan.FromSeconds(5);
 
     public ConcurrentDictionary<int, Thread> MergerThreads = new();
 
@@ -25,6 +31,8 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
         ZoneTree = zoneTree;
         Maintenance = zoneTree.Maintenance;
         AttachEvents();
+        if (EnablePeriodicTimer)
+            Task.Run(StartPeriodicTimer);
     }
 
     public BasicZoneTreeMaintainer(ITransactionalZoneTree<TKey, TValue> zoneTree)
@@ -32,6 +40,7 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
         ZoneTree = zoneTree.Maintenance.ZoneTree;
         Maintenance = ZoneTree.Maintenance;
         AttachEvents();
+        Task.Run(StartPeriodicTimer);
     }
 
     void AttachEvents()
@@ -42,6 +51,8 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
     }
 
     volatile bool RestartMerge;
+
+    CancellationTokenSource PeriodicTimerCancellationTokenSource = new();
 
     void OnMergeOperationEnded(
         IZoneTreeMaintenance<TKey, TValue> zoneTree,
@@ -123,6 +134,18 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
         }
     }
 
+    async Task StartPeriodicTimer()
+    {
+        var cts = PeriodicTimerCancellationTokenSource;
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+        while (await timer.WaitForNextTickAsync(cts.Token))
+        {
+            var ticks = DateTime.UtcNow.Ticks - DiskSegmentBufferLifeTime;
+            var releasedCount = ZoneTree.Maintenance.DiskSegment.ReleaseReadBuffers(ticks);
+            Trace("Released Buffers: " + releasedCount);
+        }
+    }
+
     void Trace(string msg)
     {
 #if TRACE_ENABLED
@@ -132,6 +155,7 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 
     public void Dispose()
     {
+        PeriodicTimerCancellationTokenSource.Cancel();
         Maintenance.OnSegmentZeroMovedForward -= OnSegmentZeroMovedForward;
         Maintenance.OnDiskSegmentCreated -= OnDiskSegmentCreated;
         Maintenance.OnMergeOperationEnded -= OnMergeOperationEnded;

@@ -71,8 +71,21 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         var randomDeviceManager = options.RandomAccessDeviceManager;
 
         if (!HasFixedSizeKeyAndValue)
-            DataHeaderDevice = randomDeviceManager.GetReadOnlyDevice(SegmentId, DiskSegmentConstants.DataHeaderCategory, options.EnableDiskSegmentCompression, options.DiskSegmentCompressionBlockSize);
-        DataDevice = randomDeviceManager.GetReadOnlyDevice(SegmentId, DiskSegmentConstants.DataCategory, options.EnableDiskSegmentCompression, options.DiskSegmentCompressionBlockSize);
+            DataHeaderDevice = randomDeviceManager
+                .GetReadOnlyDevice(
+                    SegmentId, 
+                    DiskSegmentConstants.DataHeaderCategory,
+                    options.EnableDiskSegmentCompression,
+                    options.DiskSegmentCompressionBlockSize,
+                    options.DiskSegmentMaximumCachedBlockCount
+                    );
+        DataDevice = randomDeviceManager
+            .GetReadOnlyDevice(
+                SegmentId,
+                DiskSegmentConstants.DataCategory,
+                options.EnableDiskSegmentCompression,
+                options.DiskSegmentCompressionBlockSize,
+                options.DiskSegmentMaximumCachedBlockCount);
 
         KeySize = Unsafe.SizeOf<TKey>();
         ValueSize = Unsafe.SizeOf<TValue>();

@@ -78,6 +78,15 @@ public class ZoneTreeFactory<TKey, TValue>
     }
 
     public ZoneTreeFactory<TKey, TValue>
+        SetDiskSegmentMaximumCachedBlockCount(int maximumCachedBlockCount)
+    {
+        if (maximumCachedBlockCount < 1)
+            maximumCachedBlockCount = 1;
+        Options.DiskSegmentMaximumCachedBlockCount = maximumCachedBlockCount;
+        return this;
+    }
+
+    public ZoneTreeFactory<TKey, TValue>
         SetRandomAccessDeviceManager(IRandomAccessDeviceManager randomAccessDeviceManager)
     {
         Options.RandomAccessDeviceManager = randomAccessDeviceManager;

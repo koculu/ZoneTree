@@ -38,7 +38,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
     }
 
     public IRandomAccessDevice CreateWritableDevice(
-        int segmentId, string category, bool isCompressed, int compressionBlockSize)
+        int segmentId, string category, bool isCompressed, int compressionBlockSize, int maxCachedBlockCount)
     {
         var key = GetDeviceKey(segmentId, category);
         if (WritableDevices.ContainsKey(key))
@@ -48,6 +48,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         var filePath = GetFilePath(segmentId, category);
         IRandomAccessDevice device = isCompressed ?
             new CompressedFileRandomAccessDevice(
+                maxCachedBlockCount,
                 FileStreamProvider,
                 segmentId, category, this, filePath, true, compressionBlockSize) :
             new FileRandomAccessDevice(
@@ -75,7 +76,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
     }
 
     public IRandomAccessDevice GetReadOnlyDevice(
-        int segmentId, string category,bool isCompressed, int compressionBlockSize)
+        int segmentId, string category, bool isCompressed, int compressionBlockSize, int maxCachedBlockCount)
     {
         var key = GetDeviceKey(segmentId, category);
         if (ReadOnlyDevices.TryGetValue(key, out var device))
@@ -88,6 +89,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         var filePath = GetFilePath(segmentId, category);
         device = isCompressed ?
             new CompressedFileRandomAccessDevice(
+                maxCachedBlockCount,
                 FileStreamProvider,
                 segmentId, category, this, filePath, false, compressionBlockSize) :
             new FileRandomAccessDevice(

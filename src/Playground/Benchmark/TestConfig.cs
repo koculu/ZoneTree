@@ -16,5 +16,7 @@ public static class TestConfig
 
     public static int DiskCompressionBlockSize = 32768;
 
+    public static int DiskSegmentMaximumCachedBlockCount = 1000;
+
     public static int MinimumSparseArrayLength = 1_000_000;
 }

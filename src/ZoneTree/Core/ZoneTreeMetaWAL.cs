@@ -28,14 +28,14 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         {
             Device = Options
                 .RandomAccessDeviceManager
-                .GetReadOnlyDevice(ZoneTreeMetaId, MetaWalCategory, false, 0);
+                .GetReadOnlyDevice(ZoneTreeMetaId, MetaWalCategory, false, 0, 0);
         }
         else
         {
 
             Device = Options
                 .RandomAccessDeviceManager
-                .CreateWritableDevice(ZoneTreeMetaId, MetaWalCategory, false, 0);
+                .CreateWritableDevice(ZoneTreeMetaId, MetaWalCategory, false, 0, 0);
         }
     }
 
@@ -173,7 +173,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         var deviceManager = Options.RandomAccessDeviceManager;
 
         using var device = deviceManager
-            .CreateWritableDevice(ZoneTreeMetaId, MetaFileCategory, false, 0);
+            .CreateWritableDevice(ZoneTreeMetaId, MetaFileCategory, false, 0, 0);
 
         // If crash occurs during following 3 operations,
         // the tree meta file would become corrupted.
@@ -199,7 +199,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         IRandomAccessDeviceManager deviceManager)
     {
         using var device = deviceManager
-            .GetReadOnlyDevice(ZoneTreeMetaId, MetaFileCategory, false, 0); 
+            .GetReadOnlyDevice(ZoneTreeMetaId, MetaFileCategory, false, 0, 0); 
         if (device.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnce(device.Length, int.MaxValue);
         var bytes = device.GetBytes(0, (int)device.Length);

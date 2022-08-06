@@ -99,6 +99,7 @@ public class ZoneTree2
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
             .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
+            .SetDiskSegmentMaximumCachedBlockCount(TestConfig.DiskSegmentMaximumCachedBlockCount)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x =>
@@ -109,6 +110,7 @@ public class ZoneTree2
             })
             .SetKeySerializer(new Utf8StringSerializer())
             .SetValueSerializer(new Utf8StringSerializer())
+            .SetInitialSparseArrayLength(TestConfig.MinimumSparseArrayLength)
             .OpenOrCreate();
     }
 }
