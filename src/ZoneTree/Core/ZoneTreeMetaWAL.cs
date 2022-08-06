@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text.Json;
+using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Serializers;
 
@@ -127,8 +128,10 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
     public unsafe IReadOnlyList<MetaWalRecord> GetAllRecords()
     {
-        var len = (int)Device.Length;
-        var bytes = Device.GetBytes(0, len);
+        var len = Device.Length;
+        if (len > int.MaxValue)
+            throw new DataIsTooBigToLoadAtOnce(len, int.MaxValue);
+        var bytes = Device.GetBytes(0, (int)len);
         var list = new List<MetaWalRecord>();
         var off = 0;
         while (off < len)
@@ -192,11 +195,13 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         zoneTreeMeta.ReadOnlySegments = readOnlySegments;
     }
 
-    public static ZoneTreeMeta LoadZoneTreeMetaWithoutWALRecords(ZoneTreeOptions<TKey, TValue> options)
+    public static ZoneTreeMeta LoadZoneTreeMetaWithoutWALRecords(
+        IRandomAccessDeviceManager deviceManager)
     {
-        var deviceManager = options.RandomAccessDeviceManager;
         using var device = deviceManager
-            .GetReadOnlyDevice(ZoneTreeMetaId, MetaFileCategory, false, 0);
+            .GetReadOnlyDevice(ZoneTreeMetaId, MetaFileCategory, false, 0); 
+        if (device.Length > int.MaxValue)
+            throw new DataIsTooBigToLoadAtOnce(device.Length, int.MaxValue);
         var bytes = device.GetBytes(0, (int)device.Length);
         device.Close();
         deviceManager.RemoveReadOnlyDevice(device.SegmentId, MetaFileCategory);

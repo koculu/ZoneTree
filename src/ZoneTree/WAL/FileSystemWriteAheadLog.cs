@@ -172,7 +172,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                         {
                             FileStream.Flush(true);
                             FileStream.Seek(0, SeekOrigin.Begin);
-                            var existingLength = (int)FileStream.Length;
+                            var existingLength = FileStream.Length;
                             var bytes = new byte[existingLength];
                             FileStream.Read(bytes);
                             return bytes;
@@ -185,7 +185,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             // 3. Delete the backup
             // 4. Add backup recovery to the constructor if one exists.
 
-            var existingLength = (int)FileStream.Length;
+            var existingLength = FileStream.Length;
             FileStream.SetLength(0);
 
             var len = keys.Length;

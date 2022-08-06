@@ -27,7 +27,8 @@ public class ZoneTreeLoader<TKey, TValue>
 
     void LoadZoneTreeMeta()
     {
-        ZoneTreeMeta = ZoneTreeMetaWAL<TKey, TValue>.LoadZoneTreeMetaWithoutWALRecords(Options);
+        ZoneTreeMeta = ZoneTreeMetaWAL<TKey, TValue>
+            .LoadZoneTreeMetaWithoutWALRecords(Options.RandomAccessDeviceManager);
         SetMaximumSegmentId(ZoneTreeMeta.SegmentZero);
         SetMaximumSegmentId(ZoneTreeMeta.DiskSegment);
         SetMaximumSegmentId(ZoneTreeMeta.ReadOnlySegments.FirstOrDefault());

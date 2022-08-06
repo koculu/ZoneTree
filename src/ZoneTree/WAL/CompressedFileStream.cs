@@ -289,7 +289,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
                 break;
             b -= CurrentBlock.Length;
         }
-        Position += (int)offset;
+        Position += offset;
         CurrentBlockPosition = (int)b;
     }
 
@@ -342,7 +342,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
     {
         FileStream.Position = 0;
         var len = FileStream.Length;
-        var remainingTruncation = (int)(_length - truncatedLength);
+        var remainingTruncation = _length - truncatedLength;
         var trimmed = TailBlock.TrimRight(remainingTruncation);
         truncatedLength -= trimmed;
         _length -= trimmed;
@@ -351,7 +351,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         LastWrittenTailLength = 0;
         WriteTail();
 
-        remainingTruncation = (int)(_length - truncatedLength);
+        remainingTruncation = _length - truncatedLength;
         var physicalPosition = 0;
         var off = 0;
         while (true)
@@ -363,16 +363,17 @@ public sealed class CompressedFileStream : Stream, IDisposable
             var blockSize = BinaryReader.ReadInt32();
             if (off + blockSize > truncatedLength)
             {
-                var diff = (int)(truncatedLength - off);
+                var diff = truncatedLength - off;
                 var bytes = BinaryReader.ReadBytes(compressedBlockSize);
-                var truncatedBytes = DecompressedBlock.FromCompressed(0, bytes).GetBytes(0, diff);
+                var truncatedBytes = DecompressedBlock
+                    .FromCompressed(0, bytes).GetBytes(0, (int)diff);
                 var compressedBytes = new DecompressedBlock(0, truncatedBytes).Compress();
                 FileStream.Position = physicalPosition + sizeof(int);
                 BinaryWriter.Write(compressedBytes.Length);
                 BinaryWriter.Write(truncatedBytes.Length);
                 BinaryWriter.Write(compressedBytes);
                 FileStream.SetLength(FileStream.Position);
-                _length -= remainingTruncation;
+                _length -= (int)remainingTruncation;
                 break;
             }
             physicalPosition += sizeof(int) * 3;
@@ -477,7 +478,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
             var compressedBytes = tailBlock.Compress();
             var currentPosition = FileStream.Position;
             FileStream.Position = 0;
-            var bytes = new byte[(int)FileStream.Length + compressedBytes.Length + 3 * sizeof(int)];
+            var bytes = new byte[FileStream.Length + compressedBytes.Length + 3 * sizeof(int)];
             using var ms = new MemoryStream(bytes);
             using var bw = new BinaryWriter(ms);
             FileStream.CopyTo(ms);

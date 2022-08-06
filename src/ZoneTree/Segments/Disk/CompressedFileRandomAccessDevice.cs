@@ -153,7 +153,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     public byte[] GetBytes(long offset, int length)
     {
         var blockIndex = (int)(offset / BlockSize);
-        var offsetInBlock = (int)offset % BlockSize;
+        var offsetInBlock = (int)(offset % BlockSize);
         if (offsetInBlock + length > BlockSize)
         {
             var chunk1Len = BlockSize - offsetInBlock;

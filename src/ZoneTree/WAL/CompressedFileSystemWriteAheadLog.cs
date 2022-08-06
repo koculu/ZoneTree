@@ -162,7 +162,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
             // 3. Delete the backup
             // 4. Add backup recovery to the constructor if one exists.
 
-            var existingLength = (int)FileStream.Length;
+            var existingLength = FileStream.Length;
             FileStream.SetLength(0);
 
             var len = keys.Length;
