@@ -136,7 +136,7 @@ Note: For small data you don't need a maintainer.
   zoneTree.Upsert(39, "Hello ZoneTree!");
 
   // 3. Complete maintainer running tasks.
-  maintainer.CompleteRunningTasks().AsTask().Wait();
+  maintainer.CompleteRunningTasks();
 ```
 
 ## How to delete keys?

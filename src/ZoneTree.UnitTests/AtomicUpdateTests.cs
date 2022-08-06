@@ -29,7 +29,7 @@ public class AtomicUpdateTests
             data.Upsert(i, i + i);
         }
         data.Maintenance.MoveSegmentZeroForward();
-        data.Maintenance.StartMergeOperation().AsTask().Wait();
+        data.Maintenance.StartMergeOperation().Join();
         var random = new Random();
         var off = -1;
         Parallel.For(0, 1001, (x) =>
@@ -63,7 +63,7 @@ public class AtomicUpdateTests
             Assert.That(data.ContainsKey(i), Is.True);
         }
         data.Maintenance.MoveSegmentZeroForward();
-        data.Maintenance.StartMergeOperation().AsTask().Wait();
+        data.Maintenance.StartMergeOperation().Join();
         data.TryGet(counterKey, out var finalValue);
         Assert.That(finalValue, Is.EqualTo(off));
         data.Maintenance.DestroyTree();

@@ -5,10 +5,11 @@ var custom = false;
 if (custom)
 {
     TestConfig.EnableIncrementalBackup = true;
-    TestConfig.RecreateDatabases = true;
+    TestConfig.RecreateDatabases = false;
     TestConfig.MutableSegmentMaxItemCount = 100000;
     TestConfig.ThresholdForMergeOperationStart = 300000;
-    TestConfig.WALCompressionBlockSize = 16384;
+    TestConfig.WALCompressionBlockSize = 1024 * 1024 * 1;
+    TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 100;
 }
 
 var testAll = true;

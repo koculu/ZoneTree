@@ -361,36 +361,54 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             }
     }
 
-    public async ValueTask<MergeResult> StartMergeOperation()
-    {
-        OnMergeOperationStarted?.Invoke(this);
-        var mergeResult = await StartMergeOperationInternal();
-        OnMergeOperationEnded?.Invoke(this, mergeResult);
-        return mergeResult;
-    }
-
-    private async ValueTask<MergeResult> StartMergeOperationInternal()
+    public Thread StartMergeOperation()
     {
         if (IsMerging)
-            return MergeResult.ANOTHER_MERGE_IS_RUNNING;
-        IsCancelMergeRequested = false;
-        return await Task.Run(() =>
         {
-            lock (LongMergerLock)
+            OnMergeOperationEnded?.Invoke(this, MergeResult.ANOTHER_MERGE_IS_RUNNING);
+            return null;
+        }
+            
+        OnMergeOperationStarted?.Invoke(this);
+        var thread = new Thread(StartMergeOperationInternal);
+        thread.Start();
+        return thread;
+    }
+
+    private void StartMergeOperationInternal()
+    {
+        if (IsMerging)
+        {
+            OnMergeOperationEnded?.Invoke(this, MergeResult.ANOTHER_MERGE_IS_RUNNING);
+            return;
+        }
+        IsCancelMergeRequested = false;
+        lock (LongMergerLock)
+        {
+            try
             {
-                try
+                if (IsMerging)
                 {
-                    if (IsMerging)
-                        return MergeResult.ANOTHER_MERGE_IS_RUNNING;
-                    IsMerging = true;
-                    return MergeReadOnlySegmentsInternal();
+                    OnMergeOperationEnded?.Invoke(this, MergeResult.ANOTHER_MERGE_IS_RUNNING);
+                    return;
                 }
-                finally
-                {
-                    IsMerging = false;
-                }
+                IsMerging = true;
+                var mergeResult = MergeReadOnlySegmentsInternal();
+                IsMerging = false;
+                OnMergeOperationEnded?.Invoke(this, mergeResult);
+
             }
-        });
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                OnMergeOperationEnded?.Invoke(this, MergeResult.FAILURE);
+                throw;
+            }
+            finally
+            {
+                IsMerging = false;
+            }
+        }
     }
 
     public void TryCancelMergeOperation()
@@ -398,13 +416,19 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         IsCancelMergeRequested = true;
     }
 
-    private MergeResult MergeReadOnlySegmentsInternal()
+    int ReadOnlySegmentFullyFrozenSpinTimeout = 1000;
+    MergeResult MergeReadOnlySegmentsInternal()
     {
         var oldDiskSegment = DiskSegment;
         var roSegments = ReadOnlySegmentQueue.ToArray();
 
         if (roSegments.Any(x => !x.IsFullyFrozen))
-            return MergeResult.RETRY_READONLY_SEGMENTS_ARE_NOT_READY;
+        {
+            SpinWait.SpinUntil(() => !roSegments.Any(x => !x.IsFullyFrozen), 
+                ReadOnlySegmentFullyFrozenSpinTimeout);
+            if (roSegments.Any(x => !x.IsFullyFrozen))
+                return MergeResult.RETRY_READONLY_SEGMENTS_ARE_NOT_READY;
+        }
 
         var readOnlySegmentsArray = roSegments.Select(x => x.GetSeekableIterator()).ToArray();
         if (readOnlySegmentsArray.Length == 0)
@@ -465,6 +489,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 }
                 catch (Exception e)
                 {
+                    Console.WriteLine(e.ToString());
                     OnCanNotDropDiskSegmentCreator?.Invoke(diskSegmentCreator, e);
                 }
                 return MergeResult.CANCELLED_BY_USER;
@@ -508,6 +533,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             }
             catch (Exception e)
             {
+                Console.WriteLine(e.ToString());
                 OnCanNotDropDiskSegment?.Invoke(oldDiskSegment, e);
             }
 
@@ -522,6 +548,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 }
                 catch (Exception e)
                 {
+                    Console.WriteLine(e.ToString());
                     OnCanNotDropReadOnlySegment?.Invoke(segment, e);
                 }
                 --len;

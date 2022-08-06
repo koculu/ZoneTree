@@ -13,4 +13,8 @@ public static class TestConfig
     public static bool EnableDiskSegmentCompression = true;
 
     public static int WALCompressionBlockSize = 32768;
+
+    public static int DiskCompressionBlockSize = 32768;
+
+    public static int MinimumSparseArrayLength = 1_000_000;
 }

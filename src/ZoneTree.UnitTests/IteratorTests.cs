@@ -29,7 +29,7 @@ public class IteratorTests
             zoneTree.Upsert(i, i + i);
         }
 
-        zoneTree.Maintenance.StartMergeOperation().AsTask().Wait();
+        zoneTree.Maintenance.StartMergeOperation().Join();
 
         zoneTree.ForceDelete(127);
         zoneTree.ForceDelete(19);
@@ -69,7 +69,7 @@ public class IteratorTests
         Assert.That(reverseIterator.Next(), Is.False);
 
         zoneTree.Maintenance.MoveSegmentZeroForward();
-        zoneTree.Maintenance.StartMergeOperation().AsTask().Wait();
+        zoneTree.Maintenance.StartMergeOperation().Join();
 
         Assert.That(zoneTree.Maintenance.DiskSegment.Length, Is.EqualTo(b - 4));
         zoneTree.Maintenance.SaveMetaData();
@@ -102,7 +102,7 @@ public class IteratorTests
             zoneTree.Upsert(i, i + i);
         }
 
-        zoneTree.Maintenance.StartMergeOperation().AsTask().Wait();
+        zoneTree.Maintenance.StartMergeOperation().Join();
 
         zoneTree.ForceDelete(127);
         zoneTree.ForceDelete(19);
@@ -163,7 +163,7 @@ public class IteratorTests
         Assert.That(zoneTree.Count(), Is.EqualTo(b - 4));
 
         zoneTree.Maintenance.MoveSegmentZeroForward();
-        zoneTree.Maintenance.StartMergeOperation().AsTask().Wait();
+        zoneTree.Maintenance.StartMergeOperation().Join();
 
         Assert.That(zoneTree.Maintenance.DiskSegment.Length, Is.EqualTo(b - 4));
         zoneTree.Maintenance.SaveMetaData();
@@ -196,7 +196,7 @@ public class IteratorTests
             zoneTree.Upsert(i, i + i);
         }
 
-        zoneTree.Maintenance.StartMergeOperation().AsTask().Wait();
+        zoneTree.Maintenance.StartMergeOperation().Join();
 
         for (var i = a; i < b; i += 2)
         {

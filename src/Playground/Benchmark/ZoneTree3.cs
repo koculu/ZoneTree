@@ -32,7 +32,7 @@ public class ZoneTree3
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
         using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
-
+        basicMaintainer.MinimumSparseArrayLength = TestConfig.MinimumSparseArrayLength;
         BenchmarkGroups.LogWithColor(
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
@@ -48,7 +48,7 @@ public class ZoneTree3
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
         stopWatch.Restart();
-        basicMaintainer.CompleteRunningTasks().Wait();
+        basicMaintainer.CompleteRunningTasks();
         BenchmarkGroups.LogWithColor(
             "Merged in:",
             stopWatch.ElapsedMilliseconds,
@@ -66,7 +66,7 @@ public class ZoneTree3
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
         using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
-
+        basicMaintainer.MinimumSparseArrayLength = TestConfig.MinimumSparseArrayLength;
         BenchmarkGroups.LogWithColor(
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
@@ -87,7 +87,7 @@ public class ZoneTree3
             "Completed in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
-        basicMaintainer.CompleteRunningTasks().Wait();
+        basicMaintainer.CompleteRunningTasks();
     }
 
     private static ITransactionalZoneTree<int, int> OpenOrCreateZoneTree(WriteAheadLogMode mode, string dataPath)
@@ -96,6 +96,7 @@ public class ZoneTree3
             .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
             .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
+            .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x =>

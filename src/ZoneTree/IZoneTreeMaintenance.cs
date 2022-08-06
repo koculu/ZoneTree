@@ -66,9 +66,7 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     /// Merges available readonly segments with bottom segment.
     /// Bottom segment is usually persistance segment. ex: Disk or any IO device.
     /// </summary>
-    /// <returns>MergeResult.SUCCESS if merge operation is done;
-    /// otherwise, status with reason.</returns>
-    ValueTask<MergeResult> StartMergeOperation();
+    Thread StartMergeOperation();
 
     /// <summary>
     /// Attempts to cancel merge operation.
