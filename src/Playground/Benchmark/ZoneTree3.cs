@@ -19,9 +19,9 @@ public class ZoneTree3
 
     public static void Insert(WriteAheadLogMode mode, int count)
     {
+        var recCount = count / 1000000.0 + "M";
         Console.WriteLine("\r\n--------------------------");
-        BenchmarkGroups.LogWithColor($"\r\n{mode} Transaction Insert <int,int>\r\n", ConsoleColor.Cyan);
-        Console.WriteLine("Record count = " + count);
+        BenchmarkGroups.LogWithColor($"\r\n{mode} Transaction Insert <int,int> {recCount}\r\n", ConsoleColor.Cyan);
 
         string dataPath = GetDataPath(mode, count);
         if (TestConfig.RecreateDatabases && Directory.Exists(dataPath))
@@ -47,13 +47,18 @@ public class ZoneTree3
             "Completed in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
+        stopWatch.Restart();
         basicMaintainer.CompleteRunningTasks().Wait();
+        BenchmarkGroups.LogWithColor(
+            "Merged in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.DarkCyan);
     }
 
     public static void Iterate(WriteAheadLogMode mode, int count)
     {
-        BenchmarkGroups.LogWithColor($"\r\n{mode} Iterate <int,int>\r\n", ConsoleColor.Cyan);
-        Console.WriteLine("Record count = " + count);
+        var recCount = count / 1000000.0 + "M";
+        BenchmarkGroups.LogWithColor($"\r\n{mode} Iterate <int,int> {recCount}\r\n", ConsoleColor.Cyan);
 
         string dataPath = GetDataPath(mode, count);
         var stopWatch = new Stopwatch();
