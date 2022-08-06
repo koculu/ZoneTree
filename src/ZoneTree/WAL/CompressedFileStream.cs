@@ -420,7 +420,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
     private void CommitTailBlock()
     {
-        if (!FileStream.CanWrite)
+        if (IsClosed || !FileStream.CanWrite)
             return;
         var tailBlock = TailBlock;
         var compressedBytes = tailBlock.Compress();
