@@ -74,6 +74,7 @@ public class ExceptionlessTransactionTests
                 // to prevent sleep intervals sum up on replacement.
                 if (compactionThreshold == 0)
                 {
+                    x.WriteAheadLogMode = WAL.WriteAheadLogMode.Immediate;
                     x.LazyModeOptions.EmptyQueuePollInterval = 0;
                     x.CompressedImmediateModeOptions.TailWriterJobInterval = 0;
                 }

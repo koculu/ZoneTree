@@ -11,7 +11,8 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public string WalDirectory { get; }
 
-    public WriteAheadLogMode WriteAheadLogMode { get; set; }
+    public WriteAheadLogMode WriteAheadLogMode { get; set; } 
+        = WriteAheadLogMode.Lazy;
 
     public int CompressionBlockSize { get; set; } = 32768;
 

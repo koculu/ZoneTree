@@ -1,5 +1,6 @@
 ﻿using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Serializers;
+using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.UnitTests;
 
@@ -148,6 +149,8 @@ public class FixedSizeKeyAndValueTests
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x => 
+                x.WriteAheadLogMode = WriteAheadLogMode.Immediate)
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .SetIsValueDeletedDelegate((in int x) => x == -1)
