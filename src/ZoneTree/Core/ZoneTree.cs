@@ -522,7 +522,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 }
                 catch (Exception e)
                 {
-                    OnCanNotDropReadOnlySegment.Invoke(segment, e);
+                    OnCanNotDropReadOnlySegment?.Invoke(segment, e);
                 }
                 --len;
             }

@@ -177,8 +177,11 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
 
     public void MarkFrozen()
     {
-        FileStream.WriteTail();
-        FileStream.Dispose();
+        Task.Run(() =>
+        {
+            FileStream.WriteTail();
+            FileStream.Dispose();
+        });
     }
 
     public void TruncateIncompleteTailRecord(IncompleteTailRecordFoundException incompleteTailException)

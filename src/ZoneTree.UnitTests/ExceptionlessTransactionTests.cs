@@ -68,6 +68,16 @@ public class ExceptionlessTransactionTests
             .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x =>
+            {
+                // interval sleep count set to zero
+                // to prevent sleep intervals sum up on replacement.
+                if (compactionThreshold == 0)
+                {
+                    x.LazyModeOptions.EmptyQueuePollInterval = 0;
+                    x.CompressedImmediateModeOptions.TailWriterJobInterval = 0;
+                }
+            })
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();

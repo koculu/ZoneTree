@@ -27,7 +27,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
     
     readonly BinaryWriter BinaryChunkWriter;
 
-    int _length;
+    volatile int _length;
 
     readonly Task TailWriter;
 
@@ -38,6 +38,8 @@ public sealed class CompressedFileStream : Stream, IDisposable
     volatile int LastWrittenTailIndex = -1;
 
     volatile int LastWrittenTailLength = 0;
+
+    volatile bool IsClosed = false;
 
     public string FilePath { get; }
 
@@ -106,7 +108,10 @@ public sealed class CompressedFileStream : Stream, IDisposable
         while(IsTailWriterRunning)
         {
             WriteTail();
-            Thread.Sleep(TailWriterJobInterval);
+            if (TailWriterJobInterval == 0)
+                Thread.Yield();
+            else
+                Thread.Sleep(TailWriterJobInterval);
         }
     }
 
@@ -150,13 +155,23 @@ public sealed class CompressedFileStream : Stream, IDisposable
     public void WriteTail()
     {
         var tailBlock = TailBlock;
+        if (tailBlock.BlockIndex < LastWrittenTailIndex)
+            return;
         if (tailBlock.BlockIndex == LastWrittenTailIndex &&
             tailBlock.Length == LastWrittenTailLength)
             return;
-        if (!TailStream.CanWrite)
+        if (IsClosed || !TailStream.CanWrite)
             return;
         lock (tailBlock)
         {
+            if (tailBlock.BlockIndex < LastWrittenTailIndex)
+                return;
+            if (tailBlock.BlockIndex == LastWrittenTailIndex &&
+                tailBlock.Length == LastWrittenTailLength)
+                return;
+            if (IsClosed || !TailStream.CanWrite)
+                return;
+
             TailStream.Position = 0;
             BinaryChunkWriter.Write(tailBlock.BlockIndex);
             BinaryChunkWriter.Write(tailBlock.Length);
@@ -373,10 +388,11 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
     public override void Write(byte[] buffer, int offset, int count)
     {
-        if (Position != Length)
-            throw new Exception("Compressed File Stream can only write to the end of the file.");
         lock (this)
         {
+            if (Position != Length)
+                throw new Exception("Compressed File Stream can only write to the end of the file.");
+
             var totalWriteLen = 0;
             var totalCount = count;
             while (true)
@@ -416,26 +432,29 @@ public sealed class CompressedFileStream : Stream, IDisposable
         TailBlock = new DecompressedBlock(tailBlock.BlockIndex + 1, BlockSize);
     }
 
-    void IDisposable.Dispose()
+    public new void Dispose()
     {
-        StopTailWriter();
-        WriteTail();
-        BinaryReader.Dispose();
-        BinaryWriter.Dispose();
-        FileStream.Dispose();
-        BinaryChunkReader.Dispose();
-        BinaryChunkWriter.Dispose();
-        TailStream.Dispose();
-        base.Dispose();
+        Close();
     }
 
     public override void Close()
     {
-        StopTailWriter();
-        WriteTail();
-        FileStream.Close();
-        TailStream.Close();
-        base.Close();
+        lock (this)
+        {
+            if (IsClosed)
+                return;
+            StopTailWriter();
+            WriteTail();
+            FileStream.Flush(true);
+            TailStream.Flush(true);
+            BinaryWriter.Dispose();
+            BinaryReader.Dispose();
+            BinaryChunkWriter.Dispose();
+            BinaryChunkReader.Dispose();
+            FileStream.Close();
+            TailStream.Close();
+            IsClosed = true;
+        }
     }
 
     public byte[] GetFileContent()
@@ -458,15 +477,20 @@ public sealed class CompressedFileStream : Stream, IDisposable
             FileStream.Position = 0;
             var bytes = new byte[(int)FileStream.Length + compressedBytes.Length + 3 * sizeof(int)];
             using var ms = new MemoryStream(bytes);
-            using var br = new BinaryWriter(ms);
+            using var bw = new BinaryWriter(ms);
             FileStream.CopyTo(ms);
-            br.Write(tailBlock.BlockIndex);
-            br.Write(compressedBytes.Length);
-            br.Write(tailBlock.Length);
-            br.Write(compressedBytes);
+            bw.Write(tailBlock.BlockIndex);
+            bw.Write(compressedBytes.Length);
+            bw.Write(tailBlock.Length);
+            bw.Write(compressedBytes);
             ms.Flush();
             FileStream.Position = currentPosition;
             return bytes;
         }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        Dispose();
     }
 }

@@ -70,11 +70,14 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     void ConsumeQueue()
     {
-        while (Queue.TryDequeue(out var q))
+        lock (this)
         {
-            var keyBytes = KeySerializer.Serialize(q.Value1);
-            var valueBytes = ValueSerializer.Serialize(q.Value2);
-            AppendLogEntry(keyBytes, valueBytes);
+            while (Queue.TryDequeue(out var q))
+            {
+                var keyBytes = KeySerializer.Serialize(q.Value1);
+                var valueBytes = ValueSerializer.Serialize(q.Value2);
+                AppendLogEntry(keyBytes, valueBytes);
+            }
         }
         FileStream.WriteTail();
     }
@@ -108,7 +111,10 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                     // todo log the exception.
                     // Console.WriteLine(e.Message);
                 }
-                Thread.Sleep(EmptyQueuePollInterval);
+                if (EmptyQueuePollInterval == 0)
+                    Thread.Yield();
+                else
+                    Thread.Sleep(EmptyQueuePollInterval);
             }
         }
     }
@@ -252,9 +258,12 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public void MarkFrozen()
     {
-        StopWriter(true);
-        FileStream.WriteTail();
-        FileStream.Dispose();
+        Task.Run(() =>
+        {
+            StopWriter(true);
+            FileStream.WriteTail();
+            FileStream.Dispose();
+        });
     }
 
     public void TruncateIncompleteTailRecord(IncompleteTailRecordFoundException incompleteTailException)
