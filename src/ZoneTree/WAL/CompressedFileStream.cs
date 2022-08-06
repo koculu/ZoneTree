@@ -439,6 +439,8 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
     public override void Close()
     {
+        if (IsClosed)
+            return;
         lock (this)
         {
             if (IsClosed)

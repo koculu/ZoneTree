@@ -8,6 +8,8 @@ namespace Tenray.ZoneTree.WAL;
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
 public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
+    volatile bool IsDisposed;
+
     readonly IFileStreamProvider FileStreamProvider;
 
     readonly IFileStream FileStream;
@@ -50,8 +52,15 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     public void Drop()
     {
-        FileStream.Dispose();
-        FileStreamProvider.DeleteFile(FilePath);
+        lock (this)
+        {
+            if (!IsDisposed)
+            {
+                FileStream.Dispose();
+                IsDisposed = true;
+            }
+            FileStreamProvider.DeleteFile(FilePath);
+        }
     }
 
     struct LogEntry
@@ -131,13 +140,21 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     public void Dispose()
     {
-        Flush();
-        FileStream.Dispose();
+        if (IsDisposed)
+            return;
+        lock (this)
+        {
+            if (IsDisposed)
+                return;
+            Flush();
+            FileStream.Dispose();
+            IsDisposed = true;
+        }
     }
 
     private void Flush()
     {
-        if (FileStream.CanWrite)
+        if (!IsDisposed)
             FileStream.Flush(true);
     }
 
@@ -183,8 +200,10 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     public void MarkFrozen()
     {
-        Flush();
-        FileStream.Dispose();
+        Task.Run(() =>
+        {
+            Dispose();
+        });
     }
 
     public void TruncateIncompleteTailRecord(IncompleteTailRecordFoundException incompleteTailException)
