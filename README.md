@@ -59,20 +59,24 @@ It is four times faster than Facebook's RocksDB.
 | Insert Benchmarks                               | 1M      | 2M       | 3M         | 10M        |
 | ------------------------------------------------|---------|----------|------------|------------|
 | int-int ZoneTree lazy WAL                       | 1024 ms | 1828 ms  | 2987 ms    | 9852 ms    |
-| int-int ZoneTree compressed-immediate WAL       | 2422 ms | 4301 ms  | 6672 ms    | 22311 ms   |
+| int-int ZoneTree compressed-immediate WAL       | 1678 ms | 3034 ms  | 4646 ms    | 15002 ms   |
 | int-int ZoneTree immediate WAL                  | 3410 ms | 7297 ms  | 10546 ms   | 35151 ms   |
 ||
-| str-str ZoneTree immediate WAL                  | 4649 ms | 9075 ms  | 13774 ms   | 47011 ms   |
-| str-str ZoneTree compressed-immediate WAL       | 4255 ms | 8425 ms  | 12523 ms   | 43355 ms   |
 | str-str ZoneTree lazy WAL                       | 2192 ms | 4037 ms  | 5924 ms    | 19093 ms   |
+| str-str ZoneTree compressed-immediate WAL       | 2888 ms | 5087 ms  | 7498 ms    | 26188 ms   |
+| str-str ZoneTree immediate WAL                  | 4649 ms | 9075 ms  | 13774 ms   | 47011 ms   |
 ||
 | int-int RocksDb                                 | NOT SUPPORTED                                |
 | str-str RocksDb immediate WAL                   | NOT SUPPORTED                                |
 | str-str RocksDb compressed-immediate WAL        | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
 ||
 
-Notes:
-The bottleneck is the disk flushes on the write-ahead log. 
+Benchmark Configuration:
+```c#
+DiskCompressionBlockSize = 1024 * 1024 * 1; // 1MB
+WALCompressionBlockSize = 1024 * 1024; // 1 MB
+DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
+```
 
 ### ZoneTree offers 3 WAL modes to let you make a flexible tradeoff.
 
