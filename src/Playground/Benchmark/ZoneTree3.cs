@@ -38,10 +38,20 @@ public class ZoneTree3
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
 
-        Parallel.For(0, count, (x) =>
+        if (TestConfig.EnableParalelInserts)
         {
-            zoneTree.UpsertAutoCommit(x, x + x);
-        });
+            Parallel.For(0, count, (x) =>
+            {
+                zoneTree.UpsertAutoCommit(x, x + x);
+            });
+        }
+        else
+        {
+            for (var x = 0; x < count; ++x)
+            {
+                zoneTree.UpsertAutoCommit(x, x + x);
+            }
+        }
 
         BenchmarkGroups.LogWithColor(
             "Completed in:",

@@ -417,6 +417,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     }
 
     int ReadOnlySegmentFullyFrozenSpinTimeout = 1000;
+
     MergeResult MergeReadOnlySegmentsInternal()
     {
         var oldDiskSegment = DiskSegment;
@@ -442,7 +443,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             return MergeResult.CANCELLED_BY_USER;
 
         var len = mergingSegments.Count;
-        var diskSegmentCreator = new DiskSegmentCreator<TKey, TValue>(Options, IncrementalIdProvider);
+        var diskSegmentIndex = len - 1;
+        var diskSegmentCreator = new MultiSectorDiskSegmentCreator<TKey, TValue>(Options, IncrementalIdProvider);
         var heap = new FixedSizeMinHeap<HeapEntry<TKey, TValue>>(len + 1, MinHeapEntryComparer);
 
         var fillHeap = () =>
@@ -479,6 +481,14 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         var comparer = Options.Comparer;
         var hasPrev = false;
         TKey prevKey = default;
+
+        var firstKeysOfEverySector = oldDiskSegment.GetFirstKeysOfEverySector();
+        var lastKeysOfEverySector = oldDiskSegment.GetLastKeysOfEverySector();
+        var lastValuesOfEverySector = oldDiskSegment.GetLastValuesOfEverySector();
+        var nextSectorKeyIndex = 0;
+        var lengthOfFirstKeysList = firstKeysOfEverySector.Length;
+        var diskSegmentMinimumRecordCount = Options.DiskSegmentMinimumRecordCount;
+
         while (heap.Count > 0)
         {
             if (IsCancelMergeRequested)
@@ -516,6 +526,50 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             prevKey = minEntry.Key;
             hasPrev = true;
 
+            // skip a sector without merge if possible
+            if (minSegmentIndex == diskSegmentIndex && 
+                nextSectorKeyIndex < lengthOfFirstKeysList)
+            {
+                var currentSectorKeyIndex = nextSectorKeyIndex;
+                var isStartOfASector =
+                    comparer.Compare(
+                        minEntry.Key,
+                        firstKeysOfEverySector[nextSectorKeyIndex++]) == 0;
+                var sector = oldDiskSegment
+                    .GetSector(currentSectorKeyIndex);
+                if (isStartOfASector &&
+                    sector.Length > diskSegmentMinimumRecordCount &&
+                    diskSegmentCreator.CanSkipCurrentSector)
+                {
+                    var lastKey = lastKeysOfEverySector[currentSectorKeyIndex];
+                    var islastKeySmallerThanAllOtherKeys = true;
+                    for (int i = 0; i < diskSegmentIndex; i++)
+                    {
+                        var s = mergingSegments[i];
+                        var key = s.CurrentKey;
+                        if (comparer.Compare(lastKey, key) >= 0)
+                        {
+                            islastKeySmallerThanAllOtherKeys = false;
+                            break;
+                        }
+                    }
+                    if (islastKeySmallerThanAllOtherKeys)
+                    {
+                        diskSegmentCreator.Append(
+                            sector, 
+                            minEntry.Key, 
+                            lastKey,
+                            minEntry.Value, 
+                            lastValuesOfEverySector[currentSectorKeyIndex]);
+                        // skip to the next sector.
+                        mergingSegments[diskSegmentIndex].Skip(sector.Length - 1);
+                        prevKey = lastKey;
+                        skipElement();
+                        continue;
+                    }
+                }
+            }
+
             diskSegmentCreator.Append(minEntry.Key, minEntry.Value);
             skipElement();
         }
@@ -529,7 +583,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             MetaWal.NewDiskSegment(newDiskSegment.SegmentId);
             try
             {
-                oldDiskSegment.Drop();
+                oldDiskSegment.Drop(diskSegmentCreator.AppendedSectorSegmentIds);
             }
             catch (Exception e)
             {

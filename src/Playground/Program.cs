@@ -11,16 +11,16 @@ if (custom)
     TestConfig.WALCompressionBlockSize = 1024 * 1024 * 1;
     TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 100;
 }
-
+TestConfig.EnableParalelInserts = false;
 TestConfig.DiskSegmentMaximumCachedBlockCount = 32;
-TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 1;
-TestConfig.WALCompressionBlockSize = 32768;
-TestConfig.MinimumSparseArrayLength = 1_000;
+TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 8;
+TestConfig.WALCompressionBlockSize = 32768 * 4;
+TestConfig.MinimumSparseArrayLength = 0;
 var testAll = true;
 
 if (testAll)
 {
-    BenchmarkGroups.InsertIterate2(0);
+    BenchmarkGroups.InsertIterate1(0);
 }
 else
 {

@@ -20,7 +20,7 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 
     public bool EnablePeriodicTimer { get; set; } = false;
 
-    public long DiskSegmentBufferLifeTime = TimeSpan.FromSeconds(1).Ticks;
+    public long DiskSegmentBufferLifeTime = TimeSpan.FromSeconds(10).Ticks;
     
     public TimeSpan PeriodicTimerInterval { get; set; } = TimeSpan.FromSeconds(5);
 

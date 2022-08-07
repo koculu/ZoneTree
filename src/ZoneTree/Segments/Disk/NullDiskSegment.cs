@@ -55,6 +55,27 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         // Nothing to drop
     }
 
+    public IDiskSegment<TKey, TValue> GetSector(int sectorIndex)
+    {
+        return null;
+    }
+
+    public TKey[] GetFirstKeysOfEverySector()
+    {
+        return Array.Empty<TKey>();
+    }
+
+    public TKey[] GetLastKeysOfEverySector()
+    {
+        return Array.Empty<TKey>();
+    }
+
+    public TValue[] GetLastValuesOfEverySector()
+    {
+        return Array.Empty<TValue>();
+    }
+
+
     public IIndexedReader<TKey, TValue> GetIndexedReader()
     {
         return this;
@@ -93,6 +114,10 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public int ReleaseReadBuffers(long ticks)
     {
         return 0;
+    }
+
+    public void Drop(HashSet<int> exludedSectorIds)
+    {
     }
 }
 

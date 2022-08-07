@@ -162,8 +162,9 @@ public sealed class CompressedFileStream : Stream, IDisposable
             return;
         if (IsClosed || !TailStream.CanWrite)
             return;
-        lock (tailBlock)
+        lock (TailStream)
         {
+            tailBlock = TailBlock;
             if (tailBlock.BlockIndex < LastWrittenTailIndex)
                 return;
             if (tailBlock.BlockIndex == LastWrittenTailIndex &&

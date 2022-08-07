@@ -13,5 +13,5 @@ public sealed class CompressedImmediateModeOptions
     /// <summary>
     /// The delay in milliseconds before the next tail write.
     /// </summary>
-    public int TailWriterJobInterval { get; set; } = 100;
+    public int TailWriterJobInterval { get; set; } = 500;
 }

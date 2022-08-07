@@ -38,12 +38,28 @@ public class ZoneTree2
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
 
-        Parallel.For(0, count, (x) =>
+        if (TestConfig.EnableParalelInserts)
+        {
+            Parallel.For(0, count, (x) =>
+            {
+                var str = "abcdefghijklmno" + x;
+                zoneTree.Upsert(str, str);
+            });
+        }
+        else
+        {
+            for (var x = 0; x < count; ++x)
+            {
+                var str = "abcdefghijklmno" + x;
+                zoneTree.Upsert(str, str);
+            }
+        }
+
+        for (var x = 0; x < count; ++x)
         {
             var str = "abcdefghijklmno" + x;
             zoneTree.Upsert(str, str);
-        });
-
+        }
         BenchmarkGroups.LogWithColor(
             "Completed in:",
             stopWatch.ElapsedMilliseconds,

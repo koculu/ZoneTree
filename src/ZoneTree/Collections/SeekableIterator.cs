@@ -68,5 +68,10 @@ public class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
         position = IndexedReader.GetFirstGreaterOrEqualPosition(key);
         return HasCurrent;
     }
+
+    public void Skip(int offset)
+    {
+        position += offset;
+    }
 }
 

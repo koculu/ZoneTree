@@ -32,12 +32,33 @@ public class ZoneTreeOptions<TKey, TValue>
     public int DiskSegmentCompressionBlockSize { get; set; } = 1024 * 1024;
 
     /// <summary>
-    /// Disk segment maximum cache block count.
+    /// Disk segment mode.
+    /// </summary>
+    public DiskSegmentMode DiskSegmentMode { get; set; }
+        = DiskSegmentMode.MultipleDiskSegments;
+
+    /// <summary>
+    /// Disk segment block cache limit.
+    /// A disk segment cannot have more cache blocks than the limit.
     /// Total memory space that block cache can take is
-    /// = DiskSegmentCompressionBlockSize X DiskSegmentMaximumCachedBlockCount
+    /// = DiskSegmentCompressionBlockSize X DiskSegmentBlockCacheLimit
     /// Default: 1024 * 1024 * 32 = 32 MB
     /// </summary>
-    public int DiskSegmentMaximumCachedBlockCount { get; set; } = 32;
+    public int DiskSegmentBlockCacheLimit { get; set; } = 32;
+
+    /// <summary>
+    /// If MultipleDiskSegments mode is enabled, it is the upper bound 
+    /// record count of a disk segment.
+    /// A disk segment cannot have record count more than this value.
+    /// </summary>
+    public int DiskSegmentMaximumRecordCount { get; set; } = 3_000_000;
+
+    /// <summary>
+    /// If MultipleDiskSegments mode is enabled,
+    /// the minimum record count cannot be lower than this value
+    /// unless there isn't enough records.
+    /// </summary>
+    public int DiskSegmentMinimumRecordCount { get; set; } = 1_500_000;
 
     public bool TryValidate(out Exception exception)
     {

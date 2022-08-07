@@ -49,19 +49,12 @@ public class DecompressedBlock
 
     public static DecompressedBlock FromCompressed(int blockIndex, byte[] compressedBytes)
     {
-        try
-        {
-            using var msInput = new MemoryStream(compressedBytes);
-            using var msOutput = new MemoryStream();
-            using var gzs = new GZipStream(msInput, CompressionMode.Decompress);
-            gzs.CopyTo(msOutput);
-            var decompressed = msOutput.ToArray();
-            return new DecompressedBlock(blockIndex, decompressed);
-        }
-        catch(InvalidDataException)
-        {
-            throw;
-        }
+        using var msInput = new MemoryStream(compressedBytes);
+        using var msOutput = new MemoryStream();
+        using var gzs = new GZipStream(msInput, CompressionMode.Decompress);
+        gzs.CopyTo(msOutput);
+        var decompressed = msOutput.ToArray();
+        return new DecompressedBlock(blockIndex, decompressed);
     }
 
     public byte[] GetBytes(int offset, int length)

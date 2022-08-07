@@ -19,6 +19,8 @@ public interface ISeekableIterator<TKey, TValue>
     public TKey CurrentKey { get; }
 
     public TValue CurrentValue { get; }
+
+    void Skip(int offset);
 }
 
 

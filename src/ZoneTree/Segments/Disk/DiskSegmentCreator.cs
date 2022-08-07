@@ -24,6 +24,8 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
 
     readonly bool HasFixedSizeKeyAndValue;
 
+    public int Length { get; private set; }
+
     public DiskSegmentCreator(
         ZoneTreeOptions<TKey, TValue> options,
         IIncrementalIdProvider incrementalIdProvider
@@ -45,19 +47,20 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
                     DiskSegmentConstants.DataHeaderCategory,
                     options.EnableDiskSegmentCompression,
                     options.DiskSegmentCompressionBlockSize,
-                    options.DiskSegmentMaximumCachedBlockCount);
+                    options.DiskSegmentBlockCacheLimit);
         DataDevice = randomDeviceManager
             .CreateWritableDevice(
                 SegmentId,
                 DiskSegmentConstants.DataCategory,
                 options.EnableDiskSegmentCompression,
                 options.DiskSegmentCompressionBlockSize,
-                options.DiskSegmentMaximumCachedBlockCount);
+                options.DiskSegmentBlockCacheLimit);
         Options = options;
     }
 
     public void Append(TKey key, TValue value)
     {
+        ++Length;
         var keyBytes = KeySerializer.Serialize(key);
         var valueBytes = ValueSerializer.Serialize(value);
         if (HasFixedSizeKeyAndValue)
@@ -111,8 +114,9 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
     {
         DataHeaderDevice?.SealDevice();
         DataDevice?.SealDevice();
-        Close();
-        var diskSegment = new DiskSegment<TKey, TValue>(SegmentId, Options);
+        var diskSegment = new DiskSegment<TKey, TValue>(
+            SegmentId, Options,
+            DataHeaderDevice, DataDevice);
         return diskSegment;
     }
 

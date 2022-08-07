@@ -78,11 +78,11 @@ public class ZoneTreeFactory<TKey, TValue>
     }
 
     public ZoneTreeFactory<TKey, TValue>
-        SetDiskSegmentMaximumCachedBlockCount(int maximumCachedBlockCount)
+        SetDiskSegmentMaximumCachedBlockCount(int diskSegmentBlockCacheLimit)
     {
-        if (maximumCachedBlockCount < 1)
-            maximumCachedBlockCount = 1;
-        Options.DiskSegmentMaximumCachedBlockCount = maximumCachedBlockCount;
+        if (diskSegmentBlockCacheLimit < 1)
+            diskSegmentBlockCacheLimit = 1;
+        Options.DiskSegmentBlockCacheLimit = diskSegmentBlockCacheLimit;
         return this;
     }
 

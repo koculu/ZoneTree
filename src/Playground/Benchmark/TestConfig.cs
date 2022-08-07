@@ -19,4 +19,6 @@ public static class TestConfig
     public static int DiskSegmentMaximumCachedBlockCount = 1000;
 
     public static int MinimumSparseArrayLength = 1_000_000;
+
+    public static bool EnableParalelInserts = false;
 }

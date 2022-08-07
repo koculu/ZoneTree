@@ -30,5 +30,5 @@ public interface IRandomAccessDeviceManager
 
     void RemoveWritableDevice(int segmentId, string category);
 
-    void DropStore();
+    void DropStore();    
 }

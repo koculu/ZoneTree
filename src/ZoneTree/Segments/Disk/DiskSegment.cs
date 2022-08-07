@@ -5,31 +5,29 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
-public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
+public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
     public int SegmentId { get; }
 
-    private IRefComparer<TKey> Comparer;
+    readonly IRefComparer<TKey> Comparer;
 
     readonly ISerializer<TKey> KeySerializer;
 
     readonly ISerializer<TValue> ValueSerializer;
 
-    private readonly bool HasFixedSizeKey;
+    readonly bool HasFixedSizeKey;
 
-    private readonly bool HasFixedSizeValue;
+    readonly bool HasFixedSizeValue;
 
-    private readonly bool HasFixedSizeKeyAndValue;
+    readonly bool HasFixedSizeKeyAndValue;
 
     readonly IRandomAccessDevice DataHeaderDevice;
 
     readonly IRandomAccessDevice DataDevice;
 
-    public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
+    readonly int KeySize;
 
-    private int KeySize;
-
-    private int ValueSize;
+    readonly int ValueSize;
 
     IReadOnlyList<SparseArrayEntry<TKey, TValue>> SparseArray = Array.Empty<SparseArrayEntry<TKey, TValue>>();
 
@@ -39,21 +37,19 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     bool IsDropped = false;
 
-    object DropLock = new();
+    readonly object DropLock = new();
 
     public int Length { get; }
 
     public bool IsFullyFrozen => true;
-
-    public bool HasNext => true;
-
-    public bool HasPrev => true;
 
     public bool IsIterativeIndexReader => false;
 
     public int ReadBufferCount => 
                     (DataDevice?.ReadBufferCount ?? 0) +
                     (DataHeaderDevice?.ReadBufferCount ?? 0);
+
+    public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
     public unsafe DiskSegment(
         int segmentId,
@@ -77,7 +73,7 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
                     DiskSegmentConstants.DataHeaderCategory,
                     options.EnableDiskSegmentCompression,
                     options.DiskSegmentCompressionBlockSize,
-                    options.DiskSegmentMaximumCachedBlockCount
+                    options.DiskSegmentBlockCacheLimit
                     );
         DataDevice = randomDeviceManager
             .GetReadOnlyDevice(
@@ -85,10 +81,47 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
                 DiskSegmentConstants.DataCategory,
                 options.EnableDiskSegmentCompression,
                 options.DiskSegmentCompressionBlockSize,
-                options.DiskSegmentMaximumCachedBlockCount);
+                options.DiskSegmentBlockCacheLimit);
 
         KeySize = Unsafe.SizeOf<TKey>();
         ValueSize = Unsafe.SizeOf<TValue>();
+        if (HasFixedSizeKeyAndValue)
+        {
+            Length = (int)(DataDevice.Length / (KeySize + ValueSize));
+        }
+        else if (HasFixedSizeKey)
+        {
+            Length = (int)(DataHeaderDevice.Length / (KeySize + sizeof(ValueHead)));
+        }
+        else if (HasFixedSizeValue)
+        {
+            Length = (int)(DataHeaderDevice.Length / (ValueSize + sizeof(KeyHead)));
+        }
+        else
+        {
+            Length = (int)(DataHeaderDevice.Length / sizeof(EntryHead));
+        }
+    }
+
+    public unsafe DiskSegment(int segmentId, 
+        ZoneTreeOptions<TKey, TValue> options,
+        IRandomAccessDevice dataHeaderDevice,
+        IRandomAccessDevice dataDevice)
+    {
+        SegmentId = segmentId;
+        DataHeaderDevice = dataHeaderDevice;
+        DataDevice = dataDevice;
+
+        Comparer = options.Comparer;
+        KeySerializer = options.KeySerializer;
+        ValueSerializer = options.ValueSerializer;
+
+        HasFixedSizeKey = !RuntimeHelpers.IsReferenceOrContainsReferences<TKey>();
+        HasFixedSizeValue = !RuntimeHelpers.IsReferenceOrContainsReferences<TValue>();
+        HasFixedSizeKeyAndValue = HasFixedSizeKey && HasFixedSizeValue;
+        KeySize = Unsafe.SizeOf<TKey>();
+        ValueSize = Unsafe.SizeOf<TValue>();
+
         if (HasFixedSizeKeyAndValue)
         {
             Length = (int)(DataDevice.Length / (KeySize + ValueSize));
@@ -202,7 +235,7 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         InitSparseArray(Length);
     }
 
-    private unsafe SparseArrayEntry<TKey, TValue> CreateSparseArrayEntry(int index)
+    unsafe SparseArrayEntry<TKey, TValue> CreateSparseArrayEntry(int index)
     {
         // Optimisation possibility? read key and value together to reduce IO calls.
         var key = ReadKey(index);
@@ -211,7 +244,7 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return sparseArrayEntry;
     }
 
-    private unsafe TKey ReadKey(int index)
+    unsafe TKey ReadKey(int index)
     {
         if (HasFixedSizeKeyAndValue)
         {
@@ -242,7 +275,7 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         }
     }
 
-    private unsafe TValue ReadValue(int index)
+    unsafe TValue ReadValue(int index)
     {
         if (HasFixedSizeKeyAndValue)
         {
@@ -348,7 +381,7 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     /// <param name="lower">Lower inclusive</param>
     /// <param name="upper">Upper inclusive</param>
     /// <returns>-1 or the position of the key.</returns>
-    private int BinarySearch(in TKey key, int lower, int upper)
+    int BinarySearch(in TKey key, int lower, int upper)
     {
         var comp = Comparer;
         int l = lower, r = upper;
@@ -373,6 +406,26 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         // if we reach here, then element was
         // not present
         return -1;
+    }
+    
+    public TKey[] GetFirstKeysOfEverySector()
+    {
+        return Array.Empty<TKey>();
+    }
+
+    public TKey[] GetLastKeysOfEverySector()
+    {
+        return Array.Empty<TKey>();
+    }
+
+    public TValue[] GetLastValuesOfEverySector()
+    {
+        return Array.Empty<TValue>();
+    }
+
+    public IDiskSegment<TKey, TValue> GetSector(int sectorIndex)
+    {
+        return null;
     }
 
     public void Dispose()
@@ -511,5 +564,12 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         var a = DataHeaderDevice?.ReleaseReadBuffers(ticks) ?? 0;
         var b = DataDevice?.ReleaseReadBuffers(ticks) ?? 0;
         return a + b;
+    }
+
+    public void Drop(HashSet<int> exludedSectorIds)
+    {
+        if (exludedSectorIds.Contains(SegmentId))
+            return;
+        Drop();
     }
 }

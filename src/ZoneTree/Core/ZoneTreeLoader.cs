@@ -147,9 +147,18 @@ public class ZoneTreeLoader<TKey, TValue>
     void LoadDiskSegment()
     {
         var segmentId = ZoneTreeMeta.DiskSegment;
-        DiskSegment = segmentId == 0
-            ? new NullDiskSegment<TKey, TValue>()
-            : new DiskSegment<TKey, TValue>(ZoneTreeMeta.DiskSegment, Options);
+        if (segmentId == 0)
+        {
+            DiskSegment = new NullDiskSegment<TKey, TValue>();
+            return;
+        }
+        if (Options.RandomAccessDeviceManager
+            .DeviceExists(segmentId, DiskSegmentConstants.MultiSectorDiskSegmentCategory))
+        {
+            DiskSegment = new MultiSectorDiskSegment<TKey, TValue>(ZoneTreeMeta.DiskSegment, Options);
+            return;
+        }
+        DiskSegment = new DiskSegment<TKey, TValue>(ZoneTreeMeta.DiskSegment, Options);
     }
 
     void LoadSegmentZero()

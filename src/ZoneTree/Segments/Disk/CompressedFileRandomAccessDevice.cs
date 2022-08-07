@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Text;
 using Tenray.ZoneTree.AbstractFileStream;
 
 namespace Tenray.ZoneTree.Segments.Disk;
@@ -12,6 +13,10 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     readonly string Category;
 
     IFileStream FileStream;
+
+    readonly BinaryReader BinaryReader;
+
+    readonly BinaryWriter BinaryWriter;
 
     readonly IRandomAccessDeviceManager RandomDeviceManager;
 
@@ -63,6 +68,9 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             fileMode,
             fileAccess,
             fileShare, fileIOBufferSize, FileOptions.None);
+        BinaryReader = new BinaryReader(FileStream.ToStream(), Encoding.UTF8, true);
+        if (writable)
+            BinaryWriter = new BinaryWriter(FileStream.ToStream(), Encoding.UTF8, true);
         if (FileStream.Length > 0)
         {
             BlockSize = ReadBlockSize();
@@ -85,16 +93,14 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     int ReadBlockSize()
     {
         FileStream.Position = 0;
-        var br = new BinaryReader(FileStream.ToStream());
-        return br.ReadInt32();
+        return BinaryReader.ReadInt32();
     }
 
     void WriteBlockSize()
     {
         FileStream.Position = 0;
-        var wr = new BinaryWriter(FileStream.ToStream());
-        wr.Write(BlockSize);
-        wr.Flush();
+        BinaryWriter.Write(BlockSize);
+        BinaryWriter.Flush();
         return;
     }
 
@@ -214,9 +220,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         lock (this)
         {
             FileStream.Position = blockPositionInFile;
-            var br = new BinaryReader(FileStream.ToStream());
             var compressedLength = CompressedBlockLengths[blockIndex];
-            compressedBytes = br.ReadBytes(compressedLength);
+            compressedBytes = BinaryReader.ReadBytes(compressedLength);
         }
         var decompressedBlock = DecompressedBlock.FromCompressed(blockIndex, compressedBytes);
         decompressedBlock.LastAccessTicks = DateTime.UtcNow.Ticks; 
@@ -276,6 +281,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         if (TryGetBlockCache(NextBlockIndex, out var nextBlock))
         {
             AppendBlock(nextBlock);
+            LastBlockLength = nextBlock.Length;
+            --NextBlockIndex;
         }
         WriteCompressedBlockPositionsAndLengths();
     }
@@ -289,8 +296,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         var positions = CompressedBlockPositions;
         var lengths = CompressedBlockLengths;
         var len = positions.Count;
-        var bw = new BinaryWriter(FileStream.ToStream());
-        for(var i = 0; i < len; ++i)
+        var bw = BinaryWriter;
+        for (var i = 0; i < len; ++i)
         {
             bw.Write(positions[i]);
             bw.Write(lengths[i]);
@@ -303,7 +310,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     (List<long> positions, List<int> lengths) ReadCompressedBlockPositionsAndLengths()
     {
         FileStream.Seek(-sizeof(int) - sizeof(long), SeekOrigin.End);
-        var br = new BinaryReader(FileStream.ToStream());
+        var br = BinaryReader;
         var len = br.ReadInt32();
         var offset = br.ReadInt64();
         FileStream.Seek(offset, SeekOrigin.Begin);

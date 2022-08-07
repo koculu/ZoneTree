@@ -130,7 +130,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
     {
         var len = Device.Length;
         if (len > int.MaxValue)
-            throw new DataIsTooBigToLoadAtOnce(len, int.MaxValue);
+            throw new DataIsTooBigToLoadAtOnceException(len, int.MaxValue);
         var bytes = Device.GetBytes(0, (int)len);
         var list = new List<MetaWalRecord>();
         var off = 0;
@@ -201,7 +201,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         using var device = deviceManager
             .GetReadOnlyDevice(ZoneTreeMetaId, MetaFileCategory, false, 0, 0); 
         if (device.Length > int.MaxValue)
-            throw new DataIsTooBigToLoadAtOnce(device.Length, int.MaxValue);
+            throw new DataIsTooBigToLoadAtOnceException(device.Length, int.MaxValue);
         var bytes = device.GetBytes(0, (int)device.Length);
         device.Close();
         deviceManager.RemoveReadOnlyDevice(device.SegmentId, MetaFileCategory);

@@ -95,5 +95,10 @@ public class SkipListSeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TV
         AdjustLinks();
         return HasCurrent;
     }
+
+    public void Skip(int offset)
+    {
+        throw new NotSupportedException();
+    }
 }
 

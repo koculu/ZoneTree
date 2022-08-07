@@ -45,10 +45,41 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     int ReleaseReadBuffers(long ticks);
 
     /// <summary>
+    /// Returns the first keys of every sector.
+    /// </summary>
+    /// <returns>Keys</returns>
+    TKey[] GetFirstKeysOfEverySector();
+
+    /// <summary>
+    /// Returns the last keys of every sector.
+    /// </summary>
+    /// <returns>Keys</returns>
+    TKey[] GetLastKeysOfEverySector();
+
+    /// <summary>
+    /// Returns the last values of every sector.
+    /// </summary>
+    /// <returns>Values</returns>
+    TValue[] GetLastValuesOfEverySector();
+
+    /// <summary>
     /// Exceptions occurs in delayed drops (eg: iterators delays segment drops)
     /// are being reported to the IZoneTreeMaintenance interface events 
     /// through this delegate.
     /// This is for internal usage.
     /// </summary>
     internal Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
+
+    /// <summary>
+    /// Gets sector.
+    /// </summary>
+    /// <param name="sectorIndex"></param>
+    /// <returns></returns>
+    IDiskSegment<TKey, TValue> GetSector(int sectorIndex);
+
+    /// <summary>
+    /// Drops all sectos excluding given exclusion list.
+    /// </summary>
+    /// <param name="exludedSectorIds"></param>
+    void Drop(HashSet<int> exludedSectorIds);
 }

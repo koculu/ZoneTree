@@ -3,7 +3,9 @@
 public class FixedSizeMinHeap<TKey>
 {
     readonly TKey[] keys;
+
     int count;
+
     readonly IRefComparer<TKey> comparer;
 
     public int Count => count;
@@ -96,7 +98,7 @@ public class FixedSizeMinHeap<TKey>
         keys[j] = tmpElement;
     }
 
-    private void HeapifyRoot()
+    void HeapifyRoot()
     {
         // We are heapifying from the head of the list.
         int i = 0;

@@ -95,5 +95,10 @@ public class LockFreeSkipListSeekableIterator<TKey, TValue> : ISeekableIterator<
         AdjustLinks();
         return HasCurrent;
     }
+
+    public void Skip(int offset)
+    {
+        throw new NotSupportedException();
+    }
 }
 
