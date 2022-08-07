@@ -50,5 +50,5 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     /// through this delegate.
     /// This is for internal usage.
     /// </summary>
-    internal Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
+    public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 }
