@@ -1,4 +1,5 @@
 ﻿using Playground.Benchmark;
+using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.WAL;
 
 var custom = false;
@@ -11,16 +12,18 @@ if (custom)
     TestConfig.WALCompressionBlockSize = 1024 * 1024 * 1;
     TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 100;
 }
-TestConfig.EnableParalelInserts = false;
+TestConfig.EnableParalelInserts = true;
 TestConfig.DiskSegmentMaximumCachedBlockCount = 32;
-TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 8;
-TestConfig.WALCompressionBlockSize = 32768 * 4;
+TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 100;
+TestConfig.WALCompressionBlockSize = 1024 * 1024;
 TestConfig.MinimumSparseArrayLength = 0;
+TestConfig.DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
+
 var testAll = true;
 
 if (testAll)
 {
-    BenchmarkGroups.InsertIterate1(0);
+    BenchmarkGroups.InsertIterate2(3_000_000, WriteAheadLogMode.Lazy);
 }
 else
 {

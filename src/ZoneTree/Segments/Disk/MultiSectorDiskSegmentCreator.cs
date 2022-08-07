@@ -30,7 +30,7 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
     
     TValue LastAppendedValue;
 
-    public readonly HashSet<int> AppendedSectorSegmentIds = new();
+    public HashSet<int> AppendedSectorSegmentIds { get; } = new();
 
     public int CurrentSectorLength => NextCreator.Length;
 

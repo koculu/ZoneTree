@@ -2,7 +2,21 @@
 
 public interface IDiskSegmentCreator<TKey, TValue> : IDisposable
 {
+    bool CanSkipCurrentSector { get; }
+
+    HashSet<int> AppendedSectorSegmentIds { get; }
+
     void Append(TKey key, TValue value);
+    
+    void Append(
+        IDiskSegment<TKey, TValue> sector,
+        TKey key1,
+        TKey key2,
+        TValue value1,
+        TValue value2);
 
     IDiskSegment<TKey, TValue> CreateReadOnlyDiskSegment();
+
+    void DropDiskSegment();
+
 }

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Tenray.ZoneTree;
 using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Maintainers;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
@@ -108,6 +109,7 @@ public class ZoneTree1
             .SetDiskSegmentMaximumCachedBlockCount(TestConfig.DiskSegmentMaximumCachedBlockCount)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
+            .Configure(x => x.DiskSegmentMode = TestConfig.DiskSegmentMode)
             .ConfigureWriteAheadLogProvider(x =>
             {
                 x.CompressionBlockSize = TestConfig.WALCompressionBlockSize;

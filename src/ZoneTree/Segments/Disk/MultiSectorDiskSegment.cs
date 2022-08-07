@@ -374,9 +374,6 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
 
     public void InitSparseArray(int size)
     {
-        /*var len = Sectors.Count;
-        for(var i = 0; i < len; ++i)
-            Sectors[i].InitSparseArray(size);*/
     }
 
     public void LoadIntoMemory()

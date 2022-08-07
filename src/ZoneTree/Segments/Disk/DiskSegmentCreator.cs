@@ -12,9 +12,9 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
 
     readonly ISerializer<TValue> ValueSerializer;
 
-    readonly IRandomAccessDevice DataHeaderDevice;
+    IRandomAccessDevice DataHeaderDevice;
 
-    readonly IRandomAccessDevice DataDevice;
+    IRandomAccessDevice DataDevice;
 
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
@@ -25,6 +25,10 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
     readonly bool HasFixedSizeKeyAndValue;
 
     public int Length { get; private set; }
+
+    public bool CanSkipCurrentSector => false;
+
+    public HashSet<int> AppendedSectorSegmentIds { get; } = new();
 
     public DiskSegmentCreator(
         ZoneTreeOptions<TKey, TValue> options,
@@ -117,6 +121,8 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         var diskSegment = new DiskSegment<TKey, TValue>(
             SegmentId, Options,
             DataHeaderDevice, DataDevice);
+        DataHeaderDevice = null;
+        DataDevice = null;
         return diskSegment;
     }
 
@@ -128,17 +134,22 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         DataDevice.Delete();
     }
 
-    private void Close()
+    void Close()
     {
         if (!HasFixedSizeKeyAndValue)
-            DataHeaderDevice.Close();
-        DataDevice.Close();
+            DataHeaderDevice?.Close();
+        DataDevice?.Close();
     }
 
     public void Dispose()
     {
         if (!HasFixedSizeKeyAndValue)
-            DataHeaderDevice.Dispose();
-        DataDevice.Dispose();
+            DataHeaderDevice?.Dispose();
+        DataDevice?.Dispose();
+    }
+
+    public void Append(IDiskSegment<TKey, TValue> sector, TKey key1, TKey key2, TValue value1, TValue value2)
+    {
+        throw new NotSupportedException();
     }
 }

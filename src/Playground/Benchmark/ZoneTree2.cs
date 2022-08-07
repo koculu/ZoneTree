@@ -118,6 +118,7 @@ public class ZoneTree2
             .SetDiskSegmentMaximumCachedBlockCount(TestConfig.DiskSegmentMaximumCachedBlockCount)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
+            .Configure(x => x.DiskSegmentMode = TestConfig.DiskSegmentMode)
             .ConfigureWriteAheadLogProvider(x =>
             {
                 x.CompressionBlockSize = TestConfig.WALCompressionBlockSize;

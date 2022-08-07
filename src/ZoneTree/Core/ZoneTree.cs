@@ -442,9 +442,17 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         if (IsCancelMergeRequested)
             return MergeResult.CANCELLED_BY_USER;
 
+        var enableMultiSectorDiskSegment =
+            Options.DiskSegmentMode == DiskSegmentMode.MultipleDiskSegments;
+
         var len = mergingSegments.Count;
         var diskSegmentIndex = len - 1;
-        var diskSegmentCreator = new MultiSectorDiskSegmentCreator<TKey, TValue>(Options, IncrementalIdProvider);
+
+        using IDiskSegmentCreator<TKey, TValue> diskSegmentCreator = 
+            enableMultiSectorDiskSegment ? 
+            new MultiSectorDiskSegmentCreator<TKey, TValue>(Options, IncrementalIdProvider) :
+            new DiskSegmentCreator<TKey, TValue>(Options, IncrementalIdProvider);
+
         var heap = new FixedSizeMinHeap<HeapEntry<TKey, TValue>>(len + 1, MinHeapEntryComparer);
 
         var fillHeap = () =>
@@ -527,7 +535,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             hasPrev = true;
 
             // skip a sector without merge if possible
-            if (minSegmentIndex == diskSegmentIndex && 
+            if (enableMultiSectorDiskSegment &&
+                minSegmentIndex == diskSegmentIndex && 
                 nextSectorKeyIndex < lengthOfFirstKeysList)
             {
                 var currentSectorKeyIndex = nextSectorKeyIndex;

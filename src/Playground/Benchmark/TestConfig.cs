@@ -1,4 +1,6 @@
-﻿namespace Playground.Benchmark;
+﻿using Tenray.ZoneTree.Core;
+
+namespace Playground.Benchmark;
 
 public static class TestConfig
 {
@@ -21,4 +23,6 @@ public static class TestConfig
     public static int MinimumSparseArrayLength = 1_000_000;
 
     public static bool EnableParalelInserts = false;
+
+    public static DiskSegmentMode DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
 }
