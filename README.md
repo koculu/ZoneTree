@@ -58,15 +58,18 @@ It is four times faster than Facebook's RocksDB.
 
 | Insert Benchmarks                               | 1M      | 2M       | 3M         | 10M        |
 | ------------------------------------------------|---------|----------|------------|------------|
-| int-int ZoneTree immediate WAL                  | 5760 ms | 10796 ms | 16006 ms   | 54768 ms   |
-| int-int ZoneTree compressed-immediate WAL       | 2171 ms | 3650 ms  | 5618 ms    | 20006 ms   |
-| int-int ZoneTree lazy WAL                       | 1198 ms | 2288 ms  | 3656 ms    | 12178 ms   |
-| str-str ZoneTree immediate WAL                  | 7872 ms | 16065 ms | 24220 ms   | 87314 ms   |
-| str-str ZoneTree compressed-immediate WAL       | 3332 ms | 7257 ms  | 9927 ms    | 35069 ms   |
-| str-str ZoneTree lazy WAL                       | 2556 ms | 4497 ms  | 7201 ms    | 25292 ms   |
+| int-int ZoneTree lazy WAL                       | 1024 ms | 1828 ms  | 2987 ms    | 9852 ms    |
+| int-int ZoneTree compressed-immediate WAL       | 2422 ms | 4301 ms  | 6672 ms    | 22311 ms   |
+| int-int ZoneTree immediate WAL                  | 3410 ms | 7297 ms  | 10546 ms   | 35151 ms   |
+|------------------------------------------------------------------------------------------------|
+| str-str ZoneTree immediate WAL                  | 4649 ms | 9075 ms  | 13774 ms   | 47011 ms   |
+| str-str ZoneTree compressed-immediate WAL       | 4255 ms | 8425 ms  | 12523 ms   | 43355 ms   |
+| str-str ZoneTree lazy WAL                       | 2192 ms | 4037 ms  | 5924 ms    | 19093 ms   |
+|------------------------------------------------------------------------------------------------|
 | int-int RocksDb                                 | NOT SUPPORTED                                |
-| str-str RocksDb  immediate WAL                  | NOT SUPPORTED                                |
-| str-str RocksDb  compressed-immediate WAL       | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
+| str-str RocksDb immediate WAL                   | NOT SUPPORTED                                |
+| str-str RocksDb compressed-immediate WAL        | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
+|------------------------------------------------------------------------------------------------|
 
 Notes:
 The bottleneck is the disk flushes on the write-ahead log. 

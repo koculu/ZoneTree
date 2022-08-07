@@ -23,19 +23,19 @@ public class ZoneTreeOptions<TKey, TValue>
 
     public MarkValueDeletedDelegate<TValue> MarkValueDeleted = (ref TValue x) => { x = default; };
 
+    /// <summary>
+    /// Disk segment mode.
+    /// </summary>
+    public DiskSegmentMode DiskSegmentMode { get; set; }
+        = DiskSegmentMode.MultipleDiskSegments;
+
     public bool EnableDiskSegmentCompression { get; set; } = true;
 
     /// <summary>
     /// Disk Segment compression block size.
     /// Default: 1 MB
     /// </summary>
-    public int DiskSegmentCompressionBlockSize { get; set; } = 1024 * 1024;
-
-    /// <summary>
-    /// Disk segment mode.
-    /// </summary>
-    public DiskSegmentMode DiskSegmentMode { get; set; }
-        = DiskSegmentMode.MultipleDiskSegments;
+    public int DiskSegmentCompressionBlockSize { get; set; } = 1024 * 1024 * 1;
 
     /// <summary>
     /// Disk segment block cache limit.

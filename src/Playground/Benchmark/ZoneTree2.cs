@@ -55,11 +55,6 @@ public class ZoneTree2
             }
         }
 
-        for (var x = 0; x < count; ++x)
-        {
-            var str = "abcdefghijklmno" + x;
-            zoneTree.Upsert(str, str);
-        }
         BenchmarkGroups.LogWithColor(
             "Completed in:",
             stopWatch.ElapsedMilliseconds,

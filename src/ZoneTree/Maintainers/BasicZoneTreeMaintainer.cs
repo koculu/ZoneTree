@@ -18,7 +18,7 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 
     public int ThresholdForMergeOperationStart = 2_000_000;
 
-    public bool EnablePeriodicTimer { get; set; } = false;
+    public bool EnablePeriodicTimer { get; set; } = true;
 
     public long DiskSegmentBufferLifeTime = TimeSpan.FromSeconds(10).Ticks;
     
