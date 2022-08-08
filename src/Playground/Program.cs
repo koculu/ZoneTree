@@ -4,8 +4,6 @@ using Playground.Benchmark;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.WAL;
 
-var summary = BenchmarkRunner.Run<ZoneTreeBenchmarks>(); return;
-
 var custom = false;
 if (custom)
 {
@@ -24,3 +22,5 @@ TestConfig.MinimumSparseArrayLength = 0;
 TestConfig.DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
 
 BenchmarkGroups.InsertIterate1(100_000_000, WriteAheadLogMode.Lazy);
+
+//var summary = BenchmarkRunner.Run<ZoneTreeBenchmarks>();
