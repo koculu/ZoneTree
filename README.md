@@ -27,8 +27,8 @@ It is four times faster than Facebook's RocksDB.
 | str-str ZoneTree compressed-immediate WAL       | 2888 ms | 5087 ms  | 7498 ms    | 26188 ms   |
 | str-str ZoneTree immediate WAL                  | 4649 ms | 9075 ms  | 13774 ms   | 47011 ms   |
 ||
-| int-int RocksDb                                 | NOT SUPPORTED                                |
-| str-str RocksDb immediate WAL                   | NOT SUPPORTED                                |
+| RocksDb immediate WAL                           | NOT SUPPORTED                                |
+| int-int RocksDb compressed-immediate WAL        | 8059 ms | 16188 ms | 23599 ms   | 61947 ms   |
 | str-str RocksDb compressed-immediate WAL        | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
 ||
 
