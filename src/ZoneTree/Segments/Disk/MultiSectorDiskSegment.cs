@@ -42,7 +42,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
     public MultiSectorDiskSegment(
-        int segmentId,
+        long segmentId,
         ZoneTreeOptions<TKey, TValue> options)
     {
         SegmentId = segmentId;
@@ -74,7 +74,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     }
 
     public static int ReadMaximumSegmentId(
-        int segmentId,
+        long segmentId,
         IRandomAccessDeviceManager randomDeviceManager)
     {
         var category = DiskSegmentConstants.MultiSectorDiskSegmentCategory;
@@ -109,7 +109,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     }
 
     public MultiSectorDiskSegment(
-        int segmentId,
+        long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IReadOnlyList<IDiskSegment<TKey, TValue>> sectors,
         TKey[] sectorKeys,

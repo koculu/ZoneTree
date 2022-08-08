@@ -52,7 +52,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
     public unsafe DiskSegment(
-        int segmentId,
+        long segmentId,
         ZoneTreeOptions<TKey, TValue> options)
     {
         SegmentId = segmentId;
@@ -103,7 +103,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         }
     }
 
-    public unsafe DiskSegment(int segmentId, 
+    public unsafe DiskSegment(long segmentId, 
         ZoneTreeOptions<TKey, TValue> options,
         IRandomAccessDevice dataHeaderDevice,
         IRandomAccessDevice dataDevice)

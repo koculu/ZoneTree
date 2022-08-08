@@ -38,7 +38,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
     }
 
     public IRandomAccessDevice CreateWritableDevice(
-        int segmentId, string category, 
+        long segmentId, string category, 
         bool isCompressed, int compressionBlockSize, int maxCachedBlockCount,
         bool deleteIfExists, bool backupIfDelete)
     {
@@ -75,18 +75,18 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         return a.Concat(b).ToArray();
     }
 
-    private static string GetDeviceKey(int segmentId, string category)
+    private static string GetDeviceKey(long segmentId, string category)
     {
         return segmentId + category;
     }
 
-    private string GetFilePath(int segmentId, string category)
+    private string GetFilePath(long segmentId, string category)
     {
         return Path.Combine(DataDirectory, segmentId + category);
     }
 
     public IRandomAccessDevice GetReadOnlyDevice(
-        int segmentId, string category, 
+        long segmentId, string category, 
         bool isCompressed, int compressionBlockSize, 
         int maxCachedBlockCount)
     {
@@ -121,19 +121,19 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         return WritableDevices.Values.ToArray();
     }
 
-    public void RemoveReadOnlyDevice(int segmentId, string category)
+    public void RemoveReadOnlyDevice(long segmentId, string category)
     {
         var key = GetDeviceKey(segmentId, category);
         ReadOnlyDevices.Remove(key);
     }
 
-    public void RemoveWritableDevice(int segmentId, string category)
+    public void RemoveWritableDevice(long segmentId, string category)
     {
         var key = GetDeviceKey(segmentId, category);
         WritableDevices.Remove(key);
     }
 
-    public bool DeviceExists(int segmentId, string category)
+    public bool DeviceExists(long segmentId, string category)
     {
         var filePath = GetFilePath(segmentId, category);
         return FileStreamProvider.FileExists(filePath);

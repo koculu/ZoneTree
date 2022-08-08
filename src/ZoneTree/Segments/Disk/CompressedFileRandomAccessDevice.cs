@@ -45,7 +45,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     public CompressedFileRandomAccessDevice(
         int maxCachedBlockCount,
         IFileStreamProvider fileStreamProvider,
-        int segmentId,
+        long segmentId,
         string category,
         IRandomAccessDeviceManager randomDeviceManager,
         string filePath, 

@@ -29,7 +29,7 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
     public bool IsIterativeIndexReader => false;
 
     public ReadOnlySegment(
-        int segmentId,
+        long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IReadOnlyList<TKey> sortedKeys,
         IReadOnlyList<TValue> sortedValues)

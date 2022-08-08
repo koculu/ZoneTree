@@ -14,7 +14,7 @@ public class ReadOnlySegmentLoader<TKey, TValue>
         Options = options;
     }
 
-    public IReadOnlySegment<TKey, TValue> LoadReadOnlySegment(int segmentId)
+    public IReadOnlySegment<TKey, TValue> LoadReadOnlySegment(long segmentId)
     {
         var wal = Options.WriteAheadLogProvider.GetOrCreateWAL(
             segmentId,
