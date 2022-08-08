@@ -14,6 +14,10 @@ public class SkipListSeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TV
 
     public bool HasCurrent => CurrentNode != null;
 
+    public bool IsBeginningOfASector => false;
+
+    public bool IsEndOfASector => false;
+
     readonly SkipList<TKey, TValue> SkipList;
 
     SkipList<TKey, TValue>.SkipListNode CurrentNode;
@@ -100,5 +104,7 @@ public class SkipListSeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TV
     {
         throw new NotSupportedException();
     }
+
+    public int GetSectorIndex() => -1;
 }
 

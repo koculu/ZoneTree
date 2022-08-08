@@ -21,6 +21,11 @@ TestConfig.WALCompressionBlockSize = 1024 * 1024;
 TestConfig.MinimumSparseArrayLength = 0;
 TestConfig.DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
 
-BenchmarkGroups.InsertIterate1(100_000_000, WriteAheadLogMode.Lazy);
-
-//var summary = BenchmarkRunner.Run<ZoneTreeBenchmarks>();
+var c = 10_000_000;
+var m = 1_000_000;
+var a = 10000;
+BenchmarkGroups.Insert1(c);
+ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.Lazy, c, m, a);
+ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.CompressedImmediate, c, m, a);
+ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.Immediate, c, m, a);
+BenchmarkGroups.Iterate1(c);

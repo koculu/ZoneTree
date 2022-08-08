@@ -20,6 +20,8 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
 
     readonly int DiskSegmentMaximumRecordCount;
 
+    readonly int DiskSegmentMinimumRecordCount;
+
     readonly List<IDiskSegment<TKey, TValue>> Sectors = new();
 
     readonly List<TKey> SectorKeys = new();
@@ -41,7 +43,7 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
         NextCreator.Length >= Options.DiskSegmentMinimumRecordCount;
 
     public int NextMaximumRecordCount;
-
+    
     public MultiSectorDiskSegmentCreator(
         ZoneTreeOptions<TKey, TValue> options,
         IIncrementalIdProvider incrementalIdProvider
@@ -54,6 +56,7 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
         IncrementalIdProvider = incrementalIdProvider;
         NextCreator = new(options, incrementalIdProvider);
         DiskSegmentMaximumRecordCount = Options.DiskSegmentMaximumRecordCount;
+        DiskSegmentMinimumRecordCount = Options.DiskSegmentMinimumRecordCount;
         SetNextMaximumRecordCount();
     }
 
@@ -64,25 +67,36 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
             Options.DiskSegmentMaximumRecordCount);
     }
 
-    public void Append(TKey key, TValue value)
+    IteratorPosition LastIteratorPosition = IteratorPosition.None;
+    
+    public void Append(TKey key, TValue value, IteratorPosition iteratorPosition)
     {
-        var len = NextCreator.Length;
+        LastIteratorPosition = iteratorPosition;
+        var len = NextCreator.Length; 
         if (len == 0) {
             SectorKeys.Add(key);
             SectorValues.Add(value);
         }
         else if (len == NextMaximumRecordCount - 1)
         {
-            SetNextMaximumRecordCount();
-            SectorKeys.Add(key);
-            SectorValues.Add(value);
-            NextCreator.Append(key, value);
-            var sector = NextCreator.CreateReadOnlyDiskSegment();
-            Sectors.Add(sector);
-            NextCreator = new (Options, IncrementalIdProvider);
-            return;
+            if (iteratorPosition == IteratorPosition.MiddleOfASector &&
+                len < DiskSegmentMaximumRecordCount)
+            {
+                ++NextMaximumRecordCount;
+            }
+            else
+            {
+                SetNextMaximumRecordCount();
+                SectorKeys.Add(key);
+                SectorValues.Add(value);
+                NextCreator.Append(key, value, iteratorPosition);
+                var sector = NextCreator.CreateReadOnlyDiskSegment();
+                Sectors.Add(sector);
+                NextCreator = new(Options, IncrementalIdProvider);
+                return;
+            }
         }
-        NextCreator.Append(key, value);
+        NextCreator.Append(key, value, iteratorPosition);
         LastAppendedKey = key;
         LastAppendedValue = value;
     }

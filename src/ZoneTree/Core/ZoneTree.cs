@@ -493,8 +493,6 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         var firstKeysOfEverySector = oldDiskSegment.GetFirstKeysOfEverySector();
         var lastKeysOfEverySector = oldDiskSegment.GetLastKeysOfEverySector();
         var lastValuesOfEverySector = oldDiskSegment.GetLastValuesOfEverySector();
-        var nextSectorKeyIndex = 0;
-        var lengthOfFirstKeysList = firstKeysOfEverySector.Length;
         var diskSegmentMinimumRecordCount = Options.DiskSegmentMinimumRecordCount;
 
         while (heap.Count > 0)
@@ -533,29 +531,41 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
             prevKey = minEntry.Key;
             hasPrev = true;
+            var isDiskSegmentKey = minSegmentIndex == diskSegmentIndex;
+            var iteratorPosition = IteratorPosition.None;
+            var currentSectorIndex = -1;
+            if (isDiskSegmentKey)
+            {
+                var diskIterator = mergingSegments[minSegmentIndex];
+                iteratorPosition =
+                    diskIterator.IsBeginningOfASector ?
+                    IteratorPosition.BeginningOfASector :
+                    diskIterator.IsEndOfASector ?
+                    IteratorPosition.EndOfASector :
+                    IteratorPosition.MiddleOfASector;
+                currentSectorIndex = diskIterator.GetSectorIndex();
+            }
 
             // skip a sector without merge if possible
             if (enableMultiSectorDiskSegment &&
-                minSegmentIndex == diskSegmentIndex && 
-                nextSectorKeyIndex < lengthOfFirstKeysList)
+                isDiskSegmentKey &&
+                iteratorPosition == IteratorPosition.BeginningOfASector)
             {
-                var currentSectorKeyIndex = nextSectorKeyIndex;
-                var isStartOfASector =
-                    comparer.Compare(
-                        minEntry.Key,
-                        firstKeysOfEverySector[nextSectorKeyIndex++]) == 0;
                 var sector = oldDiskSegment
-                    .GetSector(currentSectorKeyIndex);
-                if (isStartOfASector &&
-                    sector.Length > diskSegmentMinimumRecordCount &&
+                    .GetSector(currentSectorIndex);
+                if (sector.Length > diskSegmentMinimumRecordCount &&
                     diskSegmentCreator.CanSkipCurrentSector)
                 {
-                    var lastKey = lastKeysOfEverySector[currentSectorKeyIndex];
+                    var lastKey = lastKeysOfEverySector[currentSectorIndex];
                     var islastKeySmallerThanAllOtherKeys = true;
-                    for (int i = 0; i < diskSegmentIndex; i++)
+                    var heapKeys = heap.GetKeys();
+                    var heapKeysLen = heapKeys.Length;
+                    for (int i = 0; i < heapKeysLen; i++)
                     {
-                        var s = mergingSegments[i];
-                        var key = s.CurrentKey;
+                        var s = heapKeys[i];
+                        if (s.SegmentIndex == minSegmentIndex)
+                            continue;
+                        var key = s.Key;
                         if (comparer.Compare(lastKey, key) >= 0)
                         {
                             islastKeySmallerThanAllOtherKeys = false;
@@ -569,17 +579,16 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                             minEntry.Key, 
                             lastKey,
                             minEntry.Value, 
-                            lastValuesOfEverySector[currentSectorKeyIndex]);
-                        // skip to the next sector.
-                        mergingSegments[diskSegmentIndex].Skip(sector.Length - 1);
+                            lastValuesOfEverySector[currentSectorIndex]);
+                        mergingSegments[diskSegmentIndex].Skip(sector.Length - 2);
                         prevKey = lastKey;
                         skipElement();
                         continue;
                     }
                 }
             }
-
-            diskSegmentCreator.Append(minEntry.Key, minEntry.Value);
+            
+            diskSegmentCreator.Append(minEntry.Key, minEntry.Value, iteratorPosition);
             skipElement();
         }
 

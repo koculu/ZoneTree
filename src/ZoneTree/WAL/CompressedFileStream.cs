@@ -328,7 +328,11 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
         if (length != 0)
         {
-            TruncateFile(length);
+            // Sync with tail writer
+            lock (TailStream)
+            {
+                TruncateFile(length);
+            }
             return;
         }
         FileStream.SetLength(0);

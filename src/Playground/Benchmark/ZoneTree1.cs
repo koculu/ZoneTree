@@ -64,15 +64,12 @@ public class ZoneTree1
             ConsoleColor.DarkCyan);
     }
 
-    public static void InsertSingleAndMerge(WriteAheadLogMode mode, int count, int key)
+    public static void InsertSingleAndMerge(WriteAheadLogMode mode, int count, int key, int amount)
     {
         var recCount = count / 1000000.0 + "M";
         Console.WriteLine("\r\n--------------------------");
         BenchmarkGroups.LogWithColor($"\r\n{mode} Single Insert and Merge <int,int> {recCount}\r\n", ConsoleColor.Cyan);
         string dataPath = GetDataPath(mode, count);
-        /*if (TestConfig.RecreateDatabases && Directory.Exists(dataPath))
-            Directory.Delete(dataPath, true);*/
-
         var stopWatch = new Stopwatch();
         stopWatch.Start();
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
@@ -83,8 +80,11 @@ public class ZoneTree1
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
-        
-        zoneTree.Upsert(key, key + key);
+
+        for (var i = 0; i < amount; ++i) {
+            zoneTree.Upsert(key, key + key);
+            ++key;
+        }
         zoneTree.Maintenance.MoveSegmentZeroForward();
         zoneTree.Maintenance.StartMergeOperation()?.Join();
 

@@ -160,4 +160,9 @@ public class FixedSizeMinHeap<TKey>
             }
         }
     }
+
+    public ReadOnlySpan<TKey> GetKeys()
+    {
+        return new ReadOnlySpan<TKey>(keys, 0, Count);
+    }
 }

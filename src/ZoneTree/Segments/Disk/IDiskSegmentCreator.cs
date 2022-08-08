@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Segments.Disk;
+﻿using Tenray.ZoneTree.Core;
+
+namespace Tenray.ZoneTree.Segments.Disk;
 
 public interface IDiskSegmentCreator<TKey, TValue> : IDisposable
 {
@@ -6,7 +8,7 @@ public interface IDiskSegmentCreator<TKey, TValue> : IDisposable
 
     HashSet<int> AppendedSectorSegmentIds { get; }
 
-    void Append(TKey key, TValue value);
+    void Append(TKey key, TValue value, IteratorPosition iteratorPosition);
     
     void Append(
         IDiskSegment<TKey, TValue> sector,

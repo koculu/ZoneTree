@@ -119,5 +119,11 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public void Drop(HashSet<int> exludedSectorIds)
     {
     }
+
+    public bool IsBeginningOfASector(int index) => false;
+
+    public bool IsEndOfASector(int index) => false;
+
+    public int GetSectorIndex(int index) => -1;
 }
 

@@ -97,5 +97,11 @@ public class LockFreeSkipListIndexedReader<TKey, TValue> : IIndexedReader<TKey, 
     {
         throw new NotSupportedException("SkipListIndexedReader does not support first greater or equal position.");
     }
+
+    public bool IsBeginningOfASector(int index) => false;
+
+    public bool IsEndOfASector(int index) => false;
+    
+    public int GetSectorIndex(int index) => -1;
 }
 

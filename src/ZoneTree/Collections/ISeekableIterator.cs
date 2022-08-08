@@ -16,11 +16,15 @@ public interface ISeekableIterator<TKey, TValue>
 
     bool HasCurrent { get; }
 
-    public TKey CurrentKey { get; }
+    TKey CurrentKey { get; }
 
-    public TValue CurrentValue { get; }
+    TValue CurrentValue { get; }
 
     void Skip(int offset);
+
+    bool IsBeginningOfASector { get; }
+
+    bool IsEndOfASector { get; }
+
+    int GetSectorIndex();
 }
-
-

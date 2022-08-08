@@ -572,4 +572,10 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
             return;
         Drop();
     }
+
+    public bool IsBeginningOfASector(int index) => false;
+
+    public bool IsEndOfASector(int index) => false;
+
+    public int GetSectorIndex(int index) => -1;
 }

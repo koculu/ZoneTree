@@ -20,6 +20,10 @@ public class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 
     public bool HasCurrent => position >= 0 && position < Length;
 
+    public bool IsBeginningOfASector => IndexedReader.IsBeginningOfASector(position);
+
+    public bool IsEndOfASector => IndexedReader.IsEndOfASector(position);
+
     public SeekableIterator(IIndexedReader<TKey, TValue> indexedReader)
     {
         IndexedReader = indexedReader;
@@ -72,6 +76,8 @@ public class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
     public void Skip(int offset)
     {
         position += offset;
+
     }
+    public int GetSectorIndex() => IndexedReader.GetSectorIndex(position);
 }
 

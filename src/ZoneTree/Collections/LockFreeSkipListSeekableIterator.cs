@@ -12,7 +12,11 @@ public class LockFreeSkipListSeekableIterator<TKey, TValue> : ISeekableIterator<
         throw new IndexOutOfRangeException("Iterator is not in a valid position. Did you forget to call Next() or Prev()?") :
         CurrentNode.Value;
 
-    public bool HasCurrent => CurrentNode != null;
+    public bool HasCurrent => CurrentNode != null; 
+    
+    public bool IsBeginningOfASector => false;
+
+    public bool IsEndOfASector => false;
 
     readonly LockFreeSkipList<TKey, TValue> SkipList;
 
@@ -100,5 +104,7 @@ public class LockFreeSkipListSeekableIterator<TKey, TValue> : ISeekableIterator<
     {
         throw new NotSupportedException();
     }
+
+    public int GetSectorIndex() => -1;
 }
 

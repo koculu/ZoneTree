@@ -553,4 +553,49 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     }
     #endregion
 
+    public bool IsBeginningOfASector(int index)
+    {
+        var off = 0;
+        var sectorIndex = 0;
+        var len = Sectors[sectorIndex].Length;
+        while (off + len <= index)
+        {
+            off += len;
+            ++sectorIndex;
+            len = Sectors[sectorIndex].Length;
+        }
+        var localIndex = index - off;
+
+        return localIndex == 0;
+    }
+
+    public bool IsEndOfASector(int index)
+    {
+        var off = 0;
+        var sectorIndex = 0;
+        var len = Sectors[sectorIndex].Length;
+        while (off + len <= index)
+        {
+            off += len;
+            ++sectorIndex;
+            len = Sectors[sectorIndex].Length;
+        }
+        var localIndex = index - off;
+
+        return localIndex == len - 1;
+    }
+
+    public int GetSectorIndex(int index)
+    {
+        var off = 0;
+        var sectorIndex = 0;
+        var len = Sectors[sectorIndex].Length;
+        while (off + len <= index)
+        {
+            off += len;
+            ++sectorIndex;
+            len = Sectors[sectorIndex].Length;
+        }
+        return sectorIndex;
+    }
 }

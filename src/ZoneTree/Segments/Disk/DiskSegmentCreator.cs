@@ -64,7 +64,7 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         Options = options;
     }
 
-    public void Append(TKey key, TValue value)
+    public void Append(TKey key, TValue value, IteratorPosition iteratorPosition)
     {
         ++Length;
         var keyBytes = KeySerializer.Serialize(key);

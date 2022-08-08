@@ -160,4 +160,10 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
         Options.WriteAheadLogProvider.RemoveWAL(SegmentId, ZoneTree<TKey, TValue>.SegmentWalCategory);
         WriteAheadLog?.Dispose();
     }
+
+    public bool IsBeginningOfASector(int index) => false;
+
+    public bool IsEndOfASector(int index) => false;
+
+    public int GetSectorIndex(int index) => -1;
 }

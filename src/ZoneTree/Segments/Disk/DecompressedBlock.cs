@@ -71,6 +71,7 @@ public class DecompressedBlock
         var amount = Math.Min(length, Length);
         var newSize = Length - amount;
         Bytes = Bytes.AsSpan(0, (int)newSize).ToArray();
+        Length = (int)newSize;
         return (int)amount;
     }
 }
