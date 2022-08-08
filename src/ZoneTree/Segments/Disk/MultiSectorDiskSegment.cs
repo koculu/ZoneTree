@@ -101,7 +101,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         var result = segmentId;
         for (var i = 0; i < sectorCount; ++i)
         {
-            var sectorSegmentId = br.ReadInt32();
+            var sectorSegmentId = br.ReadInt64();
             result = Math.Max(sectorSegmentId, result);
         }
         randomDeviceManager.RemoveReadOnlyDevice(segmentId, category);
@@ -144,7 +144,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         var sectors = new IDiskSegment<TKey, TValue>[sectorCount];
         for (var i = 0; i < sectorCount; ++i)
         {
-            var sectorSegmentId = br.ReadInt32();
+            var sectorSegmentId = br.ReadInt64();
             var sector = new DiskSegment<TKey, TValue>(sectorSegmentId, options);
             sectors[i] = sector;
         }
