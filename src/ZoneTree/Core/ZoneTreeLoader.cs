@@ -28,12 +28,7 @@ public class ZoneTreeLoader<TKey, TValue>
     void LoadZoneTreeMeta()
     {
         ZoneTreeMeta = ZoneTreeMetaWAL<TKey, TValue>
-            .LoadZoneTreeMetaWithoutWALRecords(Options.RandomAccessDeviceManager);
-        SetMaximumSegmentId(ZoneTreeMeta.SegmentZero);
-        SetMaximumSegmentId(ZoneTreeMeta.DiskSegment);
-        SetMaximumSegmentId(MultiSectorDiskSegment<TKey, TValue>
-            .ReadMaximumSegmentId(ZoneTreeMeta.DiskSegment, Options.RandomAccessDeviceManager));
-        SetMaximumSegmentId(ZoneTreeMeta.ReadOnlySegments.FirstOrDefault());
+            .LoadZoneTreeMetaWithoutWALRecords(Options.RandomAccessDeviceManager);        
         ValidateZoneTreeMeta();
     }
 
@@ -169,10 +164,19 @@ public class ZoneTreeLoader<TKey, TValue>
         SegmentZero = loader.LoadMutableSegment(ZoneTreeMeta.SegmentZero);
     }
 
+    void SetMaximumId()
+    {
+        SetMaximumSegmentId(ZoneTreeMeta.SegmentZero);
+        SetMaximumSegmentId(ZoneTreeMeta.DiskSegment);
+        SetMaximumSegmentId(MultiSectorDiskSegment<TKey, TValue>
+            .ReadMaximumSegmentId(ZoneTreeMeta.DiskSegment, Options.RandomAccessDeviceManager));
+        SetMaximumSegmentId(ZoneTreeMeta.ReadOnlySegments.FirstOrDefault());
+    }
     public ZoneTree<TKey, TValue> LoadZoneTree()
     {
         LoadZoneTreeMeta();
         LoadZoneTreeMetaWAL();
+        SetMaximumId();
         LoadSegmentZero();
         LoadDiskSegment();
         LoadReadOnlySegments();
