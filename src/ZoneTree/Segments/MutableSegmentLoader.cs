@@ -13,7 +13,7 @@ public class MutableSegmentLoader<TKey, TValue>
         Options = options;
     }
 
-    public IMutableSegment<TKey, TValue> LoadMutableSegment(int segmentId)
+    public IMutableSegment<TKey, TValue> LoadMutableSegment(long segmentId)
     {
         var wal = Options.WriteAheadLogProvider
             .GetOrCreateWAL(

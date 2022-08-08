@@ -3,15 +3,15 @@
 public interface IRandomAccessDeviceManager
 {
     IRandomAccessDevice GetReadOnlyDevice(
-        int segmentId, string category, bool isCompressed, 
+        long segmentId, string category, bool isCompressed, 
         int compressionBlockSize, int maxCachedBlockCount);
 
     IRandomAccessDevice CreateWritableDevice(
-        int segmentId, string category, bool isCompressed, 
+        long segmentId, string category, bool isCompressed, 
         int compressionBlockSize, int maxCachedBlockCount,
         bool deleteIfExists, bool backupIfDelete);
 
-    bool DeviceExists(int segmentId, string category);
+    bool DeviceExists(long segmentId, string category);
 
     int DeviceCount { get; }
 
@@ -27,9 +27,9 @@ public interface IRandomAccessDeviceManager
 
     void CloseAllDevices();
 
-    void RemoveReadOnlyDevice(int segmentId, string category);
+    void RemoveReadOnlyDevice(long segmentId, string category);
 
-    void RemoveWritableDevice(int segmentId, string category);
+    void RemoveWritableDevice(long segmentId, string category);
 
     void DropStore();    
 }

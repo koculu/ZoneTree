@@ -6,7 +6,7 @@ namespace Tenray.ZoneTree.Segments;
 
 public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIndexedReader<TKey, TValue>
 {
-    public int SegmentId { get; }
+    public long SegmentId { get; }
 
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
@@ -29,7 +29,7 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
     public bool IsIterativeIndexReader => false;
 
     public ReadOnlySegment(
-        int segmentId,
+        long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IReadOnlyList<TKey> sortedKeys,
         IReadOnlyList<TValue> sortedValues)

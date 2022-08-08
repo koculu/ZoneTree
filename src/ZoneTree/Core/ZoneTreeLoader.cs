@@ -16,7 +16,7 @@ public class ZoneTreeLoader<TKey, TValue>
 
     IMutableSegment<TKey, TValue> SegmentZero { get; set; }
 
-    int maximumSegmentId = 1;
+    long maximumSegmentId = 1;
     public ZoneTreeLoader(ZoneTreeOptions<TKey, TValue> options)
     {
         Options = options;
@@ -32,7 +32,7 @@ public class ZoneTreeLoader<TKey, TValue>
         ValidateZoneTreeMeta();
     }
 
-    private void SetMaximumSegmentId(int newId)
+    private void SetMaximumSegmentId(long newId)
     {
         maximumSegmentId = Math.Max(maximumSegmentId, newId);
     }
@@ -119,7 +119,7 @@ public class ZoneTreeLoader<TKey, TValue>
 
     private void ValidateSegmentOrder()
     {
-        var index = int.MaxValue;
+        var index = long.MaxValue;
         foreach (var ros in ZoneTreeMeta.ReadOnlySegments)
         {
             if (index <= ros)

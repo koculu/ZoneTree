@@ -13,7 +13,7 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
     readonly IRandomAccessDeviceManager RandomDeviceManager;
 
     public string FilePath { get; }
-    public int SegmentId { get; }
+    public long SegmentId { get; }
 
     public bool Writable { get; }
 
@@ -23,7 +23,7 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
 
     public FileRandomAccessDevice(
         IFileStreamProvider fileStreamProvider,
-        int segmentId,
+        long segmentId,
         string category,
         IRandomAccessDeviceManager randomDeviceManager,
         string filePath, bool writable, int fileIOBufferSize = 4096)

@@ -20,9 +20,9 @@ public class ZoneTreeMeta
 
     public int DiskSegmentCompressionBlockSize { get; set; }
 
-    public int SegmentZero { get; set; }
+    public long SegmentZero { get; set; }
 
-    public IReadOnlyList<int> ReadOnlySegments { get; set; }
+    public IReadOnlyList<long> ReadOnlySegments { get; set; }
 
-    public int DiskSegment { get; set; }
+    public long DiskSegment { get; set; }
 }

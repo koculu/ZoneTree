@@ -37,7 +37,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     readonly IWriteAheadLog<TKey, TValue> WriteAheadLog;
 
-    public int SegmentId { get; private set; }
+    public long SegmentId { get; private set; }
 
     public bool IsFrozen => IsFrozenFlag;
 
@@ -46,7 +46,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
     public int Length => SkipList.Length;
 
     public MutableSegment(ZoneTreeOptions<TKey, TValue> options,
-        int segmentId)
+        long segmentId)
     {
         SegmentId = segmentId;
         WriteAheadLog = options.WriteAheadLogProvider
@@ -63,7 +63,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
     }
 
     public MutableSegment(
-        int segmentId,
+        long segmentId,
         IWriteAheadLog<TKey, TValue> wal,
         ZoneTreeOptions<TKey, TValue> options,
         IReadOnlyList<TKey> keys,

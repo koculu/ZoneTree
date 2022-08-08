@@ -6,7 +6,7 @@ public interface IDiskSegmentCreator<TKey, TValue> : IDisposable
 {
     bool CanSkipCurrentSector { get; }
 
-    HashSet<int> AppendedSectorSegmentIds { get; }
+    HashSet<long> AppendedSectorSegmentIds { get; }
 
     void Append(TKey key, TValue value, IteratorPosition iteratorPosition);
     

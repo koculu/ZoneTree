@@ -87,7 +87,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             ZoneTreeMeta,
             SegmentZero.SegmentId,
             DiskSegment.SegmentId,
-            Array.Empty<int>());
+            Array.Empty<long>());
     }
 
     public ZoneTree(
@@ -96,7 +96,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         IReadOnlyList<IReadOnlySegment<TKey, TValue>> readOnlySegments,
         IMutableSegment<TKey, TValue> segmentZero,
         IDiskSegment<TKey, TValue> diskSegment,
-        int maximumSegmentId
+        long maximumSegmentId
         )
     {
         options.WriteAheadLogProvider.InitCategory(SegmentWalCategory);

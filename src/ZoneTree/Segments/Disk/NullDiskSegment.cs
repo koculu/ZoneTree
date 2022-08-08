@@ -6,7 +6,7 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
     public int Length => 0;
 
-    public int SegmentId { get; }
+    public long SegmentId { get; }
 
     public bool IsFullyFrozen => true;
 
@@ -116,7 +116,7 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return 0;
     }
 
-    public void Drop(HashSet<int> excludedSectorIds)
+    public void Drop(HashSet<long> excludedSectorIds)
     {
     }
 

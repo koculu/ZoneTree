@@ -50,7 +50,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
     }
 
-    public void EnqueueReadOnlySegment(int segmentId)
+    public void EnqueueReadOnlySegment(long segmentId)
     {
         var record = new MetaWalRecord
         {
@@ -60,7 +60,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         AppendRecord(record);
     }
 
-    public void DequeueReadOnlySegment(int segmentId)
+    public void DequeueReadOnlySegment(long segmentId)
     {
         var record = new MetaWalRecord
         {
@@ -70,7 +70,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         AppendRecord(record);
     }
 
-    public void NewSegmentZero(int segmentId)
+    public void NewSegmentZero(long segmentId)
     {
         var record = new MetaWalRecord
         {
@@ -80,7 +80,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         AppendRecord(record);
     }
 
-    public void NewDiskSegment(int segmentId)
+    public void NewDiskSegment(long segmentId)
     {
         var record = new MetaWalRecord
         {
@@ -146,9 +146,9 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
     public void SaveMetaData(
         ZoneTreeMeta zoneTreeMeta,
-        int segmentZero,
-        int diskSegment,
-        int[] readOnlySegments)
+        long segmentZero,
+        long diskSegment,
+        long[] readOnlySegments)
     {
         var newZoneTreeMeta = new ZoneTreeMeta
         {
@@ -224,5 +224,5 @@ public enum MetaWalOperation
 public struct MetaWalRecord
 {
     public MetaWalOperation Operation;
-    public int SegmentId;
+    public long SegmentId;
 }

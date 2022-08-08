@@ -7,7 +7,7 @@ namespace Tenray.ZoneTree.Segments.Disk;
 
 public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
-    public int SegmentId { get; }
+    public long SegmentId { get; }
 
     readonly IRefComparer<TKey> Comparer;
 
@@ -52,7 +52,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
     public unsafe DiskSegment(
-        int segmentId,
+        long segmentId,
         ZoneTreeOptions<TKey, TValue> options)
     {
         SegmentId = segmentId;
@@ -103,7 +103,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         }
     }
 
-    public unsafe DiskSegment(int segmentId, 
+    public unsafe DiskSegment(long segmentId, 
         ZoneTreeOptions<TKey, TValue> options,
         IRandomAccessDevice dataHeaderDevice,
         IRandomAccessDevice dataDevice)
@@ -566,7 +566,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return a + b;
     }
 
-    public void Drop(HashSet<int> excludedSectorIds)
+    public void Drop(HashSet<long> excludedSectorIds)
     {
         if (excludedSectorIds.Contains(SegmentId))
             return;

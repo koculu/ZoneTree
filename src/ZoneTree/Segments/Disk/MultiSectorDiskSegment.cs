@@ -7,7 +7,7 @@ namespace Tenray.ZoneTree.Segments.Disk;
 
 public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
-    public int SegmentId { get; }
+    public long SegmentId { get; }
 
     readonly IRefComparer<TKey> Comparer;
 
@@ -42,7 +42,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
     public MultiSectorDiskSegment(
-        int segmentId,
+        long segmentId,
         ZoneTreeOptions<TKey, TValue> options)
     {
         SegmentId = segmentId;
@@ -73,8 +73,8 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         Length = CalculateLength();
     }
 
-    public static int ReadMaximumSegmentId(
-        int segmentId,
+    public static long ReadMaximumSegmentId(
+        long segmentId,
         IRandomAccessDeviceManager randomDeviceManager)
     {
         var category = DiskSegmentConstants.MultiSectorDiskSegmentCategory;
@@ -101,7 +101,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         var result = segmentId;
         for (var i = 0; i < sectorCount; ++i)
         {
-            var sectorSegmentId = br.ReadInt32();
+            var sectorSegmentId = br.ReadInt64();
             result = Math.Max(sectorSegmentId, result);
         }
         randomDeviceManager.RemoveReadOnlyDevice(segmentId, category);
@@ -109,7 +109,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     }
 
     public MultiSectorDiskSegment(
-        int segmentId,
+        long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IReadOnlyList<IDiskSegment<TKey, TValue>> sectors,
         TKey[] sectorKeys,
@@ -144,7 +144,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         var sectors = new IDiskSegment<TKey, TValue>[sectorCount];
         for (var i = 0; i < sectorCount; ++i)
         {
-            var sectorSegmentId = br.ReadInt32();
+            var sectorSegmentId = br.ReadInt64();
             var sector = new DiskSegment<TKey, TValue>(sectorSegmentId, options);
             sectors[i] = sector;
         }
@@ -256,7 +256,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     }
 
 
-    public void Drop(HashSet<int> excudedSectorIds)
+    public void Drop(HashSet<long> excudedSectorIds)
     {
         lock (DropLock)
         {
