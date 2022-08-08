@@ -308,19 +308,47 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     {
         var off = 0;
         var sectorIndex = 0;
-        while (off + Sectors[sectorIndex].Length <= index)
+        var len = Sectors[sectorIndex].Length;
+        while (off + len <= index)
         {
-            off += Sectors[sectorIndex].Length;
+            off += len;
             ++sectorIndex;
+            len = Sectors[sectorIndex].Length;
         }
         var localIndex = index - off;
+
+        if (localIndex == 0)
+            return SectorKeys[sectorIndex*2];
+        if (localIndex == len - 1)
+            return SectorKeys[sectorIndex * 2 + 1];
+
         var key = Sectors[sectorIndex].GetKey(localIndex);
         return key;
     }
 
+    public TValue GetValue(int index)
+    {
+        var off = 0;
+        var sectorIndex = 0;
+        var len = Sectors[sectorIndex].Length;
+        while (off + len <= index)
+        {
+            off += len;
+            ++sectorIndex;
+            len = Sectors[sectorIndex].Length;
+        }
+        var localIndex = index - off;
+
+        if (localIndex == 0)
+            return SectorValues[sectorIndex * 2];
+        if (localIndex == len - 1)
+            return SectorValues[sectorIndex * 2 + 1];
+
+        return Sectors[sectorIndex].GetValue(localIndex);
+    }
+
     public int GetLastSmallerOrEqualPosition(in TKey key)
     {
-        var sparseArrayLength = SectorKeys.Length;
         (var left, var found) = SearchLastSmallerOrEqualPositionInSparseArray(in key);
         var sectorIndex = left / 2;
         var isStartOfSector = left % 2 == 0 ? 1 : 0;
@@ -357,19 +385,6 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     public ISeekableIterator<TKey, TValue> GetSeekableIterator()
     {
         return new SeekableIterator<TKey, TValue>(this);
-    }
-
-    public TValue GetValue(int index)
-    {
-        var off = 0;
-        var sectorIndex = 0;
-        while (off + Sectors[sectorIndex].Length <= index)
-        {
-            off += Sectors[sectorIndex].Length;
-            ++sectorIndex;
-        }
-        var localIndex = index - off;
-        return Sectors[sectorIndex].GetValue(localIndex);
     }
 
     public void InitSparseArray(int size)

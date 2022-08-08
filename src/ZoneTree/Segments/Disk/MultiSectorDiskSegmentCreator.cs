@@ -155,10 +155,10 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
     {
         var len = Sectors.Count * 2;
         bw.Write(len);
-        for (var i = 0; i < len; i += 2)
+        for (var i = 0; i < len; ++i)
         {
-            var a = i / 2;
-            var b = a + 1;
+            var a = i++;
+            var b = i;
             var k1 = SectorKeys[a];
             var bytes = KeySerializer.Serialize(k1);
             bw.Write(bytes.Length);
@@ -175,10 +175,10 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
     {
         var len = Sectors.Count * 2;
         bw.Write(len);
-        for (var i = 0; i < len; i += 2)
+        for (var i = 0; i < len; ++i)
         {
-            var a = i / 2;
-            var b = a + 1;
+            var a = i++;
+            var b = i;
             var v1 = SectorValues[a];
             var bytes = ValueSerializer.Serialize(v1);
             bw.Write(bytes.Length);
