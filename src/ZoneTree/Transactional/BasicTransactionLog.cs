@@ -15,7 +15,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
     const string TxReadWriteStampCategory = "txs";
 
-    readonly IncrementalInt64IdProvider IncrementalIdProvider = new();
+    readonly IncrementalIdProvider IncrementalIdProvider = new();
 
     readonly DictionaryWithWAL<long, TransactionMeta> Transactions;
 

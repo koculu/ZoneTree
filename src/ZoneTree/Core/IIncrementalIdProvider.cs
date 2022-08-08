@@ -2,7 +2,7 @@
 
 public interface IIncrementalIdProvider
 {
-    int NextId();
+    long NextId();
 
-    void SetNextId(int id);
+    void SetNextId(long id);
 }

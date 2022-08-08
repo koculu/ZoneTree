@@ -146,9 +146,9 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
     public void SaveMetaData(
         ZoneTreeMeta zoneTreeMeta,
-        int segmentZero,
-        int diskSegment,
-        int[] readOnlySegments)
+        long segmentZero,
+        long diskSegment,
+        long[] readOnlySegments)
     {
         var newZoneTreeMeta = new ZoneTreeMeta
         {

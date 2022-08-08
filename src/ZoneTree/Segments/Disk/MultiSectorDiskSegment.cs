@@ -73,7 +73,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         Length = CalculateLength();
     }
 
-    public static int ReadMaximumSegmentId(
+    public static long ReadMaximumSegmentId(
         long segmentId,
         IRandomAccessDeviceManager randomDeviceManager)
     {
@@ -256,7 +256,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     }
 
 
-    public void Drop(HashSet<int> excudedSectorIds)
+    public void Drop(HashSet<long> excudedSectorIds)
     {
         lock (DropLock)
         {
