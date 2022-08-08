@@ -40,7 +40,7 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
 
     public bool CanSkipCurrentSector =>
         NextCreator.Length == 0 || 
-        NextCreator.Length >= Options.DiskSegmentMinimumRecordCount;
+        NextCreator.Length >= DiskSegmentMinimumRecordCount;
 
     public int NextMaximumRecordCount;
     
@@ -66,12 +66,9 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
             Options.DiskSegmentMinimumRecordCount,
             Options.DiskSegmentMaximumRecordCount);
     }
-
-    IteratorPosition LastIteratorPosition = IteratorPosition.None;
     
     public void Append(TKey key, TValue value, IteratorPosition iteratorPosition)
     {
-        LastIteratorPosition = iteratorPosition;
         var len = NextCreator.Length; 
         if (len == 0) {
             SectorKeys.Add(key);

@@ -122,13 +122,17 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
     {
         while (true)
         {
-            var threads = MergerThreads.Values.ToArray();
+            var threads = MergerThreads.ToArray();
             if (threads.Length == 0)
                 return;
             Trace($"Waiting {threads.Length} merge threads");
-            foreach (var t in threads)
+            foreach (var a in threads)
             {
-                t.Join();
+                var t = a.Value;
+                if (t.ThreadState == ThreadState.Stopped)
+                    MergerThreads.TryRemove(a.Key, out var _);
+                else
+                    t.Join();
             }
             Trace("Wait ended");
         }
