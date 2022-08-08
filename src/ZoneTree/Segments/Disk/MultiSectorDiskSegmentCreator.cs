@@ -38,6 +38,8 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
         NextCreator.Length == 0 || 
         NextCreator.Length >= Options.DiskSegmentMinimumRecordCount;
 
+    public int NextMaximumRecordCount;
+
     public MultiSectorDiskSegmentCreator(
         ZoneTreeOptions<TKey, TValue> options,
         IIncrementalIdProvider incrementalIdProvider
@@ -50,6 +52,15 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
         IncrementalIdProvider = incrementalIdProvider;
         NextCreator = new(options, incrementalIdProvider);
         DiskSegmentMaximumRecordCount = Options.DiskSegmentMaximumRecordCount;
+        SetNextMaximumRecordCount();
+    }
+
+    readonly Random Random = new();
+    void SetNextMaximumRecordCount()
+    {
+        NextMaximumRecordCount = Random.Next(
+            Options.DiskSegmentMinimumRecordCount,
+            Options.DiskSegmentMaximumRecordCount);
     }
 
     public void Append(TKey key, TValue value)
@@ -59,8 +70,9 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
             SectorKeys.Add(key);
             SectorValues.Add(value);
         }
-        else if (len == DiskSegmentMaximumRecordCount - 1)
+        else if (len == NextMaximumRecordCount - 1)
         {
+            SetNextMaximumRecordCount();
             SectorKeys.Add(key);
             SectorValues.Add(value);
             NextCreator.Append(key, value);
