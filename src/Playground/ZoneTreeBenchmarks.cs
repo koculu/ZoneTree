@@ -7,15 +7,17 @@ using Tenray.ZoneTree.WAL;
 
 namespace Playground;
 
+[HtmlExporter]
 [SimpleJob(RunStrategy.ColdStart, targetCount: 1)]
-[MinColumn, MaxColumn, MeanColumn, MedianColumn]
-[HardwareCounters(
-    HardwareCounter.TotalCycles,
-    HardwareCounter.TotalIssues,
-    HardwareCounter.CacheMisses)]
+[MinColumn, MaxColumn, MeanColumn, MedianColumn, /*AllStatisticsColumn*/]
 [RPlotExporter]
 [MemoryDiagnoser]
 [ThreadingDiagnoser]
+[HardwareCounters(
+    HardwareCounter.TotalCycles,
+    HardwareCounter.TotalIssues,
+    HardwareCounter.CacheMisses,
+    HardwareCounter.Timer)]
 public class ZoneTreeBenchmarks
 {
     [GlobalSetup]
