@@ -8,7 +8,8 @@ public interface IRandomAccessDeviceManager
 
     IRandomAccessDevice CreateWritableDevice(
         int segmentId, string category, bool isCompressed, 
-        int compressionBlockSize, int maxCachedBlockCount);
+        int compressionBlockSize, int maxCachedBlockCount,
+        bool deleteIfExists, bool backupIfDelete);
 
     bool DeviceExists(int segmentId, string category);
 

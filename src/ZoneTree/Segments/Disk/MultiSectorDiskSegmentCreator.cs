@@ -144,12 +144,15 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
         WriteValues(bw);
         bw.Flush();
 
-        using var multiDevice = Options.RandomAccessDeviceManager.CreateWritableDevice(
+        using var multiDevice = Options.RandomAccessDeviceManager.
+            CreateWritableDevice(
                     SegmentId,
                     DiskSegmentConstants.MultiSectorDiskSegmentCategory,
                     false,
                     0,
-                    0);
+                    0,
+                    false,
+                    false);
         var compressedBytes = DataCompression.Compress(ms.ToArray());
         multiDevice.AppendBytesReturnPosition(compressedBytes);
         Options.RandomAccessDeviceManager

@@ -51,14 +51,16 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
                     DiskSegmentConstants.DataHeaderCategory,
                     options.EnableDiskSegmentCompression,
                     options.DiskSegmentCompressionBlockSize,
-                    options.DiskSegmentBlockCacheLimit);
+                    options.DiskSegmentBlockCacheLimit,
+                    true, false);
         DataDevice = randomDeviceManager
             .CreateWritableDevice(
                 SegmentId,
                 DiskSegmentConstants.DataCategory,
                 options.EnableDiskSegmentCompression,
                 options.DiskSegmentCompressionBlockSize,
-                options.DiskSegmentBlockCacheLimit);
+                options.DiskSegmentBlockCacheLimit,
+                true, false);
         Options = options;
     }
 

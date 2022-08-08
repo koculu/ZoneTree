@@ -38,7 +38,9 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
     }
 
     public IRandomAccessDevice CreateWritableDevice(
-        int segmentId, string category, bool isCompressed, int compressionBlockSize, int maxCachedBlockCount)
+        int segmentId, string category, 
+        bool isCompressed, int compressionBlockSize, int maxCachedBlockCount,
+        bool deleteIfExists, bool backupIfDelete)
     {
         var key = GetDeviceKey(segmentId, category);
         if (WritableDevices.ContainsKey(key))
@@ -46,6 +48,14 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
             throw new Exception($"Writable device can be created only once. guid: {segmentId:X} category: {category}");
         }
         var filePath = GetFilePath(segmentId, category);
+        if (deleteIfExists && FileStreamProvider.FileExists(filePath))
+        {
+            if (backupIfDelete)
+                FileStreamProvider.Replace(filePath, 
+                    filePath + ".backup." + Guid.NewGuid().ToString("N"), null);
+            else
+                FileStreamProvider.DeleteFile(filePath);
+        }
         IRandomAccessDevice device = isCompressed ?
             new CompressedFileRandomAccessDevice(
                 maxCachedBlockCount,
@@ -76,7 +86,9 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
     }
 
     public IRandomAccessDevice GetReadOnlyDevice(
-        int segmentId, string category, bool isCompressed, int compressionBlockSize, int maxCachedBlockCount)
+        int segmentId, string category, 
+        bool isCompressed, int compressionBlockSize, 
+        int maxCachedBlockCount)
     {
         var key = GetDeviceKey(segmentId, category);
         if (ReadOnlyDevices.TryGetValue(key, out var device))

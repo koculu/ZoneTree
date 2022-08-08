@@ -35,7 +35,8 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
             Device = Options
                 .RandomAccessDeviceManager
-                .CreateWritableDevice(ZoneTreeMetaId, MetaWalCategory, false, 0, 0);
+                .CreateWritableDevice(ZoneTreeMetaId, 
+                MetaWalCategory, false, 0, 0, false, false);
         }
     }
 
@@ -173,7 +174,8 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         var deviceManager = Options.RandomAccessDeviceManager;
 
         using var device = deviceManager
-            .CreateWritableDevice(ZoneTreeMetaId, MetaFileCategory, false, 0, 0);
+            .CreateWritableDevice(
+                ZoneTreeMetaId, MetaFileCategory, false, 0, 0, false, false);
 
         // If crash occurs during following 3 operations,
         // the tree meta file would become corrupted.

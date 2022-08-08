@@ -54,7 +54,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         var randomDeviceManager = options.RandomAccessDeviceManager;
         using var diskSegmentListDevice = randomDeviceManager
                 .GetReadOnlyDevice(
-                    SegmentId,
+                    segmentId,
                     DiskSegmentConstants.MultiSectorDiskSegmentCategory, false, 0, 0);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
@@ -71,6 +71,41 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         SectorKeys = ReadKeys(br);
         SectorValues = ReadValues(br);
         Length = CalculateLength();
+    }
+
+    public static int ReadMaximumSegmentId(
+        int segmentId,
+        IRandomAccessDeviceManager randomDeviceManager)
+    {
+        var category = DiskSegmentConstants.MultiSectorDiskSegmentCategory;
+        if (!randomDeviceManager.DeviceExists(segmentId, category))
+            return 0;
+        using var diskSegmentListDevice = randomDeviceManager
+                .GetReadOnlyDevice(
+                    segmentId,
+                    category, false, 0, 0);
+
+        if (diskSegmentListDevice.Length > int.MaxValue)
+            throw new DataIsTooBigToLoadAtOnceException(
+                diskSegmentListDevice.Length, int.MaxValue);
+        
+        var len = (int)diskSegmentListDevice.Length;
+        var compressedBytes = diskSegmentListDevice.GetBytes(0, len);
+        var bytes = DataCompression.Decompress(compressedBytes);
+
+        using var ms = new MemoryStream(bytes);
+        using var br = new BinaryReader(ms);
+
+        var sectorCount = br.ReadInt32();
+        var sectors = new IDiskSegment<TKey, TValue>[sectorCount];
+        var result = segmentId;
+        for (var i = 0; i < sectorCount; ++i)
+        {
+            var sectorSegmentId = br.ReadInt32();
+            result = Math.Max(sectorSegmentId, result);
+        }
+        randomDeviceManager.RemoveReadOnlyDevice(segmentId, category);
+        return result;
     }
 
     public MultiSectorDiskSegment(

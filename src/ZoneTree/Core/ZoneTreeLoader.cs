@@ -31,6 +31,8 @@ public class ZoneTreeLoader<TKey, TValue>
             .LoadZoneTreeMetaWithoutWALRecords(Options.RandomAccessDeviceManager);
         SetMaximumSegmentId(ZoneTreeMeta.SegmentZero);
         SetMaximumSegmentId(ZoneTreeMeta.DiskSegment);
+        SetMaximumSegmentId(MultiSectorDiskSegment<TKey, TValue>
+            .ReadMaximumSegmentId(ZoneTreeMeta.DiskSegment, Options.RandomAccessDeviceManager));
         SetMaximumSegmentId(ZoneTreeMeta.ReadOnlySegments.FirstOrDefault());
         ValidateZoneTreeMeta();
     }
