@@ -3,7 +3,7 @@ using Playground;
 using Playground.Benchmark;
 using Tenray.ZoneTree.WAL;
 
-//var summary = BenchmarkRunner.Run<ZoneTreeBenchmarks>(); return;
+var summary = BenchmarkRunner.Run<ZoneTreeBenchmarks>(); return;
 
 var custom = false;
 if (custom)
