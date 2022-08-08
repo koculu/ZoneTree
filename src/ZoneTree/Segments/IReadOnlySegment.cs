@@ -4,7 +4,7 @@ namespace Tenray.ZoneTree.Segments;
 
 public interface IReadOnlySegment<TKey, TValue>
 {
-    int SegmentId { get; }
+    long SegmentId { get; }
 
     int Length { get; }
 

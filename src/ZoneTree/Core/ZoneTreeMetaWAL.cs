@@ -224,5 +224,5 @@ public enum MetaWalOperation
 public struct MetaWalRecord
 {
     public MetaWalOperation Operation;
-    public int SegmentId;
+    public long SegmentId;
 }

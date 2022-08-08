@@ -7,7 +7,7 @@ namespace Tenray.ZoneTree.Segments.Disk;
 
 public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
-    public int SegmentId { get; }
+    public long SegmentId { get; }
 
     readonly IRefComparer<TKey> Comparer;
 

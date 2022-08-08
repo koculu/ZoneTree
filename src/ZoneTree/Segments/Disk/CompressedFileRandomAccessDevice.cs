@@ -32,7 +32,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public string FilePath { get; }
 
-    public int SegmentId { get; }
+    public long SegmentId { get; }
 
     public bool Writable { get; }
 

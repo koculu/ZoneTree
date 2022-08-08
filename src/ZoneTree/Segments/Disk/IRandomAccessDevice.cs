@@ -2,7 +2,7 @@
 
 public interface IRandomAccessDevice : IDisposable
 {
-    int SegmentId { get; }
+    long SegmentId { get; }
 
     bool Writable { get; }
 

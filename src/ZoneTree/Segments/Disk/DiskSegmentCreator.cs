@@ -6,7 +6,7 @@ namespace Tenray.ZoneTree.Segments.Disk;
 
 public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey, TValue>
 {
-    readonly int SegmentId;
+    readonly long SegmentId;
 
     readonly ISerializer<TKey> KeySerializer;
 

@@ -37,7 +37,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     readonly IWriteAheadLog<TKey, TValue> WriteAheadLog;
 
-    public int SegmentId { get; private set; }
+    public long SegmentId { get; private set; }
 
     public bool IsFrozen => IsFrozenFlag;
 
