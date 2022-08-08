@@ -34,10 +34,14 @@ It is four times faster than Facebook's RocksDB.
 
 Benchmark Configuration:
 ```c#
-DiskCompressionBlockSize = 1024 * 1024 * 1; // 1MB
-WALCompressionBlockSize = 1024 * 1024; // 1 MB
+DiskCompressionBlockSize = 1024 * 1024 * 1;
+WALCompressionBlockSize = 1024 * 1024;
 DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
 ```
+
+Additional Notes:
+According to our tests, ZoneTree is stable and fast even with big data.
+Tested up to 200M records in desktop computers till now.
 
 ### ZoneTree offers 3 WAL modes to let you make a flexible tradeoff.
 

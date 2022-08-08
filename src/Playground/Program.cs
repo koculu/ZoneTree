@@ -1,8 +1,5 @@
-﻿using BenchmarkDotNet.Running;
-using Playground;
-using Playground.Benchmark;
+﻿using Playground.Benchmark;
 using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.WAL;
 
 var custom = false;
 if (custom)
@@ -21,6 +18,9 @@ TestConfig.WALCompressionBlockSize = 1024 * 1024;
 TestConfig.MinimumSparseArrayLength = 0;
 TestConfig.DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
 
+BenchmarkGroups.Insert1();
+
+/*
 var c = 10_000_000;
 var m = 1_000_000;
 var a = 10000;
@@ -29,3 +29,4 @@ ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.Lazy, c, m, a);
 ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.CompressedImmediate, c, m, a);
 ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.Immediate, c, m, a);
 BenchmarkGroups.Iterate1(c);
+*/

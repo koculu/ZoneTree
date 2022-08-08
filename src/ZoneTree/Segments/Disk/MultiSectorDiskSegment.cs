@@ -256,7 +256,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     }
 
 
-    public void Drop(HashSet<int> exludedSectorIds)
+    public void Drop(HashSet<int> excudedSectorIds)
     {
         lock (DropLock)
         {
@@ -274,7 +274,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
             {
                 var sector = Sectors[i];
 
-                if (exludedSectorIds.Contains(sector.SegmentId))
+                if (excudedSectorIds.Contains(sector.SegmentId))
                     continue;
                 sector.Drop();
             }

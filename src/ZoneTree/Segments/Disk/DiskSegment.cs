@@ -566,9 +566,9 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return a + b;
     }
 
-    public void Drop(HashSet<int> exludedSectorIds)
+    public void Drop(HashSet<int> excludedSectorIds)
     {
-        if (exludedSectorIds.Contains(SegmentId))
+        if (excludedSectorIds.Contains(SegmentId))
             return;
         Drop();
     }

@@ -116,7 +116,7 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return 0;
     }
 
-    public void Drop(HashSet<int> exludedSectorIds)
+    public void Drop(HashSet<int> excludedSectorIds)
     {
     }
 
