@@ -1,13 +1,11 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Engines;
-using BenchmarkDotNet.Jobs;
 using Playground.Benchmark;
+using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.WAL;
 
 namespace Playground;
-
-
 
 [SimpleJob(RunStrategy.ColdStart, targetCount: 1)]
 [MinColumn, MaxColumn, MeanColumn, MedianColumn]
@@ -23,6 +21,12 @@ public class ZoneTreeBenchmarks
     [GlobalSetup]
     public void Setup()
     {
+        TestConfig.EnableParalelInserts = false;
+        TestConfig.DiskSegmentMaximumCachedBlockCount = 8;
+        TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 1;
+        TestConfig.WALCompressionBlockSize = 1024 * 1024;
+        TestConfig.MinimumSparseArrayLength = 0;
+        TestConfig.DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
     }
     
     [Benchmark]
