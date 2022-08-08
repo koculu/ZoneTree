@@ -2,6 +2,8 @@
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.WAL;
 
+var summary = BenchmarkRunner.Run<ZoneTreeBenchmarks>(); return;
+
 var custom = false;
 if (custom)
 {

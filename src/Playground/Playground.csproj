@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
     <PackageReference Include="NUnit" Version="3.13.3" />
   </ItemGroup>
 

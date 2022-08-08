@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.WAL;
+﻿using BenchmarkDotNet.Attributes;
+using Tenray.ZoneTree.WAL;
 
 namespace Playground.Benchmark;
 
@@ -40,7 +41,7 @@ public static class BenchmarkGroups
             }
         }
     }
-
+    
     public static void InsertIterate1(int count = 0, WriteAheadLogMode? mode = null)
     {
         Run(count, mode, (m, c) =>
@@ -49,6 +50,7 @@ public static class BenchmarkGroups
             ZoneTree1.Iterate(m, c);
         });
     }
+    
     public static void InsertIterate2(int count = 0, WriteAheadLogMode? mode = null)
     {
         Run(count, mode, (m, c) =>
@@ -58,6 +60,7 @@ public static class BenchmarkGroups
         });
     }
 
+    
     public static void LogWithColor(string msg, ConsoleColor color)
     {
         var existingColor = Console.ForegroundColor;
