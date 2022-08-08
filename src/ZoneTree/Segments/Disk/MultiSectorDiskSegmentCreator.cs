@@ -25,7 +25,9 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
     readonly List<TKey> SectorKeys = new();
 
     readonly List<TValue> SectorValues = new();
-        
+
+    readonly Random Random = new();
+
     TKey LastAppendedKey;
     
     TValue LastAppendedValue;
@@ -55,7 +57,6 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
         SetNextMaximumRecordCount();
     }
 
-    readonly Random Random = new();
     void SetNextMaximumRecordCount()
     {
         NextMaximumRecordCount = Random.Next(

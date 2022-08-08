@@ -156,7 +156,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         return copyLength;
     }
 
-    private void AppendBlock(DecompressedBlock nextBlock)
+    void AppendBlock(DecompressedBlock nextBlock)
     {
         var compressedBytes = nextBlock.Compress();
         var offset = CompressedBlockPositions.LastOrDefault(sizeof(int));
