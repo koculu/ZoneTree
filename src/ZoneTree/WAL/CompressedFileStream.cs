@@ -27,7 +27,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
     
     readonly BinaryWriter BinaryChunkWriter;
 
-    volatile int _length;
+    long _length;
 
     readonly Task TailWriter;
 
