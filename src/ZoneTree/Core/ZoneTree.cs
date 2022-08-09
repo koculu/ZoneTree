@@ -108,6 +108,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         ZoneTreeMeta = meta;
         Options = options;
         MinHeapEntryComparer = new MinHeapEntryRefComparer<TKey, TValue>(options.Comparer);
+        MaxHeapEntryComparer = new MaxHeapEntryRefComparer<TKey, TValue>(options.Comparer);
         SegmentZero = segmentZero;
         DiskSegment = diskSegment;
         DiskSegment.DropFailureReporter = (ds, e) => ReportDropFailure(ds, e);

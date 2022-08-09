@@ -93,9 +93,7 @@ public class FixedSizeMinHeap<TKey>
 
     private void Swap(int i, int j)
     {
-        TKey tmpElement = keys[i];
-        keys[i] = keys[j];
-        keys[j] = tmpElement;
+        (keys[j], keys[i]) = (keys[i], keys[j]);
     }
 
     void HeapifyRoot()
