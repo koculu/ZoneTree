@@ -2,6 +2,7 @@
 using System.Text;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
 
@@ -125,20 +126,30 @@ public sealed class CompressedFileStream : Stream, IDisposable
     {
         // read tail with tail tolerance.
         TailStream.Position = 0;
-        var len = TailStream.Length;
-        if(len < sizeof(int))
+        var br = BinaryChunkReader;
+
+        var bytes = br.ReadBytes(2 * sizeof(int));
+        var bytesLen = bytes.Length;
+        if (bytesLen < sizeof(int))
         {
             TailBlock = new DecompressedBlock(0, BlockSize);
             return;
         }
-        var blockIndex = BinaryChunkReader.ReadInt32();
-        if (len < 2 * sizeof(int))
+        var blockIndex =
+            BinarySerializerHelper.FromByteArray<int>(bytes, 0);
+        if (bytesLen < 2 * sizeof(int))
         {
             TailBlock = new DecompressedBlock(blockIndex, BlockSize);
             return;
         }
-        var decompressedLength = BinaryChunkReader.ReadInt32();
-
+        var decompressedLength =
+            BinarySerializerHelper.FromByteArray<int>(bytes, sizeof(int));
+        if (decompressedLength < 0)
+        {
+            TailBlock = new DecompressedBlock(blockIndex, BlockSize);
+            return;
+        }
+        var len = TailStream.Length;
         if (len < 2 * sizeof(int) + decompressedLength)
         {
             decompressedLength = (int)(len - 2 * sizeof(int));
@@ -148,8 +159,8 @@ public sealed class CompressedFileStream : Stream, IDisposable
                 return;
             }
         }
-        var decompressed = BinaryChunkReader.ReadBytes(decompressedLength);
-        TailBlock = new DecompressedBlock(blockIndex, decompressed);
+        bytes = br.ReadBytes(decompressedLength);
+        TailBlock = new DecompressedBlock(blockIndex, bytes);
     }
 
     public void WriteTail()
@@ -195,10 +206,17 @@ public sealed class CompressedFileStream : Stream, IDisposable
             return true;
         }
         CurrentBlockPosition = 0;
-        var blockIndex = BinaryReader.ReadInt32();
-        var compressedBlockSize = BinaryReader.ReadInt32();
-        var blockSize = BinaryReader.ReadInt32();
-        var bytes = BinaryReader.ReadBytes(compressedBlockSize);
+        var bytes = BinaryReader.ReadBytes(3 * sizeof(int));
+        var blockIndex =
+            BinarySerializerHelper.FromByteArray<int>(bytes, 0);
+        var compressedBlockSize = 
+            BinarySerializerHelper.FromByteArray<int>(bytes, sizeof(int));
+#if DEBUG
+        var blockSize = 
+            BinarySerializerHelper.FromByteArray<int>(bytes, 2 * sizeof(int));
+#endif
+
+        bytes = BinaryReader.ReadBytes(compressedBlockSize);
 
         var nextBlock = DecompressedBlock.FromCompressed(blockIndex, bytes);
         CurrentBlock = nextBlock;
@@ -217,25 +235,37 @@ public sealed class CompressedFileStream : Stream, IDisposable
         {
             if (physicalPosition == len)
                 break;
-            
-            var blockIndex = BinaryReader.ReadInt32();
-            var compressedBlockSize = BinaryReader.ReadInt32();
-            var blockSize = BinaryReader.ReadInt32();
-            var blockStartPosition = physicalPosition;
-            physicalPosition += sizeof(int) * 3;
-            physicalPosition += compressedBlockSize;
-            FileStream.Position = physicalPosition;
 
-            _length += blockSize;
+            var blockStartPosition = physicalPosition;
+
+            var bytes = BinaryReader.ReadBytes(3 * sizeof(int));
+            if (bytes.Length != 3 * sizeof(int))
+            {
+                // truncates partially written compressed block.
+                // because the last block content is also written in tail block.
+                FileStream.Position = blockStartPosition;
+                FileStream.SetLength(blockStartPosition);
+                break;
+            }
+            var blockIndex =
+                BinarySerializerHelper.FromByteArray<int>(bytes, 0);
+            var compressedBlockSize =
+                BinarySerializerHelper.FromByteArray<int>(bytes, sizeof(int));
+            var blockSize =
+                BinarySerializerHelper.FromByteArray<int>(bytes, 2 * sizeof(int));
+
             if (physicalPosition > len)
             {
                 // truncates partially written compressed block.
-                // complete content should be in tail block.
+                // because the last block content is also written in tail block.
                 FileStream.Position = blockStartPosition;
                 FileStream.SetLength(blockStartPosition);
-                _length -= blockSize;
                 break;
             }
+            physicalPosition += sizeof(int) * 3;
+            physicalPosition += compressedBlockSize;
+            FileStream.Position = physicalPosition;
+            _length += blockSize;
             lastBlockIndex = blockIndex;
         }
         _length += TailBlock.Length;
@@ -363,20 +393,34 @@ public sealed class CompressedFileStream : Stream, IDisposable
         {
             if (physicalPosition >= len)
                 break;
-            var blockIndex = BinaryReader.ReadInt32();
-            var compressedBlockSize = BinaryReader.ReadInt32();
-            var blockSize = BinaryReader.ReadInt32();
+
+            var bytes = BinaryReader.ReadBytes(3 * sizeof(int));
+            if (bytes.Length != 3 * sizeof(int))
+            {
+                FileStream.Position = physicalPosition;
+                FileStream.SetLength(physicalPosition);
+                break;
+            }
+#if DEBUG
+            var blockIndex =
+                BinarySerializerHelper.FromByteArray<int>(bytes, 0);
+#endif
+            var compressedBlockSize =
+                BinarySerializerHelper.FromByteArray<int>(bytes, sizeof(int));
+            var blockSize =
+                BinarySerializerHelper.FromByteArray<int>(bytes, 2 * sizeof(int));
             if (off + blockSize > truncatedLength)
             {
                 var diff = truncatedLength - off;
-                var bytes = BinaryReader.ReadBytes(compressedBlockSize);
+                bytes = BinaryReader.ReadBytes(compressedBlockSize);
                 var truncatedBytes = DecompressedBlock
                     .FromCompressed(0, bytes).GetBytes(0, (int)diff);
                 var compressedBytes = new DecompressedBlock(0, truncatedBytes).Compress();
                 FileStream.Position = physicalPosition + sizeof(int);
-                BinaryWriter.Write(compressedBytes.Length);
-                BinaryWriter.Write(truncatedBytes.Length);
-                BinaryWriter.Write(compressedBytes);
+                var bw = BinaryWriter;
+                bw.Write(compressedBytes.Length);
+                bw.Write(truncatedBytes.Length);
+                bw.Write(compressedBytes);
                 FileStream.SetLength(FileStream.Position);
                 _length -= (int)remainingTruncation;
                 break;
@@ -430,11 +474,12 @@ public sealed class CompressedFileStream : Stream, IDisposable
             return;
         var tailBlock = TailBlock;
         var compressedBytes = tailBlock.Compress();
-        BinaryWriter.Write(tailBlock.BlockIndex);
-        BinaryWriter.Write(compressedBytes.Length);
-        BinaryWriter.Write(tailBlock.Length);
-        BinaryWriter.Write(compressedBytes);
-        BinaryWriter.Flush();
+        var bw = BinaryWriter;
+        bw.Write(tailBlock.BlockIndex);
+        bw.Write(compressedBytes.Length);
+        bw.Write(tailBlock.Length);
+        bw.Write(compressedBytes);
+        bw.Flush();
         TailBlock = new DecompressedBlock(tailBlock.BlockIndex + 1, BlockSize);
     }
 
@@ -453,12 +498,13 @@ public sealed class CompressedFileStream : Stream, IDisposable
                 return;
             StopTailWriter();
             WriteTail();
-            FileStream.Flush(true);
-            TailStream.Flush(true);
-            BinaryWriter.Dispose();
-            BinaryReader.Dispose();
-            BinaryChunkWriter.Dispose();
-            BinaryChunkReader.Dispose();
+            /*
+             * Do not flush any file stream
+             * and do not dispose any binary writer.
+             * Because disposing binary writer also fires a flush.
+             * BinaryWriter and binaryReaders are created
+             * with leaveOpen flag = true.
+             */
             FileStream.Close();
             TailStream.Close();
             IsClosed = true;

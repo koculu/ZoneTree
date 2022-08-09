@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Tenray.ZoneTree;
 using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Maintainers;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
@@ -9,7 +10,7 @@ namespace Playground;
 
 public class Test1
 {
-    public static void Run()
+    public static void SeveralParallelTransactions()
     {
         var dataPath = "../../data/SeveralParallelTransactions";
         var stopWatch = new Stopwatch();
@@ -66,5 +67,95 @@ public class Test1
         Console.WriteLine("Elapsed: " + stopWatch.ElapsedMilliseconds);
         basicMaintainer.CompleteRunningTasks();
         zoneTree.Maintenance.SaveMetaData();
+    }
+
+    public static void TestReverseIterator(
+        int count = 1_000_000,
+        bool recreate = false)
+    {
+        var dataPath = "../../data/TestReverseIterator";
+        if (recreate && Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        var stopwatchAll = Stopwatch.StartNew();
+
+        var upload = Stopwatch.StartNew();
+        IZoneTree<int, string> GetZoneTree() => new ZoneTreeFactory<int, string>()
+            .SetComparer(new Int32ComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x =>
+            {
+                x.CompressionBlockSize = 1024 * 1024 * 20;
+                x.WriteAheadLogMode = WriteAheadLogMode.Lazy;
+            })
+            .Configure(x =>
+            {
+                x.EnableDiskSegmentCompression = true;
+                x.DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
+                x.DiskSegmentCompressionBlockSize = 1024 * 1024 * 20;
+                x.DiskSegmentMinimumRecordCount = 10_000;
+                x.DiskSegmentMaximumRecordCount = 100_000;
+            })
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new Utf8StringSerializer())
+            .OpenOrCreate();
+
+        using (var zoneTree1 = GetZoneTree())
+        {
+            using var maintainer = 
+                new BasicZoneTreeMaintainer<int, string>(zoneTree1);
+            maintainer.ThresholdForMergeOperationStart = 300000;
+            for (int i = 0; i < 1_000_000; i++)
+            {
+                zoneTree1.Upsert(i, string.Join('+',
+                    Enumerable.Repeat(Guid.NewGuid().ToString(), 4)));
+                if (i % 100 == 0)
+                    zoneTree1.TryAtomicAddOrUpdate(i, "a", (x) => x + " ooops!");
+            }
+            maintainer.CompleteRunningTasks();
+        }
+
+        upload.Stop();
+        Console.WriteLine($"Upload {upload.Elapsed}");
+
+        var download = Stopwatch.StartNew();
+        int iterateCount = 0;
+        using (var zoneTree2 = GetZoneTree())
+        {
+            using var iterator = zoneTree2.CreateIterator();
+            while (iterator.Next())
+            {
+                var key = iterator.CurrentKey;
+                var value = iterator.CurrentValue;
+                if (value.Length > 0)
+                    iterateCount++;
+            }
+        }
+        download.Stop();
+        Console.WriteLine($"Download {download.Elapsed}");
+
+        var reverse = Stopwatch.StartNew();
+
+        using (var zoneTree3 = GetZoneTree())
+        {
+            using var reverseIterator = zoneTree3.CreateReverseIterator();
+            while (reverseIterator.Next())
+            {
+                var key = reverseIterator.CurrentKey;
+                var value = reverseIterator.CurrentValue;
+                if (value.Length > 0)
+                    iterateCount++;
+            }
+        }
+        reverse.Stop();
+        Console.WriteLine($"Reverse {reverse.Elapsed}");
+
+        if (2 * count != iterateCount)
+        {
+            throw new Exception($"iterateCount != {2*count} " + iterateCount);
+        }
+        stopwatchAll.Stop();
+        Console.WriteLine($"All Time:{stopwatchAll.Elapsed}");
     }
 }
