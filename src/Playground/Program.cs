@@ -1,24 +1,19 @@
 ﻿using Playground.Benchmark;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.WAL;
 
-var custom = false;
-if (custom)
-{
-    TestConfig.EnableIncrementalBackup = true;
-    TestConfig.RecreateDatabases = false;
-    TestConfig.MutableSegmentMaxItemCount = 100000;
-    TestConfig.ThresholdForMergeOperationStart = 300000;
-    TestConfig.WALCompressionBlockSize = 1024 * 1024 * 1;
-    TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 100;
-}
-TestConfig.EnableParalelInserts = false;
+TestConfig.EnableIncrementalBackup = true;
+TestConfig.MutableSegmentMaxItemCount = 1_000_000;
+TestConfig.ThresholdForMergeOperationStart = 20_000_000;
+TestConfig.RecreateDatabases = true;
+TestConfig.EnableParalelInserts = true;
 TestConfig.DiskSegmentMaximumCachedBlockCount = 8;
-TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 1;
-TestConfig.WALCompressionBlockSize = 1024 * 1024;
+TestConfig.DiskCompressionBlockSize = 1024 * 1024;
+TestConfig.WALCompressionBlockSize = 1024 * 32;
 TestConfig.MinimumSparseArrayLength = 0;
-TestConfig.DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
+TestConfig.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
 
-BenchmarkGroups.Insert1();
+BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.Lazy);
 
 /*
 var c = 10_000_000;
