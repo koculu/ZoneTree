@@ -15,15 +15,16 @@ TestConfig.WALCompressionBlockSize = 1024 * 32;
 TestConfig.MinimumSparseArrayLength = 0;
 TestConfig.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
 
-//BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.Lazy);
+BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.Lazy);
 
+/*
 
-/*BenchmarkRunner.Run<InMemoryIntTreeBenchmark>();
-BenchmarkRunner.Run<InMemoryLongTreeBenchmark>();
-BenchmarkRunner.Run<InMemoryMidSizeTreeBenchmark>();
-BenchmarkRunner.Run<InMemoryBigKeyTreeBenchmark>();*/
-
-RandomLongInserts.InsertBplusTree(RandomLongInserts.GetRandomArray(1_000_000));
+BenchmarkRunner.Run<ParallelMassiveInsertTests>();
+BenchmarkRunner.Run<IntTreeBenchmark>();
+BenchmarkRunner.Run<LongTreeBenchmark>();
+BenchmarkRunner.Run<MidSizeTreeBenchmark>();
+BenchmarkRunner.Run<BigKeyTreeBenchmark>();
+*/
 
 /*
 var c = 10_000_000;

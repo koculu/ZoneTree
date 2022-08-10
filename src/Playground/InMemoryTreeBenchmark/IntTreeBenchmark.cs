@@ -13,7 +13,7 @@ namespace Playground.InMemoryTreeBenchmark;
     HardwareCounter.TotalIssues,
     HardwareCounter.CacheMisses,
     HardwareCounter.Timer)]
-public class InMemoryMidSizeTreeBenchmark
+public class IntTreeBenchmark
 {
     readonly int Count = 1_000_000;
     readonly bool Shuffled = true;
@@ -22,19 +22,20 @@ public class InMemoryMidSizeTreeBenchmark
     public void Setup()
     {
         Data = Shuffled ?
-            RandomMidSizeInserts.GetRandomArray(Count) :
-            RandomMidSizeInserts.GetSortedArray(Count);
+            RandomIntInserts.GetRandomArray(Count) : 
+            RandomIntInserts.GetSortedArray(Count);
     }
 
-    MidSizeKey[] Data = Array.Empty<MidSizeKey>();
+
+    int[] Data = Array.Empty<int>();
 
     [Benchmark]
-    public void InsertBplusTree() => RandomMidSizeInserts.InsertBplusTree(Data);
+    public void InsertBplusTree() => RandomIntInserts.InsertBplusTree(Data);
 
     [Benchmark]
-    public void InsertSkipList() => RandomMidSizeInserts.InsertSkipList(Data);
+    public void InsertSkipList() => RandomIntInserts.InsertSkipList(Data);
 
     [Benchmark]
-    public void InsertSortedDictionary() => RandomMidSizeInserts.InsertSortedDictionary(Data);
+    public void InsertSortedDictionary() => RandomIntInserts.InsertSortedDictionary(Data);
 
 }

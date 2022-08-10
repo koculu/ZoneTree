@@ -13,7 +13,7 @@ namespace Playground.InMemoryTreeBenchmark;
     HardwareCounter.TotalIssues,
     HardwareCounter.CacheMisses,
     HardwareCounter.Timer)]
-public class InMemoryIntTreeBenchmark
+public class LongTreeBenchmark
 {
     readonly int Count = 1_000_000;
     readonly bool Shuffled = true;
@@ -22,20 +22,19 @@ public class InMemoryIntTreeBenchmark
     public void Setup()
     {
         Data = Shuffled ?
-            RandomIntInserts.GetRandomArray(Count) : 
-            RandomIntInserts.GetSortedArray(Count);
+            RandomLongInserts.GetRandomArray(Count) :
+            RandomLongInserts.GetSortedArray(Count);
     }
 
-
-    int[] Data = Array.Empty<int>();
-
-    [Benchmark]
-    public void InsertBplusTree() => RandomIntInserts.InsertBplusTree(Data);
+    long[] Data = Array.Empty<long>();
 
     [Benchmark]
-    public void InsertSkipList() => RandomIntInserts.InsertSkipList(Data);
+    public void InsertBplusTree() => RandomLongInserts.InsertBplusTree(Data);
 
     [Benchmark]
-    public void InsertSortedDictionary() => RandomIntInserts.InsertSortedDictionary(Data);
+    public void InsertSkipList() => RandomLongInserts.InsertSkipList(Data);
+
+    [Benchmark]
+    public void InsertSortedDictionary() => RandomLongInserts.InsertSortedDictionary(Data);
 
 }
