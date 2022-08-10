@@ -2,17 +2,33 @@
 
 public class BplusTree<TKey, TValue>
 {
-    const int NodeSize = 128;
+    int NodeSize = 128;
 
-    const int LeafSize = 128;
+    int LeafSize = 128;
 
-    volatile Node Root = new LeafNode();
+    volatile Node Root;
+
+    volatile LeafNode FirstLeafNode;
     
+    volatile LeafNode LastLeafNode;
+
     readonly IRefComparer<TKey> Comparer;
 
-    public BplusTree(IRefComparer<TKey> comparer)
+    public LeafNode First => FirstLeafNode;
+    
+    public LeafNode Last => LastLeafNode;
+
+    public BplusTree(
+        IRefComparer<TKey> comparer, 
+        int nodeSize = 128,
+        int leafSize = 128)
     {
+        NodeSize = nodeSize;
+        LeafSize = leafSize;
         Comparer = comparer;
+        Root = new LeafNode(LeafSize);        
+        FirstLeafNode = Root as LeafNode;
+        LastLeafNode = FirstLeafNode;
     }
 
     public void Insert(in TKey key, in TValue value)
@@ -23,7 +39,7 @@ public class BplusTree<TKey, TValue>
             InsertNonFull(root, in key, in value);
             return;
         }        
-        var newRoot = new Node();
+        var newRoot = new Node(NodeSize);
         newRoot.Children[0] = root;
         SplitChild(newRoot, 0, root);
         InsertNonFull(newRoot, in key, in value);
@@ -62,19 +78,21 @@ public class BplusTree<TKey, TValue>
         return false;
     }
 
-    static void SplitChild(Node parent, int rightChildPosition, Node leftNode)
+    void SplitChild(Node parent, int rightChildPosition, Node leftNode)
     {
         var pivotPosition = (leftNode.Length + 1) / 2;
         ref var pivotKey = ref leftNode.Keys[pivotPosition];
         if (leftNode is LeafNode leftLeaf)
         {
-            var rightLeaf = new LeafNode();
+            var rightLeaf = new LeafNode(LeafSize);
             parent.InsertKeyAndChild(rightChildPosition, in pivotKey, rightLeaf);
             rightLeaf.ReplaceFrom(leftLeaf, pivotPosition);
+            if (LastLeafNode == leftLeaf)
+                LastLeafNode = rightLeaf;
         }
         else
         {
-            var rightNode = new Node();
+            var rightNode = new Node(NodeSize);
             parent.InsertKeyAndChild(rightChildPosition, in pivotKey, rightNode);
             rightNode.ReplaceFrom(leftNode, pivotPosition);
         }
@@ -114,10 +132,12 @@ public class BplusTree<TKey, TValue>
 
         public Node()
         {
-            if (this is LeafNode)
-                return;
-            Keys = new TKey[NodeSize];
-            Children = new Node[NodeSize + 1];
+        }
+
+        public Node(int nodeSize)
+        {
+            Keys = new TKey[nodeSize];
+            Children = new Node[nodeSize + 1];
         }
 
         public bool TryGetPosition(
@@ -177,15 +197,16 @@ public class BplusTree<TKey, TValue>
 
     public class LeafNode : Node
     {
-        public TValue[] Values = new TValue[LeafSize];
+        public TValue[] Values;
 
         public LeafNode Previous;
 
         public LeafNode Next;
 
-        public LeafNode()
+        public LeafNode(int leafSize)
         {
-            Keys = new TKey[LeafSize];
+            Keys = new TKey[leafSize]; 
+            Values = new TValue[leafSize];
         }
 
         public void Insert(int position, in TKey key, in TValue value)
@@ -211,6 +232,9 @@ public class BplusTree<TKey, TValue>
                 Keys[i] = leftLeaf.Keys[j];
                 Values[i] = leftLeaf.Values[j];
             }
+            Next = leftLeaf.Next;
+            if (Next != null)
+                Next.Previous = this;
             leftLeaf.Next = this;
             Previous = leftLeaf;
         }

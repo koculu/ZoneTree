@@ -41,6 +41,75 @@ public static class RandomLongInserts
             if (!exists || val != x + x)
                 throw new Exception($"exists: {exists} ({x},{val}) != ({x},{x + x})");
         }
+
+        var node = tree.First;
+        var off = 0;
+        Array.Sort(arr);
+        while (node != null)
+        {
+            var keys = node.Keys;
+            for (var i = 0; i < node.Length; ++i)
+            {
+                var a = arr[off++];
+                var k = keys[i];
+                if (a != k)
+                    throw new Exception($"iteration failed. {a} != {k}");
+            }
+            node = node.Next;
+        }
+    }
+
+    public static void InsertAndValidateIteratorBplusTree(long[] arr)
+    {
+        var count = arr.Length;
+        var orj = arr.ToArray();
+        var tree = new BplusTree<long, long>(new Int64ComparerAscending());
+        for (var i = 0; i < count; ++i)
+        {
+            var x = arr[i];
+            tree.Insert(x, x + x);
+        }
+
+        for (var i = 0; i < count; ++i)
+        {
+            var x = arr[i];
+            var exists = tree.TryGetValue(x, out var val);
+            if (!exists || val != x + x)
+                throw new Exception($"exists: {exists} ({x},{val}) != ({x},{x + x})");
+        }
+
+        var node = tree.First;
+        var off = 0;
+        Array.Sort(arr);
+        while (node != null)
+        {
+            var keys = node.Keys;
+            for (var i = 0; i < node.Length; ++i)
+            {
+                var a = arr[off++];
+                var k = keys[i];
+                if (a != k)
+                    throw new Exception($"iteration failed. {a} != {k}");
+            }
+            node = node.Next;
+        }
+
+        off = 0;
+        arr = arr.Reverse().ToArray();
+        node = tree.Last;
+        while (node != null)
+        {
+            var keys = node.Keys;
+            for (var i = node.Length - 1; i >= 0; --i)
+            {
+                var a = arr[off++];
+                var k = keys[i];
+                if (a != k)
+                    throw new Exception($"iteration failed. {a} != {k}");
+            }
+            node = node.Previous;
+        }
+        Console.WriteLine("success: " + count);
     }
 
     public static void InsertSkipList(long[] arr)

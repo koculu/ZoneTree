@@ -1,4 +1,6 @@
-﻿using Playground.Benchmark;
+﻿using BenchmarkDotNet.Running;
+using Playground.Benchmark;
+using Playground.InMemoryTreeBenchmark;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.WAL;
 
@@ -13,7 +15,15 @@ TestConfig.WALCompressionBlockSize = 1024 * 32;
 TestConfig.MinimumSparseArrayLength = 0;
 TestConfig.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
 
-BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.Lazy);
+//BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.Lazy);
+
+
+/*BenchmarkRunner.Run<InMemoryIntTreeBenchmark>();
+BenchmarkRunner.Run<InMemoryLongTreeBenchmark>();
+BenchmarkRunner.Run<InMemoryMidSizeTreeBenchmark>();
+BenchmarkRunner.Run<InMemoryBigKeyTreeBenchmark>();*/
+
+RandomLongInserts.InsertBplusTree(RandomLongInserts.GetRandomArray(1_000_000));
 
 /*
 var c = 10_000_000;

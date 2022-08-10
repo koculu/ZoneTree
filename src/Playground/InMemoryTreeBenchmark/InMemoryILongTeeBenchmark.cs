@@ -7,9 +7,7 @@ namespace Playground.InMemoryTreeBenchmark;
 [HtmlExporter]
 [SimpleJob(RunStrategy.ColdStart, targetCount: 1)]
 [MinColumn, MaxColumn, MeanColumn, MedianColumn, /*AllStatisticsColumn*/]
-[RPlotExporter]
 [MemoryDiagnoser]
-[ThreadingDiagnoser]
 [HardwareCounters(
     HardwareCounter.TotalCycles,
     HardwareCounter.TotalIssues,
