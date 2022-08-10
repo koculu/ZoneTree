@@ -39,18 +39,18 @@ public class BplusTree<TKey, TValue>
     {
         while(node != null)
         {
+            var found = node.TryGetPosition(Comparer, in key, out var position);
             if (node is LeafNode leaf)
             {
-                var keyPosition = leaf.GetKeyPosition(Comparer, in key);
-                if (keyPosition == -1)
+                if (position == -1)
                 {
                     value = default;
                     return false;
                 }
-                value = leaf.Values[keyPosition];
+                value = leaf.Values[position];
                 return true;
-            }            
-            if (node.TryGetPosition(Comparer, in key, out var position))
+            }
+            if (found)
             {
                 // if key position is found with exact match
                 // continue with right child.
@@ -84,7 +84,7 @@ public class BplusTree<TKey, TValue>
     {
         while (true)
         {
-            var position = node.PositionToInsert(Comparer, in key);
+            node.TryGetPosition(Comparer, in key, out var position);
             if (node is LeafNode leaf)
             {
                 leaf.Insert(position, in key, in value);
@@ -120,25 +120,6 @@ public class BplusTree<TKey, TValue>
             Children = new Node[NodeSize + 1];
         }
 
-        public int PositionToInsert(IRefComparer<TKey> comparer, in TKey key)
-        {
-            var list = Keys;
-            int l = 0, r = Length - 1;
-            while (l <= r)
-            {
-                int m = (l + r) / 2;
-                var rec = list[m];
-                var res = comparer.Compare(in rec, in key);
-                if (res == 0)
-                    return m;
-                if (res < 0)
-                    l = m + 1;
-                else
-                    r = m - 1;
-            }
-            return r + 1;
-        }
-
         public bool TryGetPosition(
             IRefComparer<TKey> comparer,
             in TKey key, 
@@ -163,25 +144,6 @@ public class BplusTree<TKey, TValue>
             }
             position = r + 1;
             return false;
-        }
-
-        public int GetKeyPosition(IRefComparer<TKey> comparer, in TKey key)
-        {
-            var list = Keys;
-            int l = 0, r = Length - 1;
-            while (l <= r)
-            {
-                int m = l + (r - l) / 2;
-                var rec = list[m];
-                var res = comparer.Compare(in rec, in key);
-                if (res == 0)
-                    return m;
-                if (res < 0)
-                    l = m + 1;
-                else
-                    r = m - 1;
-            }
-            return -1;
         }
 
         public void InsertKeyAndChild(int position, in TKey key, Node child)
