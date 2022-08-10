@@ -1,18 +1,26 @@
 ﻿namespace Tenray.ZoneTree.Collections;
 
+/// <summary>
+/// In memory B+Tree.
+/// This class is not thread-safe.
+/// </summary>
+/// <typeparam name="TKey">Key Type</typeparam>
+/// <typeparam name="TValue">Value Type</typeparam>
 public class BplusTree<TKey, TValue>
 {
-    int NodeSize = 128;
+    readonly int NodeSize = 128;
 
-    int LeafSize = 128;
+    readonly int LeafSize = 128;
 
     volatile Node Root;
 
-    volatile LeafNode FirstLeafNode;
+    readonly LeafNode FirstLeafNode;
     
     volatile LeafNode LastLeafNode;
 
     readonly IRefComparer<TKey> Comparer;
+
+    public int Length { get; private set; }
 
     public LeafNode First => FirstLeafNode;
     
@@ -31,19 +39,82 @@ public class BplusTree<TKey, TValue>
         LastLeafNode = FirstLeafNode;
     }
 
-    public void Insert(in TKey key, in TValue value)
+    public bool Upsert(in TKey key, in TValue value)
     {
         var root = Root;
         if (!root.IsFull)
         {
-            InsertNonFull(root, in key, in value);
-            return;
-        }        
+            return UpsertNonFull(root, in key, in value);
+        }
         var newRoot = new Node(NodeSize);
         newRoot.Children[0] = root;
         SplitChild(newRoot, 0, root);
-        InsertNonFull(newRoot, in key, in value);
+        var result = UpsertNonFull(newRoot, in key, in value);
         Root = newRoot;
+        return result;
+    }
+
+    public bool TryInsert(in TKey key, in TValue value)
+    {
+        var root = Root;
+        if (!root.IsFull)
+        {
+            return TryInsertNonFull(root, in key, in value);
+        }
+        var newRoot = new Node(NodeSize);
+        newRoot.Children[0] = root;
+        SplitChild(newRoot, 0, root);
+        var result = TryInsertNonFull(newRoot, in key, in value);
+        Root = newRoot;
+        return result;
+    }
+
+    public delegate AddOrUpdateResult AddDelegate(ref TValue value);
+
+    public delegate AddOrUpdateResult UpdateDelegate(ref TValue value);
+
+    public AddOrUpdateResult AddOrUpdate(
+        in TKey key,
+        AddDelegate adder, 
+        UpdateDelegate updater)
+    {
+        var root = Root;
+        if (!root.IsFull)
+        {
+            return TryAddOrUpdateNonFull(root, in key, adder, updater);
+        }
+        var newRoot = new Node(NodeSize);
+        newRoot.Children[0] = root;
+        SplitChild(newRoot, 0, root);
+        AddOrUpdateResult result = 
+            TryAddOrUpdateNonFull(newRoot, in key, adder, updater);
+        Root = newRoot;
+        return result;
+    }
+
+    public bool ContainsKey(in TKey key)
+    {
+        return ContainsKey(Root, in key);
+    }
+
+    bool ContainsKey(Node node, in TKey key)
+    {
+        while (node != null)
+        {
+            var found = node.TryGetPosition(Comparer, in key, out var position);
+            if (node is LeafNode)
+            {
+                return position != -1;
+            }
+            if (found)
+            {
+                // if key position is found with exact match
+                // continue with right child.
+                ++position;
+            }
+            node = node.Children[position];
+        }
+        return false;
     }
 
     public bool TryGetValue(in TKey key, out TValue value)
@@ -78,6 +149,66 @@ public class BplusTree<TKey, TValue>
         return false;
     }
 
+    public (TKey[] keys, TValue[] values) ToArray()
+    {
+        var len = Length;
+        var keys = new TKey[len];
+        var values = new TValue[len];
+        var node = First;
+        var off = 0;
+        while (node != null)
+        {
+            var nodeKeys = node.Keys;
+            var nodeValues = node.Values;
+            for (var i = 0; i < node.Length; ++i)
+            {
+                keys[off] = nodeKeys[i];
+                values[off] = nodeValues[i];
+                ++off;
+            }
+            node = node.Next;
+        }
+        return (keys, values);
+    }
+
+    public TKey[] GetKeys()
+    {
+        var len = Length;
+        var keys = new TKey[len];
+        var node = First;
+        var off = 0;
+        while (node != null)
+        {
+            var nodeKeys = node.Keys;
+            for (var i = 0; i < node.Length; ++i)
+            {
+                keys[off] = nodeKeys[i];
+                ++off;
+            }
+            node = node.Next;
+        }
+        return keys;
+    }
+
+    public TValue[] GetValues()
+    {
+        var len = Length;
+        var values = new TValue[len];
+        var node = First;
+        var off = 0;
+        while (node != null)
+        {
+            var nodeValues = node.Values;
+            for (var i = 0; i < node.Length; ++i)
+            {
+                values[off] = nodeValues[i];
+                ++off;
+            }
+            node = node.Next;
+        }
+        return values;
+    }
+
     void SplitChild(Node parent, int rightChildPosition, Node leftNode)
     {
         var pivotPosition = (leftNode.Length + 1) / 2;
@@ -98,15 +229,73 @@ public class BplusTree<TKey, TValue>
         }
     }
 
-    void InsertNonFull(Node node, in TKey key, in TValue value)
+    bool UpsertNonFull(Node node, in TKey key, in TValue value)
     {
         while (true)
         {
-            node.TryGetPosition(Comparer, in key, out var position);
+            var found = node.TryGetPosition(Comparer, in key, out var position);
             if (node is LeafNode leaf)
             {
                 leaf.Insert(position, in key, in value);
-                return;
+                if (found) return false;
+                ++Length;
+                return true;
+            }
+
+            var child = node.Children[position];
+            if (child.IsFull)
+            {
+                SplitChild(node, position, child);
+                if (Comparer.Compare(in key, in node.Keys[position]) > 0)
+                    ++position;
+            }
+            node = node.Children[position];
+        }
+    }
+
+    bool TryInsertNonFull(Node node, in TKey key, in TValue value)
+    {
+        while (true)
+        {
+            var found = node.TryGetPosition(Comparer, in key, out var position);
+            if (node is LeafNode leaf)
+            {
+                if (found)
+                    return false;
+                leaf.Insert(position, in key, in value); 
+                ++Length;
+                return true;
+            }
+
+            var child = node.Children[position];
+            if (child.IsFull)
+            {
+                SplitChild(node, position, child);
+                if (Comparer.Compare(in key, in node.Keys[position]) > 0)
+                    ++position;
+            }
+            node = node.Children[position];
+        }
+    }
+
+    AddOrUpdateResult TryAddOrUpdateNonFull(
+        Node node, in TKey key, AddDelegate adder, UpdateDelegate updater)
+    {
+        while (true)
+        {
+            var found = node.TryGetPosition(Comparer, in key, out var position);
+            if (node is LeafNode leaf)
+            {
+                if (found)
+                {
+                    updater(ref leaf.Values[position]);
+                    return AddOrUpdateResult.UPDATED;
+                }
+                TValue value = default;
+                adder(ref value);
+                leaf.Insert(position, in key, in value);
+                ++Length;
+                return AddOrUpdateResult.ADDED;
             }
 
             var child = node.Children[position];
@@ -232,6 +421,7 @@ public class BplusTree<TKey, TValue>
                 Keys[i] = leftLeaf.Keys[j];
                 Values[i] = leftLeaf.Values[j];
             }
+
             Next = leftLeaf.Next;
             if (Next != null)
                 Next.Previous = this;

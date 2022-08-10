@@ -32,7 +32,7 @@ public static class RandomLongInserts
         for(var i = 0; i < count; ++i)
         {
             var x = arr[i];
-            tree.Insert(x, x + x);
+            tree.TryInsert(x, x + x);
         }
         for (var i = 0; i < count; ++i)
         {
@@ -67,7 +67,7 @@ public static class RandomLongInserts
         for (var i = 0; i < count; ++i)
         {
             var x = arr[i];
-            tree.Insert(x, x + x);
+            tree.TryInsert(x, x + x);
         }
 
         for (var i = 0; i < count; ++i)
