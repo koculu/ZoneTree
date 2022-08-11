@@ -1,6 +1,6 @@
-﻿namespace Tenray.ZoneTree.Collections;
+﻿namespace Tenray.ZoneTree.Collections.BplusTree;
 
-public class FrozenSafeBplusTreeSeekableIterator<TKey, TValue>
+public class SafeBplusTreeSeekableIterator<TKey, TValue>
     : ISeekableIterator<TKey, TValue>
 {
     TKey CurrentKeyOrDefault = default;
@@ -10,13 +10,13 @@ public class FrozenSafeBplusTreeSeekableIterator<TKey, TValue>
         CurrentNode.CurrentKey :
         throw new IndexOutOfRangeException(
             "Iterator is not in a valid position. Have you forgotten to call Next() or Prev()?");
-        
+
 
     public TValue CurrentValue =>
         HasCurrent ?
         CurrentNode.CurrentValue :
         throw new IndexOutOfRangeException(
-            "Iterator is not in a valid position. Did you forget to call Next() or Prev()?");        
+            "Iterator is not in a valid position. Did you forget to call Next() or Prev()?");
 
     public bool HasCurrent => CurrentNode != null && CurrentNode.HasCurrent;
 
@@ -26,12 +26,12 @@ public class FrozenSafeBplusTreeSeekableIterator<TKey, TValue>
 
     readonly SafeBplusTree<TKey, TValue> BplusTree;
 
-    SafeBplusTree<TKey, TValue>.FrozenNodeIterator CurrentNode;
+    SafeBplusTree<TKey, TValue>.NodeIterator CurrentNode;
 
-    public FrozenSafeBplusTreeSeekableIterator(SafeBplusTree<TKey, TValue> bplusTree)
+    public SafeBplusTreeSeekableIterator(SafeBplusTree<TKey, TValue> bplusTree)
     {
         BplusTree = bplusTree;
-        CurrentNode = bplusTree.GetFrozenFirstIterator();
+        CurrentNode = bplusTree.GetFirstIterator();
     }
 
     public bool Next()
@@ -41,12 +41,18 @@ public class FrozenSafeBplusTreeSeekableIterator<TKey, TValue>
         if (CurrentNode.Next())
             return true;
 
-        var nextNode = CurrentNode.GetNextNodeIterator();
-        if (nextNode == null)
-            return false;
-        nextNode.SeekBegin();
-        CurrentNode = nextNode;
-        return nextNode.HasCurrent;
+        while (true)
+        {
+            var nextNode = CurrentNode.GetNextNodeIterator();
+            if (nextNode == null)
+                return false;
+            nextNode = nextNode
+                .SeekFirstKeyGreaterOrEqual(BplusTree.Comparer, in CurrentKeyOrDefault);
+            if (nextNode == null)
+                return false;
+            CurrentNode = nextNode;
+            return nextNode.HasCurrent;
+        }
     }
 
     public bool Prev()
@@ -56,37 +62,40 @@ public class FrozenSafeBplusTreeSeekableIterator<TKey, TValue>
         if (CurrentNode.Previous())
             return true;
 
-        var prevNode = CurrentNode.GetPreviousNodeIterator();
-        if (prevNode == null)
-            return false;
-        CurrentNode = prevNode;
-        prevNode.SeekEnd();
-        return prevNode.HasCurrent;
+        while (true)
+        {
+            var prevNode = CurrentNode.GetPreviousNodeIterator();
+            if (prevNode == null)
+                return false;
+            CurrentNode = prevNode;
+            prevNode.SeekEnd();
+            return prevNode.HasCurrent;
+        }
     }
 
     public bool SeekBegin()
     {
-        CurrentNode = BplusTree.GetFrozenFirstIterator();
+        CurrentNode = BplusTree.GetFirstIterator();
         CurrentNode.SeekBegin();
         return HasCurrent;
     }
 
     public bool SeekEnd()
     {
-        CurrentNode = BplusTree.GetFrozenLastIterator();
+        CurrentNode = BplusTree.GetLastIterator();
         CurrentNode.SeekEnd();
         return HasCurrent;
     }
 
     public bool SeekToFirstGreaterOrEqualElement(in TKey key)
     {
-        CurrentNode = BplusTree.GetFrozenIteratorWithFirstKeyGreaterOrEqual(in key);
+        CurrentNode = BplusTree.GetIteratorWithFirstKeyGreaterOrEqual(in key);
         return HasCurrent;
     }
 
     public bool SeekToLastSmallerOrEqualElement(in TKey key)
     {
-        CurrentNode = BplusTree.GetFrozenIteratorWithLastKeySmallerOrEqual(in key);
+        CurrentNode = BplusTree.GetIteratorWithLastKeySmallerOrEqual(in key);
         return HasCurrent;
     }
 

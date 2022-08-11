@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Collections;
+﻿namespace Tenray.ZoneTree.Collections.BplusTree;
 
 /// <summary>
 /// In memory B+Tree.
@@ -15,7 +15,7 @@ public class SafeBplusTree<TKey, TValue>
     volatile Node Root;
 
     readonly LeafNode FirstLeafNode;
-    
+
     volatile LeafNode LastLeafNode;
 
     public readonly IRefComparer<TKey> Comparer;
@@ -85,7 +85,7 @@ public class SafeBplusTree<TKey, TValue>
 
     public AddOrUpdateResult AddOrUpdate(
         in TKey key,
-        AddDelegate adder, 
+        AddDelegate adder,
         UpdateDelegate updater)
     {
         lock (WriteLock)
@@ -220,7 +220,7 @@ public class SafeBplusTree<TKey, TValue>
     {
         return LastLeafNode.GetIterator();
     }
-    
+
     public FrozenNodeIterator GetFrozenLastIterator()
     {
         return LastLeafNode.GetFrozenIterator();
@@ -286,7 +286,7 @@ public class SafeBplusTree<TKey, TValue>
     bool TryGetValue(Node node, in TKey key, out TValue value)
     {
         var addedSplitLock = false;
-        while(node != null)
+        while (node != null)
         {
             // Temp node to avoid changing node inside node lock.
             Node tmp;
@@ -401,7 +401,7 @@ public class SafeBplusTree<TKey, TValue>
     void SplitChild(Node parent, int rightChildPosition, Node leftNode)
     {
         var spinWait = new SpinWait();
-        while(!TrySplitChild(parent, rightChildPosition, leftNode))
+        while (!TrySplitChild(parent, rightChildPosition, leftNode))
         {
             spinWait.SpinOnce();
         }
@@ -413,7 +413,7 @@ public class SafeBplusTree<TKey, TValue>
         {
             var pivotPosition = (leftNode.Length + 1) / 2;
             // tree is locked, safe to read from any node.
-            ref var pivotKey = ref leftNode.Keys[pivotPosition];  
+            ref var pivotKey = ref leftNode.Keys[pivotPosition];
             if (leftNode is LeafNode leftLeaf)
             {
                 var rightLeaf = new LeafNode(LeafSize);
@@ -506,7 +506,7 @@ public class SafeBplusTree<TKey, TValue>
                 if (found)
                     return false;
                 // leaf locks itself for readers!
-                leaf.Insert(position, in key, in value); 
+                leaf.Insert(position, in key, in value);
                 ++_length;
                 return true;
             }
@@ -583,7 +583,7 @@ public class SafeBplusTree<TKey, TValue>
 
         public bool TryGetPosition(
             IRefComparer<TKey> comparer,
-            in TKey key, 
+            in TKey key,
             out int position)
         {
             var list = Keys;
@@ -628,7 +628,7 @@ public class SafeBplusTree<TKey, TValue>
             var rightLen = leftNode.Length - position;
             leftNode.Length = position;
             Length = rightLen;
-            
+
             int i = 0, j = position;
             for (; i < rightLen; ++i, ++j)
             {
@@ -666,7 +666,7 @@ public class SafeBplusTree<TKey, TValue>
 
         public LeafNode(int leafSize)
         {
-            Keys = new TKey[leafSize]; 
+            Keys = new TKey[leafSize];
             Values = new TValue[leafSize];
         }
 
@@ -701,7 +701,8 @@ public class SafeBplusTree<TKey, TValue>
             leftLeaf.Length = position;
             Length = rightLen;
 
-            for (int i = 0, j = position; i < rightLen; ++i, ++j) {
+            for (int i = 0, j = position; i < rightLen; ++i, ++j)
+            {
                 Keys[i] = leftLeaf.Keys[j];
                 Values[i] = leftLeaf.Values[j];
             }
@@ -715,7 +716,7 @@ public class SafeBplusTree<TKey, TValue>
 
         public NodeIterator GetIterator()
         {
-            lock(this)
+            lock (this)
             {
                 var keys = new TKey[Length];
                 var values = new TValue[Length];
@@ -739,7 +740,7 @@ public class SafeBplusTree<TKey, TValue>
         public TValue[] Values { get; }
 
         public TKey CurrentKey => Keys[CurrentIndex];
-        
+
         public TValue CurrentValue => Values[CurrentIndex];
 
         public bool HasCurrent => CurrentIndex >= 0 && CurrentIndex < Keys.Length;
@@ -794,7 +795,7 @@ public class SafeBplusTree<TKey, TValue>
             --CurrentIndex;
             return CurrentIndex >= 0;
         }
-        
+
         public void SeekBegin()
         {
             CurrentIndex = 0;
@@ -830,7 +831,7 @@ public class SafeBplusTree<TKey, TValue>
             var iterator = this;
             while (iterator != null)
             {
-                var pos = 
+                var pos =
                     iterator.GetFirstGreaterOrEqualPosition(comparer, in key);
                 if (pos == iterator.Keys.Length)
                 {

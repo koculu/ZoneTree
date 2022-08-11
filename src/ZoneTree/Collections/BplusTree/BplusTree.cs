@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Tenray.ZoneTree.Collections;
+namespace Tenray.ZoneTree.Collections.BplusTree;
 
 /// <summary>
 /// In memory B+Tree.
@@ -17,7 +17,7 @@ public class BplusTree<TKey, TValue>
     volatile Node Root;
 
     readonly LeafNode FirstLeafNode;
-    
+
     volatile LeafNode LastLeafNode;
 
     public readonly IRefComparer<TKey> Comparer;
@@ -25,18 +25,18 @@ public class BplusTree<TKey, TValue>
     public int Length { get; private set; }
 
     public LeafNode First => FirstLeafNode;
-    
+
     public LeafNode Last => LastLeafNode;
 
     public BplusTree(
-        IRefComparer<TKey> comparer, 
+        IRefComparer<TKey> comparer,
         int nodeSize = 128,
         int leafSize = 128)
     {
         NodeSize = nodeSize;
         LeafSize = leafSize;
         Comparer = comparer;
-        Root = new LeafNode(LeafSize);        
+        Root = new LeafNode(LeafSize);
         FirstLeafNode = Root as LeafNode;
         LastLeafNode = FirstLeafNode;
     }
@@ -77,7 +77,7 @@ public class BplusTree<TKey, TValue>
 
     public AddOrUpdateResult AddOrUpdate(
         in TKey key,
-        AddDelegate adder, 
+        AddDelegate adder,
         UpdateDelegate updater)
     {
         var root = Root;
@@ -88,7 +88,7 @@ public class BplusTree<TKey, TValue>
         var newRoot = new Node(NodeSize);
         newRoot.Children[0] = root;
         SplitChild(newRoot, 0, root);
-        AddOrUpdateResult result = 
+        AddOrUpdateResult result =
             TryAddOrUpdateNonFull(newRoot, in key, adder, updater);
         Root = newRoot;
         return result;
@@ -126,7 +126,7 @@ public class BplusTree<TKey, TValue>
 
     bool TryGetValue(Node node, in TKey key, out TValue value)
     {
-        while(node != null)
+        while (node != null)
         {
             var found = node.TryGetPosition(Comparer, in key, out var position);
             if (node is LeafNode leaf)
@@ -144,7 +144,7 @@ public class BplusTree<TKey, TValue>
                 // if key position is found with exact match
                 // continue with right child.
                 ++position;
-            }   
+            }
             node = node.Children[position];
         }
         value = default;
@@ -268,7 +268,7 @@ public class BplusTree<TKey, TValue>
             {
                 if (found)
                     return false;
-                leaf.Insert(position, in key, in value); 
+                leaf.Insert(position, in key, in value);
                 ++Length;
                 return true;
             }
@@ -337,7 +337,7 @@ public class BplusTree<TKey, TValue>
 
         public bool TryGetPosition(
             IRefComparer<TKey> comparer,
-            in TKey key, 
+            in TKey key,
             out int position)
         {
             var list = Keys;
@@ -379,7 +379,7 @@ public class BplusTree<TKey, TValue>
             var rightLen = leftNode.Length - position;
             leftNode.Length = position;
             Length = rightLen;
-            
+
             int i = 0, j = position;
             for (; i < rightLen; ++i, ++j)
             {
@@ -400,7 +400,7 @@ public class BplusTree<TKey, TValue>
 
         public LeafNode(int leafSize)
         {
-            Keys = new TKey[leafSize]; 
+            Keys = new TKey[leafSize];
             Values = new TValue[leafSize];
         }
 
@@ -429,7 +429,8 @@ public class BplusTree<TKey, TValue>
             leftLeaf.Length = position;
             Length = rightLen;
 
-            for (int i = 0, j = position; i < rightLen; ++i, ++j) {
+            for (int i = 0, j = position; i < rightLen; ++i, ++j)
+            {
                 Keys[i] = leftLeaf.Keys[j];
                 Values[i] = leftLeaf.Values[j];
             }
