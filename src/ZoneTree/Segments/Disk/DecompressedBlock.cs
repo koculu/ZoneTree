@@ -12,7 +12,12 @@ public class DecompressedBlock
     
     public bool IsFull => Length == Bytes.Length;
 
-    public long LastAccessTicks { get; set; }
+    long _lastAccessTicks;
+
+    public long LastAccessTicks {
+        get => Volatile.Read(ref _lastAccessTicks); 
+        set => Volatile.Write(ref _lastAccessTicks, value);
+    }
 
     public DecompressedBlock(int blockIndex, int blockSize)
     {

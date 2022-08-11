@@ -145,8 +145,13 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         {
             nextBlock = new DecompressedBlock(NextBlockIndex, BlockSize);
             DecompressedBlocks.TryAdd(NextBlockIndex % MaxCachedBlockCount, nextBlock);
-            DecompressedBlocks.TryRemove((NextBlockIndex - 1) % MaxCachedBlockCount, out _);
+            if (MaxCachedBlockCount > 1)
+                DecompressedBlocks.TryRemove(
+                    (NextBlockIndex - 1) % MaxCachedBlockCount,
+                    out _);
         }
+        nextBlock.LastAccessTicks = DateTime.UtcNow.Ticks;
+
         var copyLength = nextBlock.Append(bytes);
         LastBlockLength = nextBlock.Length;
         if (nextBlock.IsFull)

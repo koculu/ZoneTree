@@ -120,6 +120,8 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
     {
         DataHeaderDevice?.SealDevice();
         DataDevice?.SealDevice();
+        DataHeaderDevice?.ReleaseReadBuffers(0);
+        DataDevice?.ReleaseReadBuffers(0);
         var diskSegment = new DiskSegment<TKey, TValue>(
             SegmentId, Options,
             DataHeaderDevice, DataDevice);
