@@ -446,7 +446,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
         var mergingSegments = new List<ISeekableIterator<TKey, TValue>>();
         mergingSegments.AddRange(readOnlySegmentsArray.Reverse());
-        mergingSegments.Add(oldDiskSegment.GetSeekableIterator());
+        if (oldDiskSegment is not NullDiskSegment<TKey, TValue>)
+            mergingSegments.Add(oldDiskSegment.GetSeekableIterator());
 
         if (IsCancelMergeRequested)
             return MergeResult.CANCELLED_BY_USER;
@@ -746,9 +747,12 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 if (includeDiskSegment)
                 {
                     var diskSegment = DiskSegment;
-                    diskSegment.AddReader();
-                    result.DiskSegment = diskSegment;
-                    seekableIterators.Add(diskSegment.GetSeekableIterator());
+                    if (diskSegment is not NullDiskSegment<TKey, TValue>)
+                    {
+                        diskSegment.AddReader();
+                        result.DiskSegment = diskSegment;
+                        seekableIterators.Add(diskSegment.GetSeekableIterator());
+                    }
                 }
                 return result;
             }
