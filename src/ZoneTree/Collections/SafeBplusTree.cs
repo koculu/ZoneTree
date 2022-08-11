@@ -18,15 +18,17 @@ public class SafeBplusTree<TKey, TValue>
     
     volatile LeafNode LastLeafNode;
 
-    readonly IRefComparer<TKey> Comparer;
+    public readonly IRefComparer<TKey> Comparer;
 
     readonly object WriteLock = new();
 
-    public int Length { get; private set; }
+    volatile int _length;
 
-    public LeafNode First => FirstLeafNode;
+    public int Length => _length;
+
+    /*public LeafNode First => FirstLeafNode;
     
-    public LeafNode Last => LastLeafNode;
+    public LeafNode Last => LastLeafNode;*/
 
     public SafeBplusTree(
         IRefComparer<TKey> comparer,
@@ -103,6 +105,127 @@ public class SafeBplusTree<TKey, TValue>
         }
     }
 
+    public NodeIterator GetIteratorWithLastKeySmallerOrEqual(in TKey key)
+    {
+        var iterator = GetLeafNode(key).GetIterator();
+        return iterator.SeekLastKeySmallerOrEqual(Comparer, in key);
+    }
+
+    public NodeIterator GetIteratorWithFirstKeyGreaterOrEqual(in TKey key)
+    {
+        var iterator = GetLeafNode(key).GetIterator();
+        return iterator.SeekFirstKeyGreaterOrEqual(Comparer, in key);
+    }
+
+    public FrozenNodeIterator GetFrozenIteratorWithLastKeySmallerOrEqual(in TKey key)
+    {
+        var iterator = GetFrozenLeafNode(key).GetFrozenIterator();
+        return iterator.SeekLastKeySmallerOrEqual(Comparer, in key);
+    }
+
+    public FrozenNodeIterator GetFrozenIteratorWithFirstKeyGreaterOrEqual(in TKey key)
+    {
+        var iterator = GetFrozenLeafNode(key).GetFrozenIterator();
+        return iterator.SeekFirstKeyGreaterOrEqual(Comparer, in key);
+    }
+
+    LeafNode GetLeafNode(in TKey key)
+    {
+        while (true)
+        {
+            var root = Root;
+            var result = GetLeafNode(root, in key);
+            if (root == Root)
+                return result;
+            // if Root is splitted in the middle of the ContainsKey query,
+            // restart search.
+        }
+    }
+
+    LeafNode GetLeafNode(Node node, in TKey key)
+    {
+        while (true)
+        {
+            // Temp node to avoid changing node inside node lock.
+            Node tmp;
+            lock (node)
+            {
+                // remove split lock because we already locked the node.
+                node.RemoveSplitLock();
+
+                var found = node.TryGetPosition(Comparer, in key, out var position);
+                if (node is LeafNode leaf)
+                {
+                    return leaf;
+                }
+                if (found)
+                {
+                    // if key position is found with exact match
+                    // continue with right child.
+                    ++position;
+                }
+                tmp = node.Children[position];
+                if (tmp == null)
+                    tmp = node.Children[position - 1];
+                // tmp cannot split now because of parent lock.
+                tmp.AddSplitLock();
+            }
+            // tmp parent's lock released. but tmp still cannot be splitted.
+            // because of AddSplitLock above.
+            node = tmp;
+        }
+    }
+
+    LeafNode GetFrozenLeafNode(in TKey key)
+    {
+        while (true)
+        {
+            var root = Root;
+            return GetFrozenLeafNode(root, in key);
+        }
+    }
+
+    LeafNode GetFrozenLeafNode(Node node, in TKey key)
+    {
+        while (true)
+        {
+            var found = node.TryGetPosition(Comparer, in key, out var position);
+            if (node is LeafNode leaf)
+            {
+                return leaf;
+            }
+            if (found)
+            {
+                // if key position is found with exact match
+                // continue with right child.
+                ++position;
+            }
+            node = node.Children[position];
+            if (node == null)
+                node = node.Children[position - 1];
+        }
+    }
+
+    public NodeIterator GetFirstIterator()
+    {
+        return FirstLeafNode.GetIterator();
+    }
+
+    public FrozenNodeIterator GetFrozenFirstIterator()
+    {
+        return FirstLeafNode.GetFrozenIterator();
+    }
+
+    public NodeIterator GetLastIterator()
+    {
+        return LastLeafNode.GetIterator();
+    }
+    
+    public FrozenNodeIterator GetFrozenLastIterator()
+    {
+        return LastLeafNode.GetFrozenIterator();
+    }
+
     public bool ContainsKey(in TKey key)
     {
         var root = Root;
@@ -149,17 +272,20 @@ public class SafeBplusTree<TKey, TValue>
 
     public bool TryGetValue(in TKey key, out TValue value)
     {
-        var root = Root;
-        var result = TryGetValue(root, in key, out value);
-        // if Root is splitted in the middle of the ContainsKey query,
-        // and key is not found, restart search.
-        if (!result && root != Root)
-            return TryGetValue(in key, out value);
-        return result;
+        while (true)
+        {
+            var root = Root;
+            var result = TryGetValue(root, in key, out value);
+            if (result || root == Root)
+                return result;
+            // if Root is splitted in the middle of the ContainsKey query,
+            // and key is not found, restart search.
+        }
     }
 
     bool TryGetValue(Node node, in TKey key, out TValue value)
     {
+        var addedSplitLock = false;
         while(node != null)
         {
             // Temp node to avoid changing node inside node lock.
@@ -167,7 +293,8 @@ public class SafeBplusTree<TKey, TValue>
             lock (node)
             {
                 // remove split lock because we already locked the node.
-                node.RemoveSplitLock();
+                if (addedSplitLock)
+                    node.RemoveSplitLock();
 
                 var found = node.TryGetPosition(Comparer, in key, out var position);
                 if (node is LeafNode leaf)
@@ -189,6 +316,7 @@ public class SafeBplusTree<TKey, TValue>
                 tmp = node.Children[position];
                 // tmp cannot split now because of parent lock.
                 tmp.AddSplitLock();
+                addedSplitLock = true;
             }
             // tmp parent's lock released. but tmp still cannot be splitted.
             // because of AddSplitLock above.
@@ -203,7 +331,7 @@ public class SafeBplusTree<TKey, TValue>
         var len = Length;
         var keys = new TKey[len];
         var values = new TValue[len];
-        var node = First;
+        var node = FirstLeafNode;
         var off = 0;
         while (node != null)
         {
@@ -228,7 +356,7 @@ public class SafeBplusTree<TKey, TValue>
     {
         var len = Length;
         var keys = new TKey[len];
-        var node = First;
+        var node = FirstLeafNode;
         var off = 0;
         while (node != null)
         {
@@ -251,7 +379,7 @@ public class SafeBplusTree<TKey, TValue>
     {
         var len = Length;
         var values = new TValue[len];
-        var node = First;
+        var node = FirstLeafNode;
         var off = 0;
         while (node != null)
         {
@@ -310,8 +438,6 @@ public class SafeBplusTree<TKey, TValue>
                         // updating left node -> next, lock for readers!
                         lock (leftNext)
                         {
-                            /*if (leftNext.IsSplitLocked())
-                                return retry;*/
                             parent.InsertKeyAndChild(rightChildPosition, in pivotKey, rightLeaf);
                             rightLeaf.ReplaceFrom(leftLeaf, pivotPosition);
                             if (LastLeafNode == leftLeaf)
@@ -348,9 +474,13 @@ public class SafeBplusTree<TKey, TValue>
             if (node is LeafNode leaf)
             {
                 // leaf locks itself for readers!
+                if (found)
+                {
+                    leaf.Update(position, in key, in value);
+                    return false;
+                }
                 leaf.Insert(position, in key, in value);
-                if (found) return false;
-                ++Length;
+                ++_length;
                 return true;
             }
 
@@ -377,7 +507,7 @@ public class SafeBplusTree<TKey, TValue>
                     return false;
                 // leaf locks itself for readers!
                 leaf.Insert(position, in key, in value); 
-                ++Length;
+                ++_length;
                 return true;
             }
 
@@ -416,7 +546,7 @@ public class SafeBplusTree<TKey, TValue>
                 // leaf locks itself for readers!
                 leaf.Insert(position, in key, in value);
 
-                ++Length;
+                ++_length;
                 return AddOrUpdateResult.ADDED;
             }
 
@@ -540,6 +670,15 @@ public class SafeBplusTree<TKey, TValue>
             Values = new TValue[leafSize];
         }
 
+        public void Update(int position, in TKey key, in TValue value)
+        {
+            lock (this)
+            {
+                Keys[position] = key;
+                Values[position] = value;
+            }
+        }
+
         public void Insert(int position, in TKey key, in TValue value)
         {
             lock (this)
@@ -572,6 +711,320 @@ public class SafeBplusTree<TKey, TValue>
                 Next.Previous = this;
             leftLeaf.Next = this;
             Previous = leftLeaf;
+        }
+
+        public NodeIterator GetIterator()
+        {
+            lock(this)
+            {
+                var keys = new TKey[Length];
+                var values = new TValue[Length];
+                Array.Copy(Keys, 0, keys, 0, Length);
+                Array.Copy(Values, 0, values, 0, Length);
+                return new NodeIterator(this, keys, values);
+            }
+        }
+        public FrozenNodeIterator GetFrozenIterator()
+        {
+            return new FrozenNodeIterator(this);
+        }
+    }
+
+    public class NodeIterator
+    {
+        public LeafNode Node { get; }
+
+        public TKey[] Keys { get; }
+
+        public TValue[] Values { get; }
+
+        public TKey CurrentKey => Keys[CurrentIndex];
+        
+        public TValue CurrentValue => Values[CurrentIndex];
+
+        public bool HasCurrent => CurrentIndex >= 0 && CurrentIndex < Keys.Length;
+
+        int CurrentIndex = -1;
+
+        public NodeIterator(LeafNode leafNode, TKey[] keys, TValue[] values)
+        {
+            Node = leafNode;
+            Keys = keys;
+            Values = values;
+        }
+
+        public NodeIterator GetPreviousNodeIterator()
+        {
+            //lock (Node)
+            {
+                return Node.Previous?.GetIterator();
+            }
+        }
+
+        public NodeIterator GetNextNodeIterator()
+        {
+            //lock (Node)
+            {
+                return Node.Next?.GetIterator();
+            }
+        }
+
+        public bool HasNext()
+        {
+            return CurrentIndex + 1 < Keys.Length;
+        }
+
+        public bool Next()
+        {
+            if (!HasNext())
+                return false;
+            ++CurrentIndex;
+            return CurrentIndex < Keys.Length;
+        }
+
+        public bool HasPrevious()
+        {
+            return CurrentIndex > 0;
+        }
+
+        public bool Previous()
+        {
+            if (!HasPrevious())
+                return false;
+            --CurrentIndex;
+            return CurrentIndex >= 0;
+        }
+        
+        public void SeekBegin()
+        {
+            CurrentIndex = 0;
+        }
+
+        public void SeekEnd()
+        {
+            CurrentIndex = Keys.Length - 1;
+        }
+
+        public NodeIterator SeekLastKeySmallerOrEqual(
+            IRefComparer<TKey> comparer, in TKey key)
+        {
+            var iterator = this;
+            while (iterator != null)
+            {
+                var pos =
+                    iterator.GetLastSmallerOrEqualPosition(comparer, in key);
+                if (pos == -1)
+                {
+                    iterator = iterator.GetPreviousNodeIterator();
+                    continue;
+                }
+                iterator.CurrentIndex = pos;
+                return iterator;
+            }
+            return null;
+        }
+
+        public NodeIterator SeekFirstKeyGreaterOrEqual(
+            IRefComparer<TKey> comparer, in TKey key)
+        {
+            var iterator = this;
+            while (iterator != null)
+            {
+                var pos = 
+                    iterator.GetFirstGreaterOrEqualPosition(comparer, in key);
+                if (pos == iterator.Keys.Length)
+                {
+                    iterator = iterator.GetNextNodeIterator();
+                    continue;
+                }
+                iterator.CurrentIndex = pos;
+                return iterator;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Finds the position of element that is smaller or equal than key.
+        /// </summary>
+        /// <param name="key">The key</param>
+        /// <returns>-1 or a valid position</returns>
+        public int GetLastSmallerOrEqualPosition(
+            IRefComparer<TKey> comparer, in TKey key)
+        {
+            var x = GetFirstGreaterOrEqualPosition(comparer, in key);
+            if (x == -1)
+                return -1;
+            if (x == Keys.Length)
+                return x - 1;
+            if (comparer.Compare(in key, Keys[x]) == 0)
+                return x;
+            return x - 1;
+        }
+
+        /// <summary>
+        /// Finds the position of element that is greater or equal than key.
+        /// </summary>
+        /// <param name="key">The key</param>
+        /// <returns>The length of the segment or a valid position</returns>
+        public int GetFirstGreaterOrEqualPosition(
+            IRefComparer<TKey> comparer, in TKey key)
+        {
+            // This is the lower bound algorithm.
+            var list = Keys;
+            int l = 0, h = list.Length;
+            var comp = comparer;
+            while (l < h)
+            {
+                int mid = l + (h - l) / 2;
+                if (comp.Compare(in key, list[mid]) <= 0)
+                    h = mid;
+                else
+                    l = mid + 1;
+            }
+            return l;
+        }
+    }
+
+    public class FrozenNodeIterator
+    {
+        public LeafNode Node { get; }
+
+        public TKey CurrentKey => Node.Keys[CurrentIndex];
+
+        public TValue CurrentValue => Node.Values[CurrentIndex];
+
+        public bool HasCurrent => CurrentIndex >= 0 && CurrentIndex < Node.Length;
+
+        int CurrentIndex = -1;
+
+        public FrozenNodeIterator(LeafNode leafNode)
+        {
+            Node = leafNode;
+        }
+
+        public FrozenNodeIterator GetPreviousNodeIterator()
+        {
+            return Node.Previous?.GetFrozenIterator();
+        }
+
+        public FrozenNodeIterator GetNextNodeIterator()
+        {
+            return Node.Next?.GetFrozenIterator();
+        }
+
+        public bool HasNext()
+        {
+            return CurrentIndex + 1 < Node.Length;
+        }
+
+        public bool Next()
+        {
+            if (!HasNext())
+                return false;
+            ++CurrentIndex;
+            return CurrentIndex < Node.Length;
+        }
+
+        public bool HasPrevious()
+        {
+            return CurrentIndex > 0;
+        }
+
+        public bool Previous()
+        {
+            if (!HasPrevious())
+                return false;
+            --CurrentIndex;
+            return CurrentIndex >= 0;
+        }
+
+        public void SeekBegin()
+        {
+            CurrentIndex = 0;
+        }
+
+        public void SeekEnd()
+        {
+            CurrentIndex = Node.Length - 1;
+        }
+
+        public FrozenNodeIterator SeekLastKeySmallerOrEqual(
+            IRefComparer<TKey> comparer, in TKey key)
+        {
+            var iterator = this;
+            while (iterator != null)
+            {
+                var pos =
+                    iterator.GetLastSmallerOrEqualPosition(comparer, in key);
+                if (pos == -1)
+                {
+                    iterator = iterator.GetPreviousNodeIterator();
+                    continue;
+                }
+                iterator.CurrentIndex = pos;
+                return iterator;
+            }
+            return null;
+        }
+
+        public FrozenNodeIterator SeekFirstKeyGreaterOrEqual(
+            IRefComparer<TKey> comparer, in TKey key)
+        {
+            var iterator = this;
+            while (iterator != null)
+            {
+                var pos =
+                    iterator.GetFirstGreaterOrEqualPosition(comparer, in key);
+                if (pos == iterator.Node.Keys.Length)
+                {
+                    iterator = iterator.GetNextNodeIterator();
+                    continue;
+                }
+                iterator.CurrentIndex = pos;
+                return iterator;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Finds the position of element that is smaller or equal than key.
+        /// </summary>
+        /// <param name="key">The key</param>
+        /// <returns>-1 or a valid position</returns>
+        public int GetLastSmallerOrEqualPosition(
+            IRefComparer<TKey> comparer, in TKey key)
+        {
+            var x = GetFirstGreaterOrEqualPosition(comparer, in key);
+            if (x == -1)
+                return -1;
+            if (x == Node.Length)
+                return x - 1;
+            if (comparer.Compare(in key, Node.Keys[x]) == 0)
+                return x;
+            return x - 1;
+        }
+
+        /// <summary>
+        /// Finds the position of element that is greater or equal than key.
+        /// </summary>
+        /// <param name="key">The key</param>
+        /// <returns>The length of the segment or a valid position</returns>
+        public int GetFirstGreaterOrEqualPosition(
+            IRefComparer<TKey> comparer, in TKey key)
+        {
+            // This is the lower bound algorithm.
+            var list = Node.Keys;
+            int l = 0, h = Node.Length;
+            var comp = comparer;
+            while (l < h)
+            {
+                int mid = l + (h - l) / 2;
+                if (comp.Compare(in key, list[mid]) <= 0)
+                    h = mid;
+                else
+                    l = mid + 1;
+            }
+            return l;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿#undef USE_LOCK_FREE_SKIP_LIST
+#define USE_BPLUS_TREE
 
 /*
  * Lock Free Skip List is turned off by default.
@@ -26,8 +27,9 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
     readonly MarkValueDeletedDelegate<TValue> MarkValueDeleted;
 
     readonly int MutableSegmentMaxItemCount;
-
-#if USE_LOCK_FREE_SKIP_LIST
+#if USE_BPLUS_TREE
+    readonly SafeBplusTree<TKey, TValue> SkipList;
+#elif USE_LOCK_FREE_SKIP_LIST
     readonly LockFreeSkipList<TKey, TValue> SkipList;
 #else
     readonly SkipList<TKey, TValue> SkipList;
@@ -88,17 +90,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             var value = values[i];
             // TODO: Search if we can create faster construction
             // of mutable segment from log entries.
-            SkipList.AddOrUpdate(key,
-                (x) =>
-                {
-                    x.Value = value;
-                    return AddOrUpdateResult.ADDED;
-                },
-                (y) =>
-                {
-                    y.Value = value;
-                    return AddOrUpdateResult.UPDATED;
-                });
+            SkipList.Upsert(in key, in value);
         }
     }
 
@@ -123,21 +115,12 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
             if (SkipList.Length >= MutableSegmentMaxItemCount)
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
-
-            var status = SkipList.AddOrUpdate(key,
-                (x) =>
-                {
-                    WriteAheadLog.Append(in key, in value);
-                    x.Value = value;
-                    return AddOrUpdateResult.ADDED;
-                },
-                (x) =>
-                {
-                    WriteAheadLog.Append(in key, in value);
-                    x.Value = value;
-                    return AddOrUpdateResult.UPDATED;
-                });
-            return status;
+            lock (SkipList)
+            {
+                var result = SkipList.Upsert(in key, in value);
+                WriteAheadLog.Append(in key, in value);
+                return result ? AddOrUpdateResult.ADDED : AddOrUpdateResult.UPDATED;
+            }
         }
         finally
         {
@@ -157,6 +140,21 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             if (SkipList.Length >= MutableSegmentMaxItemCount)
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
 
+#if USE_BPLUS_TREE
+            var status = SkipList.AddOrUpdate(key,
+                AddOrUpdateResult (ref TValue x) =>
+                {
+                    MarkValueDeleted(ref x);
+                    WriteAheadLog.Append(in key, in x);
+                    return AddOrUpdateResult.ADDED;
+                },
+                AddOrUpdateResult (ref TValue x) =>
+                {
+                    MarkValueDeleted(ref x);
+                    WriteAheadLog.Append(in key, in x);
+                    return AddOrUpdateResult.UPDATED;
+                });
+#else
             var status = SkipList.AddOrUpdate(key,
                 (x) =>
                 {
@@ -174,6 +172,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                     WriteAheadLog.Append(in key, in value);
                     return AddOrUpdateResult.UPDATED;
                 });
+#endif
             return status;
         }
         finally
@@ -217,7 +216,9 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public IIndexedReader<TKey, TValue> GetIndexedReader()
     {
-#if USE_LOCK_FREE_SKIP_LIST
+#if USE_BPLUS_TREE
+        throw new NotSupportedException("B+Tree Indexed Reader is not supported.");
+#elif USE_LOCK_FREE_SKIP_LIST
         return new LockFreeSkipListIndexedReader<TKey, TValue>(SkipList);
 #else
         return new SkipListIndexedReader<TKey, TValue>(SkipList);
@@ -226,7 +227,11 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public ISeekableIterator<TKey, TValue> GetSeekableIterator()
     {
-#if USE_LOCK_FREE_SKIP_LIST
+#if USE_BPLUS_TREE
+        return IsFullyFrozen ?
+            new FrozenSafeBplusTreeSeekableIterator<TKey, TValue>(SkipList) :
+            new SafeBplusTreeSeekableIterator<TKey, TValue>(SkipList);
+#elif USE_LOCK_FREE_SKIP_LIST
         return new LockFreeSkipListSeekableIterator<TKey, TValue>(SkipList);
 #else
         return new SkipListSeekableIterator<TKey, TValue>(SkipList);

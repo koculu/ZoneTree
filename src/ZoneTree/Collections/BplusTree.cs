@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Collections;
+﻿using System.Diagnostics;
+
+namespace Tenray.ZoneTree.Collections;
 
 /// <summary>
 /// In memory B+Tree.
@@ -18,7 +20,7 @@ public class BplusTree<TKey, TValue>
     
     volatile LeafNode LastLeafNode;
 
-    readonly IRefComparer<TKey> Comparer;
+    public readonly IRefComparer<TKey> Comparer;
 
     public int Length { get; private set; }
 
@@ -236,8 +238,12 @@ public class BplusTree<TKey, TValue>
             var found = node.TryGetPosition(Comparer, in key, out var position);
             if (node is LeafNode leaf)
             {
+                if (found)
+                {
+                    leaf.Update(position, in key, in value);
+                    return false;
+                }
                 leaf.Insert(position, in key, in value);
-                if (found) return false;
                 ++Length;
                 return true;
             }
@@ -396,6 +402,12 @@ public class BplusTree<TKey, TValue>
         {
             Keys = new TKey[leafSize]; 
             Values = new TValue[leafSize];
+        }
+
+        public void Update(int position, in TKey key, in TValue value)
+        {
+            Keys[position] = key;
+            Values[position] = value;
         }
 
         public void Insert(int position, in TKey key, in TValue value)

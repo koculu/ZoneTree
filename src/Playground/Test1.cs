@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using NUnit.Framework;
+using System.Diagnostics;
 using Tenray.ZoneTree;
+using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Maintainers;
@@ -157,5 +159,64 @@ public class Test1
         }
         stopwatchAll.Stop();
         Console.WriteLine($"All Time:{stopwatchAll.Elapsed}");
+    }
+
+    public static void BplusTreeReverseIteratorParallelInserts()
+    {
+        var random = new Random();
+        var insertCount = 100000;
+        var iteratorCount = 1000;
+
+        var tree = new SafeBplusTree<int, int>(
+            new Int32ComparerAscending());
+
+        var task = Task.Factory.StartNew(() =>
+        {
+            Parallel.For(0, insertCount, (x) =>
+            {
+                var key = random.Next();
+                tree.AddOrUpdate(key,
+                    AddOrUpdateResult (ref int x) =>
+                    {
+                        x = key + key;
+                        return AddOrUpdateResult.ADDED;
+                    },
+                    AddOrUpdateResult (ref int y) =>
+                    {
+                        y = key + key;
+                        return AddOrUpdateResult.UPDATED;
+                    });
+            });
+        });
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var initialCount = tree.Length;
+            var iterator = new SafeBplusTreeSeekableIterator<int, int>(tree);
+            var counter = iterator.SeekEnd() ? 1 : 0;
+            var isValidData = true;
+            while (iterator.Prev())
+            {
+                var expected = iterator.CurrentKey + iterator.CurrentKey;
+                if (iterator.CurrentValue != expected)
+                    isValidData = false;
+                ++counter;
+            }
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(isValidData, Is.True);
+
+            initialCount = tree.Length;
+            counter = iterator.SeekBegin() ? 1 : 0;
+            while (iterator.Next())
+            {
+                var expected = iterator.CurrentKey + iterator.CurrentKey;
+                if (iterator.CurrentValue != expected)
+                    isValidData = false;
+                ++counter;
+            }
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(isValidData, Is.True);
+        });
+
+        task.Wait();
     }
 }

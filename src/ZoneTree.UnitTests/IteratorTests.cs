@@ -212,6 +212,20 @@ public class IteratorTests
         {
             if (i != 24 && i % 2 == 0)
                 ++i;
+            /*
+             * New BplusTree works with forward reading method.
+             * This means inserts in the iterator position
+             * of Bplus Tree Leaf node does not reflect inserts.
+             * This is not a bug. Callers can always double check
+             * with TryGetKey() if they want to read most recent values.
+             * for every key they read from iteration.
+             * Auto refresh property was made for SegmentZeroMoveForward
+             * event. A manual refresh also works but it is expensive to call
+             * for every key.
+             */
+            if (i == 23)
+                iterator.Refresh();
+
             iterator.Next();
             Assert.That(iterator.CurrentKey, Is.EqualTo(i));
             Assert.That(iterator.CurrentValue, Is.EqualTo(i + i));
