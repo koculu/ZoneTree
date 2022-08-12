@@ -23,7 +23,7 @@ public static class RandomMidSizeInserts
     public static void InsertBplusTree(MidSizeKey[] arr)
     {
         var count = arr.Length;
-        var tree = new BplusTree<MidSizeKey, MidSizeKey>(new MidSizeRefComparer());
+        var tree = new BplusTreeUnsafe<MidSizeKey, MidSizeKey>(new MidSizeRefComparer());
         for(var i = 0; i < count; ++i)
         {
             var x = arr[i];

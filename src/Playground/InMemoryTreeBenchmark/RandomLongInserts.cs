@@ -24,7 +24,7 @@ public static class RandomLongInserts
     public static void InsertBplusTree(long[] arr)
     {
         var count = arr.Length;
-        var tree = new BplusTree<long, long>(new Int64ComparerAscending());
+        var tree = new BplusTreeUnsafe<long, long>(new Int64ComparerAscending());
         for(var i = 0; i < count; ++i)
         {
             var x = arr[i];
@@ -59,7 +59,7 @@ public static class RandomLongInserts
     {
         var count = arr.Length;
         var orj = arr.ToArray();
-        var tree = new BplusTree<long, long>(new Int64ComparerAscending());
+        var tree = new BplusTreeUnsafe<long, long>(new Int64ComparerAscending());
         for (var i = 0; i < count; ++i)
         {
             var x = arr[i];

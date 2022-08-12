@@ -35,7 +35,7 @@ public static class RandomIntInserts
     public static void InsertBplusTree(int[] arr)
     {
         var count = arr.Length;
-        var tree = new BplusTree<int, int>(new Int32ComparerAscending());
+        var tree = new BplusTreeUnsafe<int, int>(new Int32ComparerAscending());
         for(var i = 0; i < count; ++i)
         {
             var x = arr[i];

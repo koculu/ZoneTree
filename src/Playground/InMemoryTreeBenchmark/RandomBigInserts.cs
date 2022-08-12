@@ -23,7 +23,7 @@ public static class RandomBigInserts
     public static void InsertBplusTree(BigKey[] arr)
     {
         var count = arr.Length;
-        var tree = new BplusTree<BigKey, BigKey>(new BigRefComparer());
+        var tree = new BplusTreeUnsafe<BigKey, BigKey>(new BigRefComparer());
         for(var i = 0; i < count; ++i)
         {
             var x = arr[i];

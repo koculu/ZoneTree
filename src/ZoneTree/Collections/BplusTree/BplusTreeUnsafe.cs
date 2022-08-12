@@ -8,7 +8,7 @@ namespace Tenray.ZoneTree.Collections.BplusTree;
 /// </summary>
 /// <typeparam name="TKey">Key Type</typeparam>
 /// <typeparam name="TValue">Value Type</typeparam>
-public class BplusTree<TKey, TValue>
+public class BplusTreeUnsafe<TKey, TValue>
 {
     readonly int NodeSize = 128;
 
@@ -28,7 +28,7 @@ public class BplusTree<TKey, TValue>
 
     public LeafNode Last => LastLeafNode;
 
-    public BplusTree(
+    public BplusTreeUnsafe(
         IRefComparer<TKey> comparer,
         int nodeSize = 128,
         int leafSize = 128)
