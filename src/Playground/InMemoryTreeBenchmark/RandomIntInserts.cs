@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tenray.ZoneTree.Collections;
+﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BplusTree;
 using Tenray.ZoneTree.Comparers;
 
 namespace Playground.InMemoryTreeBenchmark;
@@ -41,6 +37,24 @@ public static class RandomIntInserts
         var count = arr.Length;
         var tree = new BplusTree<int, int>(new Int32ComparerAscending());
         for(var i = 0; i < count; ++i)
+        {
+            var x = arr[i];
+            tree.TryInsert(x, x + x);
+        }
+        for (var i = 0; i < count; ++i)
+        {
+            var x = arr[i];
+            var exists = tree.TryGetValue(x, out var val);
+            if (!exists || val != x + x)
+                throw new Exception($"exists: {exists} ({x},{val}) != ({x},{x + x})");
+        }
+    }
+
+    public static void InsertSafeBplusTree(int[] arr)
+    {
+        var count = arr.Length;
+        var tree = new SafeBplusTree<int, int>(new Int32ComparerAscending());
+        for (var i = 0; i < count; ++i)
         {
             var x = arr[i];
             tree.TryInsert(x, x + x);

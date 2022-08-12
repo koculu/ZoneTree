@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Tenray.ZoneTree;
 using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BplusTree;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Maintainers;
@@ -164,8 +165,8 @@ public class Test1
     public static void BplusTreeReverseIteratorParallelInserts()
     {
         var random = new Random();
-        var insertCount = 100000;
-        var iteratorCount = 1000;
+        var insertCount = 1000000;
+        var iteratorCount = 10000;
 
         var tree = new SafeBplusTree<int, int>(
             new Int32ComparerAscending());
@@ -218,5 +219,30 @@ public class Test1
         });
 
         task.Wait();
+    }
+
+    public static void MassiveInsertsAndReads(int count)
+    {
+        var readCount = 0;
+        var tree = new SafeBplusTree<long, long>(new Int64ComparerAscending());
+        var task1 = Parallel.ForEachAsync(Enumerable.Range(0, count), (i, t) =>
+        {
+            tree.TryInsert(i, i);
+            return ValueTask.CompletedTask;
+        });
+        Thread.Sleep(1);
+        var task2 = Parallel.ForEachAsync(Enumerable.Range(0, count), (i, t) =>
+        {
+            if (tree.TryGetValue(i, out var j))
+            {
+                if (i != j)
+                    throw new Exception($"{i} != {j}");
+                Interlocked.Increment(ref readCount);
+            }
+            return ValueTask.CompletedTask;
+        });
+        task1.Wait();
+        task2.Wait();
+        Console.WriteLine("Read Count: " + readCount);
     }
 }

@@ -271,7 +271,7 @@ public class IteratorTests
         {
             var initialCount = zoneTree.Maintenance.InMemoryRecordCount;
             using var iterator = zoneTree.CreateIterator(false);
-            iterator.Seek(0);
+            iterator.SeekFirst();
             var counter = 0;
             var isValidData = true;
             while (iterator.Next())

@@ -11,6 +11,7 @@
  */
 
 using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BplusTree;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.WAL;
 
@@ -59,7 +60,11 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                 options.ValueSerializer);
         Options = options;
         Comparer = options.Comparer;
+#if USE_BPLUS_TREE
+        SkipList = new(Comparer);
+#else
         SkipList = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
+#endif
         MarkValueDeleted = options.MarkValueDeleted;
         MutableSegmentMaxItemCount = options.MutableSegmentMaxItemCount;
     }
@@ -75,7 +80,11 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         WriteAheadLog = wal;
         Options = options;
         Comparer = options.Comparer;
+#if USE_BPLUS_TREE
+        SkipList = new(Comparer);
+#else
         SkipList = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
+#endif
         MarkValueDeleted = options.MarkValueDeleted;
         MutableSegmentMaxItemCount = options.MutableSegmentMaxItemCount;
         LoadLogEntries(keys, values);
@@ -104,7 +113,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         return SkipList.TryGetValue(key, out value);
     }
 
-    public AddOrUpdateResult Upsert(TKey key, TValue value)
+    public AddOrUpdateResult Upsert(in TKey key, in TValue value)
     {
         if (IsFrozenFlag)
             return AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN;
@@ -115,12 +124,14 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
             if (SkipList.Length >= MutableSegmentMaxItemCount)
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
-            lock (SkipList)
-            {
-                var result = SkipList.Upsert(in key, in value);
-                WriteAheadLog.Append(in key, in value);
-                return result ? AddOrUpdateResult.ADDED : AddOrUpdateResult.UPDATED;
-            }
+            var result = SkipList.Upsert(in key, in value);
+            WriteAheadLog.Append(in key, in value);
+            return result ? AddOrUpdateResult.ADDED : AddOrUpdateResult.UPDATED;
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine(e.ToString());
+            throw;
         }
         finally
         {
@@ -128,7 +139,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         }
     }
 
-    public AddOrUpdateResult Delete(TKey key)
+    public AddOrUpdateResult Delete(in TKey key)
     {
         if (IsFrozenFlag)
             return AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN;
@@ -141,19 +152,21 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
 
 #if USE_BPLUS_TREE
+            TValue insertedValue = default;
             var status = SkipList.AddOrUpdate(key,
                 AddOrUpdateResult (ref TValue x) =>
                 {
                     MarkValueDeleted(ref x);
-                    WriteAheadLog.Append(in key, in x);
+                    insertedValue = x;
                     return AddOrUpdateResult.ADDED;
                 },
                 AddOrUpdateResult (ref TValue x) =>
                 {
                     MarkValueDeleted(ref x);
-                    WriteAheadLog.Append(in key, in x);
+                    insertedValue = x;                    
                     return AddOrUpdateResult.UPDATED;
                 });
+            WriteAheadLog.Append(in key, in insertedValue);
 #else
             var status = SkipList.AddOrUpdate(key,
                 (x) =>
@@ -179,18 +192,6 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         {
             Interlocked.Decrement(ref WritesInProgress);
         }
-    }
-
-    public IReadOnlySegment<TKey, TValue> CreateReadOnlySegment()
-    {
-        if (!IsFullyFrozen)
-            throw new Exception("MarkFrozen the segment zero first!");
-
-        var (keys, values) = SkipList.ToArray();
-
-        var readOnlySegment =
-            new ReadOnlySegment<TKey, TValue>(SegmentId, Options, keys, values);
-        return readOnlySegment;
     }
 
     public void Freeze()

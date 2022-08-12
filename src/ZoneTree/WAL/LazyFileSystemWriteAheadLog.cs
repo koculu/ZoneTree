@@ -121,10 +121,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public void Append(in TKey key, in TValue value)
     {
-        lock (this)
-        {
-            Queue.Enqueue(new CombinedValue<TKey, TValue>(in key, in value));
-        }
+        Queue.Enqueue(new CombinedValue<TKey, TValue>(in key, in value));
     }
 
     public void Drop()

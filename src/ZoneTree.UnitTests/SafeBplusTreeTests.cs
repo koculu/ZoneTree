@@ -1,4 +1,5 @@
 ﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BplusTree;
 using Tenray.ZoneTree.Comparers;
 
 namespace Tenray.ZoneTree.UnitTests;
@@ -171,7 +172,7 @@ public class SafeBplusTreeTests
     {
         var random = new Random();
         var insertCount = 100000;
-        var iteratorCount = 15;
+        var iteratorCount = 1550;
 
         var tree = new SafeBplusTree<int, int>(
             new Int32ComparerAscending());
@@ -207,7 +208,7 @@ public class SafeBplusTreeTests
                     isValidData = false;
                 ++counter;
             }
-            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount), "prev iterator");
             Assert.That(isValidData, Is.True);
 
             initialCount = tree.Length;
@@ -219,7 +220,7 @@ public class SafeBplusTreeTests
                     isValidData = false;
                 ++counter;
             }
-            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount), "next iterator");
             Assert.That(isValidData, Is.True);
         });
 

@@ -2,6 +2,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Engines;
 using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BplusTree;
 using Tenray.ZoneTree.Comparers;
 
 namespace Playground.InMemoryTreeBenchmark;

@@ -253,9 +253,11 @@ public class BplusTree<TKey, TValue>
             {
                 SplitChild(node, position, child);
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
-                    ++position;
+                {
+                    child = node.Children[position + 1];
+                }
             }
-            node = node.Children[position];
+            node = child;
         }
     }
 
@@ -278,9 +280,11 @@ public class BplusTree<TKey, TValue>
             {
                 SplitChild(node, position, child);
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
-                    ++position;
+                {
+                    child = node.Children[position+1];
+                }
             }
-            node = node.Children[position];
+            node = child;
         }
     }
 
@@ -309,9 +313,11 @@ public class BplusTree<TKey, TValue>
             {
                 SplitChild(node, position, child);
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
-                    ++position;
+                {
+                    child = node.Children[position + 1];
+                }
             }
-            node = node.Children[position];
+            node = child;
         }
     }
 
