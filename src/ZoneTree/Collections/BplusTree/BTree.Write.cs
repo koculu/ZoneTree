@@ -12,14 +12,14 @@ public partial class BTree<TKey, TValue>
     {
         try
         {
-            Lock();
+            WriteLock();
             while (true)
             {
                 var root = Root;
-                root.LockForWrite();
+                root.WriteLock();
                 if (root != Root)
                 {
-                    root.UnlockForWrite();
+                    root.WriteUnlock();
                     continue;
                 }
 
@@ -27,19 +27,19 @@ public partial class BTree<TKey, TValue>
                 {
                     return UpsertNonFull(root, in key, in value);
                 }
-                var newRoot = new Node(NodeSize);
+                var newRoot = new Node(GetNodeLocker(), NodeSize);
                 newRoot.Children[0] = root;
-                newRoot.LockForWrite();
+                newRoot.WriteLock();
                 SplitChild(newRoot, 0, root);
                 var result = UpsertNonFull(newRoot, in key, in value);
                 Root = newRoot;
-                root.UnlockForWrite();
+                root.WriteUnlock();
                 return result;
             }
         }
         finally
         {
-            Unlock();
+            WriteUnlock();
         }
     }
 
@@ -47,33 +47,39 @@ public partial class BTree<TKey, TValue>
     {
         try
         {
-            Lock();
+            WriteLock();
             while (true)
             {
                 var root = Root;
-                root.LockForWrite();
+                root.WriteLock();
                 if (root != Root)
                 {
-                    root.UnlockForWrite();
+                    root.WriteUnlock();
                     continue;
                 }
                 if (!root.IsFull)
                 {
                     return TryInsertNonFull(root, in key, in value);
                 }
-                var newRoot = new Node(NodeSize);
+                var newRoot = new Node(GetNodeLocker(), NodeSize);
                 newRoot.Children[0] = root;
-                newRoot.LockForWrite();
+                newRoot.WriteLock();
                 SplitChild(newRoot, 0, root);
                 var result = TryInsertNonFull(newRoot, in key, in value);
                 Root = newRoot;
-                root.UnlockForWrite();
+                root.WriteUnlock();
                 return result;
             }
         }
+        catch(Exception e)
+        {
+            Console.WriteLine(e.ToString());
+            Root.WriteUnlock();
+            throw;
+        }
         finally
         {
-            Unlock();
+            WriteUnlock();
         }
     }
 
@@ -88,34 +94,34 @@ public partial class BTree<TKey, TValue>
     {
         try
         {
-            Lock();
+            WriteLock();
             while (true)
             {
                 var root = Root;
-                root.LockForWrite();
+                root.WriteLock();
                 if (root != Root)
                 {
-                    root.UnlockForWrite();
+                    root.WriteUnlock();
                     continue;
                 }
                 if (!root.IsFull)
                 {
                     return TryAddOrUpdateNonFull(root, in key, adder, updater);
                 }
-                var newRoot = new Node(NodeSize);
+                var newRoot = new Node(GetNodeLocker(), NodeSize);
                 newRoot.Children[0] = root;
-                newRoot.LockForWrite();
+                newRoot.WriteLock();
                 SplitChild(newRoot, 0, root);
                 AddOrUpdateResult result =
                     TryAddOrUpdateNonFull(newRoot, in key, adder, updater);
                 Root = newRoot;
-                root.UnlockForWrite();
+                root.WriteUnlock();
                 return result;
             }
         }
         finally
         {
-            Unlock();
+            WriteUnlock();
         }
     }
 
@@ -126,7 +132,7 @@ public partial class BTree<TKey, TValue>
         ref var pivotKey = ref leftNode.Keys[pivotPosition];
         if (leftNode is LeafNode leftLeaf)
         {
-            var rightLeaf = new LeafNode(LeafSize);
+            var rightLeaf = new LeafNode(GetNodeLocker(), LeafSize);
             var leftNext = leftLeaf.Next;
             if (leftNext == null)
             {
@@ -147,7 +153,7 @@ public partial class BTree<TKey, TValue>
         }
         else
         {
-            var rightNode = new Node(NodeSize);
+            var rightNode = new Node(GetNodeLocker(), NodeSize);
             parent.InsertKeyAndChild(rightChildPosition, in pivotKey, rightNode);
             rightNode.ReplaceFrom(leftNode, pivotPosition);
         }
@@ -163,30 +169,30 @@ public partial class BTree<TKey, TValue>
                 if (found)
                 {
                     leaf.Update(position, in key, in value);
-                    node.UnlockForWrite();
+                    node.WriteUnlock();
                     return false;
                 }
                 leaf.Insert(position, in key, in value);
-                node.UnlockForWrite();
+                node.WriteUnlock();
                 Interlocked.Increment(ref _length);
                 return true;
             }
 
             var child = node.Children[position];
-            child.LockForWrite();
+            child.WriteLock();
             if (child.IsFull)
             {
                 SplitChild(node, position, child);
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
                 {
-                    child.UnlockForWrite();
+                    child.WriteUnlock();
                     child = node.Children[position + 1];
                     if (child.IsFull)
                         throw new Exception("child was full");
-                    child.LockForWrite();
+                    child.WriteLock();
                 }
             }
-            node.UnlockForWrite();
+            node.WriteUnlock();
             node = child;
         }
     }
@@ -200,31 +206,31 @@ public partial class BTree<TKey, TValue>
             {
                 if (found)
                 {
-                    node.UnlockForWrite();
+                    node.WriteUnlock();
                     return false;
                 }
 
                 leaf.Insert(position, in key, in value);
-                node.UnlockForWrite();
+                node.WriteUnlock();
                 Interlocked.Increment(ref _length);
                 return true;
             }
 
             var child = node.Children[position];
-            child.LockForWrite();
+            child.WriteLock();
             if (child.IsFull)
             {
                 SplitChild(node, position, child);
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
                 {
-                    child.UnlockForWrite();
+                    child.WriteUnlock();
                     child = node.Children[position + 1];
                     if (child.IsFull)
                         throw new Exception("child was full");
-                    child.LockForWrite();
+                    child.WriteLock();
                 }
             }
-            node.UnlockForWrite();
+            node.WriteUnlock();
             node = child;
         }
     }
@@ -240,32 +246,32 @@ public partial class BTree<TKey, TValue>
                 if (found)
                 {
                     updater(ref leaf.Values[position]);
-                    node.UnlockForWrite();
+                    node.WriteUnlock();
                     return AddOrUpdateResult.UPDATED;
                 }
                 TValue value = default;
                 adder(ref value);
                 leaf.Insert(position, in key, in value);
-                node.UnlockForWrite();
+                node.WriteUnlock();
                 Interlocked.Increment(ref _length);
                 return AddOrUpdateResult.ADDED;
             }
 
             var child = node.Children[position];
-            child.LockForWrite();
+            child.WriteLock();
             if (child.IsFull)
             {
                 SplitChild(node, position, child);
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
                 {
-                    child.UnlockForWrite();
+                    child.WriteUnlock();
                     child = node.Children[position + 1];
                     if (child.IsFull)
                         throw new Exception("child was full");
-                    child.LockForWrite();
+                    child.WriteLock();
                 }
             }
-            node.UnlockForWrite();
+            node.WriteUnlock();
             node = child;
         }
     }

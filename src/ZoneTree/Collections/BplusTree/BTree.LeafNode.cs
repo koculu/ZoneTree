@@ -10,7 +10,7 @@ public partial class BTree<TKey, TValue>
 
         public volatile LeafNode Next;
 
-        public LeafNode(int leafSize)
+        public LeafNode(ILocker locker, int leafSize) : base(locker)
         {
             Keys = new TKey[leafSize];
             Values = new TValue[leafSize];
@@ -58,7 +58,7 @@ public partial class BTree<TKey, TValue>
         {
             try
             {
-                LockForRead();
+                ReadLock();
                 var keys = new TKey[Length];
                 var values = new TValue[Length];
                 Array.Copy(Keys, 0, keys, 0, Length);
@@ -67,7 +67,7 @@ public partial class BTree<TKey, TValue>
             }
             finally
             {
-                UnlockForRead();
+                ReadUnlock();
             }
         }
 

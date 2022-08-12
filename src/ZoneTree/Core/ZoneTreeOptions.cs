@@ -2,6 +2,7 @@
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.WAL;
+using Tenray.ZoneTree.Collections.BplusTree.Lock;
 
 namespace Tenray.ZoneTree.Core;
 
@@ -59,6 +60,12 @@ public class ZoneTreeOptions<TKey, TValue>
     /// unless there isn't enough records.
     /// </summary>
     public int DiskSegmentMinimumRecordCount { get; set; } = 1_500_000;
+
+    /// <summary>
+    /// Controls lock granularity of in memory BTree that represents
+    /// mutable segment.
+    /// </summary>
+    public BTreeLockMode BTreeLockMode { get; set; } = BTreeLockMode.NodeLevelMonitor;
 
     public bool TryValidate(out Exception exception)
     {

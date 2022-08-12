@@ -1,4 +1,5 @@
 ﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BplusTree.Lock;
 using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 
@@ -7,6 +8,8 @@ namespace Playground.InMemoryTreeBenchmark;
 public static class RandomIntInserts
 {
     static readonly Random Random = new Random(0);
+    
+    static BTreeLockMode BTreeLockMode = BTreeLockMode.NodeLevelMonitor;
 
     public static int[] GetRandomArray(int count)
     {
@@ -53,7 +56,7 @@ public static class RandomIntInserts
     public static void InsertSafeBTree(int[] arr)
     {
         var count = arr.Length;
-        var tree = new BTree<int, int>(new Int32ComparerAscending());
+        var tree = new BTree<int, int>(new Int32ComparerAscending(), BTreeLockMode);
         for (var i = 0; i < count; ++i)
         {
             var x = arr[i];

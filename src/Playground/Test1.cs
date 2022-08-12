@@ -1,7 +1,6 @@
-﻿using NUnit.Framework;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Tenray.ZoneTree;
-using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BplusTree.Lock;
 using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Core;
@@ -162,76 +161,18 @@ public class Test1
         Console.WriteLine($"All Time:{stopwatchAll.Elapsed}");
     }
 
-    public static void BTreeReverseIteratorParallelInserts()
-    {
-        var random = new Random();
-        var insertCount = 1000000;
-        var iteratorCount = 10000;
-
-        var tree = new BTree<int, int>(
-            new Int32ComparerAscending());
-
-        var task = Task.Factory.StartNew(() =>
-        {
-            Parallel.For(0, insertCount, (x) =>
-            {
-                var key = random.Next();
-                tree.AddOrUpdate(key,
-                    AddOrUpdateResult (ref int x) =>
-                    {
-                        x = key + key;
-                        return AddOrUpdateResult.ADDED;
-                    },
-                    AddOrUpdateResult (ref int y) =>
-                    {
-                        y = key + key;
-                        return AddOrUpdateResult.UPDATED;
-                    });
-            });
-        });
-        Parallel.For(0, iteratorCount, (x) =>
-        {
-            var initialCount = tree.Length;
-            var iterator = new BTreeSeekableIterator<int, int>(tree);
-            var counter = iterator.SeekEnd() ? 1 : 0;
-            var isValidData = true;
-            while (iterator.Prev())
-            {
-                var expected = iterator.CurrentKey + iterator.CurrentKey;
-                if (iterator.CurrentValue != expected)
-                    isValidData = false;
-                ++counter;
-            }
-            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
-            Assert.That(isValidData, Is.True);
-
-            initialCount = tree.Length;
-            counter = iterator.SeekBegin() ? 1 : 0;
-            while (iterator.Next())
-            {
-                var expected = iterator.CurrentKey + iterator.CurrentKey;
-                if (iterator.CurrentValue != expected)
-                    isValidData = false;
-                ++counter;
-            }
-            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
-            Assert.That(isValidData, Is.True);
-        });
-
-        task.Wait();
-    }
-
-    public static void MassiveInsertsAndReads(int count)
+    public static void MassiveInsertsAndReads(long[] arr, BTreeLockMode lockMode = BTreeLockMode.NodeLevelMonitor)
     {
         var readCount = 0;
-        var tree = new BTree<long, long>(new Int64ComparerAscending());
-        var task1 = Parallel.ForEachAsync(Enumerable.Range(0, count), (i, t) =>
+        var tree = new BTree<long, long>(new Int64ComparerAscending(),
+            lockMode);
+        var task1 = Parallel.ForEachAsync(arr, (i, t) =>
         {
             tree.TryInsert(i, i);
             return ValueTask.CompletedTask;
         });
         Thread.Sleep(1);
-        var task2 = Parallel.ForEachAsync(Enumerable.Range(0, count), (i, t) =>
+        var task2 = Parallel.ForEachAsync(arr, (i, t) =>
         {
             if (tree.TryGetValue(i, out var j))
             {

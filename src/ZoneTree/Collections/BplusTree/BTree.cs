@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Collections.BTree;
+﻿using Tenray.ZoneTree.Collections.BplusTree.Lock;
+
+namespace Tenray.ZoneTree.Collections.BTree;
 
 /// <summary>
 /// In memory B+Tree.
@@ -8,11 +10,12 @@
 /// <typeparam name="TValue">Value Type</typeparam>
 public partial class BTree<TKey, TValue>
 {
-    readonly NoLock TopLevelLocker = new();
+    readonly ILocker TopLevelLocker;
 
     readonly int NodeSize = 128;
 
     readonly int LeafSize = 128;
+    
 
     volatile Node Root;
 
@@ -21,42 +24,74 @@ public partial class BTree<TKey, TValue>
     volatile LeafNode LastLeafNode;
 
     public readonly IRefComparer<TKey> Comparer;
-
+    
     volatile int _length;
 
     public int Length => _length;
+    
+    public readonly BTreeLockMode LockMode;
 
     public BTree(
         IRefComparer<TKey> comparer,
+        BTreeLockMode lockMode,
         int nodeSize = 128,
         int leafSize = 128)
     {
         NodeSize = nodeSize;
         LeafSize = leafSize;
         Comparer = comparer;
-        Root = new LeafNode(LeafSize);
+        switch (lockMode)
+        {
+
+            case BTreeLockMode.TopLevelMonitor:
+                TopLevelLocker = new MonitorLock();
+                break;
+            case BTreeLockMode.TopLevelReaderWriter:
+                TopLevelLocker = new ReadWriteLock();
+                break;
+            case BTreeLockMode.NoLock:
+            case BTreeLockMode.NodeLevelMonitor:
+            case BTreeLockMode.NodeLevelReaderWriter:
+                TopLevelLocker = new NoLock();
+                break;
+            default:
+                throw new NotSupportedException();
+        }
+        LockMode = lockMode;
+        Root = new LeafNode(GetNodeLocker(), LeafSize);
         FirstLeafNode = Root as LeafNode;
         LastLeafNode = FirstLeafNode;
     }
 
-    public void Lock()
+    ILocker GetNodeLocker() => LockMode switch
     {
-        TopLevelLocker.Lock();
+        BTreeLockMode.TopLevelMonitor or
+        BTreeLockMode.TopLevelReaderWriter or 
+        BTreeLockMode.NoLock => new NoLock(),
+
+        BTreeLockMode.NodeLevelMonitor => new MonitorLock(),
+        BTreeLockMode.NodeLevelReaderWriter => new ReadWriteLock(),
+        _ => throw new NotSupportedException(),
+    };
+
+    public void WriteLock()
+    {
+        TopLevelLocker.WriteLock();
     }
 
-    public void Unlock()
+    public void WriteUnlock()
     {
-        TopLevelLocker.Unlock();
+        TopLevelLocker.WriteUnlock();
     }
 
     public void ReadLock()
     {
-        TopLevelLocker.SharedLock();
+        TopLevelLocker.ReadLock();
     }
 
     public void ReadUnlock()
     {
-        TopLevelLocker.SharedUnlock();
+        TopLevelLocker.ReadUnlock();
     }
 
     public NodeIterator GetIteratorWithLastKeySmallerOrEqual(in TKey key)
@@ -134,5 +169,4 @@ public partial class BTree<TKey, TValue>
     {
         return LastLeafNode.GetFrozenIterator();
     }
-       
 }

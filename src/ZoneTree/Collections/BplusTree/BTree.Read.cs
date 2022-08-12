@@ -16,10 +16,10 @@ public partial class BTree<TKey, TValue>
             while (true)
             {
                 var root = Root;
-                root.LockForRead();
+                root.ReadLock();
                 if (root != Root)
                 {
-                    root.UnlockForRead();
+                    root.ReadUnlock();
                     continue;
                 }
                 return ContainsKey(root, in key);
@@ -38,7 +38,7 @@ public partial class BTree<TKey, TValue>
             var found = node.TryGetPosition(Comparer, in key, out var position);
             if (node is LeafNode)
             {
-                node.UnlockForRead();
+                node.ReadUnlock();
                 return found;
             }
             if (found)
@@ -49,8 +49,8 @@ public partial class BTree<TKey, TValue>
             }
             var previousNode = node;
             node = node.Children[position];
-            node.LockForRead();
-            previousNode.UnlockForRead();
+            node.ReadLock();
+            previousNode.ReadUnlock();
         }
         return false;
     }
@@ -63,10 +63,10 @@ public partial class BTree<TKey, TValue>
             while (true)
             {
                 var root = Root;
-                root.LockForRead();
+                root.ReadLock();
                 if (root != Root)
                 {
-                    root.UnlockForRead();
+                    root.ReadUnlock();
                     continue;
                 }
                 return TryGetValue(root, in key, out value);
@@ -87,12 +87,12 @@ public partial class BTree<TKey, TValue>
             {
                 if (!found)
                 {
-                    node.UnlockForRead();
+                    node.ReadUnlock();
                     value = default;
                     return false;
                 }
                 value = leaf.Values[position];
-                node.UnlockForRead();
+                node.ReadUnlock();
                 return true;
             }
             if (found)
@@ -102,8 +102,8 @@ public partial class BTree<TKey, TValue>
                 ++position;
             }
             var child = node.Children[position];
-            child.LockForRead();
-            node.UnlockForRead();
+            child.ReadLock();
+            node.ReadUnlock();
             node = child;
         }
         value = default;
@@ -118,10 +118,10 @@ public partial class BTree<TKey, TValue>
             while (true)
             {
                 var root = Root;
-                root.LockForRead();
+                root.ReadLock();
                 if (root != Root)
                 {
-                    root.UnlockForRead();
+                    root.ReadUnlock();
                     continue;
                 }
                 return GetLeafNode(root, in key);
@@ -140,7 +140,7 @@ public partial class BTree<TKey, TValue>
             var found = node.TryGetPosition(Comparer, in key, out var position);
             if (node is LeafNode leaf)
             {
-                node.UnlockForRead();
+                node.ReadUnlock();
                 return leaf;
             }
             if (found)
@@ -153,8 +153,8 @@ public partial class BTree<TKey, TValue>
             node = node.Children[position];
             if (node == null)
                 node = node.Children[position - 1];
-            node.LockForRead();
-            previousNode.UnlockForRead();
+            node.ReadLock();
+            previousNode.ReadUnlock();
         }
     }
 

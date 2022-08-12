@@ -61,7 +61,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         Options = options;
         Comparer = options.Comparer;
 #if USE_BTREE
-        BTree = new(Comparer);
+        BTree = new(Comparer, Options.BTreeLockMode);
 #else
         BTree = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
 #endif
@@ -81,7 +81,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         Options = options;
         Comparer = options.Comparer;
 #if USE_BTREE
-        BTree = new(Comparer);
+        BTree = new(Comparer, Options.BTreeLockMode);
 #else
         BTree = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
 #endif

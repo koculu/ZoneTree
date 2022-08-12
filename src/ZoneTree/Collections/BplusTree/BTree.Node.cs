@@ -1,12 +1,14 @@
 ﻿#undef USE_NODE_IDS
 
+using Tenray.ZoneTree.Collections.BplusTree.Lock;
+
 namespace Tenray.ZoneTree.Collections.BTree;
 
 public partial class BTree<TKey, TValue>
 {
     public class Node
     {
-        readonly MonitorLock Locker = new();
+        readonly ILocker Locker;
 
         public TKey[] Keys;
 
@@ -22,15 +24,17 @@ public partial class BTree<TKey, TValue>
         public int Id;
 #endif
 
-        public Node()
+        public Node(ILocker locker)
         {
+            Locker = locker;
 #if USE_NODE_IDS
             Id = Interlocked.Increment(ref IncrementalId);
 #endif
         }
 
-        public Node(int nodeSize)
+        public Node(ILocker locker, int nodeSize)
         {
+            Locker = locker;
 #if USE_NODE_IDS
             Id = Interlocked.Increment(ref IncrementalId);
 #endif
@@ -92,136 +96,24 @@ public partial class BTree<TKey, TValue>
             Children[i] = leftNode.Children[j];
         }
 
-        public void LockForRead()
+        public void ReadLock()
         {
-            Locker.SharedLock();
+            Locker.ReadLock();
         }
 
-        public void UnlockForRead()
+        public void ReadUnlock()
         {
-            Locker.SharedUnlock();
+            Locker.ReadUnlock();
         }
 
-        public void LockForWrite()
+        public void WriteLock()
         {
-            Locker.Lock();
+            Locker.WriteLock();
         }
 
-        public void UnlockForWrite()
+        public void WriteUnlock()
         {
-            Locker.Unlock();
+            Locker.WriteUnlock();
         }
-    }
-}
-
-public class NoLock
-{
-    public void Lock()
-    {
-    }
-
-    public void SharedLock()
-    {
-    }
-
-    public void Unlock()
-    {
-    }
-
-    public void SharedUnlock()
-    {
-    }
-}
-
-public class TicketLock
-{
-    volatile int locked = 0;
-    volatile int unlocked = 0;
-    volatile int lastLockedThreadId = 0;
-    public void Lock()
-    {
-        var id = Environment.CurrentManagedThreadId;
-        try
-        {
-            var myTicket = Interlocked.Increment(ref locked);
-            if (id == lastLockedThreadId)
-                return;
-            if (myTicket == 1)
-                return;
-            --myTicket;
-            var spinWait = new SpinWait();
-            while (myTicket != unlocked)
-                spinWait.SpinOnce();
-        }
-        finally
-        {
-            lastLockedThreadId = id;
-        }
-    }
-
-    public void SharedLock()
-    {
-        Lock();
-    }
-
-    public void Unlock()
-    {
-        var l = locked;
-        if (Interlocked.Increment(ref unlocked) > l)
-            throw new Exception("unlocked > locked");
-    }
-
-    public void SharedUnlock()
-    {
-        var l = locked;
-        if (Interlocked.Increment(ref unlocked) > l)
-            throw new Exception("unlocked > locked");
-    }
-}
-
-public class MonitorLock
-{
-    public void Lock()
-    {
-        Monitor.Enter(this);
-    }
-
-    public void SharedLock()
-    {
-        Monitor.Enter(this);
-    }
-
-    public void Unlock()
-    {
-        Monitor.Exit(this);
-    }
-
-    public void SharedUnlock()
-    {
-        Monitor.Exit(this);
-    }
-}
-
-public class ReaderWriterLock
-{
-    readonly ReaderWriterLockSlim Locker = new(LockRecursionPolicy.SupportsRecursion);
-    public void Lock()
-    {
-        Locker.EnterWriteLock();
-    }
-
-    public void SharedLock()
-    {
-        Locker.EnterReadLock();
-    }
-
-    public void Unlock()
-    {
-        Locker.ExitWriteLock();
-    }
-
-    public void SharedUnlock()
-    {
-        Locker.ExitReadLock();
     }
 }

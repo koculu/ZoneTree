@@ -1,4 +1,5 @@
 ﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BplusTree.Lock;
 using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 
@@ -6,12 +7,16 @@ namespace Tenray.ZoneTree.UnitTests;
 
 public class SafeBTreeTests
 {
-    [Test]
-    public void BTreeIteration()
+    [TestCase(BTreeLockMode.NoLock)]
+    [TestCase(BTreeLockMode.TopLevelReaderWriter)]
+    [TestCase(BTreeLockMode.TopLevelMonitor)]
+    [TestCase(BTreeLockMode.NodeLevelReaderWriter)]
+    [TestCase(BTreeLockMode.NodeLevelMonitor)]
+    public void BTreeIteration(BTreeLockMode lockMode)
     {
         var n = 2000;
         var tree = new BTree<int, int>(
-            new Int32ComparerAscending());
+            new Int32ComparerAscending(), lockMode);
         for (var i = 0; i < n; ++i)
             tree.TryInsert(i, i + i);
 
@@ -35,12 +40,16 @@ public class SafeBTreeTests
 
     }
 
-    [Test]
-    public void SafeBTreeIteration2()
+    [TestCase(BTreeLockMode.NoLock)]
+    [TestCase(BTreeLockMode.TopLevelReaderWriter)]
+    [TestCase(BTreeLockMode.TopLevelMonitor)]
+    [TestCase(BTreeLockMode.NodeLevelReaderWriter)]
+    [TestCase(BTreeLockMode.NodeLevelMonitor)]
+    public void SafeBTreeIteration2(BTreeLockMode lockMode)
     {
         var n = 3;
         var tree = new BTree<int, int>(
-            new Int32ComparerAscending());
+            new Int32ComparerAscending(), lockMode);
         for (var i = 0; i < n; ++i)
             tree.TryInsert(i, i + i);
 
@@ -63,12 +72,16 @@ public class SafeBTreeTests
         Assert.That(iterator.Next(), Is.False);
     }
 
-    [Test]
-    public void BTreeLowerOrEqualBound()
+    [TestCase(BTreeLockMode.NoLock)]
+    [TestCase(BTreeLockMode.TopLevelReaderWriter)]
+    [TestCase(BTreeLockMode.TopLevelMonitor)]
+    [TestCase(BTreeLockMode.NodeLevelReaderWriter)]
+    [TestCase(BTreeLockMode.NodeLevelMonitor)]
+    public void BTreeLowerOrEqualBound(BTreeLockMode lockMode)
     {
         int n = 10;
         var tree = new BTree<int, int>(
-            new Int32ComparerAscending());
+            new Int32ComparerAscending(), lockMode);
         for (var i = 1; i < n; i += 2)
             tree.TryInsert(i, i);
         var iterator = new BTreeSeekableIterator<int, int>(tree);
@@ -115,15 +128,18 @@ public class SafeBTreeTests
         return iterator.CurrentKey;
     }
 
-    [Test]
-    public void BTreeIteratorParallelInserts()
+    [TestCase(BTreeLockMode.TopLevelReaderWriter)]
+    [TestCase(BTreeLockMode.TopLevelMonitor)]
+    [TestCase(BTreeLockMode.NodeLevelReaderWriter)]
+    [TestCase(BTreeLockMode.NodeLevelMonitor)]
+    public void BTreeIteratorParallelInserts(BTreeLockMode lockMode)
     {
         var random = new Random();
         var insertCount = 100000;
         var iteratorCount = 1000;
 
         var tree = new BTree<int, int>(
-            new Int32ComparerAscending());
+            new Int32ComparerAscending(), lockMode);
 
         var task = Task.Factory.StartNew(() =>
         {
@@ -167,15 +183,18 @@ public class SafeBTreeTests
         task.Wait();
     }
 
-    [Test]
-    public void BTreeReverseIteratorParallelInserts()
+    [TestCase(BTreeLockMode.TopLevelReaderWriter)]
+    [TestCase(BTreeLockMode.TopLevelMonitor)]
+    [TestCase(BTreeLockMode.NodeLevelReaderWriter)]
+    [TestCase(BTreeLockMode.NodeLevelMonitor)]
+    public void BTreeReverseIteratorParallelInserts(BTreeLockMode lockMode)
     {
         var random = new Random();
         var insertCount = 100000;
         var iteratorCount = 1550;
 
         var tree = new BTree<int, int>(
-            new Int32ComparerAscending());
+            new Int32ComparerAscending(), lockMode);
 
         var task = Task.Factory.StartNew(() =>
         {
