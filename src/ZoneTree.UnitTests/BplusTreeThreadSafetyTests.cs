@@ -1,16 +1,16 @@
 ﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.BplusTree;
+using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class BplusTreeThreadSafetyTests
+public class BTreeThreadSafetyTests
 {
     [TestCase(3_000_000)]
     public void MassiveInsertsAndReads(int count)
     {
         var readCount = 0;
-        var tree = new SafeBplusTree<long, long>(new Int64ComparerAscending());
+        var tree = new BTree<long, long>(new Int64ComparerAscending());
         var task1 = Parallel.ForEachAsync(Enumerable.Range(0, count), (i, t) =>
         {
             tree.TryInsert(i, i);

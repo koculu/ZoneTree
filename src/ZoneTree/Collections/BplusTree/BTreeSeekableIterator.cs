@@ -1,6 +1,6 @@
-﻿namespace Tenray.ZoneTree.Collections.BplusTree;
+﻿namespace Tenray.ZoneTree.Collections.BTree;
 
-public class FrozenSafeBplusTreeSeekableIterator<TKey, TValue>
+public class BTreeSeekableIterator<TKey, TValue>
     : ISeekableIterator<TKey, TValue>
 {
     TKey CurrentKeyOrDefault = default;
@@ -24,14 +24,14 @@ public class FrozenSafeBplusTreeSeekableIterator<TKey, TValue>
 
     public bool IsEndOfASector => false;
 
-    readonly SafeBplusTree<TKey, TValue> BplusTree;
+    readonly BTree<TKey, TValue> BTree;
 
-    SafeBplusTree<TKey, TValue>.FrozenNodeIterator CurrentNode;
+    BTree<TKey, TValue>.NodeIterator CurrentNode;
 
-    public FrozenSafeBplusTreeSeekableIterator(SafeBplusTree<TKey, TValue> bplusTree)
+    public BTreeSeekableIterator(BTree<TKey, TValue> bTree)
     {
-        BplusTree = bplusTree;
-        CurrentNode = bplusTree.GetFrozenFirstIterator();
+        BTree = bTree;
+        CurrentNode = bTree.GetFirstIterator();
     }
 
     public bool Next()
@@ -41,12 +41,18 @@ public class FrozenSafeBplusTreeSeekableIterator<TKey, TValue>
         if (CurrentNode.Next())
             return true;
 
-        var nextNode = CurrentNode.GetNextNodeIterator();
-        if (nextNode == null)
-            return false;
-        nextNode.SeekBegin();
-        CurrentNode = nextNode;
-        return nextNode.HasCurrent;
+        while (true)
+        {
+            var nextNode = CurrentNode.GetNextNodeIterator();
+            if (nextNode == null)
+                return false;
+            nextNode = nextNode
+                .SeekFirstKeyGreaterOrEqual(BTree.Comparer, in CurrentKeyOrDefault);
+            if (nextNode == null)
+                return false;
+            CurrentNode = nextNode;
+            return nextNode.HasCurrent;
+        }
     }
 
     public bool Prev()
@@ -56,37 +62,40 @@ public class FrozenSafeBplusTreeSeekableIterator<TKey, TValue>
         if (CurrentNode.Previous())
             return true;
 
-        var prevNode = CurrentNode.GetPreviousNodeIterator();
-        if (prevNode == null)
-            return false;
-        CurrentNode = prevNode;
-        prevNode.SeekEnd();
-        return prevNode.HasCurrent;
+        while (true)
+        {
+            var prevNode = CurrentNode.GetPreviousNodeIterator();
+            if (prevNode == null)
+                return false;
+            CurrentNode = prevNode;
+            prevNode.SeekEnd();
+            return prevNode.HasCurrent;
+        }
     }
 
     public bool SeekBegin()
     {
-        CurrentNode = BplusTree.GetFrozenFirstIterator();
+        CurrentNode = BTree.GetFirstIterator();
         CurrentNode.SeekBegin();
         return HasCurrent;
     }
 
     public bool SeekEnd()
     {
-        CurrentNode = BplusTree.GetFrozenLastIterator();
+        CurrentNode = BTree.GetLastIterator();
         CurrentNode.SeekEnd();
         return HasCurrent;
     }
 
     public bool SeekToFirstGreaterOrEqualElement(in TKey key)
     {
-        CurrentNode = BplusTree.GetFrozenIteratorWithFirstKeyGreaterOrEqual(in key);
+        CurrentNode = BTree.GetIteratorWithFirstKeyGreaterOrEqual(in key);
         return HasCurrent;
     }
 
     public bool SeekToLastSmallerOrEqualElement(in TKey key)
     {
-        CurrentNode = BplusTree.GetFrozenIteratorWithLastKeySmallerOrEqual(in key);
+        CurrentNode = BTree.GetIteratorWithLastKeySmallerOrEqual(in key);
         return HasCurrent;
     }
 

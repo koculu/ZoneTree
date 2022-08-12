@@ -1,21 +1,21 @@
 ﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.BplusTree;
+using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class SafeBplusTreeTests
+public class SafeBTreeTests
 {
     [Test]
-    public void SafeBplusTreeIteration()
+    public void BTreeIteration()
     {
         var n = 2000;
-        var tree = new SafeBplusTree<int, int>(
+        var tree = new BTree<int, int>(
             new Int32ComparerAscending());
         for (var i = 0; i < n; ++i)
             tree.TryInsert(i, i + i);
 
-        var iterator = new SafeBplusTreeSeekableIterator<int, int>(tree);
+        var iterator = new BTreeSeekableIterator<int, int>(tree);
         var j = 0; 
         while (iterator.Next())
         {
@@ -36,15 +36,15 @@ public class SafeBplusTreeTests
     }
 
     [Test]
-    public void SafeBplusTreeIteration2()
+    public void SafeBTreeIteration2()
     {
         var n = 3;
-        var tree = new SafeBplusTree<int, int>(
+        var tree = new BTree<int, int>(
             new Int32ComparerAscending());
         for (var i = 0; i < n; ++i)
             tree.TryInsert(i, i + i);
 
-        var iterator = new SafeBplusTreeSeekableIterator<int, int>(tree);
+        var iterator = new BTreeSeekableIterator<int, int>(tree);
         iterator.SeekEnd();
         for (var i = n - 1; i >= 0; --i)
         {
@@ -64,14 +64,14 @@ public class SafeBplusTreeTests
     }
 
     [Test]
-    public void BplusTreeLowerOrEqualBound()
+    public void BTreeLowerOrEqualBound()
     {
         int n = 10;
-        var tree = new SafeBplusTree<int, int>(
+        var tree = new BTree<int, int>(
             new Int32ComparerAscending());
         for (var i = 1; i < n; i += 2)
             tree.TryInsert(i, i);
-        var iterator = new SafeBplusTreeSeekableIterator<int, int>(tree);
+        var iterator = new BTreeSeekableIterator<int, int>(tree);
         Assert.Multiple(() =>
         {
             // 1 3 5 7 9
@@ -103,26 +103,26 @@ public class SafeBplusTreeTests
         });
     }
 
-    int GetLastNodeSmallerOrEqual(SafeBplusTreeSeekableIterator<int, int> iterator, int key)
+    int GetLastNodeSmallerOrEqual(BTreeSeekableIterator<int, int> iterator, int key)
     {
         iterator.SeekToLastSmallerOrEqualElement(in key);
         return iterator.CurrentKey;
     }
 
-    int GetFirstNodeGreaterOrEqual(SafeBplusTreeSeekableIterator<int, int> iterator, int key)
+    int GetFirstNodeGreaterOrEqual(BTreeSeekableIterator<int, int> iterator, int key)
     {
         iterator.SeekToFirstGreaterOrEqualElement(in key);
         return iterator.CurrentKey;
     }
 
     [Test]
-    public void BplusTreeIteratorParallelInserts()
+    public void BTreeIteratorParallelInserts()
     {
         var random = new Random();
         var insertCount = 100000;
         var iteratorCount = 1000;
 
-        var tree = new SafeBplusTree<int, int>(
+        var tree = new BTree<int, int>(
             new Int32ComparerAscending());
 
         var task = Task.Factory.StartNew(() =>
@@ -147,7 +147,7 @@ public class SafeBplusTreeTests
         Parallel.For(0, iteratorCount, (x) =>
         {
             var initialCount = tree.Length;
-            var iterator = new SafeBplusTreeSeekableIterator<int, int>(tree);
+            var iterator = new BTreeSeekableIterator<int, int>(tree);
             var counter = 0;
             var isValidData = true;
             while (iterator.Next())
@@ -168,13 +168,13 @@ public class SafeBplusTreeTests
     }
 
     [Test]
-    public void BplusTreeReverseIteratorParallelInserts()
+    public void BTreeReverseIteratorParallelInserts()
     {
         var random = new Random();
         var insertCount = 100000;
         var iteratorCount = 1550;
 
-        var tree = new SafeBplusTree<int, int>(
+        var tree = new BTree<int, int>(
             new Int32ComparerAscending());
 
         var task = Task.Factory.StartNew(() =>
@@ -198,7 +198,7 @@ public class SafeBplusTreeTests
         Parallel.For(0, iteratorCount, (x) =>
         {
             var initialCount = tree.Length;
-            var iterator = new SafeBplusTreeSeekableIterator<int, int>(tree);
+            var iterator = new BTreeSeekableIterator<int, int>(tree);
             var counter = iterator.SeekEnd() ? 1 : 0;
             var isValidData = true;
             while (iterator.Prev())

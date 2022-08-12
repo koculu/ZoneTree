@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using Tenray.ZoneTree;
 using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.BplusTree;
+using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Maintainers;
@@ -162,13 +162,13 @@ public class Test1
         Console.WriteLine($"All Time:{stopwatchAll.Elapsed}");
     }
 
-    public static void BplusTreeReverseIteratorParallelInserts()
+    public static void BTreeReverseIteratorParallelInserts()
     {
         var random = new Random();
         var insertCount = 1000000;
         var iteratorCount = 10000;
 
-        var tree = new SafeBplusTree<int, int>(
+        var tree = new BTree<int, int>(
             new Int32ComparerAscending());
 
         var task = Task.Factory.StartNew(() =>
@@ -192,7 +192,7 @@ public class Test1
         Parallel.For(0, iteratorCount, (x) =>
         {
             var initialCount = tree.Length;
-            var iterator = new SafeBplusTreeSeekableIterator<int, int>(tree);
+            var iterator = new BTreeSeekableIterator<int, int>(tree);
             var counter = iterator.SeekEnd() ? 1 : 0;
             var isValidData = true;
             while (iterator.Prev())
@@ -224,7 +224,7 @@ public class Test1
     public static void MassiveInsertsAndReads(int count)
     {
         var readCount = 0;
-        var tree = new SafeBplusTree<long, long>(new Int64ComparerAscending());
+        var tree = new BTree<long, long>(new Int64ComparerAscending());
         var task1 = Parallel.ForEachAsync(Enumerable.Range(0, count), (i, t) =>
         {
             tree.TryInsert(i, i);

@@ -213,9 +213,9 @@ public class IteratorTests
             if (i != 24 && i % 2 == 0)
                 ++i;
             /*
-             * New BplusTree works with forward reading method.
+             * New BTree works with forward reading method.
              * This means inserts in the iterator position
-             * of Bplus Tree Leaf node does not reflect inserts.
+             * of BTree Leaf node does not reflect inserts.
              * This is not a bug. Callers can always double check
              * with TryGetKey() if they want to read most recent values.
              * for every key they read from iteration.
@@ -323,7 +323,7 @@ public class IteratorTests
             var initialCount = zoneTree.Maintenance.InMemoryRecordCount;
             using var iterator = zoneTree.CreateReverseIterator(false);
             iterator.SeekFirst();
-            var counter = 0;
+            var counter = 1;
             var isValidData = true;
             while (iterator.Next())
             {

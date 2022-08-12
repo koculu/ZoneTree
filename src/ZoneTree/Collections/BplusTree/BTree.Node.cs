@@ -1,8 +1,8 @@
 ﻿#undef USE_NODE_IDS
 
-namespace Tenray.ZoneTree.Collections.BplusTree;
+namespace Tenray.ZoneTree.Collections.BTree;
 
-public partial class SafeBplusTree<TKey, TValue>
+public partial class BTree<TKey, TValue>
 {
     public class Node
     {

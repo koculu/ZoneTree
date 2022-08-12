@@ -2,7 +2,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Engines;
 using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.BplusTree;
+using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 
 namespace Playground.InMemoryTreeBenchmark;
@@ -32,14 +32,14 @@ public class ParallelMassiveInsertTests
     long[] Data = Array.Empty<long>();
 
     [Benchmark]
-    public void Parallel_BplusTree() => MassiveInsertsAndReadsBplusTree();
+    public void Parallel_BTree() => MassiveInsertsAndReadsBTree();
 
     [Benchmark]
     public void Parallel_SkipList() => MassiveInsertsAndReadsSkiplist();
 
-    public void MassiveInsertsAndReadsBplusTree()
+    public void MassiveInsertsAndReadsBTree()
     {
-        var tree = new SafeBplusTree<long, long>(new Int64ComparerAscending());
+        var tree = new BTree<long, long>(new Int64ComparerAscending());
         var task1 = Parallel.ForEachAsync(Enumerable.Range(0, Count), (i, t) =>
         {
             tree.TryInsert(i, i);

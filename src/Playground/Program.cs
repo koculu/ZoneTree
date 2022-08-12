@@ -18,9 +18,9 @@ TestConfig.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
 BenchmarkGroups.Insert1(2_000_000, WriteAheadLogMode.Immediate);
 
 //Test1.MassiveInsertsAndReads(2_000_000);
-//Test1.BplusTreeReverseIteratorParallelInserts();
+//Test1.BTreeReverseIteratorParallelInserts();
 //for (var i = 0; i < 45000; ++i)
-//    RandomIntInserts.InsertBplusTree(RandomIntInserts.GetSortedArray(i));
+//    RandomIntInserts.InsertBTree(RandomIntInserts.GetSortedArray(i));
 /*
 
 BenchmarkRunner.Run<ParallelMassiveInsertTests>();

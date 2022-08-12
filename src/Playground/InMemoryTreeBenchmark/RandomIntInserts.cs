@@ -1,5 +1,5 @@
 ﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.BplusTree;
+using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 
 namespace Playground.InMemoryTreeBenchmark;
@@ -32,10 +32,10 @@ public static class RandomIntInserts
         return arr;
     }
 
-    public static void InsertBplusTree(int[] arr)
+    public static void InsertBTree(int[] arr)
     {
         var count = arr.Length;
-        var tree = new BplusTreeUnsafe<int, int>(new Int32ComparerAscending());
+        var tree = new UnsafeBTree<int, int>(new Int32ComparerAscending());
         for(var i = 0; i < count; ++i)
         {
             var x = arr[i];
@@ -50,10 +50,10 @@ public static class RandomIntInserts
         }
     }
 
-    public static void InsertSafeBplusTree(int[] arr)
+    public static void InsertSafeBTree(int[] arr)
     {
         var count = arr.Length;
-        var tree = new SafeBplusTree<int, int>(new Int32ComparerAscending());
+        var tree = new BTree<int, int>(new Int32ComparerAscending());
         for (var i = 0; i < count; ++i)
         {
             var x = arr[i];

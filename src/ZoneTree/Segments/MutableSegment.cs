@@ -1,5 +1,5 @@
 ﻿#undef USE_LOCK_FREE_SKIP_LIST
-#define USE_BPLUS_TREE
+#define USE_BTREE
 
 /*
  * Lock Free Skip List is turned off by default.
@@ -11,7 +11,7 @@
  */
 
 using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.BplusTree;
+using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.WAL;
 
@@ -28,12 +28,12 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
     readonly MarkValueDeletedDelegate<TValue> MarkValueDeleted;
 
     readonly int MutableSegmentMaxItemCount;
-#if USE_BPLUS_TREE
-    readonly SafeBplusTree<TKey, TValue> SkipList;
+#if USE_BTREE
+    readonly BTree<TKey, TValue> BTree;
 #elif USE_LOCK_FREE_SKIP_LIST
-    readonly LockFreeSkipList<TKey, TValue> SkipList;
+    readonly LockFreeSkipList<TKey, TValue> BTree;
 #else
-    readonly SkipList<TKey, TValue> SkipList;
+    readonly SkipList<TKey, TValue> BTree;
 #endif
 
     readonly IRefComparer<TKey> Comparer;
@@ -46,7 +46,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public bool IsFullyFrozen => IsFrozenFlag && WritesInProgress == 0;
 
-    public int Length => SkipList.Length;
+    public int Length => BTree.Length;
 
     public MutableSegment(ZoneTreeOptions<TKey, TValue> options,
         long segmentId)
@@ -60,10 +60,10 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                 options.ValueSerializer);
         Options = options;
         Comparer = options.Comparer;
-#if USE_BPLUS_TREE
-        SkipList = new(Comparer);
+#if USE_BTREE
+        BTree = new(Comparer);
 #else
-        SkipList = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
+        BTree = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
 #endif
         MarkValueDeleted = options.MarkValueDeleted;
         MutableSegmentMaxItemCount = options.MutableSegmentMaxItemCount;
@@ -80,10 +80,10 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         WriteAheadLog = wal;
         Options = options;
         Comparer = options.Comparer;
-#if USE_BPLUS_TREE
-        SkipList = new(Comparer);
+#if USE_BTREE
+        BTree = new(Comparer);
 #else
-        SkipList = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
+        BTree = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
 #endif
         MarkValueDeleted = options.MarkValueDeleted;
         MutableSegmentMaxItemCount = options.MutableSegmentMaxItemCount;
@@ -99,18 +99,18 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             var value = values[i];
             // TODO: Search if we can create faster construction
             // of mutable segment from log entries.
-            SkipList.Upsert(in key, in value);
+            BTree.Upsert(in key, in value);
         }
     }
 
     public bool ContainsKey(in TKey key)
     {
-        return SkipList.ContainsKey(key);
+        return BTree.ContainsKey(key);
     }
 
     public bool TryGet(in TKey key, out TValue value)
     {
-        return SkipList.TryGetValue(key, out value);
+        return BTree.TryGetValue(key, out value);
     }
 
     public AddOrUpdateResult Upsert(in TKey key, in TValue value)
@@ -122,9 +122,9 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         {
             Interlocked.Increment(ref WritesInProgress);
 
-            if (SkipList.Length >= MutableSegmentMaxItemCount)
+            if (BTree.Length >= MutableSegmentMaxItemCount)
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
-            var result = SkipList.Upsert(in key, in value);
+            var result = BTree.Upsert(in key, in value);
             WriteAheadLog.Append(in key, in value);
             return result ? AddOrUpdateResult.ADDED : AddOrUpdateResult.UPDATED;
         }
@@ -148,12 +148,12 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         {
             Interlocked.Increment(ref WritesInProgress);
 
-            if (SkipList.Length >= MutableSegmentMaxItemCount)
+            if (BTree.Length >= MutableSegmentMaxItemCount)
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
 
-#if USE_BPLUS_TREE
             TValue insertedValue = default;
-            var status = SkipList.AddOrUpdate(key,
+#if USE_BTREE
+            var status = BTree.AddOrUpdate(key,
                 AddOrUpdateResult (ref TValue x) =>
                 {
                     MarkValueDeleted(ref x);
@@ -163,18 +163,18 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                 AddOrUpdateResult (ref TValue x) =>
                 {
                     MarkValueDeleted(ref x);
-                    insertedValue = x;                    
+                    insertedValue = x;
                     return AddOrUpdateResult.UPDATED;
                 });
             WriteAheadLog.Append(in key, in insertedValue);
 #else
-            var status = SkipList.AddOrUpdate(key,
+            var status = BTree.AddOrUpdate(key,
                 (x) =>
                 {
                     var value = x.Value;
                     MarkValueDeleted(ref value);
                     x.Value = value;
-                    WriteAheadLog.Append(in key, in value);
+                    insertedValue = value;
                     return AddOrUpdateResult.ADDED;
                 },
                 (x) =>
@@ -182,9 +182,10 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                     var value = x.Value;
                     MarkValueDeleted(ref value);
                     x.Value = value;
-                    WriteAheadLog.Append(in key, in value);
+                    insertedValue = value;
                     return AddOrUpdateResult.UPDATED;
                 });
+            WriteAheadLog.Append(in key, in insertedValue);
 #endif
             return status;
         }
@@ -217,8 +218,8 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public IIndexedReader<TKey, TValue> GetIndexedReader()
     {
-#if USE_BPLUS_TREE
-        throw new NotSupportedException("B+Tree Indexed Reader is not supported.");
+#if USE_BTREE
+        throw new NotSupportedException("BTree Indexed Reader is not supported.");
 #elif USE_LOCK_FREE_SKIP_LIST
         return new LockFreeSkipListIndexedReader<TKey, TValue>(SkipList);
 #else
@@ -228,10 +229,10 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public ISeekableIterator<TKey, TValue> GetSeekableIterator()
     {
-#if USE_BPLUS_TREE
+#if USE_BTREE
         return IsFullyFrozen ?
-            new FrozenSafeBplusTreeSeekableIterator<TKey, TValue>(SkipList) :
-            new SafeBplusTreeSeekableIterator<TKey, TValue>(SkipList);
+            new FrozenBTreeSeekableIterator<TKey, TValue>(BTree) :
+            new BTreeSeekableIterator<TKey, TValue>(BTree);
 #elif USE_LOCK_FREE_SKIP_LIST
         return new LockFreeSkipListSeekableIterator<TKey, TValue>(SkipList);
 #else

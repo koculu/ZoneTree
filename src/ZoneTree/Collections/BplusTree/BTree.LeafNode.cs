@@ -1,6 +1,6 @@
-﻿namespace Tenray.ZoneTree.Collections.BplusTree;
+﻿namespace Tenray.ZoneTree.Collections.BTree;
 
-public partial class SafeBplusTree<TKey, TValue>
+public partial class BTree<TKey, TValue>
 {
     public class LeafNode : Node
     {
@@ -54,7 +54,7 @@ public partial class SafeBplusTree<TKey, TValue>
             Previous = leftLeaf;
         }
 
-        public NodeIterator GetIterator(SafeBplusTree<TKey, TValue> tree)
+        public NodeIterator GetIterator(BTree<TKey, TValue> tree)
         {
             try
             {

@@ -1,98 +1,37 @@
-﻿namespace Tenray.ZoneTree.Collections.BplusTree;
+﻿namespace Tenray.ZoneTree.Collections.BTree;
 
-public partial class SafeBplusTree<TKey, TValue>
+public partial class BTree<TKey, TValue>
 {
-    public class NodeIterator
+    public class FrozenNodeIterator
     {
         public LeafNode Node { get; }
 
-        public TKey[] Keys { get; }
+        public TKey CurrentKey => Node.Keys[CurrentIndex];
 
-        public TValue[] Values { get; }
+        public TValue CurrentValue => Node.Values[CurrentIndex];
 
-        public TKey CurrentKey => Keys[CurrentIndex];
-
-        public TValue CurrentValue => Values[CurrentIndex];
-
-        public bool HasCurrent => CurrentIndex >= 0 && CurrentIndex < Keys.Length;
+        public bool HasCurrent => CurrentIndex >= 0 && CurrentIndex < Node.Length;
 
         int CurrentIndex = -1;
-        
-        readonly SafeBplusTree<TKey, TValue> Tree;
 
-        public NodeIterator(
-            SafeBplusTree<TKey, TValue> tree,
-            LeafNode leafNode,
-            TKey[] keys,
-            TValue[] values)
+        public FrozenNodeIterator(LeafNode leafNode)
         {
-            Tree = tree;
             Node = leafNode;
-            Keys = keys;
-            Values = values;
         }
 
-        public NodeIterator GetPreviousNodeIterator()
+        public FrozenNodeIterator GetPreviousNodeIterator()
         {
-            try
-            {
-                Tree.ReadLock();
-                /*
-                 * On node split, previous pointer 
-                 * can point to the first half of the splitted node.
-                 * In this case, (previous node -> next node) should be another node.
-                 * Retry until finding correct previous node.
-                 */
-                var spinWait = new SpinWait();
-                while (true)
-                {
-                    var previous = Node.Previous;
-                    if (previous == null)
-                        return null;
-                    var nodeIterator = previous.GetIterator(Tree);
-                    if (nodeIterator.Node.Next == Node)
-                        return nodeIterator;
-                    spinWait.SpinOnce();
-                }
-            }
-            finally
-            {
-                Tree.ReadUnlock();
-            }
+            return Node.Previous?.GetFrozenIterator();
         }
 
-        public NodeIterator GetNextNodeIterator()
+        public FrozenNodeIterator GetNextNodeIterator()
         {
-            try
-            {
-                Tree.ReadLock();
-                /*
-                 * On node split, next pointer 
-                 * can skip second half of the splitted node.
-                 * In this case, (next node -> previous node) should be another node.
-                 * Retry until finding correct next node.
-                 */
-                var spinWait = new SpinWait();
-                while (true)
-                {
-                    var next = Node.Next;
-                    if (next == null)
-                        return null;
-                    var nodeIterator = next.GetIterator(Tree);
-                    if (nodeIterator.Node.Previous == Node)
-                        return nodeIterator;
-                    spinWait.SpinOnce();
-                }
-            }
-            finally
-            {
-                Tree.ReadUnlock();
-            }
+            return Node.Next?.GetFrozenIterator();
         }
 
         public bool HasNext()
         {
-            return CurrentIndex + 1 < Keys.Length;
+            return CurrentIndex + 1 < Node.Length;
         }
 
         public bool Next()
@@ -100,7 +39,7 @@ public partial class SafeBplusTree<TKey, TValue>
             if (!HasNext())
                 return false;
             ++CurrentIndex;
-            return CurrentIndex < Keys.Length;
+            return CurrentIndex < Node.Length;
         }
 
         public bool HasPrevious()
@@ -123,10 +62,10 @@ public partial class SafeBplusTree<TKey, TValue>
 
         public void SeekEnd()
         {
-            CurrentIndex = Keys.Length - 1;
+            CurrentIndex = Node.Length - 1;
         }
 
-        public NodeIterator SeekLastKeySmallerOrEqual(
+        public FrozenNodeIterator SeekLastKeySmallerOrEqual(
             IRefComparer<TKey> comparer, in TKey key)
         {
             var iterator = this;
@@ -145,7 +84,7 @@ public partial class SafeBplusTree<TKey, TValue>
             return null;
         }
 
-        public NodeIterator SeekFirstKeyGreaterOrEqual(
+        public FrozenNodeIterator SeekFirstKeyGreaterOrEqual(
             IRefComparer<TKey> comparer, in TKey key)
         {
             var iterator = this;
@@ -153,7 +92,7 @@ public partial class SafeBplusTree<TKey, TValue>
             {
                 var pos =
                     iterator.GetFirstGreaterOrEqualPosition(comparer, in key);
-                if (pos == iterator.Keys.Length)
+                if (pos == iterator.Node.Keys.Length)
                 {
                     iterator = iterator.GetNextNodeIterator();
                     continue;
@@ -175,9 +114,9 @@ public partial class SafeBplusTree<TKey, TValue>
             var x = GetFirstGreaterOrEqualPosition(comparer, in key);
             if (x == -1)
                 return -1;
-            if (x == Keys.Length)
+            if (x == Node.Length)
                 return x - 1;
-            if (comparer.Compare(in key, Keys[x]) == 0)
+            if (comparer.Compare(in key, Node.Keys[x]) == 0)
                 return x;
             return x - 1;
         }
@@ -191,8 +130,8 @@ public partial class SafeBplusTree<TKey, TValue>
             IRefComparer<TKey> comparer, in TKey key)
         {
             // This is the lower bound algorithm.
-            var list = Keys;
-            int l = 0, h = list.Length;
+            var list = Node.Keys;
+            int l = 0, h = Node.Length;
             var comp = comparer;
             while (l < h)
             {
