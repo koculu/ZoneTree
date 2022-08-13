@@ -21,13 +21,13 @@ It is four times faster than Facebook's RocksDB.
 
 | Insert Benchmarks                               | 1M      | 2M       | 3M         | 10M        |
 | ------------------------------------------------|---------|----------|------------|------------|
-| int-int ZoneTree lazy WAL                       | 1024 ms | 1828 ms  | 2987 ms    | 9852 ms    |
-| int-int ZoneTree compressed-immediate WAL       | 1678 ms | 3034 ms  | 4646 ms    | 15002 ms   |
-| int-int ZoneTree immediate WAL                  | 3410 ms | 7297 ms  | 10546 ms   | 35151 ms   |
+| int-int ZoneTree lazy WAL                       | 343 ms  | 506 ms   | 624 ms     | 2328 ms    |
+| int-int ZoneTree compressed-immediate WAL       | 885 ms  | 1821 ms  | 2737 ms    | 9250 ms    |
+| int-int ZoneTree immediate WAL                  | 2791 ms | 5552 ms  | 8269 ms    | 27883 ms   |
 ||
-| str-str ZoneTree lazy WAL                       | 2192 ms | 4037 ms  | 5924 ms    | 19093 ms   |
-| str-str ZoneTree compressed-immediate WAL       | 2888 ms | 5087 ms  | 7498 ms    | 26188 ms   |
-| str-str ZoneTree immediate WAL                  | 4649 ms | 9075 ms  | 13774 ms   | 47011 ms   |
+| str-str ZoneTree lazy WAL                       | 796 ms  | 1555 ms  | 2308 ms    | 8712 ms    |
+| str-str ZoneTree compressed-immediate WAL       | 1594 ms | 3187 ms  | 4866 ms    | 17451 ms   |
+| str-str ZoneTree immediate WAL                  | 3617 ms | 7083 ms  | 10481 ms   | 36714 ms   |
 ||
 | RocksDb immediate WAL                           | NOT SUPPORTED                                |
 | int-int RocksDb compressed-immediate WAL        | 8059 ms | 16188 ms | 23599 ms   | 61947 ms   |
