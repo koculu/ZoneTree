@@ -8,13 +8,14 @@ public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValu
 
     public bool EnableIncrementalBackup { get; set; }
 
-    public void Append(in TKey key, in TValue value)
+    public void Append(in TKey key, in TValue value, long opIndex)
     {
     }
 
     public WriteAheadLogReadLogEntriesResult<TKey, TValue> ReadLogEntries(
         bool stopReadOnException,
-        bool stopReadOnChecksumFailure)
+        bool stopReadOnChecksumFailure,
+        bool sortByOpIndexes)
     {
         return new WriteAheadLogReadLogEntriesResult<TKey, TValue>
         {

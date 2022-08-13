@@ -8,7 +8,7 @@
 /// <typeparam name="TValue">Value Type</typeparam>
 public partial class BTree<TKey, TValue>
 {
-    public bool Upsert(in TKey key, in TValue value)
+    public bool Upsert(in TKey key, in TValue value, out long opIndex)
     {
         try
         {
@@ -25,13 +25,13 @@ public partial class BTree<TKey, TValue>
 
                 if (!root.IsFull)
                 {
-                    return UpsertNonFull(root, in key, in value);
+                    return UpsertNonFull(root, in key, in value, out opIndex);
                 }
                 var newRoot = new Node(GetNodeLocker(), NodeSize);
                 newRoot.Children[0] = root;
                 newRoot.WriteLock();
                 SplitChild(newRoot, 0, root);
-                var result = UpsertNonFull(newRoot, in key, in value);
+                var result = UpsertNonFull(newRoot, in key, in value, out opIndex);
                 Root = newRoot;
                 root.WriteUnlock();
                 return result;
@@ -43,7 +43,7 @@ public partial class BTree<TKey, TValue>
         }
     }
 
-    public bool TryInsert(in TKey key, in TValue value)
+    public bool TryInsert(in TKey key, in TValue value, out long opIndex)
     {
         try
         {
@@ -59,13 +59,13 @@ public partial class BTree<TKey, TValue>
                 }
                 if (!root.IsFull)
                 {
-                    return TryInsertNonFull(root, in key, in value);
+                    return TryInsertNonFull(root, in key, in value, out opIndex);
                 }
                 var newRoot = new Node(GetNodeLocker(), NodeSize);
                 newRoot.Children[0] = root;
                 newRoot.WriteLock();
                 SplitChild(newRoot, 0, root);
-                var result = TryInsertNonFull(newRoot, in key, in value);
+                var result = TryInsertNonFull(newRoot, in key, in value, out opIndex);
                 Root = newRoot;
                 root.WriteUnlock();
                 return result;
@@ -90,7 +90,8 @@ public partial class BTree<TKey, TValue>
     public AddOrUpdateResult AddOrUpdate(
         in TKey key,
         AddDelegate adder,
-        UpdateDelegate updater)
+        UpdateDelegate updater,
+        out long opIndex)
     {
         try
         {
@@ -106,14 +107,14 @@ public partial class BTree<TKey, TValue>
                 }
                 if (!root.IsFull)
                 {
-                    return TryAddOrUpdateNonFull(root, in key, adder, updater);
+                    return TryAddOrUpdateNonFull(root, in key, adder, updater, out opIndex);
                 }
                 var newRoot = new Node(GetNodeLocker(), NodeSize);
                 newRoot.Children[0] = root;
                 newRoot.WriteLock();
                 SplitChild(newRoot, 0, root);
                 AddOrUpdateResult result =
-                    TryAddOrUpdateNonFull(newRoot, in key, adder, updater);
+                    TryAddOrUpdateNonFull(newRoot, in key, adder, updater, out opIndex);
                 Root = newRoot;
                 root.WriteUnlock();
                 return result;
@@ -159,17 +160,18 @@ public partial class BTree<TKey, TValue>
         }
     }
 
-    bool UpsertNonFull(Node node, in TKey key, in TValue value)
+    bool UpsertNonFull(Node node, in TKey key, in TValue value, out long opIndex)
     {
         while (true)
         {
             var found = node.TryGetPosition(Comparer, in key, out var position);
             if (node is LeafNode leaf)
             {
+                opIndex = IncrementalIdProvider.NextId();
                 if (found)
                 {
                     leaf.Update(position, in key, in value);
-                    node.WriteUnlock();
+                    node.WriteUnlock();                    
                     return false;
                 }
                 leaf.Insert(position, in key, in value);
@@ -197,7 +199,7 @@ public partial class BTree<TKey, TValue>
         }
     }
 
-    bool TryInsertNonFull(Node node, in TKey key, in TValue value)
+    bool TryInsertNonFull(Node node, in TKey key, in TValue value, out long opIndex)
     {
         while (true)
         {
@@ -207,9 +209,11 @@ public partial class BTree<TKey, TValue>
                 if (found)
                 {
                     node.WriteUnlock();
+                    opIndex = 0;
                     return false;
                 }
 
+                opIndex = IncrementalIdProvider.NextId();
                 leaf.Insert(position, in key, in value);
                 node.WriteUnlock();
                 Interlocked.Increment(ref _length);
@@ -236,13 +240,15 @@ public partial class BTree<TKey, TValue>
     }
 
     AddOrUpdateResult TryAddOrUpdateNonFull(
-        Node node, in TKey key, AddDelegate adder, UpdateDelegate updater)
+        Node node, in TKey key, AddDelegate adder, UpdateDelegate updater, 
+        out long opIndex)
     {
         while (true)
         {
             var found = node.TryGetPosition(Comparer, in key, out var position);
             if (node is LeafNode leaf)
             {
+                opIndex = IncrementalIdProvider.NextId();
                 if (found)
                 {
                     updater(ref leaf.Values[position]);

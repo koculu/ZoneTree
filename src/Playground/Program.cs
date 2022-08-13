@@ -6,19 +6,19 @@ using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.WAL;
 
 TestConfig.EnableIncrementalBackup = true;
-TestConfig.MutableSegmentMaxItemCount = 100_000_000;
+TestConfig.MutableSegmentMaxItemCount = 1_000_000;
 TestConfig.ThresholdForMergeOperationStart = 2_000_000;
 TestConfig.RecreateDatabases = true;
-TestConfig.EnableParalelInserts = true;
-TestConfig.DiskSegmentMaximumCachedBlockCount = 8;
-TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 1;
-TestConfig.WALCompressionBlockSize = 1024 * 32;
+TestConfig.EnableParalelInserts = false;
+TestConfig.DiskSegmentMaximumCachedBlockCount = 1;
+TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 100;
+TestConfig.WALCompressionBlockSize = 1024 * 32 * 8;
 TestConfig.MinimumSparseArrayLength = 0;
 TestConfig.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
 
-BenchmarkRunner.Run<ParallelMassiveInsertTests>();
+//BenchmarkRunner.Run<ParallelMassiveInsertTests>();
 
-//BenchmarkGroups.Insert1(2_000_000, WriteAheadLogMode.Immediate);
+BenchmarkGroups.InsertIterate1(100_000_000, WriteAheadLogMode.Lazy);
 
 //Test1.MassiveInsertsAndReads(2_000_000);
 //Test1.BTreeReverseIteratorParallelInserts();

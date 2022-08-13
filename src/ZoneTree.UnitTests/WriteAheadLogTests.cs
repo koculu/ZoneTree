@@ -19,9 +19,9 @@ namespace Tenray.ZoneTree.UnitTests
             var len = 1;
             for (var i = 0; i < len; ++i)
             {
-                wal.Append("key" + i, "value" + i);
+                wal.Append("key" + i, "value" + i, i);
             }
-            var result = wal.ReadLogEntries(false, false);
+            var result = wal.ReadLogEntries(false, false, true);
             Assert.That(result.Success, Is.True);
             Assert.That(result.Exceptions, Is.Empty);
             Assert.That(result.Keys.Count, Is.EqualTo(len));
@@ -29,8 +29,9 @@ namespace Tenray.ZoneTree.UnitTests
             for (var i = 0; i < len; ++i)
             {
                 Assert.That(result.Keys[i], Is.EqualTo("key" + i));
-                Assert.That(result.Values[i], Is.EqualTo("value" + i));
+                Assert.That(result.Values[i], Is.EqualTo("value" + i));                
             }
+            Assert.That(result.MaximumOpIndex, Is.EqualTo(len-1));
             wal.Drop();
         }
     }

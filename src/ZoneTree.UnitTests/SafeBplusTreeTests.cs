@@ -18,7 +18,7 @@ public class SafeBTreeTests
         var tree = new BTree<int, int>(
             new Int32ComparerAscending(), lockMode);
         for (var i = 0; i < n; ++i)
-            tree.TryInsert(i, i + i);
+            tree.TryInsert(i, i + i, out _);
 
         var iterator = new BTreeSeekableIterator<int, int>(tree);
         var j = 0; 
@@ -51,7 +51,7 @@ public class SafeBTreeTests
         var tree = new BTree<int, int>(
             new Int32ComparerAscending(), lockMode);
         for (var i = 0; i < n; ++i)
-            tree.TryInsert(i, i + i);
+            tree.TryInsert(i, i + i, out _);
 
         var iterator = new BTreeSeekableIterator<int, int>(tree);
         iterator.SeekEnd();
@@ -83,7 +83,7 @@ public class SafeBTreeTests
         var tree = new BTree<int, int>(
             new Int32ComparerAscending(), lockMode);
         for (var i = 1; i < n; i += 2)
-            tree.TryInsert(i, i);
+            tree.TryInsert(i, i, out _);
         var iterator = new BTreeSeekableIterator<int, int>(tree);
         Assert.Multiple(() =>
         {
@@ -156,7 +156,7 @@ public class SafeBTreeTests
                     {
                         value = key + key;
                         return AddOrUpdateResult.UPDATED;
-                    });
+                    }, out _);
             });
         });
         Thread.Sleep(100);
@@ -211,7 +211,7 @@ public class SafeBTreeTests
                     {
                         y = key + key;
                         return AddOrUpdateResult.UPDATED;
-                    });
+                    }, out _);
             });
         });
         Parallel.For(0, iteratorCount, (x) =>

@@ -45,6 +45,8 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
         switch (WriteAheadLogMode)
         {
+            case WriteAheadLogMode.None:
+                return new NullWriteAheadLog<TKey, TValue>();
             case WriteAheadLogMode.Immediate:
                 {
                     var wal = new FileSystemWriteAheadLog<TKey, TValue>(

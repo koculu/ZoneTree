@@ -74,7 +74,8 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         IWriteAheadLog<TKey, TValue> wal,
         ZoneTreeOptions<TKey, TValue> options,
         IReadOnlyList<TKey> keys,
-        IReadOnlyList<TValue> values)
+        IReadOnlyList<TValue> values,
+        long nextopIndex)
     {
         SegmentId = segmentId;
         WriteAheadLog = wal;
@@ -82,6 +83,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         Comparer = options.Comparer;
 #if USE_BTREE
         BTree = new(Comparer, Options.BTreeLockMode);
+        BTree.SetNextOpIndex(nextopIndex);
 #else
         BTree = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
 #endif
@@ -99,7 +101,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             var value = values[i];
             // TODO: Search if we can create faster construction
             // of mutable segment from log entries.
-            BTree.Upsert(in key, in value);
+            BTree.Upsert(in key, in value, out var _);
         }
     }
 
@@ -124,8 +126,8 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
             if (BTree.Length >= MutableSegmentMaxItemCount)
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
-            var result = BTree.Upsert(in key, in value);
-            WriteAheadLog.Append(in key, in value);
+            var result = BTree.Upsert(in key, in value, out var opIndex);
+            WriteAheadLog.Append(in key, in value, opIndex);
             return result ? AddOrUpdateResult.ADDED : AddOrUpdateResult.UPDATED;
         }
         catch(Exception e)
@@ -165,8 +167,8 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                     MarkValueDeleted(ref x);
                     insertedValue = x;
                     return AddOrUpdateResult.UPDATED;
-                });
-            WriteAheadLog.Append(in key, in insertedValue);
+                }, out var opIndex);
+            WriteAheadLog.Append(in key, in insertedValue, opIndex);
 #else
             var status = BTree.AddOrUpdate(key,
                 (x) =>

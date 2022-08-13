@@ -17,7 +17,7 @@ public class BTreeThreadSafetyTests
         var tree = new BTree<long, long>(new Int64ComparerAscending(), lockMode);
         var task1 = Parallel.ForEachAsync(Enumerable.Range(0, count), (i, t) =>
         {
-            tree.TryInsert(i, i);
+            tree.TryInsert(i, i, out _);
             return ValueTask.CompletedTask;
         });
         Thread.Sleep(1);

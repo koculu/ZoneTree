@@ -8,13 +8,14 @@ public interface IWriteAheadLog<TKey, TValue> : IDisposable
 
     bool EnableIncrementalBackup { get; set; }
 
-    void Append(in TKey key, in TValue value);
+    void Append(in TKey key, in TValue value, long opIndex);
 
     void Drop();
 
     WriteAheadLogReadLogEntriesResult<TKey, TValue> ReadLogEntries(
         bool stopReadOnException,
-        bool stopReadOnChecksumFailure);
+        bool stopReadOnChecksumFailure,
+        bool sortByOpIndexes);
 
     /// <summary>
     /// Replaces the entire write ahead log,

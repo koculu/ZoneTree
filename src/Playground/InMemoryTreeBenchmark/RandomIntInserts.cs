@@ -60,7 +60,7 @@ public static class RandomIntInserts
         for (var i = 0; i < count; ++i)
         {
             var x = arr[i];
-            tree.TryInsert(x, x + x);
+            tree.TryInsert(x, x + x, out _);
         }
         for (var i = 0; i < count; ++i)
         {

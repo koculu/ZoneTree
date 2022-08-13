@@ -1,4 +1,5 @@
 ﻿using Tenray.ZoneTree.Collections.BplusTree.Lock;
+using Tenray.ZoneTree.Core;
 
 namespace Tenray.ZoneTree.Collections.BTree;
 
@@ -15,7 +16,9 @@ public partial class BTree<TKey, TValue>
     readonly int NodeSize = 128;
 
     readonly int LeafSize = 128;
-    
+
+    readonly IIncrementalIdProvider IncrementalIdProvider
+        = new IncrementalIdProvider();
 
     volatile Node Root;
 
@@ -169,4 +172,7 @@ public partial class BTree<TKey, TValue>
     {
         return LastLeafNode.GetFrozenIterator();
     }
+
+    public void SetNextOpIndex(long nextId) 
+        => IncrementalIdProvider.SetNextId(nextId);
 }

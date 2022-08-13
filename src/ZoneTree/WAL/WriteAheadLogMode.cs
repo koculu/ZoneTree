@@ -25,5 +25,15 @@ public enum WriteAheadLogMode
     /// It provides faster write speed but less durability.
     /// (crashes might cause data loss.)
     /// </summary>
-    CompressedImmediate
+    CompressedImmediate,
+
+    /// <summary>
+    /// No Write Ahead Log. Nothing is saved to the WAL file.
+    /// Every inserts stay in memory. Data in memory can disappear on 
+    /// process crashes / terminations or power cuts.
+    /// It is still possible to save in memory data to the disk segments
+    /// using MoveSegmentZeroForward and StartMergeOperation
+    /// methods in IZoneTreeMaintenance.
+    /// </summary>
+    None,
 }

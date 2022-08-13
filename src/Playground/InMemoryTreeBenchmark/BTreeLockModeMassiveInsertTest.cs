@@ -54,7 +54,7 @@ public class BTreeLockModeMassiveInsertTest
             lockMode);
         var task1 = Parallel.ForEachAsync(arr, (i, t) =>
         {
-            tree.TryInsert(i, i);
+            tree.TryInsert(i, i, out _);
             return ValueTask.CompletedTask;
         });
         Thread.Sleep(1);

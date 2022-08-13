@@ -45,7 +45,7 @@ public class ParallelMassiveInsertTests
         var tree = new BTree<long, long>(new Int64ComparerAscending(), BTreeLockMode);
         var task1 = Parallel.ForEachAsync(Enumerable.Range(0, Count), (i, t) =>
         {
-            tree.TryInsert(i, i);
+            tree.TryInsert(i, i, out _);
             return ValueTask.CompletedTask;
         });
         var task2 = Parallel.ForEachAsync(Enumerable.Range(0, Count), (i, t) =>
