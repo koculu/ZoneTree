@@ -49,10 +49,23 @@ public partial class BTree<TKey, TValue>
                     var previous = Node.Previous;
                     if (previous == null)
                         return null;
-                    var nodeIterator = previous.GetIterator(Tree);
-                    if (nodeIterator.Node.Next == Node)
-                        return nodeIterator;
-                    spinWait.SpinOnce();
+                    var prePre = previous.Previous;
+                    try
+                    {
+                        prePre?.ReadLock();
+                        previous.ReadLock();
+                        if (previous != Node.Previous)
+                            continue;
+                        var nodeIterator = previous.GetIterator(Tree);
+                        if (previous == Node.Previous)
+                            return nodeIterator;
+                        spinWait.SpinOnce();
+                    }
+                    finally
+                    {
+                        previous.ReadUnlock();
+                        prePre?.ReadUnlock();
+                    }
                 }
             }
             finally
