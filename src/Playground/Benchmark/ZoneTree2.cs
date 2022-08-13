@@ -60,6 +60,11 @@ public class ZoneTree2
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
         stopWatch.Restart();
+        if (mode == WriteAheadLogMode.None)
+        {
+            zoneTree.Maintenance.MoveSegmentZeroForward();
+            zoneTree.Maintenance.StartMergeOperation()?.Join();
+        }
         basicMaintainer.CompleteRunningTasks();
         BenchmarkGroups.LogWithColor(
             "Merged in:",

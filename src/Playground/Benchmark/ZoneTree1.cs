@@ -51,12 +51,18 @@ public class ZoneTree1
                 zoneTree.Upsert(x, x + x);
             }
         }
-
+        
         BenchmarkGroups.LogWithColor(
             "Completed in:",
             stopWatch.ElapsedMilliseconds, 
             ConsoleColor.Green);
         stopWatch.Restart();
+
+        if (mode == WriteAheadLogMode.None)
+        {
+            zoneTree.Maintenance.MoveSegmentZeroForward();
+            zoneTree.Maintenance.StartMergeOperation()?.Join();
+        }
         basicMaintainer.CompleteRunningTasks(); 
         BenchmarkGroups.LogWithColor(
             "Merged in:",

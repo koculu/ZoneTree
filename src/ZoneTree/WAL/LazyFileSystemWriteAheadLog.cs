@@ -251,7 +251,6 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
             if (!disableBackup && EnableIncrementalBackup)
             {
                 StopWriter(true);
-                ConsumeQueue();
                 IncrementalLogAppender
                     .AppendLogToTheBackupFile(
                         FileStreamProvider,

@@ -18,6 +18,7 @@ public static class BenchmarkGroups
     };
 
     static WriteAheadLogMode[] TestWALModes = new[] {
+        WriteAheadLogMode.None,
         WriteAheadLogMode.Lazy,
         WriteAheadLogMode.CompressedImmediate,
         WriteAheadLogMode.Immediate

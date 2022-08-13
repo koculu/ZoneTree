@@ -58,6 +58,13 @@ public class ZoneTree3
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
         stopWatch.Restart();
+
+        if (mode == WriteAheadLogMode.None)
+        {
+            zoneTree.Maintenance.ZoneTree.Maintenance.MoveSegmentZeroForward();
+            zoneTree.Maintenance.ZoneTree.Maintenance.StartMergeOperation()?.Join();
+        }
+
         basicMaintainer.CompleteRunningTasks();
         BenchmarkGroups.LogWithColor(
             "Merged in:",
@@ -68,7 +75,7 @@ public class ZoneTree3
     public static void Iterate(WriteAheadLogMode mode, int count)
     {
         var recCount = count / 1000000.0 + "M";
-        BenchmarkGroups.LogWithColor($"\r\n{mode} Iterate <int,int> {recCount}\r\n", ConsoleColor.Cyan);
+        BenchmarkGroups.LogWithColor($"\r\n{mode} Transaction Iterate <int,int> {recCount}\r\n", ConsoleColor.Cyan);
 
         string dataPath = GetDataPath(mode, count);
         var stopWatch = new Stopwatch();
@@ -119,6 +126,10 @@ public class ZoneTree3
             })
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
+            .ConfigureTransactionLog(x =>
+            {
+                x.CompactionThreshold = 100_000;
+            })
             .SetInitialSparseArrayLength(TestConfig.MinimumSparseArrayLength)
             .OpenOrCreateTransactional();
     }
