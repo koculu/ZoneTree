@@ -36,9 +36,11 @@ It is four times faster than Facebook's RocksDB.
 
 Benchmark Configuration:
 ```c#
-DiskCompressionBlockSize = 1024 * 1024 * 1;
-WALCompressionBlockSize = 1024 * 1024;
-DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
+DiskCompressionBlockSize = 1024 * 1024 * 10;
+WALCompressionBlockSize = 1024 * 32 * 8;
+DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
+MutableSegmentMaxItemCount = 1_000_000;
+ThresholdForMergeOperationStart = 2_000_000;
 ```
 
 Additional Notes:
