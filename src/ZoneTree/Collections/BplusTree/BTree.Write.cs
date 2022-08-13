@@ -187,14 +187,11 @@ public partial class BTree<TKey, TValue>
             {
                 SplitChild(node, position, child);
                 child.WriteUnlock();
+
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
-                {
-                    child = node.Children[position + 1];
-                    if (child.IsFull)
-                        throw new Exception("child was full");
-                }
-                else
-                    child = node.Children[position];
+                    ++position;
+
+                child = node.Children[position];
                 child.WriteLock();
             }
             node.WriteUnlock();
@@ -229,14 +226,11 @@ public partial class BTree<TKey, TValue>
             {
                 SplitChild(node, position, child);
                 child.WriteUnlock();
+
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
-                {
-                    child = node.Children[position + 1];
-                    if (child.IsFull)
-                        throw new Exception("child was full");
-                }
-                else
-                    child = node.Children[position];
+                    ++position;
+
+                child = node.Children[position];
                 child.WriteLock();
             }
             node.WriteUnlock();
@@ -274,14 +268,11 @@ public partial class BTree<TKey, TValue>
             {
                 SplitChild(node, position, child);
                 child.WriteUnlock();
+
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
-                {
-                    child = node.Children[position + 1];
-                    if (child.IsFull)
-                        throw new Exception("child was full");
-                }
-                else
-                    child = node.Children[position];
+                    ++position;
+
+                child = node.Children[position];
                 child.WriteLock();
             }
             node.WriteUnlock();
