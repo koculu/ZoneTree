@@ -23,7 +23,7 @@ public class ZoneTreeFactory<TKey, TValue>
 
     ITransactionLog<TKey, TValue> TransactionLog;
 
-    public ZoneTreeOptions<TKey, TValue> Options { get; } = new();
+    public ZoneTreeOptions<TKey, TValue> Options { get; private set; } = new();
 
 
     public ZoneTreeFactory(IFileStreamProvider fileStreamProvider = null)
@@ -74,6 +74,12 @@ public class ZoneTreeFactory<TKey, TValue>
         if (blockSize > 1024 * 1024 * 1024)
             throw new Exception("Compression Block size cannot be greater than 1GB");
         Options.DiskSegmentCompressionBlockSize = blockSize;
+        return this;
+    }
+
+    public ZoneTreeFactory<TKey, TValue> SetOptions(ZoneTreeOptions<TKey, TValue> options)
+    {
+        Options = options;
         return this;
     }
 

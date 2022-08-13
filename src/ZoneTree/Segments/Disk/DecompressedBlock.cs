@@ -6,9 +6,15 @@ public class DecompressedBlock
 {
     public int BlockIndex { get; private set; }
 
-    public int Length { get; private set; }
+    public volatile int _length;
 
-    private byte[] Bytes { get; set; }
+    public int Length
+    {
+        get => _length;
+        set => _length = value;
+    }
+
+    volatile byte[] Bytes;
     
     public bool IsFull => Length == Bytes.Length;
 

@@ -1,7 +1,4 @@
-﻿#undef USE_NODE_IDS
-
-
-namespace Tenray.ZoneTree.Collections.BplusTree.Lock;
+﻿namespace Tenray.ZoneTree.Collections.BplusTree.Lock;
 
 /*
 The 3M shuffled parallel inserts & reads test results per BTree lock mode.

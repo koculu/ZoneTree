@@ -14,19 +14,19 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
     readonly IFileStream TailStream;
 
-    DecompressedBlock TailBlock;
+    volatile DecompressedBlock TailBlock;
 
-    DecompressedBlock CurrentBlock;
+    volatile DecompressedBlock CurrentBlock;
 
-    int CurrentBlockPosition;
+    volatile int CurrentBlockPosition;
 
     readonly BinaryReader BinaryReader;
 
     readonly BinaryWriter BinaryWriter;
 
-    readonly BinaryReader BinaryChunkReader;
+    readonly BinaryReader BinaryTailReader;
     
-    readonly BinaryWriter BinaryChunkWriter;
+    readonly BinaryWriter BinaryTailWriter;
 
     long _length;
 
@@ -75,8 +75,8 @@ public sealed class CompressedFileStream : Stream, IDisposable
         BinaryReader = new BinaryReader(FileStream.ToStream(), Encoding.UTF8, true);
         BinaryWriter = new BinaryWriter(FileStream.ToStream(), Encoding.UTF8, true);
 
-        BinaryChunkReader = new BinaryReader(TailStream.ToStream(), Encoding.UTF8, true);
-        BinaryChunkWriter = new BinaryWriter(TailStream.ToStream(), Encoding.UTF8, true);
+        BinaryTailReader = new BinaryReader(TailStream.ToStream(), Encoding.UTF8, true);
+        BinaryTailWriter = new BinaryWriter(TailStream.ToStream(), Encoding.UTF8, true);
 
         BlockSize = blockSize;
         LoadTail();
@@ -108,7 +108,13 @@ public sealed class CompressedFileStream : Stream, IDisposable
         IsTailWriterRunning = true;
         while(IsTailWriterRunning)
         {
-            WriteTail();
+            try
+            {
+                WriteTail();
+            }
+            catch
+            {
+            }
             if (TailWriterJobInterval == 0)
                 Thread.Yield();
             else
@@ -126,7 +132,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
     {
         // read tail with tail tolerance.
         TailStream.Position = 0;
-        var br = BinaryChunkReader;
+        var br = BinaryTailReader;
 
         var bytes = br.ReadBytes(2 * sizeof(int));
         var bytesLen = bytes.Length;
@@ -173,7 +179,8 @@ public sealed class CompressedFileStream : Stream, IDisposable
             return;
         if (IsClosed || !TailStream.CanWrite)
             return;
-        lock (TailStream)
+        byte[] bytes = null;
+        lock (this)
         {
             tailBlock = TailBlock;
             if (tailBlock.BlockIndex < LastWrittenTailIndex)
@@ -185,10 +192,10 @@ public sealed class CompressedFileStream : Stream, IDisposable
                 return;
 
             TailStream.Position = 0;
-            BinaryChunkWriter.Write(tailBlock.BlockIndex);
-            BinaryChunkWriter.Write(tailBlock.Length);
-            var bytes = tailBlock.GetBytes(0, tailBlock.Length);
-            BinaryChunkWriter.Write(bytes);
+            BinaryTailWriter.Write(tailBlock.BlockIndex);
+            BinaryTailWriter.Write(tailBlock.Length);
+            bytes = tailBlock.GetBytes(0, tailBlock.Length);
+            BinaryTailWriter.Write(bytes);
             TailStream.Flush(true);
             LastWrittenTailIndex = tailBlock.BlockIndex;
             LastWrittenTailLength = tailBlock.Length;
@@ -359,7 +366,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         if (length != 0)
         {
             // Sync with tail writer
-            lock (TailStream)
+            lock (this)
             {
                 TruncateFile(length);
             }
@@ -479,7 +486,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         bw.Write(compressedBytes.Length);
         bw.Write(tailBlock.Length);
         bw.Write(compressedBytes);
-        bw.Flush();
+        FileStream.Flush(true);
         TailBlock = new DecompressedBlock(tailBlock.BlockIndex + 1, BlockSize);
     }
 

@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.AbstractFileStream;
+﻿using System.Text;
+using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Exceptions.WAL;
@@ -11,6 +12,8 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
     readonly IFileStreamProvider FileStreamProvider;
 
     readonly CompressedFileStream FileStream;
+
+    readonly BinaryWriter BinaryWriter;
 
     readonly ISerializer<TKey> KeySerializer;
 
@@ -37,6 +40,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
             compressionBlockSize,
             enableTailWriterJob,
             tailWriterJobInterval);
+        BinaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
     }
@@ -99,7 +103,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         };
         entry.Checksum = entry.CreateChecksum();
 
-        var binaryWriter = new BinaryWriter(FileStream);
+        var binaryWriter = BinaryWriter;
         binaryWriter.Write(entry.OpIndex);
         binaryWriter.Write(entry.KeyLength);
         binaryWriter.Write(entry.ValueLength);
@@ -108,6 +112,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         if (entry.Value != null)
             binaryWriter.Write(entry.Value);
         binaryWriter.Write(entry.Checksum);
+        binaryWriter.Flush();
     }
 
     static void ReadLogEntry(BinaryReader reader, ref LogEntry entry)
@@ -186,7 +191,6 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
     {
         Task.Run(() =>
         {
-            FileStream.WriteTail();
             FileStream.Dispose();
         });
     }

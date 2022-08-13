@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.AbstractFileStream;
+﻿using System.Text;
+using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Exceptions.WAL;
@@ -13,6 +14,8 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     readonly IFileStreamProvider FileStreamProvider;
 
     readonly IFileStream FileStream;
+
+    readonly BinaryWriter BinaryWriter;
 
     readonly ISerializer<TKey> KeySerializer;
 
@@ -34,6 +37,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             FileMode.OpenOrCreate,
             FileAccess.ReadWrite,
             FileShare.Read, writeBufferSize);
+        BinaryWriter = new BinaryWriter(FileStream.ToStream(), Encoding.UTF8, true);
         FileStream.Seek(0, SeekOrigin.End);
         FileStreamProvider = fileStreamProvider;
         KeySerializer = keySerializer;
@@ -101,7 +105,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         };
         entry.Checksum = entry.CreateChecksum();
 
-        var binaryWriter = new BinaryWriter(FileStream.ToStream());
+        var binaryWriter = BinaryWriter;
         binaryWriter.Write(entry.OpIndex);
         binaryWriter.Write(entry.KeyLength);
         binaryWriter.Write(entry.ValueLength);

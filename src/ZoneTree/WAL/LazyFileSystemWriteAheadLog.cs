@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Text;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions;
@@ -12,6 +13,8 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     readonly IFileStreamProvider FileStreamProvider;
 
     readonly CompressedFileStream FileStream;
+
+    readonly BinaryWriter BinaryWriter;
 
     readonly ISerializer<TKey> KeySerializer;
 
@@ -61,6 +64,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
             compressionBlockSize,
             false,
             0);
+        BinaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
         FileStream.Seek(0, SeekOrigin.End);
         FileStreamProvider = fileStreamProvider;
         KeySerializer = keySerializer;
@@ -190,7 +194,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         };
         entry.Checksum = entry.CreateChecksum();
 
-        var binaryWriter = new BinaryWriter(FileStream);
+        var binaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
         binaryWriter.Write(entry.OpIndex);
         binaryWriter.Write(entry.KeyLength);
         binaryWriter.Write(entry.ValueLength);
@@ -199,6 +203,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         if (entry.Value != null)
             binaryWriter.Write(entry.Value);
         binaryWriter.Write(entry.Checksum);
+        binaryWriter.Flush();
     }
 
     static void ReadLogEntry(BinaryReader reader, ref LogEntry entry)
