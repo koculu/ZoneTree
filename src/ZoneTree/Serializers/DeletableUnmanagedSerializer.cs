@@ -1,9 +1,8 @@
 ﻿using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Serializers;
 
-namespace Tenray.AmberDB.Serializers;
+namespace Tenray.ZoneTree.Serializers;
 
-public class DeletableUnmanagedSerializer<TValue> : ISerializer<Deletable<TValue>> 
+public class DeletableUnmanagedSerializer<TValue> : ISerializer<Deletable<TValue>>
     where TValue : unmanaged
 {
     public Deletable<TValue> Deserialize(byte[] bytes)

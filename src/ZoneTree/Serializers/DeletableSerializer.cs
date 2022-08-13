@@ -1,6 +1,6 @@
 ﻿using Tenray.ZoneTree.Core;
 
-namespace Tenray.AmberDB.Serializers;
+namespace Tenray.ZoneTree.Serializers;
 
 public class DeletableSerializer<TValue> : ISerializer<Deletable<TValue>>
 {
