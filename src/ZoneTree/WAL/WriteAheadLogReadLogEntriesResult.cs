@@ -12,6 +12,8 @@ public class WriteAheadLogReadLogEntriesResult<TKey, TValue>
 
     public IReadOnlyList<TValue> Values { get; set; }
 
+    public long MaximumOpIndex { get; set; }
+
     public bool HasFoundIncompleteTailRecord =>
         Exceptions.Count == 1 && Exceptions.Values.First() is IncompleteTailRecordFoundException;
 

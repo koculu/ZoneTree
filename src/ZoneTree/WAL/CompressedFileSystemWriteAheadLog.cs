@@ -41,13 +41,13 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         ValueSerializer = valueSerializer;
     }
 
-    public void Append(in TKey key, in TValue value)
+    public void Append(in TKey key, in TValue value, long opIndex)
     {
         var keyBytes = KeySerializer.Serialize(key);
         var valueBytes = ValueSerializer.Serialize(value);
         lock (this)
         {
-            AppendLogEntry(keyBytes, valueBytes);
+            AppendLogEntry(keyBytes, valueBytes, opIndex);
         }
     }
 
@@ -63,6 +63,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
 
     struct LogEntry
     {
+        public long OpIndex;
         public int KeyLength;
         public int ValueLength;
         public byte[] Key;
@@ -72,6 +73,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         public uint CreateChecksum()
         {
             uint crc32 = 0;
+            crc32 = Crc32Computer.Compute(crc32, (ulong)OpIndex);
             crc32 = Crc32Computer.Compute(crc32, KeyLength);
             crc32 = Crc32Computer.Compute(crc32, ValueLength);
             crc32 = Crc32Computer.Compute(crc32, Key);
@@ -85,10 +87,11 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         }
     }
 
-    void AppendLogEntry(byte[] keyBytes, byte[] valueBytes)
+    void AppendLogEntry(byte[] keyBytes, byte[] valueBytes, long opIndex)
     {
         var entry = new LogEntry
         {
+            OpIndex = opIndex,
             KeyLength = keyBytes.Length,
             ValueLength = valueBytes.Length,
             Key = keyBytes,
@@ -97,6 +100,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         entry.Checksum = entry.CreateChecksum();
 
         var binaryWriter = new BinaryWriter(FileStream);
+        binaryWriter.Write(entry.OpIndex);
         binaryWriter.Write(entry.KeyLength);
         binaryWriter.Write(entry.ValueLength);
         if (entry.Key != null)
@@ -108,6 +112,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
 
     static void ReadLogEntry(BinaryReader reader, ref LogEntry entry)
     {
+        entry.OpIndex = reader.ReadInt64();
         entry.KeyLength = reader.ReadInt32();
         entry.ValueLength = reader.ReadInt32();
         entry.Key = reader.ReadBytes(entry.KeyLength);
@@ -117,22 +122,24 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
 
     public WriteAheadLogReadLogEntriesResult<TKey, TValue> ReadLogEntries(
         bool stopReadOnException,
-        bool stopReadOnChecksumFailure)
+        bool stopReadOnChecksumFailure,
+        bool sortByOpIndexes)
     {
         return WriteAheadLogEntryReader.ReadLogEntries<TKey, TValue, LogEntry>(
             FileStream,
             stopReadOnException,
             stopReadOnChecksumFailure,
             ReadLogEntry,
-            DeserializeLogEntry);
+            DeserializeLogEntry,
+            sortByOpIndexes);
     }
 
-    (bool isValid, TKey key, TValue value) DeserializeLogEntry(in LogEntry logEntry)
+    (bool isValid, TKey key, TValue value, long opIndex) DeserializeLogEntry(in LogEntry logEntry)
     {
         var isValid = logEntry.ValidateChecksum();
         var key = KeySerializer.Deserialize(logEntry.Key);
         var value = ValueSerializer.Deserialize(logEntry.Value);
-        return (isValid, key, value);
+        return (isValid, key, value, logEntry.OpIndex);
     }
 
     public void Dispose()
@@ -168,7 +175,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
             var len = keys.Length;
             for (var i = 0; i < len; ++i)
             {
-                Append(keys[i], values[i]);
+                Append(keys[i], values[i], i);
             }
             var diff = existingLength - FileStream.Length;
             return diff;

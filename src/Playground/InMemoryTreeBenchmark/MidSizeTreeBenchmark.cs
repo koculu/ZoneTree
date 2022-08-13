@@ -29,7 +29,7 @@ public class MidSizeTreeBenchmark
     MidSizeKey[] Data = Array.Empty<MidSizeKey>();
 
     [Benchmark]
-    public void InsertBplusTree() => RandomMidSizeInserts.InsertBplusTree(Data);
+    public void InsertBTree() => RandomMidSizeInserts.InsertBTree(Data);
 
     [Benchmark]
     public void InsertSkipList() => RandomMidSizeInserts.InsertSkipList(Data);

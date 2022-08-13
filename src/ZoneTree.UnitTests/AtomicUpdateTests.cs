@@ -47,7 +47,6 @@ public class AtomicUpdateTests
                     data.TryAtomicAddOrUpdate(counterKey, 0, (y) => y + 1);
                     Interlocked.Increment(ref off);
                 }
-
             }
             catch (Exception e)
             {

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tenray.ZoneTree.Collections;
+﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 
 namespace Playground.InMemoryTreeBenchmark;
@@ -25,10 +21,10 @@ public static class RandomLongInserts
         return arr;
     }
 
-    public static void InsertBplusTree(long[] arr)
+    public static void InsertBTree(long[] arr)
     {
         var count = arr.Length;
-        var tree = new BplusTree<long, long>(new Int64ComparerAscending());
+        var tree = new UnsafeBTree<long, long>(new Int64ComparerAscending());
         for(var i = 0; i < count; ++i)
         {
             var x = arr[i];
@@ -59,11 +55,11 @@ public static class RandomLongInserts
         }
     }
 
-    public static void InsertAndValidateIteratorBplusTree(long[] arr)
+    public static void InsertAndValidateIteratorBTree(long[] arr)
     {
         var count = arr.Length;
         var orj = arr.ToArray();
-        var tree = new BplusTree<long, long>(new Int64ComparerAscending());
+        var tree = new UnsafeBTree<long, long>(new Int64ComparerAscending());
         for (var i = 0; i < count; ++i)
         {
             var x = arr[i];

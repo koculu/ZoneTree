@@ -2,6 +2,8 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Engines;
 using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BplusTree.Lock;
+using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 
 namespace Playground.InMemoryTreeBenchmark;
@@ -10,15 +12,17 @@ namespace Playground.InMemoryTreeBenchmark;
 [SimpleJob(RunStrategy.ColdStart, targetCount: 1)]
 [MinColumn, MaxColumn, MeanColumn, MedianColumn, /*AllStatisticsColumn*/]
 [MemoryDiagnoser]
-[HardwareCounters(
+/*[HardwareCounters(
     HardwareCounter.TotalCycles,
     HardwareCounter.TotalIssues,
     HardwareCounter.CacheMisses,
-    HardwareCounter.Timer)]
+    HardwareCounter.Timer)]*/
 public class ParallelMassiveInsertTests
 {
     readonly int Count = 3_000_000;
     readonly bool Shuffled = true;
+
+    static BTreeLockMode BTreeLockMode = BTreeLockMode.NodeLevelMonitor;
 
     [GlobalSetup]
     public void Setup()
@@ -31,17 +35,17 @@ public class ParallelMassiveInsertTests
     long[] Data = Array.Empty<long>();
 
     [Benchmark]
-    public void Parallel_BplusTree() => MassiveInsertsAndReadsBplusTree();
+    public void Parallel_BTree() => MassiveInsertsAndReadsBTree();
 
     [Benchmark]
     public void Parallel_SkipList() => MassiveInsertsAndReadsSkiplist();
 
-    public void MassiveInsertsAndReadsBplusTree()
+    public void MassiveInsertsAndReadsBTree()
     {
-        var tree = new SafeBplusTree<long, long>(new Int64ComparerAscending());
+        var tree = new BTree<long, long>(new Int64ComparerAscending(), BTreeLockMode);
         var task1 = Parallel.ForEachAsync(Enumerable.Range(0, Count), (i, t) =>
         {
-            tree.TryInsert(i, i);
+            tree.TryInsert(i, i, out _);
             return ValueTask.CompletedTask;
         });
         var task2 = Parallel.ForEachAsync(Enumerable.Range(0, Count), (i, t) =>

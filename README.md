@@ -8,7 +8,11 @@ It can operate in memory or on disk. (Optimized for SSDs)
 
 ZoneTree is a lightweight, transactional and high-performance LSM Tree for .NET.
 
-It is four times faster than Facebook's RocksDB.
+It is four times faster than Facebook's RocksDB and hundreds of times faster than SQLite. It is faster than any other alternative that I have tested so far.
+100 Million integer key-value pair inserts in 20 seconds. You may get longer durations based on the durability level. 
+For example, with Lazy WAL mode, you can insert 100M integer key-value pairs in 28 seconds. Background merge operation that might take a bit longer is excluded from the insert duration because your inserted data is immediately queryable.
+Loading 100M integer key-value pair database is in 812 ms. The iteration on 100M key-value pairs takes 24 seconds.
+There are so many tuning options wait you to discover.
 
 ## Why ZoneTree?
 1. It is pure C#.
@@ -18,16 +22,17 @@ It is four times faster than Facebook's RocksDB.
 5. You can embed your database into your assembly. Therefore, you don't have to pay the cost of maintaining/shipping another database product along with yours.
 
 ## How fast is it?
+It is possible with ZoneTree to insert 100 Million integer key-value pairs in 20 seconds using WAL mode = NONE.
 
 | Insert Benchmarks                               | 1M      | 2M       | 3M         | 10M        |
 | ------------------------------------------------|---------|----------|------------|------------|
-| int-int ZoneTree lazy WAL                       | 1024 ms | 1828 ms  | 2987 ms    | 9852 ms    |
-| int-int ZoneTree compressed-immediate WAL       | 1678 ms | 3034 ms  | 4646 ms    | 15002 ms   |
-| int-int ZoneTree immediate WAL                  | 3410 ms | 7297 ms  | 10546 ms   | 35151 ms   |
+| int-int ZoneTree lazy WAL                       | 343 ms  | 506 ms   | 624 ms     | 2328 ms    |
+| int-int ZoneTree compressed-immediate WAL       | 885 ms  | 1821 ms  | 2737 ms    | 9250 ms    |
+| int-int ZoneTree immediate WAL                  | 2791 ms | 5552 ms  | 8269 ms    | 27883 ms   |
 ||
-| str-str ZoneTree lazy WAL                       | 2192 ms | 4037 ms  | 5924 ms    | 19093 ms   |
-| str-str ZoneTree compressed-immediate WAL       | 2888 ms | 5087 ms  | 7498 ms    | 26188 ms   |
-| str-str ZoneTree immediate WAL                  | 4649 ms | 9075 ms  | 13774 ms   | 47011 ms   |
+| str-str ZoneTree lazy WAL                       | 796 ms  | 1555 ms  | 2308 ms    | 8712 ms    |
+| str-str ZoneTree compressed-immediate WAL       | 1594 ms | 3187 ms  | 4866 ms    | 17451 ms   |
+| str-str ZoneTree immediate WAL                  | 3617 ms | 7083 ms  | 10481 ms   | 36714 ms   |
 ||
 | RocksDb immediate WAL                           | NOT SUPPORTED                                |
 | int-int RocksDb compressed-immediate WAL        | 8059 ms | 16188 ms | 23599 ms   | 61947 ms   |
@@ -36,16 +41,18 @@ It is four times faster than Facebook's RocksDB.
 
 Benchmark Configuration:
 ```c#
-DiskCompressionBlockSize = 1024 * 1024 * 1;
-WALCompressionBlockSize = 1024 * 1024;
-DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
+DiskCompressionBlockSize = 1024 * 1024 * 10;
+WALCompressionBlockSize = 1024 * 32 * 8;
+DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
+MutableSegmentMaxItemCount = 1_000_000;
+ThresholdForMergeOperationStart = 2_000_000;
 ```
 
 Additional Notes:
 According to our tests, ZoneTree is stable and fast even with big data.
 Tested up to 200M records in desktop computers till now.
 
-### ZoneTree offers 3 WAL modes to let you make a flexible tradeoff.
+### ZoneTree offers 4 WAL modes to let you make a flexible tradeoff.
 
 * The Immediate mode provides maximum durability but slower write speed.
  In case of a crash/power cut, the immediate mode ensures that the inserted data is not lost. RocksDb does not have immediate WAL mode. It has a WAL mode similar to the CompressedImmediate mode.
@@ -61,6 +68,7 @@ Tested up to 200M records in desktop computers till now.
   Log entries are queued to be written in a separate thread.
   Lazy mode uses compression in WAL files and provides immediate tail record persistence.
 
+* None WAL mode disables WAL completely to get maximum performance. Data still can be saved to memory by maintainer automatically or manually.
 ### Environment:
 ```
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000

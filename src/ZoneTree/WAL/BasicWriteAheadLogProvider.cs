@@ -14,7 +14,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
     public WriteAheadLogMode WriteAheadLogMode { get; set; } 
         = WriteAheadLogMode.Lazy;
 
-    public int CompressionBlockSize { get; set; } = 32768;
+    public int CompressionBlockSize { get; set; } = 1024 * 32 * 8;
 
     public bool EnableIncrementalBackup { get; set; }
 
@@ -45,6 +45,8 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
         switch (WriteAheadLogMode)
         {
+            case WriteAheadLogMode.None:
+                return new NullWriteAheadLog<TKey, TValue>();
             case WriteAheadLogMode.Immediate:
                 {
                     var wal = new FileSystemWriteAheadLog<TKey, TValue>(

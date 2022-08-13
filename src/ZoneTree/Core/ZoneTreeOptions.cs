@@ -2,6 +2,7 @@
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.WAL;
+using Tenray.ZoneTree.Collections.BplusTree.Lock;
 
 namespace Tenray.ZoneTree.Core;
 
@@ -33,16 +34,16 @@ public class ZoneTreeOptions<TKey, TValue>
 
     /// <summary>
     /// Disk Segment compression block size.
-    /// Default: 1 MB
+    /// Default: 10 MB
     /// </summary>
-    public int DiskSegmentCompressionBlockSize { get; set; } = 1024 * 1024 * 1;
+    public int DiskSegmentCompressionBlockSize { get; set; } = 1024 * 1024 * 10;
 
     /// <summary>
     /// Disk segment block cache limit.
     /// A disk segment cannot have more cache blocks than the limit.
     /// Total memory space that block cache can take is
     /// = DiskSegmentCompressionBlockSize X DiskSegmentBlockCacheLimit
-    /// Default: 1024 * 1024 * 32 = 32 MB
+    /// Default: 1024 * 1024 * 10 * 32 = 320 MB
     /// </summary>
     public int DiskSegmentBlockCacheLimit { get; set; } = 32;
 
@@ -59,6 +60,12 @@ public class ZoneTreeOptions<TKey, TValue>
     /// unless there isn't enough records.
     /// </summary>
     public int DiskSegmentMinimumRecordCount { get; set; } = 1_500_000;
+
+    /// <summary>
+    /// Controls lock granularity of in memory BTree that represents
+    /// mutable segment.
+    /// </summary>
+    public BTreeLockMode BTreeLockMode { get; set; } = BTreeLockMode.NodeLevelMonitor;
 
     public bool TryValidate(out Exception exception)
     {

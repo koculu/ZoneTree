@@ -29,7 +29,7 @@ public class LongTreeBenchmark
     long[] Data = Array.Empty<long>();
 
     [Benchmark]
-    public void InsertBplusTree() => RandomLongInserts.InsertBplusTree(Data);
+    public void InsertBTree() => RandomLongInserts.InsertBTree(Data);
 
     [Benchmark]
     public void InsertSkipList() => RandomLongInserts.InsertSkipList(Data);

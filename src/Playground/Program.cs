@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
+using Playground;
 using Playground.Benchmark;
 using Playground.InMemoryTreeBenchmark;
 using Tenray.ZoneTree.Core;
@@ -6,17 +7,23 @@ using Tenray.ZoneTree.WAL;
 
 TestConfig.EnableIncrementalBackup = true;
 TestConfig.MutableSegmentMaxItemCount = 1_000_000;
-TestConfig.ThresholdForMergeOperationStart = 20_000_000;
+TestConfig.ThresholdForMergeOperationStart = 2_000_000;
 TestConfig.RecreateDatabases = true;
-TestConfig.EnableParalelInserts = true;
-TestConfig.DiskSegmentMaximumCachedBlockCount = 8;
-TestConfig.DiskCompressionBlockSize = 1024 * 1024;
-TestConfig.WALCompressionBlockSize = 1024 * 32;
+TestConfig.EnableParalelInserts = false;
+TestConfig.DiskSegmentMaximumCachedBlockCount = 1;
+TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 100;
+TestConfig.WALCompressionBlockSize = 1024 * 32 * 8;
 TestConfig.MinimumSparseArrayLength = 0;
 TestConfig.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
 
-BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.Lazy);
+//BenchmarkRunner.Run<ParallelMassiveInsertTests>();
 
+BenchmarkGroups.InsertIterate1(100_000_000, WriteAheadLogMode.Lazy);
+
+//Test1.MassiveInsertsAndReads(2_000_000);
+//Test1.BTreeReverseIteratorParallelInserts();
+//for (var i = 0; i < 45000; ++i)
+//    RandomIntInserts.InsertBTree(RandomIntInserts.GetSortedArray(i));
 /*
 
 BenchmarkRunner.Run<ParallelMassiveInsertTests>();

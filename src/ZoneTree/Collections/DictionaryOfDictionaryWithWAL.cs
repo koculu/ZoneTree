@@ -48,7 +48,7 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
 
     void LoadFromWriteAheadLog()
     {
-        var result = WriteAheadLog.ReadLogEntries(false, false);
+        var result = WriteAheadLog.ReadLogEntries(false, false, false);
         if (!result.Success)
         {
             if (result.HasFoundIncompleteTailRecord)
@@ -97,7 +97,7 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
         {
             dic.Remove(key2);
             dic.Add(key2, value);
-            WriteAheadLog.Append(key1, new CombinedValue<TKey2, TValue>(key2, value));
+            WriteAheadLog.Append(key1, new CombinedValue<TKey2, TValue>(key2, value), NextOpIndex());
             return true;
         }
         dic = new Dictionary<TKey2, TValue>
@@ -105,8 +105,14 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
             { key2, value }
         };
         Dictionary[key1] = dic;
-        WriteAheadLog.Append(key1, new CombinedValue<TKey2, TValue>(key2, value));
+        WriteAheadLog.Append(key1, new CombinedValue<TKey2, TValue>(key2, value), NextOpIndex());
         return false;
+    }
+
+    IncrementalIdProvider IdProvider = new();
+    long NextOpIndex()
+    {
+        return IdProvider.NextId();
     }
 
     public void Drop()

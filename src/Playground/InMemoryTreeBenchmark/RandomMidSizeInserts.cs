@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Comparers;
+﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BTree;
 
 namespace Playground.InMemoryTreeBenchmark;
 
@@ -25,10 +20,10 @@ public static class RandomMidSizeInserts
         return arr;
     }
 
-    public static void InsertBplusTree(MidSizeKey[] arr)
+    public static void InsertBTree(MidSizeKey[] arr)
     {
         var count = arr.Length;
-        var tree = new BplusTree<MidSizeKey, MidSizeKey>(new MidSizeRefComparer());
+        var tree = new UnsafeBTree<MidSizeKey, MidSizeKey>(new MidSizeRefComparer());
         for(var i = 0; i < count; ++i)
         {
             var x = arr[i];

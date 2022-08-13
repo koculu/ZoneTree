@@ -30,7 +30,7 @@ public class BigKeyTreeBenchmark
     BigKey[] Data = Array.Empty<BigKey>();
 
     [Benchmark]
-    public void InsertBplusTree() => RandomBigInserts.InsertBplusTree(Data);
+    public void InsertBTree() => RandomBigInserts.InsertBTree(Data);
 
     [Benchmark]
     public void InsertSkipList() => RandomBigInserts.InsertSkipList(Data);

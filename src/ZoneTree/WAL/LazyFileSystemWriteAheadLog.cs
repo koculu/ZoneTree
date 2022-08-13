@@ -19,7 +19,23 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     
     readonly int EmptyQueuePollInterval;
 
-    readonly ConcurrentQueue<CombinedValue<TKey, TValue>> Queue = new();
+    readonly ConcurrentQueue<QueueItem> Queue = new();
+
+    public struct QueueItem
+    {
+        public TKey Key;
+
+        public TValue Value;
+
+        public long OpIndex;
+
+        public QueueItem(in TKey key, in TValue value, long opIndex)
+        {
+            Key = key;
+            Value = value;
+            OpIndex = opIndex;
+        }
+    }
 
     volatile bool isRunning = false;
 
@@ -74,9 +90,9 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         {
             while (Queue.TryDequeue(out var q))
             {
-                var keyBytes = KeySerializer.Serialize(q.Value1);
-                var valueBytes = ValueSerializer.Serialize(q.Value2);
-                AppendLogEntry(keyBytes, valueBytes);
+                var keyBytes = KeySerializer.Serialize(q.Key);
+                var valueBytes = ValueSerializer.Serialize(q.Value);
+                AppendLogEntry(keyBytes, valueBytes, q.OpIndex);
             }
         }
         FileStream.WriteTail();
@@ -90,9 +106,9 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
             {
                 try
                 {
-                    var keyBytes = KeySerializer.Serialize(q.Value1);
-                    var valueBytes = ValueSerializer.Serialize(q.Value2);
-                    AppendLogEntry(keyBytes, valueBytes);
+                    var keyBytes = KeySerializer.Serialize(q.Key);
+                    var valueBytes = ValueSerializer.Serialize(q.Value);
+                    AppendLogEntry(keyBytes, valueBytes, q.OpIndex);
                 }
                 catch (Exception e)
                 {
@@ -119,12 +135,9 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         }
     }
 
-    public void Append(in TKey key, in TValue value)
+    public void Append(in TKey key, in TValue value, long opIndex)
     {
-        lock (this)
-        {
-            Queue.Enqueue(new CombinedValue<TKey, TValue>(in key, in value));
-        }
+        Queue.Enqueue(new QueueItem(in key, in value, opIndex));
     }
 
     public void Drop()
@@ -141,6 +154,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     struct LogEntry
     {
+        public long OpIndex;
         public int KeyLength;
         public int ValueLength;
         public byte[] Key;
@@ -150,6 +164,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         public uint CreateChecksum()
         {
             uint crc32 = 0;
+            crc32 = Crc32Computer.Compute(crc32, (ulong)OpIndex);
             crc32 = Crc32Computer.Compute(crc32, KeyLength);
             crc32 = Crc32Computer.Compute(crc32, ValueLength);
             crc32 = Crc32Computer.Compute(crc32, Key);
@@ -163,10 +178,11 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         }
     }
 
-    void AppendLogEntry(byte[] keyBytes, byte[] valueBytes)
+    void AppendLogEntry(byte[] keyBytes, byte[] valueBytes, long opIndex)
     {
         var entry = new LogEntry
         {
+            OpIndex = opIndex,
             KeyLength = keyBytes.Length,
             ValueLength = valueBytes.Length,
             Key = keyBytes,
@@ -175,6 +191,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         entry.Checksum = entry.CreateChecksum();
 
         var binaryWriter = new BinaryWriter(FileStream);
+        binaryWriter.Write(entry.OpIndex);
         binaryWriter.Write(entry.KeyLength);
         binaryWriter.Write(entry.ValueLength);
         if (entry.Key != null)
@@ -186,6 +203,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     static void ReadLogEntry(BinaryReader reader, ref LogEntry entry)
     {
+        entry.OpIndex = reader.ReadInt64();
         entry.KeyLength = reader.ReadInt32();
         entry.ValueLength = reader.ReadInt32();
         entry.Key = reader.ReadBytes(entry.KeyLength);
@@ -195,22 +213,24 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public WriteAheadLogReadLogEntriesResult<TKey, TValue> ReadLogEntries(
         bool stopReadOnException,
-        bool stopReadOnChecksumFailure)
+        bool stopReadOnChecksumFailure, 
+        bool sortByOpIndexes)
     {
         return WriteAheadLogEntryReader.ReadLogEntries<TKey, TValue, LogEntry>(
             FileStream,
             stopReadOnException,
             stopReadOnChecksumFailure,
             ReadLogEntry,
-            DeserializeLogEntry);
+            DeserializeLogEntry,
+            sortByOpIndexes);
     }
 
-    (bool isValid, TKey key, TValue value) DeserializeLogEntry(in LogEntry logEntry)
+    (bool isValid, TKey key, TValue value, long opIndex) DeserializeLogEntry(in LogEntry logEntry)
     {
         var isValid = logEntry.ValidateChecksum();
         var key = KeySerializer.Deserialize(logEntry.Key);
         var value = ValueSerializer.Deserialize(logEntry.Value);
-        return (isValid, key, value);
+        return (isValid, key, value, logEntry.OpIndex);
     }
 
     public void Dispose()
@@ -250,7 +270,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
             var len = keys.Length;
             for (var i = 0; i < len; ++i)
             {
-                Queue.Enqueue(new CombinedValue<TKey, TValue>(in keys[i], in values[i]));
+                Queue.Enqueue(new QueueItem(in keys[i], in values[i], 0));
             }
             return 0;
         }

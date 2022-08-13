@@ -1,18 +1,23 @@
 ﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BplusTree.Lock;
+using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class BplusTreeThreadSafetyTests
+public class BTreeThreadSafetyTests
 {
-    [TestCase(3_000_000)]
-    public void MassiveInsertsAndReads(int count)
+    [TestCase(3_000_000, BTreeLockMode.TopLevelReaderWriter)]
+    [TestCase(3_000_000, BTreeLockMode.TopLevelMonitor)]
+    [TestCase(3_000_000, BTreeLockMode.NodeLevelMonitor)]
+    [TestCase(3_000_000, BTreeLockMode.NodeLevelReaderWriter)]
+    public void MassiveInsertsAndReads(int count, BTreeLockMode lockMode)
     {
         var readCount = 0;
-        var tree = new SafeBplusTree<long, long>(new Int64ComparerAscending());
+        var tree = new BTree<long, long>(new Int64ComparerAscending(), lockMode);
         var task1 = Parallel.ForEachAsync(Enumerable.Range(0, count), (i, t) =>
         {
-            tree.TryInsert(i, i);
+            tree.TryInsert(i, i, out _);
             return ValueTask.CompletedTask;
         });
         Thread.Sleep(1);

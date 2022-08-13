@@ -10,11 +10,9 @@ public interface IMutableSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>
     /// </summary>
     bool IsFrozen { get; }
 
-    AddOrUpdateResult Upsert(TKey key, TValue value);
+    AddOrUpdateResult Upsert(in TKey key, in TValue value);
 
-    AddOrUpdateResult Delete(TKey key);
-
-    IReadOnlySegment<TKey, TValue> CreateReadOnlySegment();
+    AddOrUpdateResult Delete(in TKey key);
 
     void Freeze();
 }

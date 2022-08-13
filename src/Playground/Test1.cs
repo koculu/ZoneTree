@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using Tenray.ZoneTree;
+using Tenray.ZoneTree.Collections.BplusTree.Lock;
+using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Maintainers;
@@ -157,5 +159,31 @@ public class Test1
         }
         stopwatchAll.Stop();
         Console.WriteLine($"All Time:{stopwatchAll.Elapsed}");
+    }
+
+    public static void MassiveInsertsAndReads(long[] arr, BTreeLockMode lockMode = BTreeLockMode.NodeLevelMonitor)
+    {
+        var readCount = 0;
+        var tree = new BTree<long, long>(new Int64ComparerAscending(),
+            lockMode);
+        var task1 = Parallel.ForEachAsync(arr, (i, t) =>
+        {
+            tree.TryInsert(i, i, out _);
+            return ValueTask.CompletedTask;
+        });
+        Thread.Sleep(1);
+        var task2 = Parallel.ForEachAsync(arr, (i, t) =>
+        {
+            if (tree.TryGetValue(i, out var j))
+            {
+                if (i != j)
+                    throw new Exception($"{i} != {j}");
+                Interlocked.Increment(ref readCount);
+            }
+            return ValueTask.CompletedTask;
+        });
+        task1.Wait();
+        task2.Wait();
+        Console.WriteLine("Read Count: " + readCount);
     }
 }

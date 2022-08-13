@@ -212,6 +212,20 @@ public class IteratorTests
         {
             if (i != 24 && i % 2 == 0)
                 ++i;
+            /*
+             * New BTree works with forward reading method.
+             * This means inserts in the iterator position
+             * of BTree Leaf node does not reflect inserts.
+             * This is not a bug. Callers can always double check
+             * with TryGetKey() if they want to read most recent values.
+             * for every key they read from iteration.
+             * Auto refresh property was made for SegmentZeroMoveForward
+             * event. A manual refresh also works but it is expensive to call
+             * for every key.
+             */
+            if (i == 23)
+                iterator.Refresh();
+
             iterator.Next();
             Assert.That(iterator.CurrentKey, Is.EqualTo(i));
             Assert.That(iterator.CurrentValue, Is.EqualTo(i + i));
@@ -257,8 +271,8 @@ public class IteratorTests
         {
             var initialCount = zoneTree.Maintenance.InMemoryRecordCount;
             using var iterator = zoneTree.CreateIterator(false);
-            iterator.Seek(0);
-            var counter = 0;
+            iterator.SeekFirst();
+            var counter = 1;
             var isValidData = true;
             while (iterator.Next())
             {
@@ -309,7 +323,7 @@ public class IteratorTests
             var initialCount = zoneTree.Maintenance.InMemoryRecordCount;
             using var iterator = zoneTree.CreateReverseIterator(false);
             iterator.SeekFirst();
-            var counter = 0;
+            var counter = 1;
             var isValidData = true;
             while (iterator.Next())
             {

@@ -20,7 +20,7 @@ public class MutableSegmentLoader<TKey, TValue>
                 segmentId,
                 ZoneTree<TKey,TValue>.SegmentWalCategory,
                 Options.KeySerializer, Options.ValueSerializer);
-        var result = wal.ReadLogEntries(false, false);
+        var result = wal.ReadLogEntries(false, false, true);
         if (!result.Success)
         {
             if (result.HasFoundIncompleteTailRecord)
@@ -37,6 +37,8 @@ public class MutableSegmentLoader<TKey, TValue>
                 throw new WriteAheadLogCorruptionException(segmentId, result.Exceptions);
             }
         }
-        return new MutableSegment<TKey, TValue>(segmentId, wal, Options, result.Keys, result.Values);
+        return new MutableSegment<TKey, TValue>
+            (segmentId, wal, Options, result.Keys,
+            result.Values, result.MaximumOpIndex);
     }
 }

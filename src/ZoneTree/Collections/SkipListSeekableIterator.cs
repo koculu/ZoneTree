@@ -107,4 +107,3 @@ public class SkipListSeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TV
 
     public int GetSectorIndex() => -1;
 }
-

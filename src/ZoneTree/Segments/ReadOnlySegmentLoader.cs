@@ -21,7 +21,7 @@ public class ReadOnlySegmentLoader<TKey, TValue>
             ZoneTree<TKey, TValue>.SegmentWalCategory,
             Options.KeySerializer,
             Options.ValueSerializer);
-        var result = wal.ReadLogEntries(false, false);
+        var result = wal.ReadLogEntries(false, false, true);
         if (!result.Success)
         {
             if (result.HasFoundIncompleteTailRecord)

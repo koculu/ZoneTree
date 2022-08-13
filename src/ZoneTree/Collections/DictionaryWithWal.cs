@@ -64,7 +64,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 
     void LoadFromWriteAheadLog()
     {
-        var result = WriteAheadLog.ReadLogEntries(false, false);
+        var result = WriteAheadLog.ReadLogEntries(false, false, false);
         if (!result.Success)
         {
             if (result.HasFoundIncompleteTailRecord)
@@ -111,11 +111,11 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         if (Dictionary.ContainsKey(key))
         {
             Dictionary[key] = value;
-            WriteAheadLog.Append(key, value);
+            WriteAheadLog.Append(key, value, NextOpIndex());
             return false;
         }
         Dictionary.Add(key, value);
-        WriteAheadLog.Append(key, value);
+        WriteAheadLog.Append(key, value, NextOpIndex());
         return true;
     }
 
@@ -129,8 +129,14 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         Dictionary.TryGetValue(key, out var value);
         MarkValueDeleted(ref value);
         var result = Dictionary.Remove(key);
-        WriteAheadLog.Append(key, value);
+        WriteAheadLog.Append(key, value, NextOpIndex());
         return result;
+    }
+
+    IncrementalIdProvider IdProvider = new();
+    long NextOpIndex()
+    {
+        return IdProvider.NextId();
     }
 
     public void Drop()
