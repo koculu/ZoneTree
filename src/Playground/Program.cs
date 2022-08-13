@@ -24,6 +24,8 @@ while(true)
     BenchmarkGroups.InsertIterate3(3_000_000, WriteAheadLogMode.CompressedImmediate);
 */
 
+//Test1.TestTreeIteratorBehavior();
+
 BenchmarkGroups.InsertIterate1(0);
 BenchmarkGroups.InsertIterate2(0);
 BenchmarkGroups.InsertIterate3(0);

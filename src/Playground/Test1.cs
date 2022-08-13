@@ -186,4 +186,158 @@ public class Test1
         task2.Wait();
         Console.WriteLine("Read Count: " + readCount);
     }
+
+    public static void TestIteratorBehavior(
+        int count = 10_000_000,
+        bool recreate = true)
+    {
+        var dataPath = "../../data/TestIteratorBehavior";
+        if (recreate && Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        IZoneTree<int, int> GetZoneTree() => new ZoneTreeFactory<int, int>()
+            .SetComparer(new Int32ComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureWriteAheadLogProvider(x =>
+            {
+                x.CompressionBlockSize = 1024 * 1024 * 20;
+                x.WriteAheadLogMode = WriteAheadLogMode.None;
+            })
+            .Configure(x =>
+            {
+                x.EnableDiskSegmentCompression = true;
+                x.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
+            })
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new Int32Serializer())
+            .OpenOrCreate();
+
+        using var zoneTree1 = GetZoneTree();
+        using var maintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree1);
+        var t1 = Task.Run(() =>
+        {
+            for(var i = 0; i < count; ++i)
+            {
+                zoneTree1.Upsert(i, i);
+            }
+        });
+        bool reverse = false;
+        Thread.Sleep(500);
+        int iteratorCount = 100;
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var c = zoneTree1.Count();
+            var s = 0;
+            Console.WriteLine("count:" + c);
+            var it = reverse ? 
+                zoneTree1.CreateReverseIterator() :
+                zoneTree1.CreateIterator();
+            it.Next();
+            ++s;
+            var p = it.CurrentKey;
+            Console.WriteLine(p);
+            while (it.Next())
+            {
+                ++s;
+                var k = it.CurrentKey;
+                if (Math.Abs(k - p) > 1)
+                {
+                    Console.WriteLine($"{k} - {k-p}");
+                }
+                p = k;
+            }
+            Console.WriteLine(p);
+            if (s < c)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"{s} < {c}");
+            }
+        });
+        t1.Wait();
+        zoneTree1.Maintenance.TryCancelMergeOperation();
+        maintainer.CompleteRunningTasks();
+    }
+
+
+    public static void TestTreeIteratorBehavior()
+    {
+        int count = 10_000_000;
+        var tree = new BTree<int, int>(
+            new Int32ComparerAscending(), BTreeLockMode.NodeLevelMonitor);
+        var t1 = Task.Run(() =>
+        {
+            for (var i = 0; i < count; ++i)
+            {
+                tree.Upsert(i, i, out _);
+            }
+        });
+        int iteratorCount = 100;
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var c = tree.Length;
+            var s = 0;
+            Console.WriteLine("count:" + c);
+            var it = new BTreeSeekableIterator<int, int>(tree);
+
+            it.Next();
+            ++s;
+            var p = it.CurrentKey;
+            while (it.Next())
+            {
+                ++s;
+                var k = it.CurrentKey;
+                if (Math.Abs(k - p) > 1)
+                {
+                    throw new Exception($"iterator jump detected: {k} - {k - p}");
+                }
+                p = k;
+            }
+            if (s < c)
+            {
+                throw new Exception($"count validation failed: {s} < {c}");
+            }
+        });
+        t1.Wait();
+    }
+
+    public static void TestTreeReverseIteratorBehavior()
+    {
+        int count = 10_000_000;
+        var tree = new BTree<int, int>(
+            new Int32ComparerAscending(), BTreeLockMode.NodeLevelMonitor);
+        var t1 = Task.Run(() =>
+        {
+            for (var i = 0; i < count; ++i)
+            {
+                tree.Upsert(i, i, out _);
+            }
+        });
+        int iteratorCount = 100;
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var c = tree.Length;
+            var s = 0;
+            Console.WriteLine("count:" + c);
+            var it = new BTreeSeekableIterator<int, int>(tree);
+            it.SeekEnd();
+            ++s;
+            var p = it.CurrentKey;
+            while (it.Prev())
+            {
+                ++s;
+                var k = it.CurrentKey;
+                if (Math.Abs(k - p) > 1)
+                {
+                    throw new Exception($"iterator jump detected: {k} - {k - p}");
+                }
+                p = k;
+            }
+            if (s < c)
+            {
+                throw new Exception($"count validation failed: {s} < {c}");
+            }
+        });
+        t1.Wait();
+    }
 }

@@ -22,7 +22,7 @@ public partial class BTree<TKey, TValue>
 
     volatile Node Root;
 
-    readonly LeafNode FirstLeafNode;
+    volatile LeafNode FirstLeafNode;
 
     volatile LeafNode LastLeafNode;
 

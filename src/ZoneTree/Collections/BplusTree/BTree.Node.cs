@@ -68,7 +68,7 @@ public partial class BTree<TKey, TValue>
             return false;
         }
 
-        public void InsertKeyAndChild(int position, in TKey key, Node child)
+        public void InsertKeyAndChild(int position, in TKey key, Node left, Node right)
         {
             var len = Length - position;
             if (len > 0)
@@ -77,23 +77,9 @@ public partial class BTree<TKey, TValue>
                 Array.Copy(Children, position + 1, Children, position + 2, len);
             }
             Keys[position] = key;
-            Children[position + 1] = child;
+            Children[position] = left;
+            Children[position + 1] = right;
             ++Length;
-        }
-
-        public void ReplaceFrom(Node leftNode, int position)
-        {
-            var rightLen = leftNode.Length - position;
-            leftNode.Length = position;
-            Length = rightLen;
-
-            int i = 0, j = position;
-            for (; i < rightLen; ++i, ++j)
-            {
-                Children[i] = leftNode.Children[j];
-                Keys[i] = leftNode.Keys[j];
-            }
-            Children[i] = leftNode.Children[j];
         }
 
         public void ReadLock()
@@ -114,6 +100,20 @@ public partial class BTree<TKey, TValue>
         public void WriteUnlock()
         {
             Locker.WriteUnlock();
+        }
+
+        public (Node left, Node right) Split(
+            int middle, int nodeSize, ILocker locker1, ILocker locker2)
+        {
+            var left = new Node(locker1, nodeSize);
+            var right = new Node(locker2, nodeSize);
+            left.Length = middle;
+            right.Length = Length - middle;
+            Array.Copy(Keys, 0, left.Keys, 0, middle);
+            Array.Copy(Children, 0, left.Children, 0, middle+1);
+            Array.Copy(Keys, middle, right.Keys, 0, right.Length);
+            Array.Copy(Children, middle, right.Children, 0, right.Length+1);
+            return (left, right);
         }
     }
 }

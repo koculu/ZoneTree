@@ -126,37 +126,38 @@ public partial class BTree<TKey, TValue>
         }
     }
 
-    void SplitChild(Node parent, int rightChildPosition, Node leftNode)
+    void SplitChild(Node parent, int parentInsertPosition, Node child)
     {
-        var pivotPosition = (leftNode.Length + 1) / 2;
-        // tree is locked, safe to read from any node.
-        ref var pivotKey = ref leftNode.Keys[pivotPosition];
-        if (leftNode is LeafNode leftLeaf)
+        var pivotPosition = (child.Length + 1) / 2;
+        ref var pivotKey = ref child.Keys[pivotPosition];
+        if (child is LeafNode childLeaf)
         {
-            var rightLeaf = new LeafNode(GetNodeLocker(), LeafSize);
-            var leftNext = leftLeaf.Next;
-            if (leftNext == null)
-            {
-                parent.InsertKeyAndChild(rightChildPosition, in pivotKey, rightLeaf);
-                rightLeaf.ReplaceFrom(leftLeaf, pivotPosition);
-                if (LastLeafNode == leftLeaf)
-                    LastLeafNode = rightLeaf;
-            }
+            (var left, var right) = childLeaf
+                .SplitLeaf(pivotPosition, LeafSize, GetNodeLocker(), GetNodeLocker());
+
+            left.Previous = childLeaf.Previous;
+            right.Next = childLeaf.Next;
+
+            var pre = childLeaf.Previous;
+            var next = childLeaf.Next;
+            
+            if (pre == null)
+                FirstLeafNode = left;
             else
-            {
-                // leftNext is not null. its previous pointer will change.
-                // should we do something for iterators?
-                parent.InsertKeyAndChild(rightChildPosition, in pivotKey, rightLeaf);
-                rightLeaf.ReplaceFrom(leftLeaf, pivotPosition);
-                if (LastLeafNode == leftLeaf)
-                    LastLeafNode = rightLeaf;
-            }
+                pre.Next = left;
+
+            if (next == null)
+                LastLeafNode = right;
+            else
+                next.Previous = right;
+
+            parent.InsertKeyAndChild(parentInsertPosition, in pivotKey, left, right);
         }
         else
         {
-            var rightNode = new Node(GetNodeLocker(), NodeSize);
-            parent.InsertKeyAndChild(rightChildPosition, in pivotKey, rightNode);
-            rightNode.ReplaceFrom(leftNode, pivotPosition);
+            (var left, var right) = child
+                .Split(pivotPosition, NodeSize, GetNodeLocker(), GetNodeLocker());
+            parent.InsertKeyAndChild(parentInsertPosition, in pivotKey, left, right);
         }
     }
 
@@ -185,14 +186,16 @@ public partial class BTree<TKey, TValue>
             if (child.IsFull)
             {
                 SplitChild(node, position, child);
+                child.WriteUnlock();
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
                 {
-                    child.WriteUnlock();
                     child = node.Children[position + 1];
                     if (child.IsFull)
                         throw new Exception("child was full");
-                    child.WriteLock();
                 }
+                else
+                    child = node.Children[position];
+                child.WriteLock();
             }
             node.WriteUnlock();
             node = child;
@@ -225,14 +228,16 @@ public partial class BTree<TKey, TValue>
             if (child.IsFull)
             {
                 SplitChild(node, position, child);
+                child.WriteUnlock();
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
                 {
-                    child.WriteUnlock();
                     child = node.Children[position + 1];
                     if (child.IsFull)
                         throw new Exception("child was full");
-                    child.WriteLock();
                 }
+                else
+                    child = node.Children[position];
+                child.WriteLock();
             }
             node.WriteUnlock();
             node = child;
@@ -268,14 +273,16 @@ public partial class BTree<TKey, TValue>
             if (child.IsFull)
             {
                 SplitChild(node, position, child);
+                child.WriteUnlock();
                 if (Comparer.Compare(in key, in node.Keys[position]) > 0)
                 {
-                    child.WriteUnlock();
                     child = node.Children[position + 1];
                     if (child.IsFull)
                         throw new Exception("child was full");
-                    child.WriteLock();
                 }
+                else
+                    child = node.Children[position];
+                child.WriteLock();
             }
             node.WriteUnlock();
             node = child;

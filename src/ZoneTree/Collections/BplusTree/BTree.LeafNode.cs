@@ -35,25 +35,6 @@ public partial class BTree<TKey, TValue>
             ++Length;
         }
 
-        public void ReplaceFrom(LeafNode leftLeaf, int position)
-        {
-            var rightLen = leftLeaf.Length - position;
-            leftLeaf.Length = position;
-            Length = rightLen;
-
-            for (int i = 0, j = position; i < rightLen; ++i, ++j)
-            {
-                Keys[i] = leftLeaf.Keys[j];
-                Values[i] = leftLeaf.Values[j];
-            }
-
-            Next = leftLeaf.Next;
-            if (Next != null)
-                Next.Previous = this;
-            leftLeaf.Next = this;
-            Previous = leftLeaf;
-        }
-
         public NodeIterator GetIterator(BTree<TKey, TValue> tree)
         {
             try
@@ -74,6 +55,25 @@ public partial class BTree<TKey, TValue>
         public FrozenNodeIterator GetFrozenIterator()
         {
             return new FrozenNodeIterator(this);
+        }
+
+        public (LeafNode left, LeafNode right) SplitLeaf(
+            int middle,
+            int leafSize, ILocker locker1, ILocker locker2)
+        {
+            var left = new LeafNode(locker1, leafSize);
+            var right = new LeafNode(locker2, leafSize);
+            left.Length = middle;
+            right.Length = Length - middle;
+            Array.Copy(Keys, 0, left.Keys, 0, middle);
+            Array.Copy(Values, 0, left.Values, 0, middle);
+            Array.Copy(Keys, middle, right.Keys, 0, right.Length);
+            Array.Copy(Values, middle, right.Values, 0, right.Length);
+
+            left.Next = right;
+            right.Previous = left;
+
+            return (left, right);
         }
     }
 }

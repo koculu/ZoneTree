@@ -37,36 +37,7 @@ public partial class BTree<TKey, TValue>
             try
             {
                 Tree.ReadLock();
-                /*
-                 * On node split, previous pointer 
-                 * can point to the first half of the splitted node.
-                 * In this case, (previous node -> next node) should be another node.
-                 * Retry until finding correct previous node.
-                 */
-                var spinWait = new SpinWait();
-                while (true)
-                {
-                    var previous = Node.Previous;
-                    if (previous == null)
-                        return null;
-                    var prePre = previous.Previous;
-                    try
-                    {
-                        prePre?.ReadLock();
-                        previous.ReadLock();
-                        if (previous != Node.Previous)
-                            continue;
-                        var nodeIterator = previous.GetIterator(Tree);
-                        if (previous == Node.Previous)
-                            return nodeIterator;
-                        spinWait.SpinOnce();
-                    }
-                    finally
-                    {
-                        previous.ReadUnlock();
-                        prePre?.ReadUnlock();
-                    }
-                }
+                return Node.Previous?.GetIterator(Tree);
             }
             finally
             {
@@ -79,23 +50,7 @@ public partial class BTree<TKey, TValue>
             try
             {
                 Tree.ReadLock();
-                /*
-                 * On node split, next pointer 
-                 * can skip second half of the splitted node.
-                 * In this case, (next node -> previous node) should be another node.
-                 * Retry until finding correct next node.
-                 */
-                var spinWait = new SpinWait();
-                while (true)
-                {
-                    var next = Node.Next;
-                    if (next == null)
-                        return null;
-                    var nodeIterator = next.GetIterator(Tree);
-                    if (nodeIterator.Node.Previous == Node)
-                        return nodeIterator;
-                    spinWait.SpinOnce();
-                }
+                return Node.Next?.GetIterator(Tree);
             }
             finally
             {
