@@ -68,7 +68,7 @@ Tested up to 200M records in desktop computers till now.
   Log entries are queued to be written in a separate thread.
   Lazy mode uses compression in WAL files and provides immediate tail record persistence.
 
-* None WAL mode disables WAL completely to get maximum performance. Data still can be saved to memory by maintainer automatically or manually.
+* None WAL mode disables WAL completely to get maximum performance. Data still can be saved to disk by tree maintainer automatically or manually.
 ### Environment:
 ```
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
