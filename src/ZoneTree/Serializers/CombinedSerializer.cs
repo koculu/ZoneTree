@@ -27,7 +27,7 @@ public class CombinedSerializer<TValue1, TValue2> : ISerializer<CombinedValue<TV
         return new CombinedValue<TValue1, TValue2>(value1, value2);
     }
 
-    public byte[] Serialize(CombinedValue<TValue1, TValue2> entry)
+    public byte[] Serialize(in CombinedValue<TValue1, TValue2> entry)
     {
         var bytes1 = Serializer1.Serialize(entry.Value1);
         var bytes2 = Serializer2.Serialize(entry.Value2);

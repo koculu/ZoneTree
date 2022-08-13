@@ -9,7 +9,7 @@ public class Int32Serializer : ISerializer<int>
         return BitConverter.ToInt32(bytes);
     }
 
-    public byte[] Serialize(int entry)
+    public byte[] Serialize(in int entry)
     {
         return BitConverter.GetBytes(entry);
     }

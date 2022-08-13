@@ -10,7 +10,7 @@ public class Utf8StringSerializer : ISerializer<string>
         return Encoding.UTF8.GetString(bytes);
     }
 
-    public byte[] Serialize(string entry)
+    public byte[] Serialize(in string entry)
     {
         return Encoding.UTF8.GetBytes(entry);
     }

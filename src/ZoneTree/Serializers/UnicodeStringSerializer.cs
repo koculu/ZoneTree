@@ -10,7 +10,7 @@ public class UnicodeStringSerializer : ISerializer<string>
         return Encoding.Unicode.GetString(bytes);
     }
 
-    public byte[] Serialize(string entry)
+    public byte[] Serialize(in string entry)
     {
         return Encoding.Unicode.GetBytes(entry);
     }

@@ -9,7 +9,7 @@ public class BooleanSerializer : ISerializer<bool>
         return BitConverter.ToBoolean(bytes);
     }
 
-    public byte[] Serialize(bool entry)
+    public byte[] Serialize(in bool entry)
     {
         return BitConverter.GetBytes(entry);
     }

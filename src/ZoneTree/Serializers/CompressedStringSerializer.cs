@@ -11,7 +11,7 @@ public class CompressedStringSerializer : ISerializer<string>
         return FromGzip(bytes);
     }
 
-    public byte[] Serialize(string entry)
+    public byte[] Serialize(in string entry)
     {
         return ToGzip(entry);
     }

@@ -9,7 +9,7 @@ public class StructSerializer<TType> : ISerializer<TType> where TType : unmanage
         return BinarySerializerHelper.FromByteArray<TType>(bytes);
     }
 
-    public byte[] Serialize(TType entry)
+    public byte[] Serialize(in TType entry)
     {
         return BinarySerializerHelper.ToByteArray(entry);
     }
