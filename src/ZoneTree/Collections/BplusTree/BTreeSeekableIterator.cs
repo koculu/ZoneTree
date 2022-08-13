@@ -36,15 +36,12 @@ public class BTreeSeekableIterator<TKey, TValue>
         if (CurrentNode.Next())
             return true;
 
-        while (true)
-        {
-            var nextNode = CurrentNode.GetNextNodeIterator();
-            if (nextNode == null)
-                return false;
-            nextNode.SeekBegin();
-            CurrentNode = nextNode;
-            return nextNode.HasCurrent;
-        }
+        var nextNode = CurrentNode.GetNextNodeIterator();
+        if (nextNode == null)
+            return false;
+        nextNode.SeekBegin();
+        CurrentNode = nextNode;
+        return nextNode.HasCurrent;
     }
 
     public bool Prev()
@@ -52,15 +49,12 @@ public class BTreeSeekableIterator<TKey, TValue>
         if (CurrentNode.Previous())
             return true;
 
-        while (true)
-        {
-            var prevNode = CurrentNode.GetPreviousNodeIterator();
-            if (prevNode == null)
-                return false;
-            CurrentNode = prevNode;
-            prevNode.SeekEnd();
-            return prevNode.HasCurrent;
-        }
+        var prevNode = CurrentNode.GetPreviousNodeIterator();
+        if (prevNode == null)
+            return false;
+        CurrentNode = prevNode;
+        prevNode.SeekEnd();
+        return prevNode.HasCurrent;
     }
 
     public bool SeekBegin()
