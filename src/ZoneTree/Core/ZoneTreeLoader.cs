@@ -184,20 +184,4 @@ public class ZoneTreeLoader<TKey, TValue>
             ReadOnlySegments, SegmentZero, DiskSegment, maximumSegmentId);
         return zoneTree;
     }
-
-    // TODO: implement the meta file recovery from existing files
-    private ZoneTree<TKey, TValue> RecoverMetaFileAndLoadZoneTree()
-    {
-        RecoverZoneTreeMeta();
-        LoadSegmentZero();
-        LoadDiskSegment();
-        LoadReadOnlySegments();
-        var zoneTree = new ZoneTree<TKey, TValue>(Options, ZoneTreeMeta,
-            ReadOnlySegments, SegmentZero, DiskSegment, maximumSegmentId);
-        return zoneTree;
-    }
-
-    private void RecoverZoneTreeMeta()
-    {
-    }
 }

@@ -325,13 +325,19 @@ public class IteratorTests
             iterator.SeekFirst();
             var counter = 1;
             var isValidData = true;
+            var previousKey = int.MaxValue;
             while (iterator.Next())
             {
                 var expected = iterator.CurrentKey + iterator.CurrentKey;
                 if (iterator.CurrentValue != expected)
                     isValidData = false;
+                if (iterator.CurrentKey >= previousKey)
+                    throw new Exception("Iterator is not iterating in valid order.");
+                previousKey = iterator.CurrentKey;
                 ++counter;
             }
+            if (counter < initialCount)
+                Console.WriteLine(initialCount + " > " + counter);
             Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
             Assert.That(isValidData, Is.True);
         });
