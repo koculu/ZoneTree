@@ -4,6 +4,8 @@ namespace Tenray.ZoneTree.Core;
 
 public class ZoneTreeMeta
 {
+    public string Version { get; set; }
+
     public string ComparerType { get; set; }
 
     public string KeyType { get; set; }

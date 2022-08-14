@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Segments.Disk;
@@ -151,8 +153,13 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         long[] readOnlySegments,
         bool createNew = false)
     {
+        string productVersion = 
+            FileVersionInfo
+            .GetVersionInfo(Assembly.GetExecutingAssembly().Location)
+            .FileVersion;
         var newZoneTreeMeta = new ZoneTreeMeta
         {
+            Version = productVersion,
             KeyType = zoneTreeMeta.KeyType,
             ValueType = zoneTreeMeta.ValueType,
             ComparerType = zoneTreeMeta.ComparerType,
