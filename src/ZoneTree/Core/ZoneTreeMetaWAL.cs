@@ -148,7 +148,8 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         ZoneTreeMeta zoneTreeMeta,
         long segmentZero,
         long diskSegment,
-        long[] readOnlySegments)
+        long[] readOnlySegments,
+        bool createNew = false)
     {
         var newZoneTreeMeta = new ZoneTreeMeta
         {
@@ -172,26 +173,27 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
                 WriteIndented = true
             });
         var deviceManager = Options.RandomAccessDeviceManager;
+        var metaFilePath = deviceManager.GetFilePath(0, MetaFileCategory);
 
-        using var device = deviceManager
-            .CreateWritableDevice(
-                ZoneTreeMetaId, MetaFileCategory, false, 0, 0, false, false);
-
-        // If crash occurs during following 3 operations,
-        // the tree meta file would become corrupted.
-        // However, it is possible to recover the tree meta file by traversing 
-        // the WAL and Segment files. Because of that
-        // we don't implement a backup logic here.
-
-        // 1. clear the target json meta file.
-        device.ClearContent();
-        // 2. save the json meta file
-        device.AppendBytesReturnPosition(bytes);
-        // 3. clear the meta WAL file
+        if (createNew)
+        {
+            using var stream = deviceManager.FileStreamProvider
+                .CreateFileStream(
+                    metaFilePath,
+                    FileMode.CreateNew,
+                    FileAccess.Write,
+                    FileShare.None);
+            stream.Write(bytes);
+            stream.Flush(true);
+        }
+        else
+        {
+            deviceManager
+                .FileStreamProvider
+                .GetDurableFileWriter()
+                .WriteAllBytes(metaFilePath, bytes);
+        }
         ClearContent();
-
-        device.Close();
-        deviceManager.RemoveWritableDevice(device.SegmentId, MetaFileCategory);
         zoneTreeMeta.SegmentZero = segmentZero;
         zoneTreeMeta.DiskSegment = diskSegment;
         zoneTreeMeta.ReadOnlySegments = readOnlySegments;

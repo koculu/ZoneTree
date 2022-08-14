@@ -90,7 +90,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             ZoneTreeMeta,
             SegmentZero.SegmentId,
             DiskSegment.SegmentId,
-            Array.Empty<long>());
+            Array.Empty<long>(),
+            true);
     }
 
     public ZoneTree(

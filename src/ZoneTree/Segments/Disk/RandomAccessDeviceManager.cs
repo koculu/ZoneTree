@@ -4,7 +4,7 @@ namespace Tenray.ZoneTree.Segments.Disk;
 
 public class RandomAccessDeviceManager : IRandomAccessDeviceManager
 {
-    readonly IFileStreamProvider FileStreamProvider;
+    public IFileStreamProvider FileStreamProvider { get; }
 
     readonly Dictionary<string, IRandomAccessDevice> ReadOnlyDevices = new();
 
@@ -80,7 +80,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         return segmentId + category;
     }
 
-    private string GetFilePath(long segmentId, string category)
+    public string GetFilePath(long segmentId, string category)
     {
         return Path.Combine(DataDirectory, segmentId + category);
     }

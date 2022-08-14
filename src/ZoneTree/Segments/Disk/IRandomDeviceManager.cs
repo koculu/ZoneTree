@@ -1,7 +1,11 @@
-﻿namespace Tenray.ZoneTree.Segments.Disk;
+﻿using Tenray.ZoneTree.AbstractFileStream;
+
+namespace Tenray.ZoneTree.Segments.Disk;
 
 public interface IRandomAccessDeviceManager
 {
+    IFileStreamProvider FileStreamProvider { get; }
+
     IRandomAccessDevice GetReadOnlyDevice(
         long segmentId, string category, bool isCompressed, 
         int compressionBlockSize, int maxCachedBlockCount);
@@ -31,5 +35,7 @@ public interface IRandomAccessDeviceManager
 
     void RemoveWritableDevice(long segmentId, string category);
 
-    void DropStore();    
+    void DropStore();
+
+    string GetFilePath(long segmentId, string category);
 }

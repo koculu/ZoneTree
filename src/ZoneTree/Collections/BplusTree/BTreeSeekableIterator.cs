@@ -52,8 +52,8 @@ public class BTreeSeekableIterator<TKey, TValue>
         var prevNode = CurrentNode.GetPreviousNodeIterator();
         if (prevNode == null)
             return false;
-        CurrentNode = prevNode;
         prevNode.SeekEnd();
+        CurrentNode = prevNode;
         return prevNode.HasCurrent;
     }
 
