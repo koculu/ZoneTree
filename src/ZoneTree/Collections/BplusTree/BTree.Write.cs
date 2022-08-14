@@ -135,11 +135,28 @@ public partial class BTree<TKey, TValue>
             (var left, var right) = childLeaf
                 .SplitLeaf(pivotPosition, LeafSize, GetNodeLocker(), GetNodeLocker());
 
-            left.Previous = childLeaf.Previous;
-            right.Next = childLeaf.Next;
-
             var pre = childLeaf.Previous;
+            pre?.WriteLock();
+            // prevent neighbour split at the same time.
+            while (childLeaf.Previous != pre)
+            {
+                pre.WriteUnlock();
+                pre = childLeaf.Previous;
+                pre.WriteLock();
+            }
+
             var next = childLeaf.Next;
+            next?.WriteLock();
+            // prevent neighbour split at the same time.
+            while (childLeaf.Next != next)
+            {
+                next.WriteUnlock();
+                next = childLeaf.Next;
+                next.WriteLock();
+            }
+
+            left.Previous = pre;
+            right.Next = next;
             
             if (pre == null)
                 FirstLeafNode = left;
@@ -150,6 +167,9 @@ public partial class BTree<TKey, TValue>
                 LastLeafNode = right;
             else
                 next.Previous = right;
+
+            next?.WriteUnlock();
+            pre?.WriteUnlock();
 
             parent.InsertKeyAndChild(parentInsertPosition, in pivotKey, left, right);
         }
@@ -176,8 +196,8 @@ public partial class BTree<TKey, TValue>
                     return false;
                 }
                 leaf.Insert(position, in key, in value);
-                node.WriteUnlock();
                 Interlocked.Increment(ref _length);
+                node.WriteUnlock();
                 return true;
             }
 
@@ -215,8 +235,8 @@ public partial class BTree<TKey, TValue>
 
                 opIndex = IncrementalIdProvider.NextId();
                 leaf.Insert(position, in key, in value);
-                node.WriteUnlock();
                 Interlocked.Increment(ref _length);
+                node.WriteUnlock();
                 return true;
             }
 
@@ -257,8 +277,8 @@ public partial class BTree<TKey, TValue>
                 TValue value = default;
                 adder(ref value);
                 leaf.Insert(position, in key, in value);
-                node.WriteUnlock();
                 Interlocked.Increment(ref _length);
+                node.WriteUnlock();
                 return AddOrUpdateResult.ADDED;
             }
 

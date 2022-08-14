@@ -35,6 +35,11 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     int ReadOnlySegmentsRecordCount { get; }
 
     /// <summary>
+    /// Retrieves the number of records in mutable segment (SegmentZero).
+    /// </summary>
+    int MutableSegmentRecordCount { get; }
+
+    /// <summary>
     /// Retrieves the total number of records that lies in memory
     /// excluding the sparse array records of DiskSegment.
     /// In an LSM tree, records can be duplicated across different segments.

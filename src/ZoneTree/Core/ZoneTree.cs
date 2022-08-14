@@ -51,6 +51,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public int ReadOnlySegmentsRecordCount => ReadOnlySegmentQueue.Sum(x => x.Length);
 
+    public int MutableSegmentRecordCount => SegmentZero.Length;
+
     public int InMemoryRecordCount =>
         SegmentZero.Length + ReadOnlySegmentsRecordCount;
 
