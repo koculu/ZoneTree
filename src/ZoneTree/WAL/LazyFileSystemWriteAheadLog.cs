@@ -40,7 +40,11 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         }
     }
 
+    readonly object AppendLock = new();
+
     volatile bool isRunning = false;
+
+    volatile bool isWriterCancelled = false;
 
     volatile Task WriteTask;
 
@@ -88,6 +92,14 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
             ConsumeQueue();
     }
 
+    void CancelWriter()
+    {
+        lock (AppendLock)
+        {
+            isWriterCancelled = true;
+        }
+    }
+
     void ConsumeQueue()
     {
         lock (this)
@@ -114,10 +126,9 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                     var valueBytes = ValueSerializer.Serialize(q.Value);
                     AppendLogEntry(keyBytes, valueBytes, q.OpIndex);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // todo log the exception.
-                    //Console.WriteLine(e.Message);
                 }
             }
             if (isRunning && Queue.IsEmpty)
@@ -126,11 +137,12 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 {
                     FileStream.WriteTail();
                 }
-                catch(Exception e)
+                catch(Exception)
                 {
                     // todo log the exception.
-                    // Console.WriteLine(e.Message);
                 }
+                if (!isRunning)
+                    break;
                 if (EmptyQueuePollInterval == 0)
                     Thread.Yield();
                 else
@@ -184,26 +196,31 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     void AppendLogEntry(byte[] keyBytes, byte[] valueBytes, long opIndex)
     {
-        var entry = new LogEntry
+        lock (AppendLock)
         {
-            OpIndex = opIndex,
-            KeyLength = keyBytes.Length,
-            ValueLength = valueBytes.Length,
-            Key = keyBytes,
-            Value = valueBytes
-        };
-        entry.Checksum = entry.CreateChecksum();
+            if (isWriterCancelled)
+                return;
+            var entry = new LogEntry
+            {
+                OpIndex = opIndex,
+                KeyLength = keyBytes.Length,
+                ValueLength = valueBytes.Length,
+                Key = keyBytes,
+                Value = valueBytes
+            };
+            entry.Checksum = entry.CreateChecksum();
 
-        var binaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
-        binaryWriter.Write(entry.OpIndex);
-        binaryWriter.Write(entry.KeyLength);
-        binaryWriter.Write(entry.ValueLength);
-        if (entry.Key != null)
-            binaryWriter.Write(entry.Key);
-        if (entry.Value != null)
-            binaryWriter.Write(entry.Value);
-        binaryWriter.Write(entry.Checksum);
-        binaryWriter.Flush();
+            var binaryWriter = BinaryWriter;
+            binaryWriter.Write(entry.OpIndex);
+            binaryWriter.Write(entry.KeyLength);
+            binaryWriter.Write(entry.ValueLength);
+            if (entry.Key != null)
+                binaryWriter.Write(entry.Key);
+            if (entry.Value != null)
+                binaryWriter.Write(entry.Value);
+            binaryWriter.Write(entry.Checksum);
+            binaryWriter.Flush();
+        }
     }
 
     static void ReadLogEntry(BinaryReader reader, ref LogEntry entry)
@@ -262,15 +279,18 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
             }
             else
             {
-                StopWriter(false);
                 Queue.Clear();
+                CancelWriter();
             }
             // Replacement crash recovery is not required here,
             // because the lazy write ahead log is not durable.
             // implementing crash recovery here does not make it durable.
             var existingLength = FileStream.Length;
             FileStream.SetLength(0);
-            StartWriter();
+            if (isWriterCancelled)
+                isWriterCancelled = false;
+            else
+                StartWriter();
             var len = keys.Length;
             for (var i = 0; i < len; ++i)
             {
