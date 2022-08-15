@@ -8,7 +8,7 @@ It can operate in memory or on disk. (Optimized for SSDs)
 
 ZoneTree is a lightweight, transactional and high-performance LSM Tree for .NET.
 
-It is four times faster than Facebook's RocksDB and hundreds of times faster than SQLite. It is faster than any other alternative that I have tested so far.
+It is several times faster than Facebook's RocksDB and hundreds of times faster than SQLite. It is faster than any other alternative that I have tested so far.
 100 Million integer key-value pair inserts in 20 seconds. You may get longer durations based on the durability level. 
 For example, with Lazy WAL mode, you can insert 100M integer key-value pairs in 28 seconds. Background merge operation that might take a bit longer is excluded from the insert duration because your inserted data is immediately queryable.
 Loading 100M integer key-value pair database is in 812 ms. The iteration on 100M key-value pairs takes 24 seconds.
@@ -289,6 +289,7 @@ The following sample shows traditional way of doing transactions with ZoneTree.
 | Use your custom serializer for keys and values. |
 | Use your custom comparer. |
 | MultipleDiskSegments Mode to enable dividing data files into configurable sized chunks.|
+|Snapshot iterators.|
 
 ## I need more information. Where can I find it?
 I am going to write more detailed documentation as soon as possible.

@@ -2,7 +2,7 @@
 
 /*
 The 3M shuffled parallel inserts & reads test results per BTree lock mode.
-The best lock mode might change depend on your hardward, data, key length etc.
+The best lock mode might change depend on your hardware, data, key length etc.
 
 |                Method |    Mean | Error |     Min |     Max |  Median |      Gen 0 |     Gen 1 |     Gen 2 | Allocated |
 |---------------------- |--------:|------:|--------:|--------:|--------:|-----------:|----------:|----------:|----------:|
