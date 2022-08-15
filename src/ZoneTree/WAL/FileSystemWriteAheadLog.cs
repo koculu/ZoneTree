@@ -13,15 +13,17 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     readonly IFileStreamProvider FileStreamProvider;
 
-    readonly IFileStream FileStream;
+    IFileStream FileStream;
 
-    readonly BinaryWriter BinaryWriter;
-
+    BinaryWriter BinaryWriter;
+    
     readonly ISerializer<TKey> KeySerializer;
 
     readonly ISerializer<TValue> ValueSerializer;
+    
+    readonly int FileStreamBufferSize;
 
-    public string FilePath { get; }
+    public string FilePath { get; }    
 
     public bool EnableIncrementalBackup { get; set; }
 
@@ -30,18 +32,24 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
-        int writeBufferSize = 4096)
+        int fileStreamBufferSize = 4096)
     {
         FilePath = filePath;
-        FileStream = fileStreamProvider.CreateFileStream(filePath,
-            FileMode.OpenOrCreate,
-            FileAccess.ReadWrite,
-            FileShare.Read, writeBufferSize);
-        BinaryWriter = new BinaryWriter(FileStream.ToStream(), Encoding.UTF8, true);
-        FileStream.Seek(0, SeekOrigin.End);
+        FileStreamBufferSize = fileStreamBufferSize;        
         FileStreamProvider = fileStreamProvider;
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
+        CreateFileStream();
+    }
+
+    void CreateFileStream()
+    {
+        FileStream = FileStreamProvider.CreateFileStream(FilePath,
+            FileMode.OpenOrCreate,
+            FileAccess.ReadWrite,
+            FileShare.Read, FileStreamBufferSize);
+        BinaryWriter = new BinaryWriter(FileStream.ToStream(), Encoding.UTF8, true);
+        FileStream.Seek(0, SeekOrigin.End);
     }
 
     public void Append(in TKey key, in TValue value, long opIndex)
@@ -190,21 +198,58 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                         });
             }
 
-            // Todo: Implement replacement crash recovery.
-            // 1. Take backup of the existing WAL
-            // 2. Replace the current WAL
-            // 3. Delete the backup
-            // 4. Add backup recovery to the constructor if one exists.
-
             var existingLength = FileStream.Length;
-            FileStream.SetLength(0);
-
-            var len = keys.Length;
-            for (var i = 0; i < len; ++i)
+            long diff = 0;
+            try
             {
-                Append(keys[i], values[i], i);
+                // Replacement crash recovery:
+                // 1. Write keys and values to the tmp file.
+                // 2. Use Replace API to replace target file.
+
+                FileStream.Dispose();
+                BinaryWriter = null;
+
+                var tmpFilePath = FilePath + ".tmp";
+                var existingFileStream = FileStream;
+                using (var tmpFileStream = FileStreamProvider.CreateFileStream(
+                    tmpFilePath,
+                    FileMode.OpenOrCreate,
+                    FileAccess.ReadWrite,
+                    FileShare.Read,
+                    FileStreamBufferSize))
+                {
+                    FileStream = tmpFileStream;
+                    BinaryWriter = new BinaryWriter(tmpFileStream.ToStream(), Encoding.UTF8, true);
+                    tmpFileStream.SetLength(0);
+                    var len = keys.Length;
+                    for (var i = 0; i < len; ++i)
+                    {
+                        Append(keys[i], values[i], i);
+                    }
+                    diff = existingLength - FileStream.Length;
+                    FileStream = null;
+                }
+
+                // atomic replacement using OS API.
+                FileStreamProvider.Replace(tmpFilePath, FilePath, null);
+                CreateFileStream();
             }
-            var diff = existingLength - FileStream.Length;
+            catch (Exception)
+            {
+                FileStream?.Dispose();
+                CreateFileStream();
+                diff = existingLength - FileStream.Length;
+            }
+            finally
+            {
+                if (FileStream == null)
+                    CreateFileStream();
+                else if (FileStream.FilePath != FilePath)
+                {
+                    FileStream?.Dispose();
+                    CreateFileStream();
+                }
+            }
             return diff;
         }
     }

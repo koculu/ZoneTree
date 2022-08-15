@@ -125,7 +125,6 @@ public sealed class CompressedFileStream : Stream, IDisposable
     void StopTailWriter()
     {
         IsTailWriterRunning = false;
-        TailWriter?.Wait();
     }
 
     void LoadTail()
@@ -179,7 +178,6 @@ public sealed class CompressedFileStream : Stream, IDisposable
             return;
         if (IsClosed || !TailStream.CanWrite)
             return;
-        byte[] bytes = null;
         lock (this)
         {
             tailBlock = TailBlock;
@@ -194,7 +192,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
             TailStream.Position = 0;
             BinaryTailWriter.Write(tailBlock.BlockIndex);
             BinaryTailWriter.Write(tailBlock.Length);
-            bytes = tailBlock.GetBytes(0, tailBlock.Length);
+            var bytes = tailBlock.GetBytes(0, tailBlock.Length);
             BinaryTailWriter.Write(bytes);
             TailStream.Flush(true);
             LastWrittenTailIndex = tailBlock.BlockIndex;

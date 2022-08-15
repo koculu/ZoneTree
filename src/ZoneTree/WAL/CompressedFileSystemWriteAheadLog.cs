@@ -11,16 +11,22 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
 {
     readonly IFileStreamProvider FileStreamProvider;
 
-    readonly CompressedFileStream FileStream;
+    CompressedFileStream FileStream;
 
-    readonly BinaryWriter BinaryWriter;
+    BinaryWriter BinaryWriter;
 
     readonly ISerializer<TKey> KeySerializer;
 
     readonly ISerializer<TValue> ValueSerializer;
 
     public string FilePath { get; }
-
+    
+    public int CompressionBlockSize { get; }
+    
+    public bool EnableTailWriterJob { get; }
+    
+    public int TailWriterJobInterval { get; }
+    
     public bool EnableIncrementalBackup { get; set; }
 
     public CompressedFileSystemWriteAheadLog(
@@ -34,15 +40,23 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
     {
         FileStreamProvider = fileStreamProvider;
         FilePath = filePath;
-        FileStream = new CompressedFileStream(
-            fileStreamProvider,
-            filePath,
-            compressionBlockSize,
-            enableTailWriterJob,
-            tailWriterJobInterval);
-        BinaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
+        CompressionBlockSize = compressionBlockSize;
+        EnableTailWriterJob = enableTailWriterJob;
+        TailWriterJobInterval = tailWriterJobInterval;
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
+        CreateFileStream();
+    }
+
+    void CreateFileStream()
+    {
+        FileStream = new CompressedFileStream(
+            FileStreamProvider,
+            FilePath,
+            CompressionBlockSize,
+            EnableTailWriterJob,
+            TailWriterJobInterval);
+        BinaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
     }
 
     public void Append(in TKey key, in TValue value, long opIndex)
@@ -168,21 +182,62 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
                         });
             }
 
-            // Todo: Implement replacement crash recovery.
-            // 1. Take backup of the existing WAL
-            // 2. Replace the current WAL
-            // 3. Delete the backup
-            // 4. Add backup recovery to the constructor if one exists.
-
             var existingLength = FileStream.Length;
-            FileStream.SetLength(0);
-
-            var len = keys.Length;
-            for (var i = 0; i < len; ++i)
+            long diff = 0;
+            try
             {
-                Append(keys[i], values[i], i);
+                // Replacement crash recovery:
+                // 1. Write keys and values to the tmp file.
+                // 2. Use Replace API to replace target file.
+
+                FileStream.Dispose();
+                BinaryWriter = null;
+
+                var tmpFilePath = FilePath + ".tmp";
+                var tmpTailFilePath = FilePath + ".tmp.tail";
+                var existingFileStream = FileStream;
+                using (var tmpFileStream = new CompressedFileStream(
+                    FileStreamProvider,
+                    FilePath,
+                    CompressionBlockSize,
+                    EnableTailWriterJob,
+                    TailWriterJobInterval))
+                {
+                    FileStream = tmpFileStream;
+                    BinaryWriter = new BinaryWriter(tmpFileStream, Encoding.UTF8, true);
+                    tmpFileStream.SetLength(0);
+                    var len = keys.Length;
+                    for (var i = 0; i < len; ++i)
+                    {
+                        Append(keys[i], values[i], i);
+                    }
+                    diff = existingLength - FileStream.Length;
+                    FileStream = null;
+                }
+
+                // CompressedFileStream tail does not have 100% durability.
+                // Therefore implementing replacement for tail with crash-resilience
+                // is not necessary.
+                FileStreamProvider.Replace(tmpFilePath, FilePath, null);
+                FileStreamProvider.Replace(tmpTailFilePath, FilePath + ".tail", null);
+                CreateFileStream();
             }
-            var diff = existingLength - FileStream.Length;
+            catch (Exception)
+            {
+                FileStream?.Dispose();
+                CreateFileStream();
+                diff = existingLength - FileStream.Length;
+            }
+            finally
+            {
+                if (FileStream == null)
+                    CreateFileStream();
+                else if(FileStream.FilePath != FilePath)
+                {
+                    FileStream?.Dispose();
+                    CreateFileStream();
+                }
+            }
             return diff;
         }
     }
