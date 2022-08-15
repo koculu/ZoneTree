@@ -16,7 +16,17 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 
     public int SparseArrayStepLength = 1_000;
 
+    /// <summary>
+    /// /// Starts merge operation
+    /// if records count in readonly segments exceeds this value.
+    /// </summary>
     public int ThresholdForMergeOperationStart = 2_000_000;
+
+    /// <summary>
+    /// Starts merge operation
+    /// if readonly segments count exceeds this value.
+    /// </summary>
+    public int MaximumReadOnlySegmentCount = 64;
 
     public bool EnablePeriodicTimer { get; set; } = true;
 
@@ -99,7 +109,9 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 
     void OnSegmentZeroMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)
     {
-        if (Maintenance.ReadOnlySegmentsRecordCount > ThresholdForMergeOperationStart)
+        if (Maintenance.ReadOnlySegmentsCount > MaximumReadOnlySegmentCount)
+            StartMerge();
+        else if (Maintenance.ReadOnlySegmentsRecordCount > ThresholdForMergeOperationStart)
             StartMerge();
     }
 
