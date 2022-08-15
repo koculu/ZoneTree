@@ -2,6 +2,8 @@
 
 public interface IFileStream : IDisposable
 {
+    string FilePath { get; }
+
     long Position { get; set; }
 
     long Length { get; }

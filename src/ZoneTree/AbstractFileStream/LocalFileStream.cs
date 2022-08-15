@@ -11,8 +11,11 @@ public class LocalFileStream : Stream, IFileStream
         int bufferSize,
         FileOptions options)
     {
+        FilePath = path;
         FileStream = new FileStream(path, mode, access, share, bufferSize, options);
     }
+
+    public string FilePath { get; }
 
     public override bool CanRead => FileStream.CanRead;
 
