@@ -245,4 +245,92 @@ public class SafeBTreeTests
 
         task.Wait();
     }
+
+    [TestCase(BTreeLockMode.TopLevelReaderWriter)]
+    [TestCase(BTreeLockMode.TopLevelMonitor)]
+    [TestCase(BTreeLockMode.NodeLevelReaderWriter)]
+    [TestCase(BTreeLockMode.NodeLevelMonitor)]
+    public void IntIntDuplicateRecords(BTreeLockMode lockMode)
+    {
+        var random = new Random();
+        var insertCount = 1000000;
+        var iteratorCount = 1000;
+
+        var tree = new BTree<int, int>(new Int32ComparerAscending(), lockMode);
+        var task = Task.Run(() =>
+        {
+            Parallel.For(0, insertCount, (x) =>
+            {
+                var key = random.Next(0, 100000);
+                tree.Upsert(key, key + key, out _);
+            });
+        });
+
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var initialCount = tree.Length;
+            var iterator = new BTreeSeekableIterator<int, int>(tree);
+            var counter = iterator.SeekBegin() ? 1 : 0;
+            var isValidData = true;
+            var previousKey = int.MinValue;
+            while (iterator.Next())
+            {
+                var expected = iterator.CurrentKey + iterator.CurrentKey;
+                if (iterator.CurrentValue != expected)
+                    isValidData = false;
+                if (iterator.CurrentKey <= previousKey)
+                    throw new Exception(
+                        $"Iterator is not iterating in valid order.{iterator.CurrentKey} <= {previousKey}");
+                previousKey = iterator.CurrentKey;
+                ++counter;
+            }
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(isValidData, Is.True);
+        });
+        task.Wait();
+    }
+
+    [TestCase(BTreeLockMode.TopLevelReaderWriter)]
+    [TestCase(BTreeLockMode.TopLevelMonitor)]
+    [TestCase(BTreeLockMode.NodeLevelReaderWriter)]
+    [TestCase(BTreeLockMode.NodeLevelMonitor)]
+    public void IntIntDuplicateReverseRecords(BTreeLockMode lockMode)
+    {
+        var random = new Random();
+        var insertCount = 1000000;
+        var iteratorCount = 1000;
+
+        var tree = new BTree<int, int>(new Int32ComparerAscending(), lockMode);
+        var task = Task.Run(() =>
+        {
+            Parallel.For(0, insertCount, (x) =>
+            {
+                var key = random.Next(0, 100000);
+                tree.Upsert(key, key + key, out _);
+            });
+        });
+
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var initialCount = tree.Length;
+            var iterator = new BTreeSeekableIterator<int, int>(tree);
+            var counter = iterator.SeekEnd() ? 1 : 0;
+            var isValidData = true;
+            var previousKey = int.MaxValue;
+            while (iterator.Prev())
+            {
+                var expected = iterator.CurrentKey + iterator.CurrentKey;
+                if (iterator.CurrentValue != expected)
+                    isValidData = false;
+                if (iterator.CurrentKey >= previousKey)
+                    throw new Exception(
+                        $"Reverse Iterator is not iterating in valid order.{iterator.CurrentKey} >= {previousKey}");
+                previousKey = iterator.CurrentKey;
+                ++counter;
+            }
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(isValidData, Is.True);
+        });
+        task.Wait();
+    }
 }

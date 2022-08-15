@@ -200,7 +200,8 @@ public partial class BTree<TKey, TValue>
                 node.WriteUnlock();
                 return true;
             }
-
+            if (found)
+                ++position;
             var child = node.Children[position];
             child.WriteLock();
             if (child.IsFull)
@@ -208,7 +209,7 @@ public partial class BTree<TKey, TValue>
                 SplitChild(node, position, child);
                 child.WriteUnlock();
 
-                if (Comparer.Compare(in key, in node.Keys[position]) > 0)
+                if (Comparer.Compare(in key, in node.Keys[position]) >= 0)
                     ++position;
 
                 child = node.Children[position];
@@ -240,6 +241,9 @@ public partial class BTree<TKey, TValue>
                 return true;
             }
 
+            if (found)
+                ++position;
+
             var child = node.Children[position];
             child.WriteLock();
             if (child.IsFull)
@@ -247,7 +251,7 @@ public partial class BTree<TKey, TValue>
                 SplitChild(node, position, child);
                 child.WriteUnlock();
 
-                if (Comparer.Compare(in key, in node.Keys[position]) > 0)
+                if (Comparer.Compare(in key, in node.Keys[position]) >= 0)
                     ++position;
 
                 child = node.Children[position];
@@ -282,6 +286,9 @@ public partial class BTree<TKey, TValue>
                 return AddOrUpdateResult.ADDED;
             }
 
+            if (found)
+                ++position;
+
             var child = node.Children[position];
             child.WriteLock();
             if (child.IsFull)
@@ -289,7 +296,7 @@ public partial class BTree<TKey, TValue>
                 SplitChild(node, position, child);
                 child.WriteUnlock();
 
-                if (Comparer.Compare(in key, in node.Keys[position]) > 0)
+                if (Comparer.Compare(in key, in node.Keys[position]) >= 0)
                     ++position;
 
                 child = node.Children[position];

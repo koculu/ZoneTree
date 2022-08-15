@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.Comparers;
+﻿using Tenray.ZoneTree.Collections.BplusTree.Lock;
+using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.UnitTests;
@@ -289,16 +290,16 @@ public class IteratorTests
         zoneTree.Maintenance.DestroyTree();
     }
 
-
-    [Test]
-    public void IntIntReverseIteratorParallelInserts()
+    [TestCase(true)]
+    [TestCase(false)]
+    public void IntIntReverseIteratorParallelInserts(bool reverse)
     {
         var dataPath = "data/IntIntReverseIteratorParallelInserts";
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
         var random = new Random();
-        var insertCount = 100000;
+        var insertCount = 1000000;
         var iteratorCount = 1000;
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
@@ -308,36 +309,45 @@ public class IteratorTests
             .SetWriteAheadLogDirectory(dataPath)
             .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new Int32Serializer())
+            .Configure(x =>
+            {
+                x.BTreeLockMode = BTreeLockMode.NodeLevelMonitor;
+            })
             .OpenOrCreate();
 
-        var task = Task.Factory.StartNew(() =>
+        var task = Task.Run(() =>
         {
             Parallel.For(0, insertCount, (x) =>
             {
-                var key = random.Next();
+                var key = random.Next(0, 100_000);
                 zoneTree.Upsert(key, key + key);
             });
         });
         Parallel.For(0, iteratorCount, (x) =>
         {
-            var initialCount = zoneTree.Maintenance.InMemoryRecordCount;
-            using var iterator = zoneTree.CreateReverseIterator(false);
+            var initialCount = zoneTree.Maintenance.MutableSegmentRecordCount;
+            using var iterator = 
+                reverse ?
+                zoneTree.CreateReverseIterator(false) :
+                zoneTree.CreateIterator(false);
             iterator.SeekFirst();
             var counter = 1;
             var isValidData = true;
-            var previousKey = int.MaxValue;
+            var previousKey = reverse ? int.MaxValue : int.MinValue;
             while (iterator.Next())
             {
                 var expected = iterator.CurrentKey + iterator.CurrentKey;
                 if (iterator.CurrentValue != expected)
                     isValidData = false;
-                if (iterator.CurrentKey >= previousKey)
+                if (reverse && iterator.CurrentKey >= previousKey)
+                    throw new Exception("Reverse Iterator is not iterating in valid order.");
+
+                if (!reverse && iterator.CurrentKey <= previousKey)
                     throw new Exception("Iterator is not iterating in valid order.");
+
                 previousKey = iterator.CurrentKey;
                 ++counter;
             }
-            if (counter < initialCount)
-                Console.WriteLine(initialCount + " > " + counter);
             Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
             Assert.That(isValidData, Is.True);
         });
