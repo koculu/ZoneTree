@@ -315,13 +315,6 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             HistoryTable.CompactWriteAheadLog();
             DependencyTable.CompactWriteAheadLog();
             ReadWriteStamps.CompactWriteAheadLog();
-
-#if DEBUG
-            Console.WriteLine("t" + Transactions.Length +
-                "-h" + HistoryTable.Length +
-                "-d" + DependencyTable.Length +
-                "-s" + ReadWriteStamps.Length);
-#endif
         }
     }
 
