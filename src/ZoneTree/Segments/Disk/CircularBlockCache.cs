@@ -9,12 +9,6 @@ public class CircularBlockCache
     readonly ConcurrentDictionary<int, DecompressedBlock> Table
         = new();
 
-    /// <summary>
-    /// A block cache cannot be overwritten by another block
-    /// if it's last access time + minimum block life span is smaller than now.
-    /// </summary>
-    public long MinimumBlockLifeSpanInMilliseconds = 2000;
-
     public int Count => Table.Count;
 
     public CircularBlockCache(int maxCachedBlockCount)
@@ -28,17 +22,7 @@ public class CircularBlockCache
         var circularIndex = blockIndex % MaxCachedBlockCount;
         Table.AddOrUpdate(circularIndex,
             block,
-            (key, existingBlock) =>
-            {
-                // todo: add secondary table to optimize
-                // cache index collision.
-                if (MaxCachedBlockCount > 32 && 
-                    existingBlock.LastAccessTicks + 
-                    MinimumBlockLifeSpanInMilliseconds >
-                    DateTime.UtcNow.Ticks)
-                    return existingBlock;
-                return block;
-            });
+            (key, existingBlock) => block);
     }
 
     public void RemoveBlock(int blockIndex)
