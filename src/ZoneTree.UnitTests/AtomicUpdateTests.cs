@@ -219,7 +219,7 @@ public class AtomicUpdateTests
                 Console.WriteLine(e.ToString());
             }
         });
-        using var iterator = data.CreateIterator(false);
+        using var iterator = data.CreateIterator(IteratorType.NoRefresh);
         while (iterator.Next())
         {
             var k = iterator.CurrentKey;

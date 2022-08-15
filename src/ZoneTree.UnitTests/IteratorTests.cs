@@ -42,7 +42,7 @@ public class IteratorTests
             zoneTree.Upsert(i, i + i);
         }
 
-        using var iterator = zoneTree.CreateIterator(true);
+        using var iterator = zoneTree.CreateIterator(IteratorType.AutoRefresh);
 
         for (var i = 0; i < b; ++i)
         {
@@ -56,7 +56,7 @@ public class IteratorTests
         Assert.That(iterator.Next(), Is.False);
         Assert.That(zoneTree.Count(), Is.EqualTo(b - 4));
 
-        using var reverseIterator = zoneTree.CreateReverseIterator(true);
+        using var reverseIterator = zoneTree.CreateReverseIterator(IteratorType.AutoRefresh);
 
         for (var i = b - 1; i >= 0; --i)
         {
@@ -115,7 +115,7 @@ public class IteratorTests
             zoneTree.Upsert(i, i + i);
         }
 
-        using var iterator = zoneTree.CreateIterator(true);
+        using var iterator = zoneTree.CreateIterator(IteratorType.AutoRefresh);
         iterator.Seek(13);
         for (var i = 13; i < b; ++i)
         {
@@ -145,7 +145,7 @@ public class IteratorTests
         Assert.That(iterator.Next(), Is.True);
         Assert.That(iterator.CurrentKey, Is.EqualTo(1));
 
-        using var reverseIterator = zoneTree.CreateReverseIterator(true);
+        using var reverseIterator = zoneTree.CreateReverseIterator(IteratorType.AutoRefresh);
         reverseIterator.Seek(451);
         for (var i = 451; i >= 0; --i)
         {
@@ -206,7 +206,7 @@ public class IteratorTests
         zoneTree.ForceDelete(11);
         zoneTree.ForceDelete(13);
         zoneTree.ForceDelete(15);
-        using var iterator = zoneTree.CreateIterator(true);
+        using var iterator = zoneTree.CreateIterator(IteratorType.AutoRefresh);
         iterator.Seek(13);
         zoneTree.Upsert(24, 48);
         for (var i = 17; i < b; ++i)
@@ -218,7 +218,7 @@ public class IteratorTests
              * This means inserts in the iterator position
              * of BTree Leaf node does not reflect inserts.
              * This is not a bug. Callers can always double check
-             * with TryGetKey() if they want to read most recent values.
+             * with TryGetKey() if they want to read most recent values
              * for every key they read from iteration.
              * Auto refresh property was made for SegmentZeroMoveForward
              * event. A manual refresh also works but it is expensive to call
@@ -271,9 +271,9 @@ public class IteratorTests
         Parallel.For(0, iteratorCount, (x) =>
         {
             var initialCount = zoneTree.Maintenance.InMemoryRecordCount;
-            using var iterator = zoneTree.CreateIterator(false);
+            using var iterator = zoneTree.CreateIterator(IteratorType.NoRefresh);
             iterator.SeekFirst();
-            var counter = 1;
+            var counter = 0;
             var isValidData = true;
             while (iterator.Next())
             {
@@ -328,10 +328,10 @@ public class IteratorTests
             var initialCount = zoneTree.Maintenance.MutableSegmentRecordCount;
             using var iterator = 
                 reverse ?
-                zoneTree.CreateReverseIterator(false) :
-                zoneTree.CreateIterator(false);
+                zoneTree.CreateReverseIterator(IteratorType.NoRefresh) :
+                zoneTree.CreateIterator(IteratorType.NoRefresh);
             iterator.SeekFirst();
-            var counter = 1;
+            var counter = 0;
             var isValidData = true;
             var previousKey = reverse ? int.MaxValue : int.MinValue;
             while (iterator.Next())
@@ -346,6 +346,55 @@ public class IteratorTests
                     throw new Exception("Iterator is not iterating in valid order.");
 
                 previousKey = iterator.CurrentKey;
+                ++counter;
+            }
+            Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));
+            Assert.That(isValidData, Is.True);
+        });
+
+        task.Wait();
+        zoneTree.Maintenance.DestroyTree();
+    }
+
+    [Test]
+    public void IntIntSnapshotIteratorParallelInserts()
+    {
+        var dataPath = "data/IntIntSnapshotIteratorParallelInserts";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        var random = new Random();
+        var insertCount = 100000;
+        var iteratorCount = 1000;
+
+        using var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetMutableSegmentMaxItemCount(insertCount * 2)
+            .SetComparer(new Int32ComparerAscending())
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetKeySerializer(new Int32Serializer())
+            .SetValueSerializer(new Int32Serializer())
+            .OpenOrCreate();
+
+        var task = Task.Factory.StartNew(() =>
+        {
+            Parallel.For(0, insertCount, (x) =>
+            {
+                zoneTree.Upsert(x, x + x);
+            });
+        });
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var initialCount = zoneTree.Maintenance.InMemoryRecordCount;
+            using var iterator = zoneTree.CreateIterator(IteratorType.Snapshot);
+            iterator.SeekFirst();
+            var counter = 0;
+            var isValidData = true;
+            while (iterator.Next())
+            {
+                var expected = iterator.CurrentKey + iterator.CurrentKey;
+                if (iterator.CurrentValue != expected)
+                    isValidData = false;
                 ++counter;
             }
             Assert.That(counter, Is.GreaterThanOrEqualTo(initialCount));

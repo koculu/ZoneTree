@@ -127,16 +127,17 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// Iterators are lightweight.
     /// Create them when you need and dispose them when you dont need.
     /// Iterators acquire locks on the disk segment and prevents its disposal.
+    /// 
+    /// Use snapshot iterators for consistent view by ignoring new writes.
     /// </remarks>
     /// 
-    /// <param name="autoRefresh">if true the iterator fetches the latest segments,
-    /// when it is needed, to continue the iteration with most recent records.</param>
+    /// <param name="iteratorType">Defines iterator type.</param>
     /// <param name="includeDeletedRecords">if true the iterator retrieves 
     /// the deleted and normal records</param>
     /// 
     /// <returns>ZoneTree Iterator</returns>
     IZoneTreeIterator<TKey, TValue> CreateIterator(
-        bool autoRefresh = true,
+        IteratorType iteratorType = IteratorType.AutoRefresh,
         bool includeDeletedRecords = false);
 
     /// <summary>
@@ -148,14 +149,12 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// Forward and backward iterator's performances are equal.
     /// </remarks>
     /// 
-    /// <param name="autoRefresh">if true the iterator fetches the latest segments,
-    /// when it is needed, to continue the iteration with most recent records.</param>
-    /// <param name="includeDeletedRecords">if true the iterator retrieves 
+    /// <param name="iteratorType">Defines iterator type.</param>/// <param name="includeDeletedRecords">if true the iterator retrieves 
     /// the deleted and normal records</param>
     /// 
     /// <returns>ZoneTree Iterator</returns>
     IZoneTreeIterator<TKey, TValue> CreateReverseIterator(
-        bool autoRefresh = true,
+        IteratorType iteratorType = IteratorType.AutoRefresh,
         bool includeDeletedRecords = false);
 
     /// <summary>

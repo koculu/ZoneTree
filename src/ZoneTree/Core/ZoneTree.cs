@@ -53,10 +53,27 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public int MutableSegmentRecordCount => SegmentZero.Length;
 
-    public int InMemoryRecordCount =>
-        SegmentZero.Length + ReadOnlySegmentsRecordCount;
+    public int InMemoryRecordCount
+    {
+        get
+        {
+            lock (AtomicUpdateLock)
+            {
+                return SegmentZero.Length + ReadOnlySegmentsRecordCount;
+            }
+        }
+    }
 
-    public int TotalRecordCount => InMemoryRecordCount + DiskSegment.Length;
+    public int TotalRecordCount
+    {
+        get
+        {
+            lock (ShortMergerLock)
+            {
+                return InMemoryRecordCount + DiskSegment.Length;
+            }
+        }
+    }
 
     public IZoneTreeMaintenance<TKey, TValue> Maintenance => this;
 
@@ -352,7 +369,10 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public void MoveSegmentZeroForward()
     {
-        MoveSegmentZeroForward(SegmentZero);
+        lock (AtomicUpdateLock)
+        {
+            MoveSegmentZeroForward(SegmentZero);
+        }
     }
 
     public void SaveMetaData()
@@ -768,30 +788,41 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         public IDiskSegment<TKey, TValue> DiskSegment { get; set; }
     }
 
-    public IZoneTreeIterator<TKey, TValue> CreateIterator(bool autoRefresh, bool includeDeletedRecords)
+    public IZoneTreeIterator<TKey, TValue> CreateIterator(
+        IteratorType iteratorType, bool includeDeletedRecords)
     {
+        var includeSegmentZero = iteratorType != IteratorType.Snapshot &&
+            iteratorType != IteratorType.ReadOnlyRegion;
+        if (iteratorType == IteratorType.Snapshot)
+            MoveSegmentZeroForward();
+
         var iterator = new ZoneTreeIterator<TKey, TValue>(
             Options,
             this,
             MinHeapEntryComparer,
-            autoRefresh: autoRefresh,
+            autoRefresh: iteratorType == IteratorType.AutoRefresh,
             isReverseIterator: false,
             includeDeletedRecords,
-            includeSegmentZero: true,
+            includeSegmentZero: includeSegmentZero,
             includeDiskSegment: true);
         return iterator;
     }
 
-    public IZoneTreeIterator<TKey, TValue> CreateReverseIterator(bool autoRefresh, bool includeDeletedRecords)
+    public IZoneTreeIterator<TKey, TValue> CreateReverseIterator(
+        IteratorType iteratorType, bool includeDeletedRecords)
     {
+        var includeSegmentZero = iteratorType != IteratorType.Snapshot &&
+            iteratorType != IteratorType.ReadOnlyRegion;
+        if (iteratorType == IteratorType.Snapshot)
+            MoveSegmentZeroForward();
         var iterator = new ZoneTreeIterator<TKey, TValue>(
             Options,
             this,
             MaxHeapEntryComparer,
-            autoRefresh: autoRefresh,
+            autoRefresh: iteratorType == IteratorType.AutoRefresh,
             isReverseIterator: true,
             includeDeletedRecords,
-            includeSegmentZero: true,
+            includeSegmentZero: includeSegmentZero,
             includeDiskSegment: true);
         return iterator;
     }
