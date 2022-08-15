@@ -30,7 +30,10 @@ public class CircularBlockCache
             block,
             (key, existingBlock) =>
             {
-                if (existingBlock.LastAccessTicks + 
+                // todo: add secondary table to optimize
+                // cache index collision.
+                if (MaxCachedBlockCount > 32 && 
+                    existingBlock.LastAccessTicks + 
                     MinimumBlockLifeSpanInMilliseconds >
                     DateTime.UtcNow.Ticks)
                     return existingBlock;
