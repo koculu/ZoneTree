@@ -1,7 +1,7 @@
 ﻿using System.Text;
+using System.Runtime.CompilerServices;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Exceptions.WAL;
 
 namespace Tenray.ZoneTree.WAL;
@@ -58,7 +58,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         var valueBytes = ValueSerializer.Serialize(value);
         lock (this)
         {
-            AppendLogEntry(keyBytes, valueBytes, opIndex);
+            AppendLogEntry(BinaryWriter, keyBytes, valueBytes, opIndex);
         }
     }
 
@@ -101,7 +101,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         }
     }
 
-    void AppendLogEntry(byte[] keyBytes, byte[] valueBytes, long opIndex)
+    void AppendLogEntry(BinaryWriter binaryWriter, byte[] keyBytes, byte[] valueBytes, long opIndex)
     {
         var entry = new LogEntry
         {
@@ -112,8 +112,6 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             Value = valueBytes
         };
         entry.Checksum = entry.CreateChecksum();
-
-        var binaryWriter = BinaryWriter;
         binaryWriter.Write(entry.OpIndex);
         binaryWriter.Write(entry.KeyLength);
         binaryWriter.Write(entry.ValueLength);
@@ -206,11 +204,22 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                 // 1. Write keys and values to the tmp file.
                 // 2. Use Replace API to replace target file.
 
+                var tmpFilePath = FilePath + ".tmp";
+                var existingFileStream = FileStream;
+                var capacity = keys.Length * (Unsafe.SizeOf<TKey>() + Unsafe.SizeOf<TValue>());
+                using var memoryStream = new MemoryStream(capacity);
+                var binaryWriter = new BinaryWriter(memoryStream, Encoding.UTF8, true);
+                var len = keys.Length;
+                for (var i = 0; i < len; ++i)
+                {
+                    var keyBytes = KeySerializer.Serialize(keys[i]);
+                    var valueBytes = ValueSerializer.Serialize(values[i]);
+                    AppendLogEntry(BinaryWriter, keyBytes, valueBytes, i);
+                }
+
                 FileStream.Dispose();
                 BinaryWriter = null;
 
-                var tmpFilePath = FilePath + ".tmp";
-                var existingFileStream = FileStream;
                 using (var tmpFileStream = FileStreamProvider.CreateFileStream(
                     tmpFilePath,
                     FileMode.OpenOrCreate,
@@ -218,14 +227,9 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                     FileShare.Read,
                     FileStreamBufferSize))
                 {
-                    FileStream = tmpFileStream;
-                    BinaryWriter = new BinaryWriter(tmpFileStream.ToStream(), Encoding.UTF8, true);
+                    FileStream = tmpFileStream;                    
                     tmpFileStream.SetLength(0);
-                    var len = keys.Length;
-                    for (var i = 0; i < len; ++i)
-                    {
-                        Append(keys[i], values[i], i);
-                    }
+                    memoryStream.CopyTo(tmpFileStream.ToStream());
                     diff = existingLength - FileStream.Length;
                     FileStream = null;
                 }
