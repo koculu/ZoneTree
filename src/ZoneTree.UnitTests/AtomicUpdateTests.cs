@@ -71,9 +71,9 @@ public class AtomicUpdateTests
     [TestCase(WriteAheadLogMode.Immediate)]
     [TestCase(WriteAheadLogMode.Lazy)]
     [TestCase(WriteAheadLogMode.CompressedImmediate)]
-    public void IntIntAtomicIncrementForSkipList(WriteAheadLogMode walMode)
+    public void IntIntAtomicIncrementForBTree(WriteAheadLogMode walMode)
     {
-        var dataPath = "data/IntIntAtomicIncrementForSkipList." + walMode;
+        var dataPath = "data/IntIntAtomicIncrementForBTree." + walMode;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 

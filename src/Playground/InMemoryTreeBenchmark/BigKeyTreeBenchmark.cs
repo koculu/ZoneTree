@@ -33,9 +33,6 @@ public class BigKeyTreeBenchmark
     public void InsertBTree() => RandomBigInserts.InsertBTree(Data);
 
     [Benchmark]
-    public void InsertSkipList() => RandomBigInserts.InsertSkipList(Data);
-
-    [Benchmark]
     public void InsertSortedDictionary() => RandomBigInserts.InsertSortedDictionary(Data);
 
 }

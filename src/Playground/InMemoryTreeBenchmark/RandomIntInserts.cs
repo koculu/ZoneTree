@@ -71,24 +71,6 @@ public static class RandomIntInserts
         }
     }
 
-    public static void InsertSkipList(int[] arr)
-    {
-        var count = arr.Length;
-        var tree = new SkipList<int, int>(new Int32ComparerAscending());
-        for (var i = 0; i < count; ++i)
-        {
-            var x = arr[i];
-            tree.TryInsert(x, x + x);
-        }
-        for (var i = 0; i < count; ++i)
-        {
-            var x = arr[i];
-            var exists = tree.TryGetValue(x, out var val);
-            if (!exists || val != x + x)
-                throw new Exception($"exists: {exists} ({x},{val}) != ({x},{x + x})");
-        }
-    }
-
     public static void InsertSortedDictionary(int[] arr)
     {
         var count = arr.Length;

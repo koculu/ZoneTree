@@ -32,9 +32,6 @@ public class MidSizeTreeBenchmark
     public void InsertBTree() => RandomMidSizeInserts.InsertBTree(Data);
 
     [Benchmark]
-    public void InsertSkipList() => RandomMidSizeInserts.InsertSkipList(Data);
-
-    [Benchmark]
     public void InsertSortedDictionary() => RandomMidSizeInserts.InsertSortedDictionary(Data);
 
 }

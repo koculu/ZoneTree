@@ -38,24 +38,6 @@ public static class RandomMidSizeInserts
         }
     }
 
-    public static void InsertSkipList(MidSizeKey[] arr)
-    {
-        var count = arr.Length;
-        var tree = new SkipList<MidSizeKey, MidSizeKey>(new MidSizeRefComparer());
-        for (var i = 0; i < count; ++i)
-        {
-            var x = arr[i];
-            tree.TryInsert(x, x);
-        }
-        for (var i = 0; i < count; ++i)
-        {
-            var x = arr[i];
-            var exists = tree.TryGetValue(x, out var val);
-            if (!exists || !val.Equals(x))
-                throw new Exception($"exists: {exists} ({x},{val}) != ({x},{x})");
-        }
-    }
-
     public static void InsertSortedDictionary(MidSizeKey[] arr)
     {
         var count = arr.Length;

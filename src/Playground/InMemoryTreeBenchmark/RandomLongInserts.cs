@@ -108,24 +108,6 @@ public static class RandomLongInserts
         Console.WriteLine("success: " + count);
     }
 
-    public static void InsertSkipList(long[] arr)
-    {
-        var count = arr.Length;
-        var tree = new SkipList<long, long>(new Int64ComparerAscending());
-        for (var i = 0; i < count; ++i)
-        {
-            var x = arr[i];
-            tree.TryInsert(x, x + x);
-        }
-        for (var i = 0; i < count; ++i)
-        {
-            var x = arr[i];
-            var exists = tree.TryGetValue(x, out var val);
-            if (!exists || val != x + x)
-                throw new Exception($"exists: {exists} ({x},{val}) != ({x},{x + x})");
-        }
-    }
-
     public static void InsertSortedDictionary(long[] arr)
     {
         var count = arr.Length;

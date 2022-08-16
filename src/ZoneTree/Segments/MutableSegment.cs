@@ -1,15 +1,4 @@
-﻿#undef USE_LOCK_FREE_SKIP_LIST
-#define USE_BTREE
-
-/*
- * Lock Free Skip List is turned off by default.
- * Because it is slower in most of the test cases.
- * The option is pinned here for future analysis and improvements
- * on lock-free skiplist implementation.
- * It might have advantages when the multi-threaded updates/inserts occur 
- * in different regions in the list.
- */
-
+﻿
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Core;
@@ -28,13 +17,8 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
     readonly MarkValueDeletedDelegate<TValue> MarkValueDeleted;
 
     readonly int MutableSegmentMaxItemCount;
-#if USE_BTREE
+
     readonly BTree<TKey, TValue> BTree;
-#elif USE_LOCK_FREE_SKIP_LIST
-    readonly LockFreeSkipList<TKey, TValue> BTree;
-#else
-    readonly SkipList<TKey, TValue> BTree;
-#endif
 
     readonly IRefComparer<TKey> Comparer;
 
@@ -65,13 +49,11 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                 options.ValueSerializer);
         Options = options;
         Comparer = options.Comparer;
-#if USE_BTREE
+
         BTree = new(Comparer,
             Options.BTreeLockMode,
             indexOpProvider);
-#else
-        BTree = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
-#endif
+
         MarkValueDeleted = options.MarkValueDeleted;
         MutableSegmentMaxItemCount = options.MutableSegmentMaxItemCount;
     }
@@ -88,12 +70,10 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         WriteAheadLog = wal;
         Options = options;
         Comparer = options.Comparer;
-#if USE_BTREE
+
         BTree = new(Comparer, Options.BTreeLockMode);
         BTree.SetNextOpIndex(nextOpIndex);
-#else
-        BTree = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
-#endif
+
         MarkValueDeleted = options.MarkValueDeleted;
         MutableSegmentMaxItemCount = options.MutableSegmentMaxItemCount;
         LoadLogEntries(keys, values);
@@ -161,41 +141,22 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
 
             TValue insertedValue = default;
-#if USE_BTREE
-            var status = BTree.AddOrUpdate(key,
-                AddOrUpdateResult (ref TValue x) =>
-                {
-                    MarkValueDeleted(ref x);
-                    insertedValue = x;
-                    return AddOrUpdateResult.ADDED;
-                },
-                AddOrUpdateResult (ref TValue x) =>
-                {
-                    MarkValueDeleted(ref x);
-                    insertedValue = x;
-                    return AddOrUpdateResult.UPDATED;
-                }, out var opIndex);
+
+            var status = BTree
+                .AddOrUpdate(key,
+                    AddOrUpdateResult (ref TValue x) =>
+                    {
+                        MarkValueDeleted(ref x);
+                        insertedValue = x;
+                        return AddOrUpdateResult.ADDED;
+                    },
+                    AddOrUpdateResult (ref TValue x) =>
+                    {
+                        MarkValueDeleted(ref x);
+                        insertedValue = x;
+                        return AddOrUpdateResult.UPDATED;
+                    }, out var opIndex);
             WriteAheadLog.Append(in key, in insertedValue, opIndex);
-#else
-            var status = BTree.AddOrUpdate(key,
-                (x) =>
-                {
-                    var value = x.Value;
-                    MarkValueDeleted(ref value);
-                    x.Value = value;
-                    insertedValue = value;
-                    return AddOrUpdateResult.ADDED;
-                },
-                (x) =>
-                {
-                    var value = x.Value;
-                    MarkValueDeleted(ref value);
-                    x.Value = value;
-                    insertedValue = value;
-                    return AddOrUpdateResult.UPDATED;
-                });
-            WriteAheadLog.Append(in key, in insertedValue);
-#endif
             return status;
         }
         finally
@@ -228,26 +189,14 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public IIndexedReader<TKey, TValue> GetIndexedReader()
     {
-#if USE_BTREE
         throw new NotSupportedException("BTree Indexed Reader is not supported.");
-#elif USE_LOCK_FREE_SKIP_LIST
-        return new LockFreeSkipListIndexedReader<TKey, TValue>(SkipList);
-#else
-        return new SkipListIndexedReader<TKey, TValue>(SkipList);
-#endif
     }
 
     public ISeekableIterator<TKey, TValue> GetSeekableIterator()
     {
-#if USE_BTREE
         return IsFullyFrozen ?
             new FrozenBTreeSeekableIterator<TKey, TValue>(BTree) :
             new BTreeSeekableIterator<TKey, TValue>(BTree);
-#elif USE_LOCK_FREE_SKIP_LIST
-        return new LockFreeSkipListSeekableIterator<TKey, TValue>(SkipList);
-#else
-        return new SkipListSeekableIterator<TKey, TValue>(SkipList);
-#endif
     }
 
     public void ReleaseResources()

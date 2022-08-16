@@ -33,9 +33,6 @@ public class IntTreeBenchmark
     public void InsertBTree() => RandomIntInserts.InsertBTree(Data);
 
     [Benchmark]
-    public void InsertSkipList() => RandomIntInserts.InsertSkipList(Data);
-
-    [Benchmark]
     public void InsertSortedDictionary() => RandomIntInserts.InsertSortedDictionary(Data);
 
 }

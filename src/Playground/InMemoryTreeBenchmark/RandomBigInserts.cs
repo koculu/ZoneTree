@@ -38,24 +38,6 @@ public static class RandomBigInserts
         }
     }
 
-    public static void InsertSkipList(BigKey[] arr)
-    {
-        var count = arr.Length;
-        var tree = new SkipList<BigKey, BigKey>(new BigRefComparer());
-        for (var i = 0; i < count; ++i)
-        {
-            var x = arr[i];
-            tree.TryInsert(x, x);
-        }
-        for (var i = 0; i < count; ++i)
-        {
-            var x = arr[i];
-            var exists = tree.TryGetValue(x, out var val);
-            if (!exists || !val.Equals(x))
-                throw new Exception($"exists: {exists} ({x},{val}) != ({x},{x})");
-        }
-    }
-
     public static void InsertSortedDictionary(BigKey[] arr)
     {
         var count = arr.Length;

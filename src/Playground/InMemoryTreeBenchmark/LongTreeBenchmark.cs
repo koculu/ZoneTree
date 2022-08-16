@@ -32,9 +32,6 @@ public class LongTreeBenchmark
     public void InsertBTree() => RandomLongInserts.InsertBTree(Data);
 
     [Benchmark]
-    public void InsertSkipList() => RandomLongInserts.InsertSkipList(Data);
-
-    [Benchmark]
     public void InsertSortedDictionary() => RandomLongInserts.InsertSortedDictionary(Data);
 
 }

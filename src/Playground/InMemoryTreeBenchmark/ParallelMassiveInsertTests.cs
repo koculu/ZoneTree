@@ -37,9 +37,6 @@ public class ParallelMassiveInsertTests
     [Benchmark]
     public void Parallel_BTree() => MassiveInsertsAndReadsBTree();
 
-    [Benchmark]
-    public void Parallel_SkipList() => MassiveInsertsAndReadsSkiplist();
-
     public void MassiveInsertsAndReadsBTree()
     {
         var tree = new BTree<long, long>(new Int64ComparerAscending(), BTreeLockMode);
@@ -49,23 +46,6 @@ public class ParallelMassiveInsertTests
             return ValueTask.CompletedTask;
         });
         var task2 = Parallel.ForEachAsync(Enumerable.Range(0, Count), (i, t) =>
-        {
-            tree.TryGetValue(i, out var j);
-            return ValueTask.CompletedTask;
-        });
-        task1.Wait();
-        task2.Wait();
-    }
-
-    public void MassiveInsertsAndReadsSkiplist()
-    {
-        var tree = new SkipList<long, long>(new Int64ComparerAscending());
-        var task1 = Parallel.ForEachAsync(Data, (i, t) =>
-        {
-            tree.TryInsert(i, i);
-            return ValueTask.CompletedTask;
-        });
-        var task2 = Parallel.ForEachAsync(Data, (i, t) =>
         {
             tree.TryGetValue(i, out var j);
             return ValueTask.CompletedTask;
