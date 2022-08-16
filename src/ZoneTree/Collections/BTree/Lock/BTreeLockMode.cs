@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Collections.BplusTree.Lock;
+﻿namespace Tenray.ZoneTree.Collections.BTree.Lock;
 
 /*
 The 3M shuffled parallel inserts & reads test results per BTree lock mode.
@@ -20,17 +20,17 @@ public enum BTreeLockMode
     /// Use it only if you are going to insert and read from single thread.
     /// </summary>
     NoLock,
-    
+
     /// <summary>
     /// Top level monitor lock.
     /// </summary>
     TopLevelMonitor,
-    
+
     /// <summary>
     /// Top level reader-writer lock.
     /// </summary>
     TopLevelReaderWriter,
-    
+
     /// <summary>
     /// Nodel level monitor lock.
     /// </summary>

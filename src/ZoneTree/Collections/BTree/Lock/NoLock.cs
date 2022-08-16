@@ -1,6 +1,6 @@
 ﻿using Tenray.ZoneTree.Collections.BTree;
 
-namespace Tenray.ZoneTree.Collections.BplusTree.Lock;
+namespace Tenray.ZoneTree.Collections.BTree.Lock;
 
 public class NoLock : ILocker
 {

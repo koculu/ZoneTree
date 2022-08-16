@@ -192,7 +192,7 @@ public partial class BTree<TKey, TValue>
                 if (found)
                 {
                     leaf.Update(position, in key, in value);
-                    node.WriteUnlock();                    
+                    node.WriteUnlock();
                     return false;
                 }
                 leaf.Insert(position, in key, in value);
