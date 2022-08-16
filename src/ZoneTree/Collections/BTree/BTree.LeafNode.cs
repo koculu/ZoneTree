@@ -16,13 +16,13 @@ public partial class BTree<TKey, TValue>
             Values = new TValue[leafSize];
         }
 
-        public virtual void Update(int position, in TKey key, in TValue value, long opIndex)
+        public void Update(int position, in TKey key, in TValue value)
         {
             Keys[position] = key;
             Values[position] = value;
         }
 
-        public virtual void Insert(int position, in TKey key, in TValue value, long opIndex)
+        public void Insert(int position, in TKey key, in TValue value)
         {
             var len = Length - position;
             if (len > 0)
@@ -35,7 +35,7 @@ public partial class BTree<TKey, TValue>
             ++Length;
         }
 
-        public virtual NodeIterator GetIterator(BTree<TKey, TValue> tree)
+        public NodeIterator GetIterator(BTree<TKey, TValue> tree)
         {
             try
             {
@@ -57,7 +57,7 @@ public partial class BTree<TKey, TValue>
             return new FrozenNodeIterator(this);
         }
 
-        public virtual (LeafNode left, LeafNode right) SplitLeaf(
+        public (LeafNode left, LeafNode right) SplitLeaf(
             int middle,
             int leafSize, ILocker locker1, ILocker locker2)
         {

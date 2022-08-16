@@ -68,7 +68,6 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 #if USE_BTREE
         BTree = new(Comparer,
             Options.BTreeLockMode,
-            Options.BTreeLeafMode,
             indexOpProvider);
 #else
         BTree = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
@@ -90,7 +89,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         Options = options;
         Comparer = options.Comparer;
 #if USE_BTREE
-        BTree = new(Comparer, Options.BTreeLockMode, Options.BTreeLeafMode);
+        BTree = new(Comparer, Options.BTreeLockMode);
         BTree.SetNextOpIndex(nextOpIndex);
 #else
         BTree = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
@@ -100,7 +99,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         LoadLogEntries(keys, values);
     }
 
-    private void LoadLogEntries(IReadOnlyList<TKey> keys, IReadOnlyList<TValue> values)
+    void LoadLogEntries(IReadOnlyList<TKey> keys, IReadOnlyList<TValue> values)
     {
         var len = keys.Count;
         for (var i = 0; i < len; ++i)
@@ -218,6 +217,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             Thread.Yield();
         }
         WriteAheadLog.MarkFrozen();
+        BTree.IsReadOnly = true;
     }
 
     public void Drop()

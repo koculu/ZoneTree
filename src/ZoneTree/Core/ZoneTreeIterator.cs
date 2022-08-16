@@ -330,4 +330,19 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
         ZoneTree.OnZoneTreeIsDisposing -= OnZoneTreeIsDisposing;
         DiskSegment?.RemoveReader();
     }
+
+    public void WaitUntilReadOnlySegmentsBecomeFullyFrozen()
+    {
+        var iterators = SeekableIterators;
+        var spinWait = new SpinWait();
+        while (true)
+        {
+            if (iterators.Any(x => !x.IsFullyFrozen))
+            {
+                spinWait.SpinOnce();
+                continue;
+            }
+            return;
+        }
+    }
 }

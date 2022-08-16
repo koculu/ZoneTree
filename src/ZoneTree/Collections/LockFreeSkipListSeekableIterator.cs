@@ -18,6 +18,8 @@ public class LockFreeSkipListSeekableIterator<TKey, TValue> : ISeekableIterator<
 
     public bool IsEndOfASector => false;
 
+    public bool IsFullyFrozen => throw new NotImplementedException();
+
     readonly LockFreeSkipList<TKey, TValue> SkipList;
 
     LockFreeSkipList<TKey, TValue>.SkipListNode CurrentNode;

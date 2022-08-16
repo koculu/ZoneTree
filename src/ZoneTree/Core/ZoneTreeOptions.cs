@@ -68,11 +68,6 @@ public class ZoneTreeOptions<TKey, TValue>
     /// </summary>
     public BTreeLockMode BTreeLockMode { get; set; } = BTreeLockMode.NodeLevelMonitor;
 
-    /// <summary>
-    /// Configure BTree leaf mode.
-    /// </summary>
-    public BTreeLeafMode BTreeLeafMode { get; set; } = BTreeLeafMode.Default;
-
     public bool TryValidate(out Exception exception)
     {
         if (KeySerializer == null)

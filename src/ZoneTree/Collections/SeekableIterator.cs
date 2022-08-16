@@ -24,6 +24,11 @@ public class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 
     public bool IsEndOfASector => IndexedReader.IsEndOfASector(position);
 
+    /// <summary>
+    /// All Indexed Readers are always fully frozen.
+    /// </summary>
+    public bool IsFullyFrozen => true;
+
     public SeekableIterator(IIndexedReader<TKey, TValue> indexedReader)
     {
         IndexedReader = indexedReader;

@@ -18,6 +18,8 @@ public class SkipListSeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TV
 
     public bool IsEndOfASector => false;
 
+    public bool IsFullyFrozen => throw new NotImplementedException();
+
     readonly SkipList<TKey, TValue> SkipList;
 
     SkipList<TKey, TValue>.SkipListNode CurrentNode;

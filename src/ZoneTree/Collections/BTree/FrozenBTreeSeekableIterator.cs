@@ -21,6 +21,8 @@ public class FrozenBTreeSeekableIterator<TKey, TValue>
 
     public bool IsEndOfASector => false;
 
+    public bool IsFullyFrozen => BTree.IsReadOnly;
+
     readonly BTree<TKey, TValue> BTree;
 
     BTree<TKey, TValue>.FrozenNodeIterator CurrentNode;

@@ -27,4 +27,6 @@ public interface ISeekableIterator<TKey, TValue>
     bool IsEndOfASector { get; }
 
     int GetSectorIndex();
+
+    bool IsFullyFrozen { get; }
 }

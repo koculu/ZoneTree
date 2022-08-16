@@ -15,6 +15,8 @@ public class NullDiskSegmentSeekableIterator<TKey, TValue> : ISeekableIterator<T
 
     public bool IsEndOfASector => false;
 
+    public bool IsFullyFrozen => true;
+
     public bool Next()
     {
         return false;

@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Collections.BTree;
+﻿using Tenray.ZoneTree.Exceptions;
+
+namespace Tenray.ZoneTree.Collections.BTree;
 
 /// <summary>
 /// In memory B+Tree.
@@ -10,6 +12,8 @@ public partial class BTree<TKey, TValue>
 {
     public bool Upsert(in TKey key, in TValue value, out long opIndex)
     {
+        if (IsReadOnly)
+            throw new BTreeIsReadOnlyException();
         try
         {
             WriteLock();
@@ -45,6 +49,8 @@ public partial class BTree<TKey, TValue>
 
     public bool TryInsert(in TKey key, in TValue value, out long opIndex)
     {
+        if (IsReadOnly)
+            throw new BTreeIsReadOnlyException();
         try
         {
             WriteLock();
@@ -93,6 +99,8 @@ public partial class BTree<TKey, TValue>
         UpdateDelegate updater,
         out long opIndex)
     {
+        if (IsReadOnly)
+            throw new BTreeIsReadOnlyException();
         try
         {
             WriteLock();
@@ -191,11 +199,11 @@ public partial class BTree<TKey, TValue>
                 opIndex = OpIndexProvider.NextId();
                 if (found)
                 {
-                    leaf.Update(position, in key, in value, opIndex);
+                    leaf.Update(position, in key, in value);
                     node.WriteUnlock();
                     return false;
                 }
-                leaf.Insert(position, in key, in value, opIndex);
+                leaf.Insert(position, in key, in value);
                 Interlocked.Increment(ref _length);
                 node.WriteUnlock();
                 return true;
@@ -235,7 +243,7 @@ public partial class BTree<TKey, TValue>
                 }
 
                 opIndex = OpIndexProvider.NextId();
-                leaf.Insert(position, in key, in value, opIndex);
+                leaf.Insert(position, in key, in value);
                 Interlocked.Increment(ref _length);
                 node.WriteUnlock();
                 return true;
@@ -280,7 +288,7 @@ public partial class BTree<TKey, TValue>
                 }
                 TValue value = default;
                 adder(ref value);
-                leaf.Insert(position, in key, in value, opIndex);
+                leaf.Insert(position, in key, in value);
                 Interlocked.Increment(ref _length);
                 node.WriteUnlock();
                 return AddOrUpdateResult.ADDED;

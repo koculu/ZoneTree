@@ -795,10 +795,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     public IZoneTreeIterator<TKey, TValue> CreateIterator(
         IteratorType iteratorType, bool includeDeletedRecords)
     {
-        var includeSegmentZero = iteratorType != IteratorType.Snapshot &&
-            iteratorType != IteratorType.ReadOnlyRegion;
-        if (iteratorType == IteratorType.Snapshot)
-            MoveSegmentZeroForward();
+        var includeSegmentZero = iteratorType is not IteratorType.Snapshot and
+            not IteratorType.ReadOnlyRegion;
 
         var iterator = new ZoneTreeIterator<TKey, TValue>(
             Options,
@@ -809,16 +807,27 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             includeDeletedRecords,
             includeSegmentZero: includeSegmentZero,
             includeDiskSegment: true);
+
+        if (iteratorType == IteratorType.Snapshot)
+        {
+            MoveSegmentZeroForward();
+            iterator.Refresh();
+            iterator.WaitUntilReadOnlySegmentsBecomeFullyFrozen();
+        }
+        else if (iteratorType == IteratorType.ReadOnlyRegion)
+        {
+            iterator.Refresh();
+            iterator.WaitUntilReadOnlySegmentsBecomeFullyFrozen();
+        }
         return iterator;
     }
 
     public IZoneTreeIterator<TKey, TValue> CreateReverseIterator(
         IteratorType iteratorType, bool includeDeletedRecords)
     {
-        var includeSegmentZero = iteratorType != IteratorType.Snapshot &&
-            iteratorType != IteratorType.ReadOnlyRegion;
-        if (iteratorType == IteratorType.Snapshot)
-            MoveSegmentZeroForward();
+        var includeSegmentZero = iteratorType is not IteratorType.Snapshot and
+            not IteratorType.ReadOnlyRegion;
+
         var iterator = new ZoneTreeIterator<TKey, TValue>(
             Options,
             this,
@@ -828,6 +837,19 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             includeDeletedRecords,
             includeSegmentZero: includeSegmentZero,
             includeDiskSegment: true);
+
+        if (iteratorType == IteratorType.Snapshot)
+        {
+            MoveSegmentZeroForward();
+            iterator.Refresh();
+            iterator.WaitUntilReadOnlySegmentsBecomeFullyFrozen();
+        }
+        else if (iteratorType == IteratorType.ReadOnlyRegion)
+        {
+            iterator.Refresh();
+            iterator.WaitUntilReadOnlySegmentsBecomeFullyFrozen();
+        }
+
         return iterator;
     }
 

@@ -33,11 +33,11 @@ public partial class BTree<TKey, TValue>
 
     public IIncrementalIdProvider OpIndexProvider { get; }
 
-    public BTreeLeafMode LeafMode { get; }
+    public bool IsReadOnly { get; set; }
+
     public BTree(
         IRefComparer<TKey> comparer,
         BTreeLockMode lockMode,
-        BTreeLeafMode leafMode = BTreeLeafMode.Default,
         IIncrementalIdProvider indexOpProvider = null,
         int nodeSize = 128,
         int leafSize = 128)
@@ -54,10 +54,7 @@ public partial class BTree<TKey, TValue>
             _ => throw new NotSupportedException(),
         };
         LockMode = lockMode;
-        LeafMode = leafMode;
-        Root = leafMode == BTreeLeafMode.Default ?
-            new LeafNode(GetNodeLocker(), leafSize) :
-            new LeafNodeWithOpIndex(GetNodeLocker(), LeafSize);
+        Root = new LeafNode(GetNodeLocker(), leafSize);
         FirstLeafNode = Root as LeafNode;
         LastLeafNode = FirstLeafNode;
     }
