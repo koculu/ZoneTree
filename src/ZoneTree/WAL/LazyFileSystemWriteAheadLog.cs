@@ -10,6 +10,8 @@ namespace Tenray.ZoneTree.WAL;
 
 public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
+    readonly ILogger Logger;
+
     readonly IFileStreamProvider FileStreamProvider;
 
     readonly CompressedFileStream FileStream;
@@ -53,6 +55,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     public bool EnableIncrementalBackup { get; set; }
 
     public LazyFileSystemWriteAheadLog(
+        ILogger logger,
         IFileStreamProvider fileStreamProvider,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
@@ -60,9 +63,11 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         int compressionBlockSize,
         int emptyQueuePollInterval)
     {
+        Logger = logger;
         FilePath = filePath;
         EmptyQueuePollInterval = emptyQueuePollInterval;
         FileStream = new CompressedFileStream(
+            Logger,
             fileStreamProvider,
             filePath,
             compressionBlockSize,
@@ -126,9 +131,9 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                     var valueBytes = ValueSerializer.Serialize(q.Value);
                     AppendLogEntry(keyBytes, valueBytes, q.OpIndex);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    // todo log the exception.
+                    Logger.LogError(e);
                 }
             }
             if (isRunning && Queue.IsEmpty)
@@ -137,9 +142,9 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 {
                     FileStream.WriteTail();
                 }
-                catch(Exception)
+                catch(Exception e)
                 {
-                    // todo log the exception.
+                    Logger.LogError(e);
                 }
                 if (!isRunning)
                     break;
@@ -239,6 +244,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         bool sortByOpIndexes)
     {
         return WriteAheadLogEntryReader.ReadLogEntries<TKey, TValue, LogEntry>(
+            Logger,
             FileStream,
             stopReadOnException,
             stopReadOnChecksumFailure,

@@ -41,6 +41,11 @@ public partial class BTree<TKey, TValue>
                 return result;
             }
         }
+        catch (Exception)
+        {
+            Root.WriteUnlock();
+            throw;
+        }
         finally
         {
             WriteUnlock();
@@ -77,9 +82,8 @@ public partial class BTree<TKey, TValue>
                 return result;
             }
         }
-        catch(Exception e)
+        catch(Exception)
         {
-            Console.WriteLine(e.ToString());
             Root.WriteUnlock();
             throw;
         }
@@ -127,6 +131,11 @@ public partial class BTree<TKey, TValue>
                 root.WriteUnlock();
                 return result;
             }
+        }
+        catch (Exception)
+        {
+            Root.WriteUnlock();
+            throw;
         }
         finally
         {

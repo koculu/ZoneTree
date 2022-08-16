@@ -9,6 +9,8 @@ namespace Tenray.ZoneTree.WAL;
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
 public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
+    readonly ILogger Logger;
+
     volatile bool IsDisposed;
 
     readonly IFileStreamProvider FileStreamProvider;
@@ -28,12 +30,14 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     public bool EnableIncrementalBackup { get; set; }
 
     public FileSystemWriteAheadLog(
+        ILogger logger,
         IFileStreamProvider fileStreamProvider,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
         int fileStreamBufferSize = 4096)
     {
+        Logger = logger;
         FilePath = filePath;
         FileStreamBufferSize = fileStreamBufferSize;        
         FileStreamProvider = fileStreamProvider;
@@ -139,6 +143,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         bool sortByOpIndexes)
     {
         return WriteAheadLogEntryReader.ReadLogEntries<TKey, TValue, LogEntry>(
+            Logger,
             FileStream.ToStream(),
             stopReadOnException,
             stopReadOnChecksumFailure,
@@ -238,8 +243,9 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                 FileStreamProvider.Replace(tmpFilePath, FilePath, null);
                 CreateFileStream();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Logger.LogError(e);
                 FileStream?.Dispose();
                 CreateFileStream();
                 diff = existingLength - FileStream.Length;

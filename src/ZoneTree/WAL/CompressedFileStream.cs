@@ -8,6 +8,8 @@ namespace Tenray.ZoneTree.WAL;
 
 public sealed class CompressedFileStream : Stream, IDisposable
 {
+    readonly ILogger Logger;
+
     readonly int BlockSize;
 
     readonly IFileStream FileStream;
@@ -55,12 +57,14 @@ public sealed class CompressedFileStream : Stream, IDisposable
     public override long Position { get; set; }
 
     public CompressedFileStream(
+        ILogger logger,
         IFileStreamProvider fileStreamProvider,
         string filePath,
         int blockSize,
         bool enableTailWriterJob,
         int tailWriterJobInterval)
     {
+        Logger = logger;
         FilePath = filePath;
         FileStream = fileStreamProvider.CreateFileStream(filePath,
             FileMode.OpenOrCreate,
@@ -112,8 +116,9 @@ public sealed class CompressedFileStream : Stream, IDisposable
             {
                 WriteTail();
             }
-            catch
+            catch(Exception e)
             {
+                Logger.LogError(e);
             }
             if (TailWriterJobInterval == 0)
                 Thread.Yield();

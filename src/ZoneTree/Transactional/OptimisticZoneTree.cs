@@ -27,6 +27,8 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         set => ZoneTree.IsReadOnly = value;
     }
 
+    public ILogger Logger => ZoneTree.Logger;
+
     public OptimisticZoneTree(
         ZoneTreeOptions<TKey, TValue> options,
         ITransactionLog<TKey, TValue> transactionLog,

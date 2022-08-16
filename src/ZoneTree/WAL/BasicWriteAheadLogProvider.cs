@@ -6,6 +6,8 @@ namespace Tenray.ZoneTree.WAL;
 
 public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 {
+    readonly ILogger Logger;
+
     readonly IFileStreamProvider FileStreamProvider;
 
     readonly ConcurrentDictionary<string, object> WALTable = new();
@@ -24,9 +26,11 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
     public LazyModeOptions LazyModeOptions { get; } = new();
 
     public BasicWriteAheadLogProvider(
+        ILogger logger,
         IFileStreamProvider fileStreamProvider,
         string walDirectory = "data")
     {
+        Logger = logger;
         FileStreamProvider = fileStreamProvider;
         WalDirectory = walDirectory;
         FileStreamProvider.CreateDirectory(walDirectory);
@@ -51,6 +55,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
             case WriteAheadLogMode.Immediate:
                 {
                     var wal = new FileSystemWriteAheadLog<TKey, TValue>(
+                        Logger,
                         FileStreamProvider,
                         keySerializer,
                         valueSerializer,
@@ -64,6 +69,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
             case WriteAheadLogMode.CompressedImmediate:
                 {
                     var wal = new CompressedFileSystemWriteAheadLog<TKey, TValue>(
+                        Logger,
                         FileStreamProvider,
                         keySerializer,
                         valueSerializer,
@@ -81,6 +87,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
             case WriteAheadLogMode.Lazy:
                 {
                     var wal = new LazyFileSystemWriteAheadLog<TKey, TValue>(
+                        Logger,
                         FileStreamProvider,
                         keySerializer,
                         valueSerializer,

@@ -11,6 +11,7 @@ public static class WriteAheadLogEntryReader
     public delegate (bool isValid, TKey key, TValue value, long opIndex) LogEntryDeserializerDelegate<TKey, TValue, TLogEntry>(in TLogEntry logEntry);
 
     public static WriteAheadLogReadLogEntriesResult<TKey, TValue> ReadLogEntries<TKey, TValue, TLogEntry>(
+        ILogger logger,
         Stream stream,
         bool stopReadOnException,
         bool stopReadOnChecksumFailure,
@@ -50,25 +51,32 @@ public static class WriteAheadLogEntryReader
                     RecordPosition = logEntryPosition,
                     RecordIndex = i
                 };
+                logger.LogWarning(ex);
                 result.Exceptions.Add(i, ex);
                 result.Success = false;
                 break;
             }
             catch (ObjectDisposedException e)
             {
-                result.Exceptions.Add(i, new ObjectDisposedException($"ReadLogEntry failed. Index={i}", e));
+                var ex = new ObjectDisposedException($"ReadLogEntry failed. Index={i}", e);
+                logger.LogError(ex);
+                result.Exceptions.Add(i, ex);
                 result.Success = false;
                 break;
             }
             catch (IOException e)
             {
-                result.Exceptions.Add(i, new IOException($"ReadLogEntry failed. Index={i}", e));
+                var ex = new IOException($"ReadLogEntry failed. Index={i}", e);
+                logger.LogError(ex);
+                result.Exceptions.Add(i, ex);
                 result.Success = false;
                 if (stopReadOnException) break;
             }
             catch (Exception e)
             {
-                result.Exceptions.Add(i, new InvalidOperationException($"ReadLogEntry failed. Index={i}", e));
+                var ex = new InvalidOperationException($"ReadLogEntry failed. Index={i}", e);
+                logger.LogError(ex);
+                result.Exceptions.Add(i, ex);
                 result.Success = false;
                 if (stopReadOnException) break;
             }
@@ -92,8 +100,10 @@ public static class WriteAheadLogEntryReader
             }
             catch (Exception e)
             {
+                var ex = new InvalidDataException($"Deserilization of log entry failed. Index={i}", e);
+                logger.LogError(ex);
                 if (!result.Exceptions.ContainsKey(i))
-                    result.Exceptions.Add(i, new InvalidDataException($"Deserilization of log entry failed. Index={i}", e));
+                    result.Exceptions.Add(i, ex);
                 result.Success = false;
                 if (stopReadOnChecksumFailure) break;
             }

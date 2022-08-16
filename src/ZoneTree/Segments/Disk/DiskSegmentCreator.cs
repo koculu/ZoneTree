@@ -154,6 +154,6 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
 
     public void Append(IDiskSegment<TKey, TValue> sector, TKey key1, TKey key2, TValue value1, TValue value2)
     {
-        throw new NotSupportedException();
+        throw new NotSupportedException("This method should be called on MultiDiskSegmentCreator.");
     }
 }

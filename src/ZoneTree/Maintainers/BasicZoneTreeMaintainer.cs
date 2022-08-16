@@ -8,6 +8,8 @@ namespace Tenray.ZoneTree.Maintainers;
 
 public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 {
+    readonly ILogger Logger;
+
     public IZoneTree<TKey, TValue> ZoneTree { get; }
 
     public IZoneTreeMaintenance<TKey, TValue> Maintenance { get; }
@@ -36,8 +38,9 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 
     public ConcurrentDictionary<int, Thread> MergerThreads = new();
 
-    public BasicZoneTreeMaintainer(IZoneTree<TKey, TValue> zoneTree)
+    public BasicZoneTreeMaintainer(IZoneTree<TKey, TValue> zoneTree, ILogger logger = null)
     {
+        Logger = logger ?? zoneTree.Logger;
         ZoneTree = zoneTree;
         Maintenance = zoneTree.Maintenance;
         AttachEvents();
@@ -45,8 +48,9 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
             Task.Run(StartPeriodicTimer);
     }
 
-    public BasicZoneTreeMaintainer(ITransactionalZoneTree<TKey, TValue> zoneTree)
+    public BasicZoneTreeMaintainer(ITransactionalZoneTree<TKey, TValue> zoneTree, ILogger logger = null)
     {
+        Logger = logger ?? zoneTree.Logger;
         ZoneTree = zoneTree.Maintenance.ZoneTree;
         Maintenance = ZoneTree.Maintenance;
         AttachEvents();
@@ -126,7 +130,6 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
                 mergerThread.ManagedThreadId,
                 mergerThread,
                 (key, value) => mergerThread);
-            Trace("started merge");
         }
     }
 
@@ -164,9 +167,7 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 
     void Trace(string msg)
     {
-#if TRACE_ENABLED
-        Console.WriteLine(msg + " tid: " + Environment.CurrentManagedThreadId);
-#endif
+        Logger.LogTrace(msg);
     }
 
     public void Dispose()

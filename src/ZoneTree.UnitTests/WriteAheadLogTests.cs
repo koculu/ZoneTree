@@ -1,4 +1,5 @@
 using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
 
@@ -14,6 +15,7 @@ public class WriteAheadLogTests
             File.Delete(filePath);
         var serializer = new UnicodeStringSerializer();
         var wal = new FileSystemWriteAheadLog<string, string>(
+            new ConsoleLogger(),
             new LocalFileStreamProvider(),
             serializer, serializer, filePath);
         var len = 1;

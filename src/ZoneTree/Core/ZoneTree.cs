@@ -1,6 +1,5 @@
-﻿#undef TRACE_MERGE
-
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Segments;
@@ -11,6 +10,8 @@ namespace Tenray.ZoneTree.Core;
 public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeMaintenance<TKey, TValue>
 {
     public const string SegmentWalCategory = "seg";
+
+    public ILogger Logger { get; }
 
     readonly ZoneTreeMeta ZoneTreeMeta = new();
 
@@ -101,6 +102,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public ZoneTree(ZoneTreeOptions<TKey, TValue> options)
     {
+        Logger = options.Logger;
         options.WriteAheadLogProvider.InitCategory(SegmentWalCategory);
         MetaWal = new ZoneTreeMetaWAL<TKey, TValue>(options, false);
         Options = options;
@@ -127,6 +129,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         long maximumSegmentId
         )
     {
+        Logger = options.Logger;
         options.WriteAheadLogProvider.InitCategory(SegmentWalCategory);
         IncrementalIdProvider.SetNextId(maximumSegmentId + 1);
         MetaWal = new ZoneTreeMetaWAL<TKey, TValue>(options, false);
@@ -439,7 +442,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Logger.LogError(e);
                 OnMergeOperationEnded?.Invoke(this, MergeResult.FAILURE);
                 throw;
             }
@@ -459,11 +462,10 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     MergeResult MergeReadOnlySegmentsInternal()
     {
-#if TRACE_MERGE
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        Console.WriteLine("Merge started.");
-#endif
+        Logger.LogTrace("Merge started.");
+
         var oldDiskSegment = DiskSegment;
         var roSegments = ReadOnlySegmentQueue.ToArray();
 
@@ -552,7 +554,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.ToString());
+                    Logger.LogError(e);
                     OnCanNotDropDiskSegmentCreator?.Invoke(diskSegmentCreator, e);
                 }
                 return MergeResult.CANCELLED_BY_USER;
@@ -635,10 +637,9 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                     }
                 }
                 ++dropCount;
-#if TRACE_MERGE
-                Console.WriteLine(
+                Logger.LogTrace(
                     $"drop: {sector.SegmentId} ({dropCount} / {skipCount + dropCount})");
-#endif
+
             }
             
             diskSegmentCreator.Append(minEntry.Key, minEntry.Value, iteratorPosition);
@@ -658,7 +659,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Logger.LogError(e);
                 OnCanNotDropDiskSegment?.Invoke(oldDiskSegment, e);
             }
 
@@ -673,28 +674,26 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.ToString());
+                    Logger.LogError(e);
                     OnCanNotDropReadOnlySegment?.Invoke(segment, e);
                 }
                 --len;
             }
         }
-#if TRACE_MERGE
+
         TotalSkipCount += skipCount;
         TotalDropCount += dropCount;
-        Console.WriteLine($"Merge SUCCESS in {stopwatch.ElapsedMilliseconds} ms ({dropCount} / {skipCount + dropCount})");
+        Logger.LogTrace($"Merge SUCCESS in {stopwatch.ElapsedMilliseconds} ms ({dropCount} / {skipCount + dropCount})");
         var total = TotalSkipCount + TotalDropCount;
         var dropPercentage = 1.0 * TotalDropCount / (total == 0 ? 1 : total);
-        Console.WriteLine($"Total Drop Ratio ({TotalDropCount} / {TotalSkipCount + TotalDropCount}) => {dropPercentage*100:0.##}%");
-#endif
+        Logger.LogTrace($"Total Drop Ratio ({TotalDropCount} / {TotalSkipCount + TotalDropCount}) => {dropPercentage*100:0.##}%");
 
         OnDiskSegmentActivated?.Invoke(this, newDiskSegment);
         return MergeResult.SUCCESS;
     }
-#if TRACE_MERGE
+
     int TotalSkipCount;
     int TotalDropCount;
-#endif
 
     private void ReportDropFailure(IDiskSegment<TKey, TValue> ds, Exception e)
     {

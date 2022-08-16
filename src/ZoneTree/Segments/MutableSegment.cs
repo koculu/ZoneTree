@@ -117,11 +117,6 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             WriteAheadLog.Append(in key, in value, opIndex);
             return result ? AddOrUpdateResult.ADDED : AddOrUpdateResult.UPDATED;
         }
-        catch(Exception e)
-        {
-            Console.WriteLine(e.ToString());
-            throw;
-        }
         finally
         {
             Interlocked.Decrement(ref WritesInProgress);

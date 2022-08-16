@@ -15,7 +15,7 @@ TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 10;
 TestConfig.WALCompressionBlockSize = 1024 * 32 * 8;
 TestConfig.MinimumSparseArrayLength = 0;
 TestConfig.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
-
+ConsoleLogger.DefaultLogLevel = LogLevel.Warning;
 //BenchmarkRunner.Run<ParallelMassiveInsertTests>();
 //BenchmarkGroups.Iterate3(3_000_000, WriteAheadLogMode.CompressedImmediate)
 //RecoverFile.Recover2();

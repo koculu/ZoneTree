@@ -34,8 +34,20 @@ public class ZoneTreeFactory<TKey, TValue>
 
         GetWriteAheadLogProvider = (options) =>
             WalDirectory == null ? 
-            new BasicWriteAheadLogProvider(fileStreamProvider) :
-            new BasicWriteAheadLogProvider(fileStreamProvider, WalDirectory);
+            new BasicWriteAheadLogProvider(options.Logger, fileStreamProvider) :
+            new BasicWriteAheadLogProvider(options.Logger, fileStreamProvider, WalDirectory);
+    }
+
+    public ZoneTreeFactory<TKey, TValue> SetLogger(ILogger logger)
+    {
+        Options.Logger = logger;
+        return this;
+    }
+
+    public ZoneTreeFactory<TKey, TValue> SetLogLevel(LogLevel logLevel)
+    {
+        Options.Logger.LogLevel = logLevel;
+        return this;
     }
 
     public ZoneTreeFactory<TKey, TValue> SetComparer(IRefComparer<TKey> comparer)

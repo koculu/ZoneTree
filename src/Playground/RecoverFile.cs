@@ -17,7 +17,7 @@ public class RecoverFile
         var meta = ZoneTreeMetaWAL<string, string>.LoadZoneTreeMetaWithoutWALRecords(deviceManager);
         var options = new ZoneTreeOptions<string, string>
         {
-            WriteAheadLogProvider = new BasicWriteAheadLogProvider(fileStreamProvider, path)
+            WriteAheadLogProvider = new BasicWriteAheadLogProvider(new ConsoleLogger(), fileStreamProvider, path)
             {
                 WriteAheadLogMode = WriteAheadLogMode.Lazy
             },
@@ -42,7 +42,7 @@ public class RecoverFile
         var meta = ZoneTreeMetaWAL<int, int>.LoadZoneTreeMetaWithoutWALRecords(deviceManager);
         var options = new ZoneTreeOptions<int, int>
         {
-            WriteAheadLogProvider = new BasicWriteAheadLogProvider(fileStreamProvider, path)
+            WriteAheadLogProvider = new BasicWriteAheadLogProvider(new ConsoleLogger(), fileStreamProvider, path)
             {
                 WriteAheadLogMode = meta.WriteAheadLogMode
             },            

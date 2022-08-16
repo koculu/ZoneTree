@@ -159,4 +159,9 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// Enables read-only mode.
     /// </summary>
     public bool IsReadOnly { get; set; }
+
+    /// <summary>
+    /// ZoneTree Logger.
+    /// </summary>
+    public ILogger Logger { get; }
 }

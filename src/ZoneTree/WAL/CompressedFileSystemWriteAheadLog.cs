@@ -9,6 +9,8 @@ namespace Tenray.ZoneTree.WAL;
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
 public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
+    readonly ILogger Logger;
+
     readonly IFileStreamProvider FileStreamProvider;
 
     CompressedFileStream FileStream;
@@ -30,6 +32,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
     public bool EnableIncrementalBackup { get; set; }
 
     public CompressedFileSystemWriteAheadLog(
+        ILogger logger,
         IFileStreamProvider fileStreamProvider,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
@@ -51,6 +54,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
     void CreateFileStream()
     {
         FileStream = new CompressedFileStream(
+            Logger,
             FileStreamProvider,
             FilePath,
             CompressionBlockSize,
@@ -145,6 +149,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         bool sortByOpIndexes)
     {
         return WriteAheadLogEntryReader.ReadLogEntries<TKey, TValue, LogEntry>(
+            Logger,
             FileStream,
             stopReadOnException,
             stopReadOnChecksumFailure,
@@ -197,6 +202,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
                 var tmpTailFilePath = FilePath + ".tmp.tail";
                 var existingFileStream = FileStream;
                 using (var tmpFileStream = new CompressedFileStream(
+                    Logger,
                     FileStreamProvider,
                     FilePath,
                     CompressionBlockSize,
@@ -222,8 +228,9 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
                 FileStreamProvider.Replace(tmpTailFilePath, FilePath + ".tail", null);
                 CreateFileStream();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Logger.LogError(e);
                 FileStream?.Dispose();
                 CreateFileStream();
                 diff = existingLength - FileStream.Length;
