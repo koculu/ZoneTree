@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Tenray.ZoneTree;
-using Tenray.ZoneTree.Collections.BplusTree.Lock;
 using Tenray.ZoneTree.Collections.BTree;
+using Tenray.ZoneTree.Collections.BTree.Lock;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Maintainers;

@@ -2,7 +2,7 @@
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.WAL;
-using Tenray.ZoneTree.Collections.BplusTree.Lock;
+using Tenray.ZoneTree.Collections.BTree.Lock;
 
 namespace Tenray.ZoneTree.Core;
 

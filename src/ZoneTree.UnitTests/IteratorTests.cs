@@ -1,4 +1,4 @@
-﻿using Tenray.ZoneTree.Collections.BplusTree.Lock;
+﻿using Tenray.ZoneTree.Collections.BTree.Lock;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Serializers;
 
