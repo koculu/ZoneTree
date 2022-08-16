@@ -214,8 +214,6 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
 
-        if (key == null)
-            throw new ArgumentNullException(nameof(key));
         lock (AtomicUpdateLock)
         {
             if (ContainsKey(key))
@@ -229,8 +227,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
-        if (key == null)
-            throw new ArgumentNullException(nameof(key));
+
         lock (AtomicUpdateLock)
         {
             if (!ContainsKey(key))
@@ -244,8 +241,6 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
-        if (key == null)
-            throw new ArgumentNullException(nameof(key));
         AddOrUpdateResult status;
         IMutableSegment<TKey, TValue> segmentZero;
         while (true)
@@ -299,8 +294,6 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
-        if (key == null)
-            throw new ArgumentNullException(nameof(key));
         while (true)
         {
             var segmentZero = SegmentZero;
@@ -322,8 +315,6 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
-        if (key == null)
-            throw new ArgumentNullException(nameof(key));
         if (!ContainsKey(key))
             return false;
         ForceDelete(in key);
@@ -334,8 +325,6 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
-        if (key == null)
-            throw new ArgumentNullException(nameof(key));
         while (true)
         {
             var segmentZero = SegmentZero;

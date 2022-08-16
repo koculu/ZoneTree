@@ -24,7 +24,6 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <param name="value">The value of the element to add. It can be null.</param>
     /// <returns>true if the key/value pair was added successfully;
     /// otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException">key is null.</exception>
     bool TryAtomicAdd(in TKey key, in TValue value);
 
     /// <summary>
@@ -34,7 +33,6 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <param name="value">The value of the element to update. It can be null.</param>
     /// <returns>true if the key/value pair was updated successfully;
     /// otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException">key is null.</exception>
     bool TryAtomicUpdate(in TKey key, in TValue value);
 
     /// <summary>
@@ -45,15 +43,13 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <param name="valueProviderToUpdate">The lambda function that returns value to be updated.</param>
     /// <returns>true if the key/value pair was added;
     /// false, if the key/value pair was updated.</returns>
-    /// <exception cref="ArgumentNullException">key is null.</exception>
     bool TryAtomicAddOrUpdate(in TKey key, in TValue valueToAdd, Func<TValue, TValue> valueProviderToUpdate);
 
     /// <summary>
     /// Adds or updates the specified key/value pair atomically across LSM-Tree segments.
     /// </summary>
     /// <param name="key">The key of the element to upsert.</param>
-    /// <param name="value">The value of the element to upsert. It can be null.</param>
-    /// <exception cref="ArgumentNullException">key is null.</exception>
+    /// <param name="value">The value of the element to upsert.</param>
     void AtomicUpsert(in TKey key, in TValue value);
 
     /// <summary>
@@ -84,8 +80,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// This is the fastest add or update function.
     /// </remarks>    
     /// <param name="key">The key of the element to upsert.</param>
-    /// <param name="value">The value of the element to upsert. It can be null.</param>
-    /// <exception cref="ArgumentNullException">key is null.</exception>
+    /// <param name="value">The value of the element to upsert.</param>
     void Upsert(in TKey key, in TValue value);
 
     /// <summary>
@@ -94,7 +89,6 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <param name="key">The key of the element to delete.</param>
     /// <returns>true if the key was found and deleted;
     /// false if the key was not found.</returns>
-    /// <exception cref="ArgumentNullException">key is null.</exception>
     bool TryDelete(in TKey key);
 
     /// <summary>
@@ -103,7 +97,6 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// It increases the data lake size.
     /// </summary>
     /// <param name="key">The key of the element to delete.</param>
-    /// <exception cref="ArgumentNullException">key is null.</exception>
     void ForceDelete(in TKey key);
 
     /// <summary>
