@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.AbstractFileStream;
+﻿using System.Collections.Concurrent;
+using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
 
 namespace Tenray.ZoneTree.WAL;
@@ -7,7 +8,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 {
     readonly IFileStreamProvider FileStreamProvider;
 
-    readonly Dictionary<string, object> WALTable = new();
+    readonly ConcurrentDictionary<string, object> WALTable = new();
 
     public string WalDirectory { get; }
 
@@ -57,7 +58,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                     {
                         EnableIncrementalBackup = EnableIncrementalBackup
                     };
-                    WALTable.Add(segmentId + category, wal);
+                    WALTable.TryAdd(segmentId + category, wal);
                     return wal;
                 }
             case WriteAheadLogMode.CompressedImmediate:
@@ -73,7 +74,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                     {
                         EnableIncrementalBackup = EnableIncrementalBackup
                     };
-                    WALTable.Add(segmentId + category, wal);
+                    WALTable.TryAdd(segmentId + category, wal);
                     return wal;
                 }
 
@@ -89,7 +90,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                     {
                         EnableIncrementalBackup = EnableIncrementalBackup
                     };
-                    WALTable.Add(segmentId + category, wal);
+                    WALTable.TryAdd(segmentId + category, wal);
                     return wal;
                 }
         }
@@ -107,7 +108,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public bool RemoveWAL(long segmentId, string category)
     {
-        return WALTable.Remove(segmentId + category);
+        return WALTable.Remove(segmentId + category, out _);
     }
 
     public void DropStore()

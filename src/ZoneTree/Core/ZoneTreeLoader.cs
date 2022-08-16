@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.Exceptions;
+﻿using System.Collections.Concurrent;
+using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Segments;
 using Tenray.ZoneTree.Segments.Disk;
 
@@ -132,15 +133,19 @@ public class ZoneTreeLoader<TKey, TValue>
     {
         long maximumOpIndex = 0;
         var segments = ZoneTreeMeta.ReadOnlySegments;
-        var loader = new ReadOnlySegmentLoader<TKey, TValue>(Options);
-        var list = new List<IReadOnlySegment<TKey, TValue>>();
-        foreach (var segment in segments)
+        var map = new ConcurrentDictionary<long, IReadOnlySegment<TKey, TValue>>();
+
+        var loader = new ReadOnlySegmentLoader<TKey, TValue>(Options); 
+        Parallel.ForEach(segments, (segment) =>
         {
-            var ros = loader.LoadReadOnlySegment(segment);
+            var ros = loader.LoadReadOnlySegment(segment);            
+            map.TryAdd(segment, ros);
+        });
+        foreach (var ros in map.Values)
+        {
             maximumOpIndex = Math.Max(ros.MaximumOpIndex, maximumOpIndex);
-            list.Add(ros);
         }
-        ReadOnlySegments = list;
+        ReadOnlySegments = segments.Select(x => map[x]).ToArray();
         return maximumOpIndex;
     }
 
