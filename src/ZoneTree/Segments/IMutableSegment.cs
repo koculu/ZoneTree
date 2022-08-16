@@ -1,4 +1,5 @@
 ﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Core;
 
 namespace Tenray.ZoneTree.Segments;
 
@@ -15,4 +16,6 @@ public interface IMutableSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>
     AddOrUpdateResult Delete(in TKey key);
 
     void Freeze();
+
+    IIncrementalIdProvider OpIndexProvider { get; }
 }

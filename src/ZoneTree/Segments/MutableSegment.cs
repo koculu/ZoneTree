@@ -48,8 +48,13 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public int Length => BTree.Length;
 
+    public long MaximumOpIndex => BTree.GetLastOpIndex();
+
+    public IIncrementalIdProvider OpIndexProvider => BTree.OpIndexProvider;
+
     public MutableSegment(ZoneTreeOptions<TKey, TValue> options,
-        long segmentId)
+        long segmentId,
+        IIncrementalIdProvider indexOpProvider)
     {
         SegmentId = segmentId;
         WriteAheadLog = options.WriteAheadLogProvider
@@ -61,7 +66,10 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         Options = options;
         Comparer = options.Comparer;
 #if USE_BTREE
-        BTree = new(Comparer, Options.BTreeLockMode);
+        BTree = new(Comparer,
+            Options.BTreeLockMode,
+            Options.BTreeLeafMode,
+            indexOpProvider);
 #else
         BTree = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
 #endif
@@ -75,15 +83,15 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         ZoneTreeOptions<TKey, TValue> options,
         IReadOnlyList<TKey> keys,
         IReadOnlyList<TValue> values,
-        long nextopIndex)
+        long nextOpIndex)
     {
         SegmentId = segmentId;
         WriteAheadLog = wal;
         Options = options;
         Comparer = options.Comparer;
 #if USE_BTREE
-        BTree = new(Comparer, Options.BTreeLockMode);
-        BTree.SetNextOpIndex(nextopIndex);
+        BTree = new(Comparer, Options.BTreeLockMode, Options.BTreeLeafMode);
+        BTree.SetNextOpIndex(nextOpIndex);
 #else
         BTree = new(Comparer, (int)Math.Log2(options.MutableSegmentMaxItemCount) + 1);
 #endif

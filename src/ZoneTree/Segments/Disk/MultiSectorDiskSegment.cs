@@ -33,6 +33,8 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
 
     public int Length { get; }
 
+    public long MaximumOpIndex => 0;
+
     public bool IsFullyFrozen => true;
 
     public bool IsIterativeIndexReader => false;

@@ -8,6 +8,8 @@ public interface IReadOnlySegment<TKey, TValue>
 
     int Length { get; }
 
+    long MaximumOpIndex { get; }
+
     bool ContainsKey(in TKey key);
 
     bool TryGet(in TKey key, out TValue value);

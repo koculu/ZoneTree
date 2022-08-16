@@ -188,14 +188,14 @@ public partial class BTree<TKey, TValue>
             var found = node.TryGetPosition(Comparer, in key, out var position);
             if (node is LeafNode leaf)
             {
-                opIndex = IncrementalIdProvider.NextId();
+                opIndex = OpIndexProvider.NextId();
                 if (found)
                 {
-                    leaf.Update(position, in key, in value);
+                    leaf.Update(position, in key, in value, opIndex);
                     node.WriteUnlock();
                     return false;
                 }
-                leaf.Insert(position, in key, in value);
+                leaf.Insert(position, in key, in value, opIndex);
                 Interlocked.Increment(ref _length);
                 node.WriteUnlock();
                 return true;
@@ -234,8 +234,8 @@ public partial class BTree<TKey, TValue>
                     return false;
                 }
 
-                opIndex = IncrementalIdProvider.NextId();
-                leaf.Insert(position, in key, in value);
+                opIndex = OpIndexProvider.NextId();
+                leaf.Insert(position, in key, in value, opIndex);
                 Interlocked.Increment(ref _length);
                 node.WriteUnlock();
                 return true;
@@ -271,7 +271,7 @@ public partial class BTree<TKey, TValue>
             var found = node.TryGetPosition(Comparer, in key, out var position);
             if (node is LeafNode leaf)
             {
-                opIndex = IncrementalIdProvider.NextId();
+                opIndex = OpIndexProvider.NextId();
                 if (found)
                 {
                     updater(ref leaf.Values[position]);
@@ -280,7 +280,7 @@ public partial class BTree<TKey, TValue>
                 }
                 TValue value = default;
                 adder(ref value);
-                leaf.Insert(position, in key, in value);
+                leaf.Insert(position, in key, in value, opIndex);
                 Interlocked.Increment(ref _length);
                 node.WriteUnlock();
                 return AddOrUpdateResult.ADDED;

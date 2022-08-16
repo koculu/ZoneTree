@@ -8,6 +8,8 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
 {
     public long SegmentId { get; }
 
+    public long MaximumOpIndex { get; set; }
+
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
     readonly IReadOnlyList<TKey> SortedKeys;

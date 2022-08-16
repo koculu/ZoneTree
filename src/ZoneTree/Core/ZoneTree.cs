@@ -102,7 +102,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         Options = options;
         MinHeapEntryComparer = new MinHeapEntryRefComparer<TKey, TValue>(options.Comparer);
         MaxHeapEntryComparer = new MaxHeapEntryRefComparer<TKey, TValue>(options.Comparer);
-        SegmentZero = new MutableSegment<TKey, TValue>(options, IncrementalIdProvider.NextId());
+        SegmentZero = new MutableSegment<TKey, TValue>(
+            options, IncrementalIdProvider.NextId(), new IncrementalIdProvider());
         IsValueDeleted = options.IsValueDeleted;
         FillZoneTreeMeta();
         MetaWal.SaveMetaData(
@@ -361,7 +362,10 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             segmentZero.Freeze();
             ReadOnlySegmentQueue.Enqueue(segmentZero);
             MetaWal.EnqueueReadOnlySegment(segmentZero.SegmentId);
-            SegmentZero = new MutableSegment<TKey, TValue>(Options, IncrementalIdProvider.NextId());
+
+            SegmentZero = new MutableSegment<TKey, TValue>(
+                Options, IncrementalIdProvider.NextId(),
+                segmentZero.OpIndexProvider);
             MetaWal.NewSegmentZero(SegmentZero.SegmentId);
         }
         OnSegmentZeroMovedForward?.Invoke(this);

@@ -17,9 +17,6 @@ public partial class BTree<TKey, TValue>
 
     readonly int LeafSize = 128;
 
-    readonly IIncrementalIdProvider IncrementalIdProvider
-        = new IncrementalIdProvider();
-
     volatile Node Root;
 
     volatile LeafNode FirstLeafNode;
@@ -34,34 +31,33 @@ public partial class BTree<TKey, TValue>
     
     public readonly BTreeLockMode LockMode;
 
+    public IIncrementalIdProvider OpIndexProvider { get; }
+
+    public BTreeLeafMode LeafMode { get; }
     public BTree(
         IRefComparer<TKey> comparer,
         BTreeLockMode lockMode,
+        BTreeLeafMode leafMode = BTreeLeafMode.Default,
+        IIncrementalIdProvider indexOpProvider = null,
         int nodeSize = 128,
         int leafSize = 128)
     {
         NodeSize = nodeSize;
         LeafSize = leafSize;
         Comparer = comparer;
-        switch (lockMode)
+        OpIndexProvider = indexOpProvider ?? new IncrementalIdProvider();
+        TopLevelLocker = lockMode switch
         {
-
-            case BTreeLockMode.TopLevelMonitor:
-                TopLevelLocker = new MonitorLock();
-                break;
-            case BTreeLockMode.TopLevelReaderWriter:
-                TopLevelLocker = new ReadWriteLock();
-                break;
-            case BTreeLockMode.NoLock:
-            case BTreeLockMode.NodeLevelMonitor:
-            case BTreeLockMode.NodeLevelReaderWriter:
-                TopLevelLocker = new NoLock();
-                break;
-            default:
-                throw new NotSupportedException();
-        }
+            BTreeLockMode.TopLevelMonitor => new MonitorLock(),
+            BTreeLockMode.TopLevelReaderWriter => new ReadWriteLock(),
+            BTreeLockMode.NoLock or BTreeLockMode.NodeLevelMonitor or BTreeLockMode.NodeLevelReaderWriter => new NoLock(),
+            _ => throw new NotSupportedException(),
+        };
         LockMode = lockMode;
-        Root = new LeafNode(GetNodeLocker(), LeafSize);
+        LeafMode = leafMode;
+        Root = leafMode == BTreeLeafMode.Default ?
+            new LeafNode(GetNodeLocker(), leafSize) :
+            new LeafNodeWithOpIndex(GetNodeLocker(), LeafSize);
         FirstLeafNode = Root as LeafNode;
         LastLeafNode = FirstLeafNode;
     }
@@ -174,5 +170,8 @@ public partial class BTree<TKey, TValue>
     }
 
     public void SetNextOpIndex(long nextId) 
-        => IncrementalIdProvider.SetNextId(nextId);
+        => OpIndexProvider.SetNextId(nextId);
+
+    public long GetLastOpIndex()
+        => OpIndexProvider.LastId;
 }

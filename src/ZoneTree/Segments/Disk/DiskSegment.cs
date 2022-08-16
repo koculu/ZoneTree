@@ -41,6 +41,8 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public int Length { get; }
 
+    public long MaximumOpIndex => 0;
+
     public bool IsFullyFrozen => true;
 
     public bool IsIterativeIndexReader => false;

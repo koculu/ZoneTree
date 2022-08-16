@@ -3,6 +3,7 @@ using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.WAL;
 using Tenray.ZoneTree.Collections.BTree.Lock;
+using Tenray.ZoneTree.Collections.BTree;
 
 namespace Tenray.ZoneTree.Core;
 
@@ -66,6 +67,11 @@ public class ZoneTreeOptions<TKey, TValue>
     /// mutable segment.
     /// </summary>
     public BTreeLockMode BTreeLockMode { get; set; } = BTreeLockMode.NodeLevelMonitor;
+
+    /// <summary>
+    /// Configure BTree leaf mode.
+    /// </summary>
+    public BTreeLeafMode BTreeLeafMode { get; set; } = BTreeLeafMode.Default;
 
     public bool TryValidate(out Exception exception)
     {

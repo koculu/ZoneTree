@@ -46,10 +46,12 @@ public class ReadOnlySegmentLoader<TKey, TValue>
             Options.Comparer,
             Options.IsValueDeleted);
 
-        return new ReadOnlySegment<TKey, TValue>(
+        var ros = new ReadOnlySegment<TKey, TValue>(
             segmentId,
             Options,
             newKeys,
             newValues);
+        ros.MaximumOpIndex = result.MaximumOpIndex;
+        return ros;
     }
 }

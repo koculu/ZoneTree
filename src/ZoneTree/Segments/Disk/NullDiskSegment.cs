@@ -6,6 +6,8 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
     public int Length => 0;
 
+    public long MaximumOpIndex => 0;
+
     public long SegmentId { get; }
 
     public bool IsFullyFrozen => true;

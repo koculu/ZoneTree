@@ -3,6 +3,9 @@
 public class IncrementalIdProvider : IIncrementalIdProvider
 {
     long lastId = 0;
+
+    public long LastId => Volatile.Read(ref lastId);
+
     public long NextId()
     {
         return Interlocked.Increment(ref lastId);
