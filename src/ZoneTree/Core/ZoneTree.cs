@@ -1,8 +1,8 @@
 ﻿#undef TRACE_MERGE
 
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Segments;
 using Tenray.ZoneTree.Segments.Disk;
 
@@ -94,6 +94,10 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     public event CanNotDropDiskSegmentCreator<TKey, TValue> OnCanNotDropDiskSegmentCreator;
 
     public event ZoneTreeIsDisposing<TKey, TValue> OnZoneTreeIsDisposing;
+
+    volatile bool _isReadOnly;
+
+    public bool IsReadOnly { get => _isReadOnly; set => _isReadOnly = value; }
 
     public ZoneTree(ZoneTreeOptions<TKey, TValue> options)
     {
@@ -207,6 +211,9 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public bool TryAtomicAdd(in TKey key, in TValue value)
     {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
+
         if (key == null)
             throw new ArgumentNullException(nameof(key));
         lock (AtomicUpdateLock)
@@ -220,6 +227,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public bool TryAtomicUpdate(in TKey key, in TValue value)
     {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
         if (key == null)
             throw new ArgumentNullException(nameof(key));
         lock (AtomicUpdateLock)
@@ -233,6 +242,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public bool TryAtomicAddOrUpdate(in TKey key, in TValue valueToAdd, Func<TValue, TValue> valueToUpdateGetter)
     {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
         if (key == null)
             throw new ArgumentNullException(nameof(key));
         AddOrUpdateResult status;
@@ -276,6 +287,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public void AtomicUpsert(in TKey key, in TValue value)
     {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
         lock (AtomicUpdateLock)
         {
             Upsert(in key, in value);
@@ -284,6 +297,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public void Upsert(in TKey key, in TValue value)
     {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
         if (key == null)
             throw new ArgumentNullException(nameof(key));
         while (true)
@@ -305,6 +320,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public bool TryDelete(in TKey key)
     {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
         if (key == null)
             throw new ArgumentNullException(nameof(key));
         if (!ContainsKey(key))
@@ -315,6 +332,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public void ForceDelete(in TKey key)
     {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
         if (key == null)
             throw new ArgumentNullException(nameof(key));
         while (true)

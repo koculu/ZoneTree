@@ -161,4 +161,9 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// Returns maintenance object belongs to this ZoneTree.
     /// </summary>
     IZoneTreeMaintenance<TKey, TValue> Maintenance { get; }
+
+    /// <summary>
+    /// Enables read-only mode.
+    /// </summary>
+    public bool IsReadOnly { get; set; }
 }

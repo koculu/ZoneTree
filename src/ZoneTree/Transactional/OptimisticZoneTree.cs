@@ -21,6 +21,12 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
     public IReadOnlyList<long> UncommittedTransactionIds => TransactionLog.UncommittedTransactionIds;
 
+    public bool IsReadOnly
+    {
+        get => ZoneTree.IsReadOnly;
+        set => ZoneTree.IsReadOnly = value;
+    }
+
     public OptimisticZoneTree(
         ZoneTreeOptions<TKey, TValue> options,
         ITransactionLog<TKey, TValue> transactionLog,
@@ -381,6 +387,8 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
     public void UpsertAutoCommit(in TKey key, in TValue oldVal)
     {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
         lock (this)
         {
             var transactionId = BeginTransaction();
@@ -406,6 +414,8 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
     public void DeleteAutoCommit(in TKey key)
     {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
         lock (this)
         {
             var transactionId = BeginTransaction();
@@ -498,6 +508,8 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
     public TransactionResult<bool> UpsertNoThrow(long transactionId, in TKey key, in TValue value)
     {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
         lock (this)
         {
             var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
@@ -528,11 +540,13 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
             TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
             ZoneTree.Upsert(in key, in value);
             return TransactionResult<bool>.Success(!hasOldValue);
-        }        
+        }
     }
 
     public TransactionResult DeleteNoThrow(long transactionId, in TKey key)
     {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
         lock (this)
         {
             var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);

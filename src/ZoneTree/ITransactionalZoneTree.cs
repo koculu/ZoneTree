@@ -206,4 +206,9 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="key">Key</param>
     void DeleteAutoCommit(in TKey key);
+
+    /// <summary>
+    /// Enables read-only mode.
+    /// </summary>
+    public bool IsReadOnly { get; set; }
 }

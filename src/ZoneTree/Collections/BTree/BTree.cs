@@ -24,16 +24,18 @@ public partial class BTree<TKey, TValue>
     volatile LeafNode LastLeafNode;
 
     public readonly IRefComparer<TKey> Comparer;
-    
+
     volatile int _length;
 
     public int Length => _length;
-    
+
     public readonly BTreeLockMode LockMode;
 
     public IIncrementalIdProvider OpIndexProvider { get; }
 
-    public bool IsReadOnly { get; set; }
+    volatile bool _isReadOnly;
+    
+    public bool IsReadOnly { get => _isReadOnly; set => _isReadOnly = value; }
 
     public BTree(
         IRefComparer<TKey> comparer,
@@ -62,7 +64,7 @@ public partial class BTree<TKey, TValue>
     ILocker GetNodeLocker() => LockMode switch
     {
         BTreeLockMode.TopLevelMonitor or
-        BTreeLockMode.TopLevelReaderWriter or 
+        BTreeLockMode.TopLevelReaderWriter or
         BTreeLockMode.NoLock => new NoLock(),
 
         BTreeLockMode.NodeLevelMonitor => new MonitorLock(),
@@ -129,7 +131,7 @@ public partial class BTree<TKey, TValue>
         var iterator = GetFrozenLeafNode(key).GetFrozenIterator();
         return iterator.SeekFirstKeyGreaterOrEqual(Comparer, in key);
     }
-        
+
     public NodeIterator GetFirstIterator()
     {
         try
@@ -166,7 +168,7 @@ public partial class BTree<TKey, TValue>
         return LastLeafNode.GetFrozenIterator();
     }
 
-    public void SetNextOpIndex(long nextId) 
+    public void SetNextOpIndex(long nextId)
         => OpIndexProvider.SetNextId(nextId);
 
     public long GetLastOpIndex()
