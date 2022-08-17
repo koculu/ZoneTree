@@ -136,6 +136,46 @@ public class ZoneTree1
         basicMaintainer.CompleteRunningTasks();
     }
 
+    public static void MultipleIterate(WriteAheadLogMode mode, int count, int iteratorCount)
+    {
+        var recCount = count / 1000000.0 + "M";
+        BenchmarkGroups.LogWithColor($"\r\n{mode} Iterate <int,int> {recCount}\r\n", ConsoleColor.Cyan);
+
+        string dataPath = GetDataPath(mode, count);
+        var stopWatch = new Stopwatch();
+        stopWatch.Start();
+        using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
+        using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
+        basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
+
+        BenchmarkGroups.LogWithColor(
+            "Loaded in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.DarkYellow);
+
+        Parallel.For(0, iteratorCount, (x) =>
+        {
+            var off = 0;
+            using var iterator = zoneTree.CreateIterator();
+            while (iterator.Next())
+            {
+                if (iterator.CurrentKey * 2 != iterator.CurrentValue)
+                    throw new Exception("invalid key or value");
+                ++off;
+            }
+            if (off != count)
+                throw new Exception($"missing records. {off} != {count} TID:"
+                    + Environment.CurrentManagedThreadId);
+        });
+        
+
+        BenchmarkGroups.LogWithColor(
+            "Completed in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.Green);
+        basicMaintainer.CompleteRunningTasks();
+    }
+
     private static IZoneTree<int, int> OpenOrCreateZoneTree(WriteAheadLogMode mode, string dataPath)
     {
         return new ZoneTreeFactory<int, int>()

@@ -4,6 +4,8 @@ namespace Tenray.ZoneTree.Segments.Disk;
 
 public class RandomAccessDeviceManager : IRandomAccessDeviceManager
 {
+    public ILogger Logger { get; }
+
     public IFileStreamProvider FileStreamProvider { get; }
 
     readonly Dictionary<string, IRandomAccessDevice> ReadOnlyDevices = new();
@@ -18,8 +20,9 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
     public int WritableDeviceCount => WritableDevices.Count;
 
-    public RandomAccessDeviceManager(IFileStreamProvider fileStreamProvider, string dataDirectory = "data")
+    public RandomAccessDeviceManager(ILogger logger, IFileStreamProvider fileStreamProvider, string dataDirectory = "data")
     {
+        Logger = logger;
         FileStreamProvider = fileStreamProvider;
         DataDirectory = dataDirectory;
         FileStreamProvider.CreateDirectory(dataDirectory);
@@ -58,6 +61,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         }
         IRandomAccessDevice device = isCompressed ?
             new CompressedFileRandomAccessDevice(
+                Logger,
                 maxCachedBlockCount,
                 FileStreamProvider,
                 segmentId, category, this, filePath, true, compressionBlockSize) :
@@ -101,6 +105,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         var filePath = GetFilePath(segmentId, category);
         device = isCompressed ?
             new CompressedFileRandomAccessDevice(
+                Logger,
                 maxCachedBlockCount,
                 FileStreamProvider,
                 segmentId, category, this, filePath, false, compressionBlockSize) :

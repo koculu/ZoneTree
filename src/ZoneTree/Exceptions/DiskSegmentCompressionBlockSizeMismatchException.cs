@@ -3,7 +3,7 @@
 public class DiskSegmentCompressionBlockSizeMismatchException : ZoneTreeException
 {
     public DiskSegmentCompressionBlockSizeMismatchException(int expected, int given)
-        : base($"Disk segment compression mode does not match.\r\n expected: {expected}\r\n given: {given}")
+        : base($"Disk segment compression block size does not match.\r\n expected: {expected}\r\n given: {given}")
     {
         Expected = expected;
         Given = given;

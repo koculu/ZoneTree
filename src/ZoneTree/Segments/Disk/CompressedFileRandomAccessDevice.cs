@@ -49,6 +49,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     readonly int MaxCachedBlockCount;
 
     public CompressedFileRandomAccessDevice(
+        ILogger logger,
         int maxCachedBlockCount,
         IFileStreamProvider fileStreamProvider,
         long segmentId,
@@ -60,7 +61,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         int fileIOBufferSize = 4096)
     {
         MaxCachedBlockCount = maxCachedBlockCount;
-        CircularBlockCache = new(maxCachedBlockCount);
+        CircularBlockCache = new(logger, maxCachedBlockCount);
         FileStreamProvider = fileStreamProvider;
         SegmentId = segmentId;
         Category = category;

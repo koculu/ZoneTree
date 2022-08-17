@@ -25,7 +25,6 @@ public class ZoneTreeFactory<TKey, TValue>
 
     public ZoneTreeOptions<TKey, TValue> Options { get; private set; } = new();
 
-
     public ZoneTreeFactory(IFileStreamProvider fileStreamProvider = null)
     {
         if (fileStreamProvider == null)
@@ -67,6 +66,7 @@ public class ZoneTreeFactory<TKey, TValue>
         SetDataDirectory(string dataDirectory)
     {
         Options.RandomAccessDeviceManager = new RandomAccessDeviceManager(
+            Options.Logger,
             FileStreamProvider, dataDirectory);
         return this;
     }

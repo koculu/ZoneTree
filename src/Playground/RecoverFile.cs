@@ -7,16 +7,20 @@ using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
 
+namespace Playground;
+
 public class RecoverFile
 {
     public static void Recover1()
     {
         var path = @"..\..\data\Lazy-50M-str-str";
         var fileStreamProvider = new LocalFileStreamProvider();
-        var deviceManager = new RandomAccessDeviceManager(fileStreamProvider, path);
+        var logger = new ConsoleLogger();
+        var deviceManager = new RandomAccessDeviceManager(logger, fileStreamProvider, path);
         ZoneTreeMetaWAL<string, string>.LoadZoneTreeMetaWithoutWALRecords(deviceManager);
         var options = new ZoneTreeOptions<string, string>
         {
+            Logger = logger,
             WriteAheadLogProvider = new BasicWriteAheadLogProvider(new ConsoleLogger(), fileStreamProvider, path)
             {
                 WriteAheadLogMode = WriteAheadLogMode.Lazy
@@ -37,15 +41,17 @@ public class RecoverFile
     public static void Recover2()
     {
         var path = @"..\..\data\CompressedImmediate-3M-transactional-int-int";
+        var logger = new ConsoleLogger();
         var fileStreamProvider = new LocalFileStreamProvider();
-        var deviceManager = new RandomAccessDeviceManager(fileStreamProvider, path);
+        var deviceManager = new RandomAccessDeviceManager(logger, fileStreamProvider, path);
         var meta = ZoneTreeMetaWAL<int, int>.LoadZoneTreeMetaWithoutWALRecords(deviceManager);
         var options = new ZoneTreeOptions<int, int>
         {
+            Logger = logger,
             WriteAheadLogProvider = new BasicWriteAheadLogProvider(new ConsoleLogger(), fileStreamProvider, path)
             {
                 WriteAheadLogMode = meta.WriteAheadLogMode
-            },            
+            },
             DiskSegmentCompressionBlockSize = meta.DiskSegmentCompressionBlockSize,
             RandomAccessDeviceManager = deviceManager,
             EnableDiskSegmentCompression = true,

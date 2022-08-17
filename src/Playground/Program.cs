@@ -15,7 +15,7 @@ TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 10;
 TestConfig.WALCompressionBlockSize = 1024 * 32 * 8;
 TestConfig.MinimumSparseArrayLength = 0;
 TestConfig.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
-ConsoleLogger.DefaultLogLevel = LogLevel.Warning;
+ConsoleLogger.DefaultLogLevel = LogLevel.Info;
 //BenchmarkRunner.Run<ParallelMassiveInsertTests>();
 //BenchmarkGroups.Iterate3(3_000_000, WriteAheadLogMode.CompressedImmediate)
 //RecoverFile.Recover2();
@@ -25,10 +25,15 @@ while(true)
 */
 
 //Test1.TestTreeIteratorBehavior();
+var c = 1_000_000;
+var ic = 1000;
+ZoneTree1.Insert(WriteAheadLogMode.None, c);
+ZoneTree1.MultipleIterate(WriteAheadLogMode.None, c, ic);
+/*
 
 BenchmarkGroups.InsertIterate1(0);
 BenchmarkGroups.InsertIterate2(0);
-BenchmarkGroups.InsertIterate3(0);
+BenchmarkGroups.InsertIterate3(0);*/
 
 //Test1.MassiveInsertsAndReads(2_000_000);
 //Test1.BTreeReverseIteratorParallelInserts();
