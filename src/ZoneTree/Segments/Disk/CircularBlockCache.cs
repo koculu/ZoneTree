@@ -61,7 +61,7 @@ public class CircularBlockCache
                 return block;
             });
         if (increaseBlockCache)
-            IncreaseBlockCache(MaxCachedBlockCount);
+            IncreaseBlockCache(currentBlockCacheCapacity);
     }
 
     void IncreaseBlockCache(int currentCacheCapacity)
