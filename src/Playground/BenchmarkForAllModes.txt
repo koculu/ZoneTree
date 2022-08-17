@@ -4,624 +4,624 @@
 None Insert <int,int> 1M
 
 Loaded in: 59
-Completed in: 316
-Merged in: 445
+Completed in: 326
+Merged in: 492
 
 None Iterate <int,int> 1M
 
-Loaded in: 71
-Completed in: 373
+Loaded in: 72
+Completed in: 367
 
 --------------------------
 
 None Insert <int,int> 2M
 
-Loaded in: 8
-Completed in: 438
-Merged in: 867
+Loaded in: 2
+Completed in: 420
+Merged in: 727
 
 None Iterate <int,int> 2M
 
-Loaded in: 35
-Completed in: 503
+Loaded in: 29
+Completed in: 482
 
 --------------------------
 
 None Insert <int,int> 3M
 
-Loaded in: 4
-Completed in: 573
-Merged in: 1106
+Loaded in: 2
+Completed in: 635
+Merged in: 1073
 
 None Iterate <int,int> 3M
 
 Loaded in: 21
-Completed in: 712
+Completed in: 690
 
 --------------------------
 
 None Insert <int,int> 10M
 
-Loaded in: 4
-Completed in: 2002
-Merged in: 9258
+Loaded in: 2
+Completed in: 2116
+Merged in: 8276
 
 None Iterate <int,int> 10M
 
-Loaded in: 43
-Completed in: 2467
+Loaded in: 33
+Completed in: 2226
 
 --------------------------
 
 Lazy Insert <int,int> 1M
 
-Loaded in: 7
-Completed in: 238
+Loaded in: 5
+Completed in: 231
 Merged in: 0
 
 Lazy Iterate <int,int> 1M
 
-Loaded in: 540
-Completed in: 643
+Loaded in: 507
+Completed in: 617
 
 --------------------------
 
 Lazy Insert <int,int> 2M
 
-Loaded in: 5
-Completed in: 440
+Loaded in: 2
+Completed in: 460
 Merged in: 0
 
 Lazy Iterate <int,int> 2M
 
-Loaded in: 1007
-Completed in: 1147
+Loaded in: 846
+Completed in: 985
 
 --------------------------
 
 Lazy Insert <int,int> 3M
 
-Loaded in: 4
-Completed in: 680
+Loaded in: 2
+Completed in: 693
 Merged in: 0
 
 Lazy Iterate <int,int> 3M
 
-Loaded in: 1371
-Completed in: 1549
+Loaded in: 833
+Completed in: 1039
 
 --------------------------
 
 Lazy Insert <int,int> 10M
 
-Loaded in: 5
-Completed in: 2632
-Merged in: 8144
+Loaded in: 2
+Completed in: 2544
+Merged in: 7718
 
 Lazy Iterate <int,int> 10M
 
-Loaded in: 552
-Completed in: 2737
+Loaded in: 542
+Completed in: 2674
 
 --------------------------
 
 CompressedImmediate Insert <int,int> 1M
 
-Loaded in: 4
-Completed in: 1015
+Loaded in: 2
+Completed in: 977
 Merged in: 0
 
 CompressedImmediate Iterate <int,int> 1M
 
-Loaded in: 506
+Loaded in: 498
 Completed in: 570
 
 --------------------------
 
 CompressedImmediate Insert <int,int> 2M
 
-Loaded in: 5
-Completed in: 2068
+Loaded in: 2
+Completed in: 1981
 Merged in: 0
 
 CompressedImmediate Iterate <int,int> 2M
 
-Loaded in: 900
-Completed in: 1018
+Loaded in: 803
+Completed in: 946
 
 --------------------------
 
 CompressedImmediate Insert <int,int> 3M
 
-Loaded in: 4
-Completed in: 3079
+Loaded in: 2
+Completed in: 3000
 Merged in: 0
 
 CompressedImmediate Iterate <int,int> 3M
 
-Loaded in: 1195
-Completed in: 1385
+Loaded in: 899
+Completed in: 1094
 
 --------------------------
 
 CompressedImmediate Insert <int,int> 10M
 
-Loaded in: 4
-Completed in: 10741
-Merged in: 7901
+Loaded in: 2
+Completed in: 10366
+Merged in: 3241
 
 CompressedImmediate Iterate <int,int> 10M
 
-Loaded in: 553
-Completed in: 2738
+Loaded in: 540
+Completed in: 2710
 
 --------------------------
 
 Immediate Insert <int,int> 1M
 
-Loaded in: 4
-Completed in: 2768
+Loaded in: 2
+Completed in: 2772
 Merged in: 0
 
 Immediate Iterate <int,int> 1M
 
-Loaded in: 403
-Completed in: 482
+Loaded in: 432
+Completed in: 488
 
 --------------------------
 
 Immediate Insert <int,int> 2M
 
-Loaded in: 4
-Completed in: 5447
+Loaded in: 2
+Completed in: 5549
 Merged in: 0
 
 Immediate Iterate <int,int> 2M
 
-Loaded in: 661
-Completed in: 774
+Loaded in: 644
+Completed in: 779
 
 --------------------------
 
 Immediate Insert <int,int> 3M
 
-Loaded in: 5
-Completed in: 8198
+Loaded in: 2
+Completed in: 8372
 Merged in: 0
 
 Immediate Iterate <int,int> 3M
 
-Loaded in: 914
-Completed in: 1100
+Loaded in: 655
+Completed in: 861
 
 --------------------------
 
 Immediate Insert <int,int> 10M
 
-Loaded in: 4
-Completed in: 27613
-Merged in: 0
+Loaded in: 2
+Completed in: 27952
+Merged in: 1585
 
 Immediate Iterate <int,int> 10M
 
-Loaded in: 923
-Completed in: 2815
+Loaded in: 471
+Completed in: 2644
 
 --------------------------
 
 None Insert <string,string> 1M
 
-Loaded in: 12
-Completed in: 749
-Merged in: 668
+Loaded in: 10
+Completed in: 785
+Merged in: 635
 
 None Iterate <string,string> 1M
 
-Loaded in: 29
-Completed in: 635
+Loaded in: 43
+Completed in: 683
 
 --------------------------
 
 None Insert <string,string> 2M
 
-Loaded in: 4
-Completed in: 1391
-Merged in: 1168
+Loaded in: 2
+Completed in: 1405
+Merged in: 1271
 
 None Iterate <string,string> 2M
 
-Loaded in: 8
-Completed in: 1210
+Loaded in: 12
+Completed in: 1284
 
 --------------------------
 
 None Insert <string,string> 3M
 
-Loaded in: 4
-Completed in: 2091
-Merged in: 1784
+Loaded in: 2
+Completed in: 2196
+Merged in: 1821
 
 None Iterate <string,string> 3M
 
-Loaded in: 16
-Completed in: 1834
+Loaded in: 22
+Completed in: 1862
 
 --------------------------
 
 None Insert <string,string> 10M
 
-Loaded in: 4
-Completed in: 7093
-Merged in: 16522
+Loaded in: 2
+Completed in: 7159
+Merged in: 16050
 
 None Iterate <string,string> 10M
 
-Loaded in: 25
-Completed in: 6199
+Loaded in: 26
+Completed in: 6170
 
 --------------------------
 
 Lazy Insert <string,string> 1M
 
-Loaded in: 6
-Completed in: 847
+Loaded in: 3
+Completed in: 865
 Merged in: 0
 
 Lazy Iterate <string,string> 1M
 
-Loaded in: 1423
-Completed in: 1577
+Loaded in: 1467
+Completed in: 1595
 
 --------------------------
 
 Lazy Insert <string,string> 2M
 
-Loaded in: 4
-Completed in: 1764
+Loaded in: 2
+Completed in: 1754
 Merged in: 0
 
 Lazy Iterate <string,string> 2M
 
-Loaded in: 2535
-Completed in: 2798
+Loaded in: 2606
+Completed in: 2831
 
 --------------------------
 
 Lazy Insert <string,string> 3M
 
-Loaded in: 4
-Completed in: 2717
+Loaded in: 2
+Completed in: 2655
 Merged in: 0
 
 Lazy Iterate <string,string> 3M
 
-Loaded in: 3873
-Completed in: 4268
+Loaded in: 3235
+Completed in: 3575
 
 --------------------------
 
 Lazy Insert <string,string> 10M
 
-Loaded in: 4
-Completed in: 8955
-Merged in: 14354
+Loaded in: 2
+Completed in: 8958
+Merged in: 14468
 
 Lazy Iterate <string,string> 10M
 
-Loaded in: 1271
-Completed in: 7872
+Loaded in: 1329
+Completed in: 8127
 
 --------------------------
 
 CompressedImmediate Insert <string,string> 1M
 
-Loaded in: 4
-Completed in: 1714
+Loaded in: 3
+Completed in: 1673
 Merged in: 0
 
 CompressedImmediate Iterate <string,string> 1M
 
-Loaded in: 1452
-Completed in: 1587
+Loaded in: 1536
+Completed in: 1631
 
 --------------------------
 
 CompressedImmediate Insert <string,string> 2M
 
-Loaded in: 5
-Completed in: 3454
+Loaded in: 2
+Completed in: 3506
 Merged in: 0
 
 CompressedImmediate Iterate <string,string> 2M
 
-Loaded in: 2560
-Completed in: 2823
+Loaded in: 2499
+Completed in: 2708
 
 --------------------------
 
 CompressedImmediate Insert <string,string> 3M
 
-Loaded in: 4
-Completed in: 5087
+Loaded in: 2
+Completed in: 5143
 Merged in: 0
 
 CompressedImmediate Iterate <string,string> 3M
 
-Loaded in: 3642
-Completed in: 4058
+Loaded in: 3333
+Completed in: 3674
 
 --------------------------
 
 CompressedImmediate Insert <string,string> 10M
 
-Loaded in: 4
-Completed in: 18196
-Merged in: 12491
+Loaded in: 3
+Completed in: 18449
+Merged in: 12300
 
 CompressedImmediate Iterate <string,string> 10M
 
-Loaded in: 1295
-Completed in: 7866
+Loaded in: 1334
+Completed in: 7859
 
 --------------------------
 
 Immediate Insert <string,string> 1M
 
-Loaded in: 5
-Completed in: 3612
+Loaded in: 2
+Completed in: 3889
 Merged in: 0
 
 Immediate Iterate <string,string> 1M
 
-Loaded in: 1562
-Completed in: 1685
+Loaded in: 1480
+Completed in: 1582
 
 --------------------------
 
 Immediate Insert <string,string> 2M
 
-Loaded in: 4
-Completed in: 7136
+Loaded in: 2
+Completed in: 7208
 Merged in: 0
 
 Immediate Iterate <string,string> 2M
 
-Loaded in: 2476
-Completed in: 2823
+Loaded in: 2527
+Completed in: 2730
 
 --------------------------
 
 Immediate Insert <string,string> 3M
 
-Loaded in: 5
-Completed in: 10494
+Loaded in: 2
+Completed in: 10635
 Merged in: 0
 
 Immediate Iterate <string,string> 3M
 
-Loaded in: 3469
-Completed in: 3864
+Loaded in: 3206
+Completed in: 3536
 
 --------------------------
 
 Immediate Insert <string,string> 10M
 
-Loaded in: 4
-Completed in: 36263
-Merged in: 11410
+Loaded in: 2
+Completed in: 36648
+Merged in: 10461
 
 Immediate Iterate <string,string> 10M
 
-Loaded in: 1254
-Completed in: 7966
+Loaded in: 1256
+Completed in: 7815
 
 --------------------------
 
 None Transaction Insert <int,int> 1M
 
-Loaded in: 20
-Completed in: 686
-Merged in: 383
+Loaded in: 17
+Completed in: 666
+Merged in: 374
 
-None Iterate <int,int> 1M
+None Transaction Iterate <int,int> 1M
 
-Loaded in: 44
-Completed in: 266
+Loaded in: 41
+Completed in: 258
 
 --------------------------
 
 None Transaction Insert <int,int> 2M
 
-Loaded in: 6
-Completed in: 1223
-Merged in: 756
+Loaded in: 2
+Completed in: 1141
+Merged in: 755
 
-None Iterate <int,int> 2M
+None Transaction Iterate <int,int> 2M
 
 Loaded in: 28
-Completed in: 468
+Completed in: 469
 
 --------------------------
 
 None Transaction Insert <int,int> 3M
 
-Loaded in: 5
-Completed in: 1874
-Merged in: 1086
+Loaded in: 2
+Completed in: 1713
+Merged in: 1066
 
-None Iterate <int,int> 3M
+None Transaction Iterate <int,int> 3M
 
-Loaded in: 17
-Completed in: 683
+Loaded in: 21
+Completed in: 690
 
 --------------------------
 
 None Transaction Insert <int,int> 10M
 
-Loaded in: 4
-Completed in: 6232
-Merged in: 8899
+Loaded in: 2
+Completed in: 5886
+Merged in: 9103
 
-None Iterate <int,int> 10M
+None Transaction Iterate <int,int> 10M
 
 Loaded in: 35
-Completed in: 2306
+Completed in: 2215
 
 --------------------------
 
 Lazy Transaction Insert <int,int> 1M
 
-Loaded in: 27
-Completed in: 5867
+Loaded in: 25
+Completed in: 883
 Merged in: 0
 
-Lazy Iterate <int,int> 1M
+Lazy Transaction Iterate <int,int> 1M
 
-Loaded in: 553
-Completed in: 636
+Loaded in: 578
+Completed in: 664
 
 --------------------------
 
 Lazy Transaction Insert <int,int> 2M
 
-Loaded in: 11
-Completed in: 12118
+Loaded in: 7
+Completed in: 1776
 Merged in: 0
 
-Lazy Iterate <int,int> 2M
+Lazy Transaction Iterate <int,int> 2M
 
-Loaded in: 933
-Completed in: 1048
+Loaded in: 911
+Completed in: 1020
 
 --------------------------
 
 Lazy Transaction Insert <int,int> 3M
 
-Loaded in: 12
-Completed in: 17982
+Loaded in: 5
+Completed in: 2668
 Merged in: 0
 
-Lazy Iterate <int,int> 3M
+Lazy Transaction Iterate <int,int> 3M
 
-Loaded in: 1294
-Completed in: 1473
+Loaded in: 906
+Completed in: 1105
 
 --------------------------
 
 Lazy Transaction Insert <int,int> 10M
 
 Loaded in: 11
-Completed in: 61165
-Merged in: 0
+Completed in: 9394
+Merged in: 4463
 
-Lazy Iterate <int,int> 10M
+Lazy Transaction Iterate <int,int> 10M
 
-Loaded in: 635
-Completed in: 2756
+Loaded in: 613
+Completed in: 2729
 
 --------------------------
 
 CompressedImmediate Transaction Insert <int,int> 1M
 
-Loaded in: 25
-Completed in: 4083
+Loaded in: 24
+Completed in: 4617
 Merged in: 0
 
-CompressedImmediate Iterate <int,int> 1M
+CompressedImmediate Transaction Iterate <int,int> 1M
 
-Loaded in: 564
-Completed in: 651
+Loaded in: 555
+Completed in: 641
 
 --------------------------
 
 CompressedImmediate Transaction Insert <int,int> 2M
 
-Loaded in: 11
-Completed in: 8070
+Loaded in: 9
+Completed in: 9183
 Merged in: 0
 
-CompressedImmediate Iterate <int,int> 2M
+CompressedImmediate Transaction Iterate <int,int> 2M
 
-Loaded in: 892
-Completed in: 1017
+Loaded in: 912
+Completed in: 1023
 
 --------------------------
 
 CompressedImmediate Transaction Insert <int,int> 3M
 
-Loaded in: 9
-Completed in: 12007
+Loaded in: 7
+Completed in: 14045
 Merged in: 0
 
-CompressedImmediate Iterate <int,int> 3M
+CompressedImmediate Transaction Iterate <int,int> 3M
 
-Loaded in: 1250
-Completed in: 1431
+Loaded in: 953
+Completed in: 1161
 
 --------------------------
 
 CompressedImmediate Transaction Insert <int,int> 10M
 
-Loaded in: 11
-Completed in: 41287
-Merged in: 398
+Loaded in: 8
+Completed in: 53864
+Merged in: 0
 
-CompressedImmediate Iterate <int,int> 10M
+CompressedImmediate Transaction Iterate <int,int> 10M
 
-Loaded in: 662
-Completed in: 2882
+Loaded in: 610
+Completed in: 2769
 
 --------------------------
 
 Immediate Transaction Insert <int,int> 1M
 
-Loaded in: 23
-Completed in: 11530
+Loaded in: 20
+Completed in: 11272
 Merged in: 0
 
-Immediate Iterate <int,int> 1M
+Immediate Transaction Iterate <int,int> 1M
 
-Loaded in: 468
-Completed in: 534
+Loaded in: 471
+Completed in: 525
 
 --------------------------
 
 Immediate Transaction Insert <int,int> 2M
 
-Loaded in: 5
-Completed in: 22537
+Loaded in: 3
+Completed in: 22306
 Merged in: 0
 
-Immediate Iterate <int,int> 2M
+Immediate Transaction Iterate <int,int> 2M
 
-Loaded in: 725
-Completed in: 845
+Loaded in: 713
+Completed in: 821
 
 --------------------------
 
 Immediate Transaction Insert <int,int> 3M
 
-Loaded in: 6
-Completed in: 33831
+Loaded in: 3
+Completed in: 34636
 Merged in: 0
 
-Immediate Iterate <int,int> 3M
+Immediate Transaction Iterate <int,int> 3M
 
-Loaded in: 956
-Completed in: 1149
+Loaded in: 761
+Completed in: 937
 
 --------------------------
 
 Immediate Transaction Insert <int,int> 10M
 
-Loaded in: 5
-Completed in: 111118
+Loaded in: 7
+Completed in: 112908
 Merged in: 0
 
-Immediate Iterate <int,int> 10M
+Immediate Transaction Iterate <int,int> 10M
 
-Loaded in: 548
-Completed in: 2646
+Loaded in: 541
+Completed in: 2591
 
-D:\code\modern\ZoneTree\src\Playground\bin\Release\net6.0\Playground.exe (process 42340) exited with code 0.
+D:\code\modern\ZoneTree\src\Playground\bin\Release\net6.0\Playground.exe (process 25848) exited with code 0.
 Press any key to close this window . . .
