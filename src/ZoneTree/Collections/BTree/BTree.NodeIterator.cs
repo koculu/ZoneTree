@@ -38,27 +38,29 @@ public partial class BTree<TKey, TValue>
 
         public NodeIterator GetPreviousNodeIterator()
         {
+            var topLevelLocker = Tree.TopLevelLocker;
             try
             {
-                Tree.ReadLock();
+                topLevelLocker.ReadLock();
                 return Node.Previous?.GetIterator(Tree);
             }
             finally
             {
-                Tree.ReadUnlock();
+                topLevelLocker.ReadUnlock();
             }
         }
 
         public NodeIterator GetNextNodeIterator()
         {
+            var topLevelLocker = Tree.TopLevelLocker;
             try
             {
-                Tree.ReadLock();
+                topLevelLocker.ReadLock();
                 return Node.Next?.GetIterator(Tree);
             }
             finally
             {
-                Tree.ReadUnlock();
+                topLevelLocker.ReadUnlock();
             }
         }
 

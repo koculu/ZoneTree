@@ -11,7 +11,7 @@ namespace Tenray.ZoneTree.Collections.BTree;
 /// <typeparam name="TValue">Value Type</typeparam>
 public partial class BTree<TKey, TValue>
 {
-    readonly ILocker TopLevelLocker;
+    ILocker TopLevelLocker;
 
     readonly int NodeSize = 128;
 
@@ -52,7 +52,7 @@ public partial class BTree<TKey, TValue>
         {
             BTreeLockMode.TopLevelMonitor => new MonitorLock(),
             BTreeLockMode.TopLevelReaderWriter => new ReadWriteLock(),
-            BTreeLockMode.NoLock or BTreeLockMode.NodeLevelMonitor or BTreeLockMode.NodeLevelReaderWriter => new NoLock(),
+            BTreeLockMode.NoLock or BTreeLockMode.NodeLevelMonitor or BTreeLockMode.NodeLevelReaderWriter => NoLock.Instance,
             _ => throw new NotSupportedException(),
         };
         LockMode = lockMode;
@@ -65,7 +65,7 @@ public partial class BTree<TKey, TValue>
     {
         BTreeLockMode.TopLevelMonitor or
         BTreeLockMode.TopLevelReaderWriter or
-        BTreeLockMode.NoLock => new NoLock(),
+        BTreeLockMode.NoLock => NoLock.Instance,
 
         BTreeLockMode.NodeLevelMonitor => new MonitorLock(),
         BTreeLockMode.NodeLevelReaderWriter => new ReadWriteLock(),
@@ -82,41 +82,33 @@ public partial class BTree<TKey, TValue>
         TopLevelLocker.WriteUnlock();
     }
 
-    public void ReadLock()
-    {
-        TopLevelLocker.ReadLock();
-    }
-
-    public void ReadUnlock()
-    {
-        TopLevelLocker.ReadUnlock();
-    }
-
     public NodeIterator GetIteratorWithLastKeySmallerOrEqual(in TKey key)
     {
+        var topLevelLocker = TopLevelLocker;
         try
         {
-            ReadLock();
+            topLevelLocker.ReadLock();
             var iterator = GetLeafNode(key).GetIterator(this);
             return iterator.SeekLastKeySmallerOrEqual(Comparer, in key);
         }
         finally
         {
-            ReadUnlock();
+            topLevelLocker.ReadUnlock();
         }
     }
 
     public NodeIterator GetIteratorWithFirstKeyGreaterOrEqual(in TKey key)
     {
+        var topLevelLocker = TopLevelLocker;
         try
         {
-            ReadLock();
+            topLevelLocker.ReadLock();
             var iterator = GetLeafNode(key).GetIterator(this);
             return iterator.SeekFirstKeyGreaterOrEqual(Comparer, in key);
         }
         finally
         {
-            ReadUnlock();
+            topLevelLocker.ReadUnlock();
         }
     }
 
@@ -134,14 +126,15 @@ public partial class BTree<TKey, TValue>
 
     public NodeIterator GetFirstIterator()
     {
+        var topLevelLocker = TopLevelLocker;
         try
         {
-            ReadLock();
+            topLevelLocker.ReadLock();
             return FirstLeafNode.GetIterator(this);
         }
         finally
         {
-            ReadUnlock();
+            topLevelLocker.ReadUnlock();
         }
     }
 
@@ -152,14 +145,15 @@ public partial class BTree<TKey, TValue>
 
     public NodeIterator GetLastIterator()
     {
+        var topLevelLocker = TopLevelLocker;
         try
         {
-            ReadLock();
+            topLevelLocker.ReadLock();
             return LastLeafNode.GetIterator(this);
         }
         finally
         {
-            ReadUnlock();
+            topLevelLocker.ReadUnlock();
         }
     }
 

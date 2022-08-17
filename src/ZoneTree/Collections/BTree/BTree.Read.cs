@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Collections.BTree;
+﻿using Tenray.ZoneTree.Collections.BTree.Lock;
+
+namespace Tenray.ZoneTree.Collections.BTree;
 
 /// <summary>
 /// In memory B+Tree.
@@ -10,9 +12,10 @@ public partial class BTree<TKey, TValue>
 {
     public bool ContainsKey(in TKey key)
     {
+        var topLevelLocker = TopLevelLocker;
         try
         {
-            ReadLock();
+            topLevelLocker.ReadLock();
             while (true)
             {
                 var root = Root;
@@ -27,7 +30,7 @@ public partial class BTree<TKey, TValue>
         }
         finally
         {
-            ReadUnlock();
+            topLevelLocker.ReadUnlock();
         }
     }
 
@@ -57,9 +60,10 @@ public partial class BTree<TKey, TValue>
 
     public bool TryGetValue(in TKey key, out TValue value)
     {
+        var topLevelLocker = TopLevelLocker;
         try
         {
-            ReadLock();
+            topLevelLocker.ReadLock();
             while (true)
             {
                 var root = Root;
@@ -74,7 +78,7 @@ public partial class BTree<TKey, TValue>
         }
         finally
         {
-            ReadUnlock();
+            topLevelLocker.ReadUnlock();
         }
     }
 
@@ -112,9 +116,10 @@ public partial class BTree<TKey, TValue>
 
     LeafNode GetLeafNode(in TKey key)
     {
+        var topLevelLocker = TopLevelLocker;
         try
         {
-            ReadLock();
+            topLevelLocker.ReadLock();
             while (true)
             {
                 var root = Root;
@@ -129,7 +134,7 @@ public partial class BTree<TKey, TValue>
         }
         finally
         {
-            ReadUnlock();
+            topLevelLocker.ReadUnlock();
         }
     }
 
@@ -185,5 +190,99 @@ public partial class BTree<TKey, TValue>
         }
     }
 
+    /// <summary>
+    /// Converts BTree to lock-free BTree by removing top level locks and
+    /// all locks from nodes. It is caller's responsibility
+    /// to not to modify the tree after this method is called.
+    /// It is also caller's responsibility to ensure all ongoing writes
+    /// are already finished.
+    /// </summary>
+    public void SetTreeReadOnlyAndLockFree()
+    {
+        TopLevelLocker = NoLock.Instance;
+        var newRoot = Root.CloneWithNoLock();
 
+        // iterate all leafs and link them.
+        var queue = new Queue<Node>();
+        var leafs = new Queue<LeafNode>();
+        if (newRoot is LeafNode leafRoot)
+            leafs.Enqueue(leafRoot);
+        else
+            queue.Enqueue(newRoot);
+        while (queue.Any())
+        {
+            var node = queue.Dequeue();
+            var children = node.Children;
+            if (children != null)
+            {
+                var len = node.Length + 1;
+                for (int i = 0; i < len; i++)
+                {
+                    var child = children[i];
+                    if (child is LeafNode leafNode)
+                        leafs.Enqueue(leafNode);
+                    else
+                        queue.Enqueue(child);
+                }
+            }
+        }
+        var leaf = leafs.Dequeue();
+        var first = leaf;
+        while (leafs.Any())
+        {
+            var next = leafs.Dequeue();
+            leaf.Next = next;
+            next.Previous = leaf;
+            leaf = next;
+        }
+        var last = leaf;
+        FirstLeafNode = first;
+        LastLeafNode = last;
+        Root = newRoot;
+        IsReadOnly = true;
+    }
+
+    public void Validate()
+    {
+        Root.Validate(Comparer);
+    }
+
+    public void ValidateLeafs()
+    {
+        var root = Root;
+
+        var queue = new Queue<Node>();
+        var leafs = new Queue<LeafNode>();
+        if (root is LeafNode leafRoot)
+            leafs.Enqueue(leafRoot);
+        else
+            queue.Enqueue(root);
+        while (queue.Any())
+        {
+            var node = queue.Dequeue();
+            var children = node.Children;
+            if (children != null)
+            {
+                var len = node.Length + 1;
+                for (int i = 0; i < len; i++)
+                {
+                    var child = children[i];
+                    if (child is LeafNode leafNode)
+                        leafs.Enqueue(leafNode);
+                    else
+                        queue.Enqueue(child);
+                }
+            }
+        }
+        var leaf = leafs.Dequeue();
+        while (leafs.Any())
+        {
+            var next = leafs.Dequeue();
+            if (leaf == next)
+                throw new Exception("Found equal leafs on both side.");
+            leaf.Next = next;
+            next.Previous = leaf;
+            leaf = next;
+        }
+    }
 }

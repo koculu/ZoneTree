@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Collections.BTree;
+﻿using Tenray.ZoneTree.Collections.BTree.Lock;
+
+namespace Tenray.ZoneTree.Collections.BTree;
 
 public partial class BTree<TKey, TValue>
 {
@@ -14,6 +16,14 @@ public partial class BTree<TKey, TValue>
         {
             Keys = new TKey[leafSize];
             Values = new TValue[leafSize];
+        }
+
+        public LeafNode(ILocker locker, int length, TKey[] keys, TValue[] values) 
+            : base(locker)
+        {
+            Length = length;
+            Keys = keys;
+            Values = values;
         }
 
         public void Update(int position, in TKey key, in TValue value)
@@ -74,6 +84,11 @@ public partial class BTree<TKey, TValue>
             right.Previous = left;
 
             return (left, right);
+        }
+
+        public override Node CloneWithNoLock()
+        {
+            return new LeafNode(NoLock.Instance, Length, Keys, Values);
         }
     }
 }

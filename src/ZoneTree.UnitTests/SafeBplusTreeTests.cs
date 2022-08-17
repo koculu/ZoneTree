@@ -2,6 +2,7 @@
 using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Collections.BTree.Lock;
 using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Core;
 
 namespace Tenray.ZoneTree.UnitTests;
 
@@ -332,5 +333,23 @@ public class SafeBTreeTests
             Assert.That(isValidData, Is.True);
         });
         task.Wait();
+    }
+
+    [Test]
+    public void BTreeValidation()
+    {
+        var n = 2000;
+        var tree = new BTree<int, int>(
+            new Int32ComparerAscending(),
+            BTreeLockMode.NoLock,
+            new IncrementalIdProvider(),
+            32, 32);
+        for (var i = 0; i < n; ++i)
+        {
+            var k = i;
+            tree.Upsert(k, k, out _);
+            tree.Validate();
+            tree.ValidateLeafs();
+        }
     }
 }

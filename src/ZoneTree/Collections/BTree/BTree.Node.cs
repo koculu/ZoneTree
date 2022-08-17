@@ -1,4 +1,6 @@
-﻿#undef USE_NODE_IDS
+﻿#define USE_NODE_IDS
+
+using Tenray.ZoneTree.Collections.BTree.Lock;
 
 namespace Tenray.ZoneTree.Collections.BTree;
 
@@ -38,6 +40,14 @@ public partial class BTree<TKey, TValue>
 #endif
             Keys = new TKey[nodeSize];
             Children = new Node[nodeSize + 1];
+        }
+
+        public Node(ILocker locker, int length, TKey[] keys, Node[] children)
+        {
+            Locker = locker;
+            Length = length;
+            Keys = keys;
+            Children = children;
         }
 
         public bool TryGetPosition(
@@ -105,13 +115,62 @@ public partial class BTree<TKey, TValue>
         {
             var left = new Node(locker1, nodeSize);
             var right = new Node(locker2, nodeSize);
-            left.Length = middle;
-            right.Length = Length - middle;
-            Array.Copy(Keys, 0, left.Keys, 0, middle);
-            Array.Copy(Children, 0, left.Children, 0, middle+1);
-            Array.Copy(Keys, middle, right.Keys, 0, right.Length);
-            Array.Copy(Children, middle, right.Children, 0, right.Length+1);
+            var len1 = middle;
+            var len2 = Length - middle - 1;
+            left.Length = len1;
+            right.Length = len2;
+            Array.Copy(Keys, 0, left.Keys, 0, len1);
+            Array.Copy(Children, 0, left.Children, 0, len1 + 1);
+            Array.Copy(Keys, middle+1, right.Keys, 0, len2);
+            Array.Copy(Children, middle+1, right.Children, 0, len2+1);
             return (left, right);
+        }
+
+        public void Validate(IRefComparer<TKey> comparer)
+        {
+            if (Children == null)
+                return;
+            for(var i = 0; i < Length; ++i)
+            {
+                var key = Keys[i];
+                Children[i].EnsureKeysAreSmallerThan(comparer, key);
+                Children[i+1].EnsureKeysAreGreaterOrEqualThan(comparer, key);
+            }
+            for (var i = 0; i <= Length; ++i)
+            {
+                Children[i].Validate(comparer);
+            }
+        }
+
+        void EnsureKeysAreSmallerThan(IRefComparer<TKey> comparer, TKey parentKey)
+        {
+            for (var i = 0; i < Length; ++i)
+            {
+                var key = Keys[i];
+                if (comparer.Compare(key, parentKey) >= 0)
+                    throw new Exception($"{key} >= {parentKey}");
+            }
+        }
+
+        void EnsureKeysAreGreaterOrEqualThan(IRefComparer<TKey> comparer, TKey parentKey)
+        {
+            for (var i = 0; i < Length; ++i)
+            {
+                var key = Keys[i];
+                if (comparer.Compare(key, parentKey) < 0)
+                    throw new Exception($"{key} < {parentKey}");
+            }
+        }
+
+        public virtual Node CloneWithNoLock()
+        {
+            var len = Length;
+            var node = new Node(NoLock.Instance, len, Keys, new Node[len+1]);
+            for(var i = 0; i <= len; ++i)
+            {
+                node.Children[i] = Children[i].CloneWithNoLock();
+            }
+            return node;
         }
     }
 }

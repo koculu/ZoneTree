@@ -28,7 +28,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public bool IsFrozen => IsFrozenFlag;
 
-    public bool IsFullyFrozen => IsFrozenFlag && WritesInProgress == 0;
+    public bool IsFullyFrozen => IsFrozenFlag && BTree.IsReadOnly;
 
     public int Length => BTree.Length;
 
@@ -173,7 +173,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             Thread.Yield();
         }
         WriteAheadLog.MarkFrozen();
-        BTree.IsReadOnly = true;
+        BTree.SetTreeReadOnlyAndLockFree();
     }
 
     public void Drop()
