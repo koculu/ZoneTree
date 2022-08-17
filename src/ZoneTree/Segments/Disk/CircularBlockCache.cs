@@ -128,7 +128,7 @@ public class CircularBlockCache
                 Environment.NewLine +
                 $"\tBlock index: {BlockIndex}" +
                 Environment.NewLine +
-                "\tAuto performance tuning will inrease block cache capacity. " +
+                "\tAuto performance tuning will increase block cache capacity. " +
                 Environment.NewLine +
                 $"\tCurrent Capacity:{CurrentCacheCapacity}" +
                 Environment.NewLine;
