@@ -53,8 +53,8 @@ public class DurableFileWriter
     {
         var tempPath = path + TempFileExtension;
         var backupPath = path + BackupFileExtension;
-        if (File.Exists(backupPath))
-            File.Delete(backupPath);
+        if (FileStreamProvider.FileExists(backupPath))
+            FileStreamProvider.DeleteFile(backupPath);
         WriteTextInternal(text, tempPath);
 
         FileStreamProvider.Replace(tempPath, path, backupPath);
@@ -74,24 +74,24 @@ public class DurableFileWriter
     {
         var tempPath = path + TempFileExtension;
         var backupPath = path + BackupFileExtension;
-        if (File.Exists(backupPath))
-            File.Delete(backupPath);
+        if (FileStreamProvider.FileExists(backupPath))
+            FileStreamProvider.DeleteFile(backupPath);
         WriteBytesInternal(bytes, tempPath);
-        File.Replace(tempPath, path, backupPath);
+        FileStreamProvider.Replace(tempPath, path, backupPath);
     }
 
     public void WriteAllText(string path, string text)
     {
         var tempPath = path + TempFileExtension;
         WriteTextInternal(text, tempPath);
-        File.Replace(tempPath, path, null, true);
+        FileStreamProvider.Replace(tempPath, path, null);
     }
 
     public void WriteAllBytes(string path, byte[] bytes)
     {
         var tempPath = path + TempFileExtension;
         WriteBytesInternal(bytes, tempPath);
-        File.Replace(tempPath, path, null, true);
+        FileStreamProvider.Replace(tempPath, path, null);
     }
 
     void WriteBytesInternal(byte[] bytes, string path)
