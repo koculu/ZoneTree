@@ -20,6 +20,12 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     readonly IRandomAccessDeviceManager RandomDeviceManager;
 
+    /// <summary>
+    /// Why not LRUCache?
+    /// Because it is 40% slower. See thread-safe LRUBlockCache implementation.
+    /// The collision problem of multiple readers of a circular block cache
+    /// can be addressed by increasing DiskSegmentBlockCacheLimit.
+    /// </summary>
     readonly CircularBlockCache CircularBlockCache;
 
     readonly List<long> CompressedBlockPositions = new();

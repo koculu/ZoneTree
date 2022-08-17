@@ -17,7 +17,7 @@ public static class BenchmarkGroups
         10_000_000
     };
 
-    static WriteAheadLogMode[] TestWALModes = new[] {
+    static readonly WriteAheadLogMode[] TestWALModes = new[] {
         WriteAheadLogMode.None,
         WriteAheadLogMode.Lazy,
         WriteAheadLogMode.CompressedImmediate,
