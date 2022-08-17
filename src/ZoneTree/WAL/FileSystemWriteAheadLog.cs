@@ -232,7 +232,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                     FileShare.Read,
                     FileStreamBufferSize))
                 {
-                    FileStream = tmpFileStream;                    
+                    FileStream = tmpFileStream;
                     tmpFileStream.SetLength(0);
                     memoryStream.CopyTo(tmpFileStream.ToStream());
                     diff = existingLength - FileStream.Length;

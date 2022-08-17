@@ -41,6 +41,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
         bool enableTailWriterJob,
         int tailWriterJobInterval)
     {
+        Logger = logger;
         FileStreamProvider = fileStreamProvider;
         FilePath = filePath;
         CompressionBlockSize = compressionBlockSize;
@@ -204,7 +205,7 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
                 using (var tmpFileStream = new CompressedFileStream(
                     Logger,
                     FileStreamProvider,
-                    FilePath,
+                    tmpFilePath,
                     CompressionBlockSize,
                     EnableTailWriterJob,
                     TailWriterJobInterval))
