@@ -1,9 +1,11 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Exceptions.WAL;
+using Tenray.ZoneTree.Extensions;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
@@ -133,7 +135,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError(e);
+                    Logger.LogException(e);
                 }
             }
             if (isRunning && Queue.IsEmpty)
@@ -144,7 +146,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 }
                 catch(Exception e)
                 {
-                    Logger.LogError(e);
+                    Logger.LogException(e);
                 }
                 if (!isRunning)
                     break;

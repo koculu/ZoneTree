@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
+using Microsoft.Extensions.Logging;
 using Playground;
 using Playground.Benchmark;
 using Playground.InMemoryTreeBenchmark;

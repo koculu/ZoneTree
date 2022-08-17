@@ -1,4 +1,6 @@
-﻿using Tenray.ZoneTree.Exceptions;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.WAL;
@@ -70,7 +72,7 @@ public class ZoneTreeOptions<TKey, TValue>
     /// <summary>
     /// ZoneTree Logger.
     /// </summary>
-    public ILogger Logger { get; set; } = new ConsoleLogger();
+    public ILogger Logger { get; set; } = new NullLogger<ZoneTreeOptions<TKey, TValue>>();
 
     public bool TryValidate(out Exception exception)
     {

@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree;
+﻿using Microsoft.Extensions.Logging;
+
+namespace Tenray.ZoneTree;
 
 public interface IZoneTree<TKey, TValue> : IDisposable
 {

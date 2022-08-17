@@ -1,6 +1,8 @@
-﻿using Tenray.ZoneTree.Collections;
+﻿using Microsoft.Extensions.Logging;
+using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Collections.TimSort;
 using Tenray.ZoneTree.Exceptions.WAL;
+using Tenray.ZoneTree.Extensions;
 
 namespace Tenray.ZoneTree.WAL;
 
@@ -51,7 +53,7 @@ public static class WriteAheadLogEntryReader
                     RecordPosition = logEntryPosition,
                     RecordIndex = i
                 };
-                logger.LogWarning(ex);
+                logger.LogWarningException(ex);
                 result.Exceptions.Add(i, ex);
                 result.Success = false;
                 break;
@@ -59,7 +61,7 @@ public static class WriteAheadLogEntryReader
             catch (ObjectDisposedException e)
             {
                 var ex = new ObjectDisposedException($"ReadLogEntry failed. Index={i}", e);
-                logger.LogError(ex);
+                logger.LogException(ex);
                 result.Exceptions.Add(i, ex);
                 result.Success = false;
                 break;
@@ -67,7 +69,7 @@ public static class WriteAheadLogEntryReader
             catch (IOException e)
             {
                 var ex = new IOException($"ReadLogEntry failed. Index={i}", e);
-                logger.LogError(ex);
+                logger.LogException(ex);
                 result.Exceptions.Add(i, ex);
                 result.Success = false;
                 if (stopReadOnException) break;
@@ -75,7 +77,7 @@ public static class WriteAheadLogEntryReader
             catch (Exception e)
             {
                 var ex = new InvalidOperationException($"ReadLogEntry failed. Index={i}", e);
-                logger.LogError(ex);
+                logger.LogException(ex);
                 result.Exceptions.Add(i, ex);
                 result.Success = false;
                 if (stopReadOnException) break;
@@ -101,7 +103,7 @@ public static class WriteAheadLogEntryReader
             catch (Exception e)
             {
                 var ex = new InvalidDataException($"Deserilization of log entry failed. Index={i}", e);
-                logger.LogError(ex);
+                logger.LogException(ex);
                 if (!result.Exceptions.ContainsKey(i))
                     result.Exceptions.Add(i, ex);
                 result.Success = false;

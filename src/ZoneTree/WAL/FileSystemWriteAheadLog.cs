@@ -1,8 +1,10 @@
 ﻿using System.Text;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions.WAL;
+using Tenray.ZoneTree.Extensions;
 
 namespace Tenray.ZoneTree.WAL;
 
@@ -245,7 +247,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             }
             catch (Exception e)
             {
-                Logger.LogError(e);
+                Logger.LogException(e);
                 FileStream?.Dispose();
                 CreateFileStream();
                 diff = existingLength - FileStream.Length;

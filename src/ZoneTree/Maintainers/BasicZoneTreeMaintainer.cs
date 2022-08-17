@@ -1,6 +1,7 @@
 ﻿#undef TRACE_ENABLED
 
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Segments.Disk;
 

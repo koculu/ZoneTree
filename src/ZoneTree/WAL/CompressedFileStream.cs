@@ -1,6 +1,8 @@
 ﻿using System.IO.Compression;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Extensions;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Serializers;
 
@@ -116,7 +118,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
             }
             catch(Exception e)
             {
-                Logger.LogError(e);
+                Logger.LogException(e);
             }
             if (TailWriterJobInterval == 0)
                 Thread.Yield();

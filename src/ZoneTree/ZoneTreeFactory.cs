@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.Exceptions;
+﻿using Microsoft.Extensions.Logging;
+using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Transactional;
 using Tenray.ZoneTree.WAL;
@@ -41,12 +42,6 @@ public class ZoneTreeFactory<TKey, TValue>
     public ZoneTreeFactory<TKey, TValue> SetLogger(ILogger logger)
     {
         Options.Logger = logger;
-        return this;
-    }
-
-    public ZoneTreeFactory<TKey, TValue> SetLogLevel(LogLevel logLevel)
-    {
-        Options.Logger.LogLevel = logLevel;
         return this;
     }
 

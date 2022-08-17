@@ -1,7 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Extensions;
 using Tenray.ZoneTree.Segments;
 using Tenray.ZoneTree.Segments.Disk;
 
@@ -442,7 +444,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             }
             catch (Exception e)
             {
-                Logger.LogError(e);
+                Logger.LogException(e);
                 OnMergeOperationEnded?.Invoke(this, MergeResult.FAILURE);
                 throw;
             }
@@ -554,7 +556,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError(e);
+                    Logger.LogException(e);
                     OnCanNotDropDiskSegmentCreator?.Invoke(diskSegmentCreator, e);
                 }
                 return MergeResult.CANCELLED_BY_USER;
@@ -659,7 +661,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             }
             catch (Exception e)
             {
-                Logger.LogError(e);
+                Logger.LogException(e);
                 OnCanNotDropDiskSegment?.Invoke(oldDiskSegment, e);
             }
 
@@ -674,7 +676,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError(e);
+                    Logger.LogException(e);
                     OnCanNotDropReadOnlySegment?.Invoke(segment, e);
                 }
                 --len;

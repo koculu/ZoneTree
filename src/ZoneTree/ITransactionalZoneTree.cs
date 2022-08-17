@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.Exceptions;
+﻿using Microsoft.Extensions.Logging;
+using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Transactional;
 
 namespace Tenray.ZoneTree;

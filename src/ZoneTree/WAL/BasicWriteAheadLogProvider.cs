@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
 
