@@ -14,7 +14,7 @@ public class RecoverFile
         var path = @"..\..\data\Lazy-50M-str-str";
         var fileStreamProvider = new LocalFileStreamProvider();
         var deviceManager = new RandomAccessDeviceManager(fileStreamProvider, path);
-        var meta = ZoneTreeMetaWAL<string, string>.LoadZoneTreeMetaWithoutWALRecords(deviceManager);
+        ZoneTreeMetaWAL<string, string>.LoadZoneTreeMetaWithoutWALRecords(deviceManager);
         var options = new ZoneTreeOptions<string, string>
         {
             WriteAheadLogProvider = new BasicWriteAheadLogProvider(new ConsoleLogger(), fileStreamProvider, path)
@@ -53,7 +53,7 @@ public class RecoverFile
             ValueSerializer = new Int32Serializer(),
             Comparer = new Int32ComparerAscending()
         };
-        var a = new ZoneTreeFactory<int, int>().SetOptions(options).Open();
+        new ZoneTreeFactory<int, int>().SetOptions(options).Open();
         var stopWatch = new Stopwatch();
         //var disk = new DiskSegment<int, int>(54, options);
         //disk.InitSparseArray(100);

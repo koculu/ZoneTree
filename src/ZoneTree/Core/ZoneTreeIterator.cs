@@ -225,7 +225,9 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
     bool PrevInternal()
     {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
         int minSegmentIndex = 0;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
         var skipElement = () =>
         {
             var minSegment = SeekableIterators[minSegmentIndex];
@@ -275,7 +277,9 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
     bool NextInternal()
     {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
         int minSegmentIndex = 0;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
         var skipElement = () =>
         {
             var minSegment = SeekableIterators[minSegmentIndex];

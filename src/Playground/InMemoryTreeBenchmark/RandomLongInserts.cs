@@ -58,7 +58,6 @@ public static class RandomLongInserts
     public static void InsertAndValidateIteratorBTree(long[] arr)
     {
         var count = arr.Length;
-        var orj = arr.ToArray();
         var tree = new UnsafeBTree<long, long>(new Int64ComparerAscending());
         for (var i = 0; i < count; ++i)
         {

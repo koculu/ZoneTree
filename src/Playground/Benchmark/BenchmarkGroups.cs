@@ -4,7 +4,7 @@ namespace Playground.Benchmark;
 
 public static class BenchmarkGroups
 {
-    static int[] TestCounts = new[] {
+    static readonly int[] TestCounts = new[] {
         1_000_000,
         2_000_000,
         3_000_000,

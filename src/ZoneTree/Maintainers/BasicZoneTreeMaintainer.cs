@@ -10,6 +10,10 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
 {
     readonly ILogger Logger;
 
+    volatile bool RestartMerge;
+
+    readonly CancellationTokenSource PeriodicTimerCancellationTokenSource = new();
+
     public IZoneTree<TKey, TValue> ZoneTree { get; }
 
     public IZoneTreeMaintenance<TKey, TValue> Maintenance { get; }
@@ -63,10 +67,6 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
         Maintenance.OnDiskSegmentCreated += OnDiskSegmentCreated;
         Maintenance.OnMergeOperationEnded += OnMergeOperationEnded;
     }
-
-    volatile bool RestartMerge;
-
-    CancellationTokenSource PeriodicTimerCancellationTokenSource = new();
 
     void OnMergeOperationEnded(
         IZoneTreeMaintenance<TKey, TValue> zoneTree,

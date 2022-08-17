@@ -13,6 +13,8 @@ namespace Tenray.ZoneTree.Collections;
 /// <typeparam name="TValue"></typeparam>
 public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 {
+    readonly IncrementalIdProvider IdProvider = new();
+
     readonly long SegmentId;
 
     readonly string Category;
@@ -133,7 +135,6 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         return result;
     }
 
-    IncrementalIdProvider IdProvider = new();
     long NextOpIndex()
     {
         return IdProvider.NextId();

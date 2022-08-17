@@ -7,9 +7,9 @@ namespace Playground.InMemoryTreeBenchmark;
 
 public static class RandomIntInserts
 {
-    static readonly Random Random = new Random(0);
+    static readonly Random Random = new(0);
     
-    static BTreeLockMode BTreeLockMode = BTreeLockMode.NodeLevelMonitor;
+    static readonly BTreeLockMode BTreeLockMode = BTreeLockMode.NodeLevelMonitor;
 
     public static int[] GetRandomArray(int count)
     {

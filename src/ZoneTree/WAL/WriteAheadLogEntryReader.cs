@@ -139,7 +139,7 @@ public static class WriteAheadLogEntryReader
 
     public class LogEntryReaderComparer : IRefComparer<int>
     {
-        private List<long> OpIndexes;
+        readonly List<long> OpIndexes;
 
         public LogEntryReaderComparer(List<long> opIndexes)
         {

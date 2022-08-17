@@ -43,7 +43,7 @@ public class DecompressedBlock
     {
         var remainingLength = Bytes.Length - Length;
         var copyLength = Math.Min(data.Length, remainingLength);
-        data.Slice(0, copyLength).CopyTo(Bytes.AsSpan(Length));
+        data[..copyLength].CopyTo(Bytes.AsSpan(Length));
         Length += copyLength;
         return copyLength;
     }

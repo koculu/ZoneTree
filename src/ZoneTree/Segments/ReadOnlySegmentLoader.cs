@@ -50,8 +50,10 @@ public class ReadOnlySegmentLoader<TKey, TValue>
             segmentId,
             Options,
             newKeys,
-            newValues);
-        ros.MaximumOpIndex = result.MaximumOpIndex;
+            newValues)
+        {
+            MaximumOpIndex = result.MaximumOpIndex
+        };
         return ros;
     }
 }

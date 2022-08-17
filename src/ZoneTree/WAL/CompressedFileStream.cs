@@ -32,8 +32,6 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
     long _length;
 
-    readonly Task TailWriter;
-
     volatile bool IsTailWriterRunning;
 
     readonly int TailWriterJobInterval;
@@ -102,7 +100,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         TailWriterJobInterval = tailWriterJobInterval;
         if (enableTailWriterJob)
         {
-            TailWriter = Task.Factory.StartNew(() => TailWriteLoop(),
+            Task.Factory.StartNew(() => TailWriteLoop(),
                 TaskCreationOptions.LongRunning);
         }
     }

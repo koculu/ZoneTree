@@ -22,7 +22,7 @@ public class ParallelMassiveInsertTests
     readonly int Count = 3_000_000;
     readonly bool Shuffled = true;
 
-    static BTreeLockMode BTreeLockMode = BTreeLockMode.NodeLevelMonitor;
+    static readonly BTreeLockMode BTreeLockMode = BTreeLockMode.NodeLevelMonitor;
 
     [GlobalSetup]
     public void Setup()
