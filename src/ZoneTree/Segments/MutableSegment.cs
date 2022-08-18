@@ -104,12 +104,12 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public AddOrUpdateResult Upsert(in TKey key, in TValue value)
     {
-        if (IsFrozenFlag)
-            return AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN;
-
         try
         {
             Interlocked.Increment(ref WritesInProgress);
+
+            if (IsFrozenFlag)
+                return AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN;
 
             if (BTree.Length >= MutableSegmentMaxItemCount)
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
@@ -125,12 +125,12 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public AddOrUpdateResult Delete(in TKey key)
     {
-        if (IsFrozenFlag)
-            return AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN;
-
         try
         {
             Interlocked.Increment(ref WritesInProgress);
+
+            if (IsFrozenFlag)
+                return AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN;
 
             if (BTree.Length >= MutableSegmentMaxItemCount)
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
