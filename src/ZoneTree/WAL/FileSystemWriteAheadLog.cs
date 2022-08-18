@@ -268,7 +268,14 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     {
         Task.Run(() =>
         {
-            Dispose();
+            try
+            {
+                Dispose();
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e);
+            }
         });
     }
 

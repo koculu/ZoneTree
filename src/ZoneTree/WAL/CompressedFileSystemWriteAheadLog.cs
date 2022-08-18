@@ -254,7 +254,14 @@ public sealed class CompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAhea
     {
         Task.Run(() =>
         {
-            FileStream.Dispose();
+            try
+            {
+                FileStream.Dispose();
+            }
+            catch(Exception e)
+            {
+                Logger.LogError(e);
+            }
         });
     }
 

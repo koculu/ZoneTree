@@ -166,14 +166,21 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         Task.Factory.StartNew(FreezeWriteAheadLog);
     }
 
-    private void FreezeWriteAheadLog()
+    void FreezeWriteAheadLog()
     {
-        while (WritesInProgress > 0)
+        try
         {
-            Thread.Yield();
+            while (WritesInProgress > 0)
+            {
+                Thread.Yield();
+            }
+            WriteAheadLog.MarkFrozen();
+            BTree.SetTreeReadOnlyAndLockFree();
         }
-        WriteAheadLog.MarkFrozen();
-        BTree.SetTreeReadOnlyAndLockFree();
+        catch(Exception e)
+        {
+            Options.Logger.LogError(e);
+        }
     }
 
     public void Drop()

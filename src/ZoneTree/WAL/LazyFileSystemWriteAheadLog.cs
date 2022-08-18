@@ -310,9 +310,15 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     {
         Task.Run(() =>
         {
-            StopWriter(true);
-            FileStream.WriteTail();
-            FileStream.Dispose();
+            try
+            {
+                StopWriter(true);
+                FileStream.Dispose();
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e);
+            }
         });
     }
 
