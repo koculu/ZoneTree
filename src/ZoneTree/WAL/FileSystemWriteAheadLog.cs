@@ -51,7 +51,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         FileStream = FileStreamProvider.CreateFileStream(FilePath,
             FileMode.OpenOrCreate,
             FileAccess.ReadWrite,
-            FileShare.Read, FileStreamBufferSize);
+            FileShare.None, FileStreamBufferSize);
         BinaryWriter = new BinaryWriter(FileStream.ToStream(), Encoding.UTF8, true);
         FileStream.Seek(0, SeekOrigin.End);
     }
@@ -229,7 +229,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                     tmpFilePath,
                     FileMode.OpenOrCreate,
                     FileAccess.ReadWrite,
-                    FileShare.Read,
+                    FileShare.None,
                     FileStreamBufferSize))
                 {
                     FileStream = tmpFileStream;

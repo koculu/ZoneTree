@@ -25,15 +25,14 @@ while(true)
 */
 
 //Test1.TestTreeIteratorBehavior();
-var c = 1_000_000;
+/*var c = 1_000_000;
 var ic = 1000;
 ZoneTree1.Insert(WriteAheadLogMode.None, c);
-ZoneTree1.MultipleIterate(WriteAheadLogMode.None, c, ic);
-/*
+ZoneTree1.MultipleIterate(WriteAheadLogMode.None, c, ic);*/
 
 BenchmarkGroups.InsertIterate1(0);
 BenchmarkGroups.InsertIterate2(0);
-BenchmarkGroups.InsertIterate3(0);*/
+BenchmarkGroups.InsertIterate3(0);
 
 //Test1.MassiveInsertsAndReads(2_000_000);
 //Test1.BTreeReverseIteratorParallelInserts();

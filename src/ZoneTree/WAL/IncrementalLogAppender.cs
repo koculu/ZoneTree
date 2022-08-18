@@ -15,7 +15,7 @@ public static class IncrementalLogAppender
                 backupFile,
                 FileMode.OpenOrCreate,
                 FileAccess.ReadWrite,
-                FileShare.Read,
+                FileShare.None,
                 4096);
         var br = new BinaryReader(fs.ToStream());
         bool hasLengthStamp = fs.Length > backupDataOffset;

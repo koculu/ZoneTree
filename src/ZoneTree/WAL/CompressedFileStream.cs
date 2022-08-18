@@ -67,12 +67,12 @@ public sealed class CompressedFileStream : Stream, IDisposable
         FileStream = fileStreamProvider.CreateFileStream(filePath,
             FileMode.OpenOrCreate,
             FileAccess.ReadWrite,
-            FileShare.Read, BlockSize);
+            FileShare.None, BlockSize);
 
         TailStream = fileStreamProvider.CreateFileStream(filePath + ".tail",
             FileMode.OpenOrCreate,
             FileAccess.ReadWrite,
-            FileShare.Read, BlockSize);
+            FileShare.None, BlockSize);
 
         BinaryReader = new BinaryReader(FileStream.ToStream(), Encoding.UTF8, true);
         BinaryWriter = new BinaryWriter(FileStream.ToStream(), Encoding.UTF8, true);
