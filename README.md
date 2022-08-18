@@ -24,7 +24,8 @@ There are so many tuning options wait you to discover.
 ## How fast is it?
 It is possible with ZoneTree to insert 100 Million integer key-value pairs in 20 seconds using WAL mode = NONE.
 
-Benchmark for all modes: [benchmark](src/Playground/BenchmarkForAllModes.txt)
+Benchmark for all modes: [benchmark](https://raw.githubusercontent.com/koculu/ZoneTree/main/src/Playground/BenchmarkForAllModes.txt)
+
 | Insert Benchmarks                               | 1M      | 2M       | 3M         | 10M        |
 | ------------------------------------------------|---------|----------|------------|------------|
 | int-int ZoneTree lazy WAL                       | 343 ms  | 506 ms   | 624 ms     | 2328 ms    |
