@@ -210,7 +210,7 @@ public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
     /// <summary>
     /// Enables read-only mode.
     /// </summary>
-    public bool IsReadOnly { get; set; }
+    bool IsReadOnly { get; set; }
     
     /// <summary>
     /// ZoneTree Logger.

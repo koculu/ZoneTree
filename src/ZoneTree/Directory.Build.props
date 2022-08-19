@@ -9,11 +9,9 @@
     <Version>1.3.3.0</Version>
     <Authors>Ahmed Yasin Koculu</Authors>
     <AssemblyTitle>ZoneTree</AssemblyTitle>
-    <Description>ZoneTree is a persistent, high-performance key-value database for .NET. It can operate in memory or on a disk. (Optimized for SSDs)</Description>
+    <Description>ZoneTree is a persistent, high-performance, transactional, ACID-compliant ordered key-value database for NET. It can operate in memory or on local/cloud storage.</Description>
     <Summmary>
-      ZoneTree is a persistent, high-performance key-value database for .NET. It can operate in memory or on disk. (Optimized for SSDs)
-
-      ZoneTree is a fast and high-performance LSM Tree for .NET.
+      ZoneTree is a persistent, high-performance, transactional, ACID-compliant ordered key-value database for NET. It can operate in memory or on local/cloud storage.
     </Summmary>
     <PackageTags>high-performance, database, consistency, persistence, iterator, binary-tree, durability, isolation, key-value-database, atomicity, lsm-tree, key-value-store</PackageTags>
     <ReleaseNotes></ReleaseNotes>
