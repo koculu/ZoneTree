@@ -1,7 +1,7 @@
 ![img](https://raw.githubusercontent.com/koculu/ZoneTree/main/docs/images/logo-dark.png)
 
 # ZoneTree
-ZoneTree is a persistent, high-performance, transactional, and ACID-compliant ordered key-value database for .NET.
+ZoneTree is a persistent, high-performance, transactional, and ACID-compliant [ordered key-value database](https://en.wikipedia.org/wiki/Ordered_Key-Value_Store) for .NET.
 It can operate in-memory or on local/cloud storage.
 
 [![Download](https://img.shields.io/badge/download-ZoneTree-blue)](https://www.nuget.org/packages/ZoneTree/)
