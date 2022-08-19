@@ -304,3 +304,6 @@ These are the things I do think we need at the moment:
 3. Convert documentation to a website using static site generators.
 4. Feature requests & bug fixes.
 5. Performance improvements.
+
+## Contributing
+This project welcomes contributions and suggestions. Please follow [CONTRIBUTING.md](.github/CONTRIBUTING.md) instructions.
