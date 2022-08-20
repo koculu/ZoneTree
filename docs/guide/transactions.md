@@ -1,5 +1,3 @@
-
-
 ## Transaction Support
 ZoneTree supports Optimistic Transactions. It is proud to announce that the ZoneTree is ACID-compliant. Of course, you can use non-transactional API for the scenarios where eventual consistency is sufficient.
 
