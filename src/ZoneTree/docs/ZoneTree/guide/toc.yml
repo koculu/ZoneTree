@@ -6,6 +6,8 @@
   href: /docs/ZoneTree/guide/performance.html
 - name: Features
   href: /docs/ZoneTree/guide/features.html
+- name: Terminology
+  href: /docs/ZoneTree/guide/terminology.html
 - name: Transactions
   href: /docs/ZoneTree/guide/transactions.html
 - name: Write Ahead Log
