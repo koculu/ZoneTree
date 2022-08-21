@@ -1,5 +1,8 @@
 ﻿namespace Tenray.ZoneTree;
 
+/// <summary>
+/// Available ZoneTree Iterator Types.
+/// </summary>
 public enum IteratorType
 {
     /// <summary>

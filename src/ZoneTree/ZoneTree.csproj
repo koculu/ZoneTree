@@ -7,7 +7,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <RepositoryUrl>https://github.com/koculu/ZoneTree</RepositoryUrl>
     <ImplicitUsings>enable</ImplicitUsings>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile>README-NUGET.md</PackageReadmeFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -26,9 +26,11 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <None Include="..\..\README.md">
+    <None Include="docs/ZoneTree/README-NUGET.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\README.md">
     </None>
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
