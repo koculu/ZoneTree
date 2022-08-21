@@ -1,5 +1,6 @@
 ﻿using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Collections.BTree;
+using Tenray.ZoneTree.Collections.BTree.Lock;
 
 namespace Playground.InMemoryTreeBenchmark;
 
@@ -23,11 +24,12 @@ public static class RandomMidSizeInserts
     public static void InsertBTree(MidSizeKey[] arr)
     {
         var count = arr.Length;
-        var tree = new UnsafeBTree<MidSizeKey, MidSizeKey>(new MidSizeRefComparer());
+        var tree = new BTree<MidSizeKey, MidSizeKey>(new MidSizeRefComparer(),
+            BTreeLockMode.NoLock);
         for(var i = 0; i < count; ++i)
         {
             var x = arr[i];
-            tree.TryInsert(x, x);
+            tree.TryInsert(x, x, out _);
         }
         for (var i = 0; i < count; ++i)
         {

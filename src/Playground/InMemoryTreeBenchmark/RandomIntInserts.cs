@@ -38,11 +38,12 @@ public static class RandomIntInserts
     public static void InsertBTree(int[] arr)
     {
         var count = arr.Length;
-        var tree = new UnsafeBTree<int, int>(new Int32ComparerAscending());
+        var tree = new BTree<int, int>(new Int32ComparerAscending(),
+            BTreeLockMode.NoLock);
         for(var i = 0; i < count; ++i)
         {
             var x = arr[i];
-            tree.TryInsert(x, x + x);
+            tree.TryInsert(x, x + x, out _);
         }
         for (var i = 0; i < count; ++i)
         {

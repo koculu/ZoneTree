@@ -1,5 +1,6 @@
 ﻿using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Collections.BTree;
+using Tenray.ZoneTree.Collections.BTree.Lock;
 using Tenray.ZoneTree.Comparers;
 
 namespace Playground.InMemoryTreeBenchmark;
@@ -24,11 +25,12 @@ public static class RandomLongInserts
     public static void InsertBTree(long[] arr)
     {
         var count = arr.Length;
-        var tree = new UnsafeBTree<long, long>(new Int64ComparerAscending());
+        var tree = new BTree<long, long>(new Int64ComparerAscending(),
+            BTreeLockMode.NoLock);
         for(var i = 0; i < count; ++i)
         {
             var x = arr[i];
-            tree.TryInsert(x, x + x);
+            tree.TryInsert(x, x + x, out _);
         }
         for (var i = 0; i < count; ++i)
         {
@@ -38,7 +40,7 @@ public static class RandomLongInserts
                 throw new Exception($"exists: {exists} ({x},{val}) != ({x},{x + x})");
         }
 
-        var node = tree.First;
+        var node = tree.GetFirstIterator().Node;
         var off = 0;
         Array.Sort(arr);
         while (node != null)
@@ -58,11 +60,12 @@ public static class RandomLongInserts
     public static void InsertAndValidateIteratorBTree(long[] arr)
     {
         var count = arr.Length;
-        var tree = new UnsafeBTree<long, long>(new Int64ComparerAscending());
+        var tree = new BTree<long, long>(new Int64ComparerAscending(),
+            BTreeLockMode.NoLock);
         for (var i = 0; i < count; ++i)
         {
             var x = arr[i];
-            tree.TryInsert(x, x + x);
+            tree.TryInsert(x, x + x, out _);
         }
 
         for (var i = 0; i < count; ++i)
@@ -73,7 +76,7 @@ public static class RandomLongInserts
                 throw new Exception($"exists: {exists} ({x},{val}) != ({x},{x + x})");
         }
 
-        var node = tree.First;
+        var node = tree.GetFirstIterator().Node;
         var off = 0;
         Array.Sort(arr);
         while (node != null)
@@ -91,7 +94,7 @@ public static class RandomLongInserts
 
         off = 0;
         arr = arr.Reverse().ToArray();
-        node = tree.Last;
+        node = tree.GetLastIterator().Node;
         while (node != null)
         {
             var keys = node.Keys;

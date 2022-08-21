@@ -861,7 +861,7 @@ internal sealed class TimSort<T>
     /// <param name="work">An optional workspace array.</param>
     internal static void Sort(T[] arr, int index, int length, T[] work, IRefComparer<T> comparer)
     {
-        Debug.Assert(arr is object && index >= 0 && length >= 0 && index + length <= arr.Length);
+        Debug.Assert(arr is not null && index >= 0 && length >= 0 && index + length <= arr.Length);
 
         if (length < 2)
         {
@@ -882,7 +882,7 @@ internal sealed class TimSort<T>
         // March over the array once, left to right, finding natural runs,
         // extending short natural runs to minRun elements, and merging runs
         // to maintain stack invariant.
-        TimSort<T> ts = new TimSort<T>(arr, work, comparer);
+        var ts = new TimSort<T>(arr, work, comparer);
         int minRun = MinRunLength(length, MIN_MERGE);
         int nRemaining = length;
         do
