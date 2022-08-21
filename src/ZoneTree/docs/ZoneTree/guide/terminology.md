@@ -26,7 +26,7 @@ There are 2 disk segment modes.
 ### Multi Disk Segments
 In this disk segment mode, the key-value pairs that belong to the disk segment are stored in multiple files in a flat hierarchy.
 
-### Sparse Array:
+### Sparse Array
 Sparse arrays are in-memory sorted arrays that contain deserialized key-value pairs of a disk segment to reduce file IO. For example, if the disk segment contains 1M record and a sparse array has 1K records the disk lookup range will be 1M / 1K = 1K (SparseArrayStepLength). 
 Binary sort IO reduced by a factor of log(1M) / log(1K) = 20 / 10 = 2;
 If sparse array size is equal to the disk segment size, the entire disk segment is served from memory.

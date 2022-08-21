@@ -12,3 +12,5 @@
   href: /docs/ZoneTree/guide/transactions.html
 - name: Write Ahead Log
   href: /docs/ZoneTree/guide/write-ahead-log.html
+- name: Tuning Disk Segment
+  href: /docs/ZoneTree/guide/tuning-disk-segment.html
