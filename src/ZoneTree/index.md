@@ -25,4 +25,4 @@ Background merge operation that might take a bit longer is excluded from the ins
 ## Read Performance
 Loading 100M integer key-value pair database is in 812 ms. The iteration on 100M key-value pairs takes 24 seconds. There are so many tuning options wait you to discover.
 
-You may get more insight on performance in the [Performance](performance.md) section.
+You may get more insight on performance in the [Performance](docs/ZoneTree/performance.html) section.

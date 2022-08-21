@@ -1,0 +1,62 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "ZoneTree.csproj"
+          ],
+          "src": ""
+        }
+      ],
+      "dest": "docs/ZoneTree/api",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**.md",
+          "**.yml",
+          "docs/**.md",
+          "docs/**.yml",
+          "docs/**/**.md",
+          "docs/**/**.yml"
+        ],
+        "exclude": [
+          "bin",
+          "obj"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "docs/ZoneTree/images/**"
+        ]
+      }
+    ],
+    "globalMetadata": {
+      "_enableNewTab": true,
+      "_appTitle": "ZoneTree - Ordered Key Value Database",
+      "_appFooter": "Copyright © 2022 Tenray.io ",
+      "_enableSearch": true,
+      "_description": "ZoneTree is a persistent, high-performance, transactional, ACID-compliant ordered key-value database for NET. It can operate in memory or on local/cloud storage.",
+      "_appLogoPath": "./docs/ZoneTree/images/logo2.svg"
+    },
+    "xref": "https://xref.docs.microsoft.com/query?uid={uid}",
+    "overwrite": "docs/specs/*.md",
+    "dest": "bin/_site",
+    "globalMetadataFiles": [],
+    "fileMetadataFiles": [],
+    "template": [ "default" ],
+    "postProcessors": [],
+    "markdownEngineName": "markdig",
+    "noLangKeyword": false,
+    "keepFileLink": false,
+    "cleanupCacheHistory": false,
+    "disableGitFeatures": false
+  }
+}
