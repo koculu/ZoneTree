@@ -1,5 +1,10 @@
 ﻿namespace Tenray.ZoneTree;
 
+/// <summary>
+/// The interface for the core functionality of a ZoneTree.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
 public interface IZoneTree<TKey, TValue> : IDisposable
 {
     /// <summary>

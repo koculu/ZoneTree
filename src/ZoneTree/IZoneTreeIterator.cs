@@ -1,5 +1,10 @@
 ﻿namespace Tenray.ZoneTree;
 
+/// <summary>
+/// The ZoneTree iterator interface.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
 public interface IZoneTreeIterator<TKey, TValue> : IDisposable
 {
     /// <summary>

@@ -3,6 +3,11 @@ using Tenray.ZoneTree.Transactional;
 
 namespace Tenray.ZoneTree;
 
+/// <summary>
+/// The interface for the core functionality of a transactional ZoneTree.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
 public interface ITransactionalZoneTree<TKey, TValue> : IDisposable
 {
     /// <summary>

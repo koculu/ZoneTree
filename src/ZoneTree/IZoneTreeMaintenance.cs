@@ -4,6 +4,11 @@ using Tenray.ZoneTree.Segments.Disk;
 
 namespace Tenray.ZoneTree;
 
+/// <summary>
+/// The interface for the maintenance of a ZoneTree.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
 public interface IZoneTreeMaintenance<TKey, TValue>
 {
     /// <summary>
@@ -153,29 +158,90 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     event ZoneTreeIsDisposing<TKey, TValue> OnZoneTreeIsDisposing;
 }
 
+/// <summary>
+/// Event is fired when segment zero is moved forward.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="zoneTree">The ZoneTree maintenance</param>
 public delegate void SegmentZeroMovedForward<TKey, TValue>
     (IZoneTreeMaintenance<TKey, TValue> zoneTree);
 
+/// <summary>
+/// Event is fired when the merge operation is started.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="zoneTree">The ZoneTree maintenance</param>
 public delegate void MergeOperationStarted<TKey, TValue>
     (IZoneTreeMaintenance<TKey, TValue> zoneTree);
 
+/// <summary>
+/// Event is fired when the merge operation is ended.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="zoneTree">The ZoneTree maintenance</param>
+/// <param name="mergeResult">The merge operation result</param>
 public delegate void MergeOperationEnded<TKey, TValue>
     (IZoneTreeMaintenance<TKey, TValue> zoneTree, MergeResult mergeResult);
 
+
+/// <summary>
+/// Event is fired when the disk segment is created.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="zoneTree">The ZoneTree maintenance</param>
+/// <param name="newDiskSegment">The new disk segment</param>
 public delegate void DiskSegmentCreated<TKey, TValue>
     (IZoneTreeMaintenance<TKey, TValue> zoneTree, IDiskSegment<TKey, TValue> newDiskSegment);
 
+/// <summary>
+/// Event is fired when the disk segment is activated.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="zoneTree">The ZoneTree maintenance</param>
+/// <param name="newDiskSegment">The new disk segment</param>
 public delegate void DiskSegmentActivated<TKey, TValue>
     (IZoneTreeMaintenance<TKey, TValue> zoneTree, IDiskSegment<TKey, TValue> newDiskSegment);
 
+/// <summary>
+/// Event is fired when the read-only segment can not be dropped.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="readOnlySegment">The read-only segment</param>
+/// <param name="e">The exception</param>
 public delegate void CanNotDropReadOnlySegment<TKey, TValue>
     (IReadOnlySegment<TKey, TValue> readOnlySegment, Exception e);
 
+/// <summary>
+/// Event is fired when the disk segment can not be dropped.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="diskSegment">The disk segment</param>
+/// <param name="e">The exception</param>
 public delegate void CanNotDropDiskSegment<TKey, TValue>
     (IDiskSegment<TKey, TValue> diskSegment, Exception e);
 
+/// <summary>
+/// Event is fired when the disk segment creator can not be dropped.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="diskSegmentCreator">The disk segment creator</param>
+/// <param name="e">The exception</param>
 public delegate void CanNotDropDiskSegmentCreator<TKey, TValue>
     (IDiskSegmentCreator<TKey, TValue> diskSegmentCreator, Exception e);
 
+/// <summary>
+/// Event is fired when the ZoneTree is disposing.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="zoneTree">The ZoneTree</param>
 public delegate void ZoneTreeIsDisposing<TKey, TValue>
     (IZoneTreeMaintenance<TKey, TValue> zoneTree);
