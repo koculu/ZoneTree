@@ -1,4 +1,4 @@
-![img](https://raw.githubusercontent.com/koculu/ZoneTree/main/docs/images/logo-dark.png)
+![img](https://raw.githubusercontent.com/koculu/ZoneTree/main/src/ZoneTree/docs/ZoneTree/images/logo2.png)
 
 # ZoneTree
 ZoneTree is a persistent, high-performance, transactional, and ACID-compliant [ordered key-value database](https://en.wikipedia.org/wiki/Ordered_Key-Value_Store) for .NET.
