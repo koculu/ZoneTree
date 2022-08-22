@@ -24,6 +24,9 @@ public struct TTLValue<TValue>
 
     public void SlideExpiration(TimeSpan timeSpan)
     {
+        var delta = Expiration.Subtract(DateTime.UtcNow);
+        if (delta >= timeSpan)
+            return;
         Expiration = Expiration.Add(timeSpan);
     }
 }
