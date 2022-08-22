@@ -23,6 +23,26 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     bool TryGet(in TKey key, out TValue value);
 
     /// <summary>
+    /// Tries to get the value of the given key and
+    /// updates the value using value update if found any.
+    /// </summary>
+    /// <param name="key">The key of the element.</param>
+    /// <param name="value">The value of the element associated with the key.</param>
+    /// <param name="valueUpdater">The delegate function that updates the value.</param>
+    /// <returns>true if the key is found; otherwise, false</returns>
+    bool TryGetAndUpdate(in TKey key, out TValue value, ValueUpdaterDelegate<TValue> valueUpdater);
+
+    /// <summary>
+    /// Tries to get the value of the given key and
+    /// updates the value atomically using value update if found any.
+    /// </summary>
+    /// <param name="key">The key of the element.</param>
+    /// <param name="value">The value of the element associated with the key.</param>
+    /// <param name="valueUpdater">The delegate function that updates the value.</param>
+    /// <returns>true if the key is found; otherwise, false</returns>
+    bool TryAtomicGetAndUpdate(in TKey key, out TValue value, ValueUpdaterDelegate<TValue> valueUpdater);
+
+    /// <summary>
     /// Attempts to add the specified key and value atomically across LSM-Tree segments.
     /// </summary>
     /// <param name="key">The key of the element to add.</param>
@@ -45,10 +65,10 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="key">The key of the element to add.</param>
     /// <param name="valueToAdd">The value of the element to add. It can be null.</param>
-    /// <param name="valueProviderToUpdate">The lambda function that returns value to be updated.</param>
+    /// <param name="valueUpdater">The delegate function that updates the value.</param>
     /// <returns>true if the key/value pair was added;
     /// false, if the key/value pair was updated.</returns>
-    bool TryAtomicAddOrUpdate(in TKey key, in TValue valueToAdd, Func<TValue, TValue> valueProviderToUpdate);
+    bool TryAtomicAddOrUpdate(in TKey key, in TValue valueToAdd, ValueUpdaterDelegate<TValue> valueUpdater);
 
     /// <summary>
     /// Adds or updates the specified key/value pair atomically across LSM-Tree segments.
@@ -106,10 +126,16 @@ public interface IZoneTree<TKey, TValue> : IDisposable
 
     /// <summary>
     /// Counts Keys in the entire database.
-    /// This operation requires a scan through in memory segments and lookups in disk segment.
+    /// This operation scans the in-memory segments and queries the disk segment.
     /// </summary>
     /// <returns>Number of the valid records in the tree.</returns>
     int Count();
+
+    /// <summary>
+    /// Counts Keys in the entire database with a full scan.
+    /// </summary>
+    /// <returns>Number of the valid records in the tree.</returns>
+    int CountFullScan();
 
     /// <summary>
     /// Creates an iterator that enables scanning of the entire database.
@@ -170,3 +196,10 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     ILogger Logger { get; }
 }
+
+/// <summary>
+/// Value updater delegate.
+/// </summary>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="value">The value as a reference to be updated.</param>
+public delegate void ValueUpdaterDelegate<TValue>(ref TValue value);

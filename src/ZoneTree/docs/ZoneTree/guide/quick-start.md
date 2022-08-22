@@ -19,7 +19,7 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
     
     zoneTree
     .TryAtomicAddOrUpdate(39, 
-    "Hello", (x) => x + "!");
+    "Hello", void (ref string x) => x += "!");
 
     
     if (zoneTree.TryGet(55, out var value))

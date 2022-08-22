@@ -44,7 +44,7 @@ public class AtomicUpdateTests
                 len = random.Next(1501);
                 for (var i = 0; i < len; ++i)
                 {
-                    data.TryAtomicAddOrUpdate(counterKey, 0, (y) => y + 1);
+                    data.TryAtomicAddOrUpdate(counterKey, 0, void (ref int y) => ++y);
                     Interlocked.Increment(ref off);
                 }
             }
@@ -57,10 +57,14 @@ public class AtomicUpdateTests
         for (var i = 0; i < 2000; ++i)
         {
             var result = data.TryGet(i, out var v);
-            Assert.That(result, Is.True);
-            Assert.That(v, Is.EqualTo(i + i));
-            Assert.That(data.ContainsKey(i), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.True);
+                Assert.That(v, Is.EqualTo(i + i));
+                Assert.That(data.ContainsKey(i), Is.True);
+            });
         }
+
         data.Maintenance.MoveSegmentZeroForward();
         data.Maintenance.StartMergeOperation().Join();
         data.TryGet(counterKey, out var finalValue);
@@ -103,7 +107,7 @@ public class AtomicUpdateTests
                 len = random.Next(1501);
                 for (var i = 0; i < len; ++i)
                 {
-                    data.TryAtomicAddOrUpdate(3999, 0, (y) => y + 1);
+                    data.TryAtomicAddOrUpdate(3999, 0, void (ref int y) => ++y);
                     Interlocked.Increment(ref off);
                 }
 
@@ -117,10 +121,14 @@ public class AtomicUpdateTests
         for (var i = 0; i < 2000; ++i)
         {
             var result = data.TryGet(i, out var v);
-            Assert.That(result, Is.True);
-            Assert.That(v, Is.EqualTo(i + i));
-            Assert.That(data.ContainsKey(i), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.True);
+                Assert.That(v, Is.EqualTo(i + i));
+                Assert.That(data.ContainsKey(i), Is.True);
+            });
         }
+
         data.TryGet(3999, out var finalValue);
         Assert.That(finalValue, Is.EqualTo(off));
         data.Maintenance.DestroyTree();
@@ -161,7 +169,7 @@ public class AtomicUpdateTests
                 len = random.Next(1501);
                 for (var i = 0; i < len; ++i)
                 {
-                    data.TryAtomicAddOrUpdate(counterKey, 0, (y) => y + 1);
+                    data.TryAtomicAddOrUpdate(counterKey, 0, void (ref int y) => ++y);
                     Interlocked.Increment(ref off);
                 }
 
@@ -175,10 +183,14 @@ public class AtomicUpdateTests
         for (var i = 0; i < 2000; ++i)
         {
             var result = data.TryGet(i, out var v);
-            Assert.That(result, Is.True);
-            Assert.That(v, Is.EqualTo(i + i));
-            Assert.That(data.ContainsKey(i), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.True);
+                Assert.That(v, Is.EqualTo(i + i));
+                Assert.That(data.ContainsKey(i), Is.True);
+            });
         }
+
         data.TryGet(counterKey, out var finalValue);
         Assert.That(finalValue, Is.EqualTo(off));
         data.Maintenance.DestroyTree();
@@ -224,9 +236,13 @@ public class AtomicUpdateTests
         {
             var k = iterator.CurrentKey;
             var v = iterator.CurrentValue;
-            Assert.That(v, Is.EqualTo(k + k));
-            Assert.That(data.ContainsKey(k), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(v, Is.EqualTo(k + k));
+                Assert.That(data.ContainsKey(k), Is.True);
+            });
         }
+
         data.Maintenance.DestroyTree();
     }
 }

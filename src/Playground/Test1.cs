@@ -113,7 +113,7 @@ public class Test1
                 zoneTree1.Upsert(i, string.Join('+',
                     Enumerable.Repeat(Guid.NewGuid().ToString(), 4)));
                 if (i % 100 == 0)
-                    zoneTree1.TryAtomicAddOrUpdate(i, "a", (x) => x + " ooops!");
+                    zoneTree1.TryAtomicAddOrUpdate(i, "a", void (ref string x) => x += " ooops!");
             }
             maintainer.CompleteRunningTasks();
         }

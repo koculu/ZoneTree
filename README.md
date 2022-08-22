@@ -96,7 +96,7 @@ The following sample demonstrates creating a database.
     zoneTree.Upsert(39, "Hello Zone Tree!");
     
     // atomic across all segments
-    zoneTree.TryAtomicAddOrUpdate(39, "a", (x) => x + "b");
+    zoneTree.TryAtomicAddOrUpdate(39, "a", void (ref string x) => x += "b");
 ```
 ## How to maintain LSM Tree?
 Big LSM Trees require maintenance tasks. ZoneTree provides the IZoneTreeMaintenance interface to give you full power on maintenance tasks.

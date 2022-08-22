@@ -212,6 +212,43 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         return TryGetFromReadonlySegments(in key, out value);
     }
 
+    public bool TryGetAndUpdate(in TKey key, out TValue value, ValueUpdaterDelegate<TValue> valueUpdater)
+    {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
+
+        if (SegmentZero.TryGet(key, out value))
+        {
+            return !IsValueDeleted(value);
+        }
+        if (!TryGetFromReadonlySegments(in key, out value))
+            return false;
+
+        valueUpdater(ref value);
+        Upsert(in key, in value);
+        return true;
+    }
+
+    public bool TryAtomicGetAndUpdate(in TKey key, out TValue value, ValueUpdaterDelegate<TValue> valueUpdater)
+    {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
+
+        lock (AtomicUpdateLock)
+        {
+            if (SegmentZero.TryGet(key, out value))
+            {
+                return !IsValueDeleted(value);
+            }
+            if (!TryGetFromReadonlySegments(in key, out value))
+                return false;
+
+            valueUpdater(ref value);
+            Upsert(in key, in value);
+            return true;
+        }
+    }
+
     public bool TryAtomicAdd(in TKey key, in TValue value)
     {
         if (IsReadOnly)
@@ -240,7 +277,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         }
     }
 
-    public bool TryAtomicAddOrUpdate(in TKey key, in TValue valueToAdd, Func<TValue, TValue> valueToUpdateGetter)
+    public bool TryAtomicAddOrUpdate(in TKey key, in TValue valueToAdd, ValueUpdaterDelegate<TValue> valueUpdater)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
@@ -257,13 +294,13 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 }
                 else if (segmentZero.TryGet(in key, out var existing))
                 {
-                    var value = valueToUpdateGetter(existing);
-                    status = segmentZero.Upsert(key, value);
+                    valueUpdater(ref existing);
+                    status = segmentZero.Upsert(key, existing);
                 }
                 else if (TryGetFromReadonlySegments(in key, out existing))
                 {
-                    var value = valueToUpdateGetter(existing);
-                    status = segmentZero.Upsert(key, value);
+                    valueUpdater(ref existing);
+                    status = segmentZero.Upsert(key, existing);
                 }
                 else
                 {
@@ -458,7 +495,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         IsCancelMergeRequested = true;
     }
 
-    int ReadOnlySegmentFullyFrozenSpinTimeout = 1000;
+    readonly int ReadOnlySegmentFullyFrozenSpinTimeout = 1000;
 
     MergeResult MergeReadOnlySegmentsInternal()
     {
@@ -755,6 +792,15 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                     ++count;
             }
         }
+        return count;
+    }
+
+    public int CountFullScan()
+    {
+        var iterator = CreateIterator(IteratorType.NoRefresh, false);
+        var count = 0;
+        while (iterator.Next())
+            ++count;
         return count;
     }
 
