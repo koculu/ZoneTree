@@ -14,3 +14,5 @@
   href: /docs/ZoneTree/guide/write-ahead-log.html
 - name: Tuning Disk Segment
   href: /docs/ZoneTree/guide/tuning-disk-segment.html
+- name: TTL Support
+  href: /docs/ZoneTree/guide/TTL-support.html
