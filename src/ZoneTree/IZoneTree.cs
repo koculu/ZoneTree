@@ -207,4 +207,5 @@ public interface IZoneTree<TKey, TValue> : IDisposable
 /// </summary>
 /// <typeparam name="TValue">The value type</typeparam>
 /// <param name="value">The value as a reference to be updated.</param>
-public delegate void ValueUpdaterDelegate<TValue>(ref TValue value);
+/// <returns>true if the value is updated, false otherwise.</returns>
+public delegate bool ValueUpdaterDelegate<TValue>(ref TValue value);

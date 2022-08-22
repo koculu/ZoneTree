@@ -225,7 +225,12 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         else if (!TryGetFromReadonlySegments(in key, out value))
             return false;
 
-        valueUpdater(ref value);
+        if (!valueUpdater(ref value))
+        {
+            // return true because
+            // no update happened, but the value is found.
+            return true;
+        }
         Upsert(in key, in value);
         return true;
     }
@@ -245,7 +250,13 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             else if (!TryGetFromReadonlySegments(in key, out value))
                 return false;
 
-            valueUpdater(ref value);
+            if (!valueUpdater(ref value))
+            {
+                // return true because
+                // no update happened, but the value is found.
+                return true;
+            }
+            
             Upsert(in key, in value);
             return true;
         }
@@ -296,12 +307,14 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 }
                 else if (segmentZero.TryGet(in key, out var existing))
                 {
-                    valueUpdater(ref existing);
+                    if (!valueUpdater(ref existing))
+                        return false;
                     status = segmentZero.Upsert(key, existing);
                 }
                 else if (TryGetFromReadonlySegments(in key, out existing))
                 {
-                    valueUpdater(ref existing);
+                    if (!valueUpdater(ref existing))
+                        return false;
                     status = segmentZero.Upsert(key, existing);
                 }
                 else

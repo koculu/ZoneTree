@@ -29,8 +29,12 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
 zoneTree.Upsert(39, "Hello Zone Tree");
 
 zoneTree
-.TryAtomicAddOrUpdate(39, 
-   "Hello", void (ref string x) => x += "!");
+   .TryAtomicAddOrUpdate(39, 
+      "Hello", void (ref string x) => 
+      {
+         x += "!";
+         return true;
+      });
 
 if (zoneTree.TryGet(55, out var value))
     Debug.Assert(value == "Hello Zone Tree!");

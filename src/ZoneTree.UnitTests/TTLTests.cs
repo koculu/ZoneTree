@@ -34,13 +34,13 @@ public class TTLTests
         f1 = zoneTree.TryGetAndUpdate(
             5,
             out v1, 
-            void (ref TTLValue<int> v) => 
+            bool (ref TTLValue<int> v) => 
                 v.SlideExpiration(TimeSpan.FromMilliseconds(300)));
         Thread.Sleep(450); // initial expiration (300) + slided expiration (300) - Thread.Sleep(150)
         f2 = zoneTree.TryGetAndUpdate(
             5,
             out v2,
-            void (ref TTLValue<int> v) =>
+            bool (ref TTLValue<int> v) =>
                 v.SlideExpiration(TimeSpan.FromMilliseconds(300)));
 
         Assert.That(f1, Is.True);

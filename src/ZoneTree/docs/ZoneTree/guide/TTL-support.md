@@ -35,7 +35,7 @@ zoneTree.Upsert(5, new TTLValue<int>(99, expiration));
 var found = zoneTree.TryGetAndUpdate(
     5,
     out value,
-    void (ref TTLValue<int> v) => 
+    bool (ref TTLValue<int> v) => 
         v.SlideExpiration(TimeSpan.FromSeconds(15)));  
 ```
 

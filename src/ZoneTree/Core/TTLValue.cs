@@ -22,11 +22,12 @@ public struct TTLValue<TValue>
         Expiration = new DateTime();
     }
 
-    public void SlideExpiration(TimeSpan timeSpan)
+    public bool SlideExpiration(TimeSpan timeSpan)
     {
-        var delta = Expiration.Subtract(DateTime.UtcNow);
-        if (delta >= timeSpan)
-            return;
-        Expiration = Expiration.Add(timeSpan);
+        var newExpiration = DateTime.UtcNow.Add(timeSpan);        
+        if (newExpiration <= Expiration)
+            return false;
+        Expiration = newExpiration;
+        return true;
     }
 }

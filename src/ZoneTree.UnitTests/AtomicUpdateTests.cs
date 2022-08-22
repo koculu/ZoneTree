@@ -42,7 +42,13 @@ public class AtomicUpdateTests
                 len = random.Next(1501);
                 for (var i = 0; i < len; ++i)
                 {
-                    data.TryAtomicAddOrUpdate(counterKey, 0, void (ref int y) => ++y);
+                    data.TryAtomicAddOrUpdate(counterKey, 0, 
+                        bool (ref int y) =>
+                        {
+                            ++y;
+                            return true;
+                        }
+                    );
                     Interlocked.Increment(ref off);
                 }
             }
@@ -103,7 +109,11 @@ public class AtomicUpdateTests
                 len = random.Next(1501);
                 for (var i = 0; i < len; ++i)
                 {
-                    data.TryAtomicAddOrUpdate(3999, 0, void (ref int y) => ++y);
+                    data.TryAtomicAddOrUpdate(3999, 0, 
+                        bool (ref int y) => {
+                            ++y;
+                            return true;
+                        });
                     Interlocked.Increment(ref off);
                 }
 
@@ -163,7 +173,11 @@ public class AtomicUpdateTests
                 len = random.Next(1501);
                 for (var i = 0; i < len; ++i)
                 {
-                    data.TryAtomicAddOrUpdate(counterKey, 0, void (ref int y) => ++y);
+                    data.TryAtomicAddOrUpdate(counterKey, 0,
+                        bool (ref int y) => {
+                            ++y;
+                            return true;
+                        });
                     Interlocked.Increment(ref off);
                 }
 
