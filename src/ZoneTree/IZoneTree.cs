@@ -134,6 +134,11 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <summary>
     /// Counts Keys in the entire database with a full scan.
     /// </summary>
+    /// <remarks>
+    /// In regular cases, the disk segment does not contain deleted records.
+    /// However, TTL or custom deletion logic would let the disk segment
+    /// contains deleted records. In that case, a full scan is required for the count.
+    /// </remarks>
     /// <returns>Number of the valid records in the tree.</returns>
     int CountFullScan();
 
