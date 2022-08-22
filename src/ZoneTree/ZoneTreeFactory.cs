@@ -185,6 +185,12 @@ public class ZoneTreeFactory<TKey, TValue>
     public ZoneTreeFactory<TKey, TValue>
         SetKeySerializer(ISerializer<TKey> keySerializer)
     {
+        if (Options.WriteAheadLogProvider != null)
+            throw new CannotSetSerializersAfterWriteAheadLogProviderInitializedException();
+
+        if (TransactionLog != null)
+            throw new CannotSetSerializersAfterTransactionLogInitializedException();
+
         Options.KeySerializer = keySerializer;
         return this;
     }
@@ -197,6 +203,12 @@ public class ZoneTreeFactory<TKey, TValue>
     public ZoneTreeFactory<TKey, TValue>
         SetValueSerializer(ISerializer<TValue> valueSerializer)
     {
+        if (Options.WriteAheadLogProvider != null)
+            throw new CannotSetSerializersAfterWriteAheadLogProviderInitializedException();
+
+        if (TransactionLog != null)
+            throw new CannotSetSerializersAfterTransactionLogInitializedException();
+
         Options.ValueSerializer = valueSerializer;
         return this;
     }
@@ -217,6 +229,7 @@ public class ZoneTreeFactory<TKey, TValue>
     {
         if (Options.WriteAheadLogProvider != null)
             return;
+        FillMissingOptionsForKnownTypes();
         Options.WriteAheadLogProvider = GetWriteAheadLogProvider(Options);
     }
 
@@ -224,6 +237,7 @@ public class ZoneTreeFactory<TKey, TValue>
     {
         if (TransactionLog != null)
             return;
+        FillMissingOptionsForKnownTypes();
         TransactionLog = GetTransactionLog(Options);
     }
 

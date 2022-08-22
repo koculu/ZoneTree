@@ -24,7 +24,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
 
     /// <summary>
     /// Tries to get the value of the given key and
-    /// updates the value using value update if found any.
+    /// updates the value using value updater if found any.
     /// </summary>
     /// <param name="key">The key of the element.</param>
     /// <param name="value">The value of the element associated with the key.</param>
@@ -34,7 +34,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
 
     /// <summary>
     /// Tries to get the value of the given key and
-    /// updates the value atomically using value update if found any.
+    /// updates the value atomically using value updater if found any.
     /// </summary>
     /// <param name="key">The key of the element.</param>
     /// <param name="value">The value of the element associated with the key.</param>
