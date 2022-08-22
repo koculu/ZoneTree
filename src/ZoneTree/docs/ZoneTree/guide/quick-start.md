@@ -10,7 +10,7 @@ The following sample shows the most basic setup of a ZoneTree database.
 ```C#
 using var zoneTree = new ZoneTreeFactory<int, string>()
    .OpenOrCreate();
-   zoneTree.Upsert(39, "Hello Zone Tree");
+zoneTree.Upsert(39, "Hello Zone Tree");
 ```
 
 The following samples demonstrate creating a ZoneTree database and inserting some key-value pairs.
@@ -26,15 +26,14 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
     .SetValueSerializer(new Utf8StringSerializer())
     .OpenOrCreate();
     
-    zoneTree.Upsert(39, "Hello Zone Tree");
-    
-    zoneTree
-    .TryAtomicAddOrUpdate(39, 
-    "Hello", void (ref string x) => x += "!");
+zoneTree.Upsert(39, "Hello Zone Tree");
 
-    
-    if (zoneTree.TryGet(55, out var value))
-        Debug.Assert(value == "Hello Zone Tree!");
+zoneTree
+.TryAtomicAddOrUpdate(39, 
+   "Hello", void (ref string x) => x += "!");
+
+if (zoneTree.TryGet(55, out var value))
+    Debug.Assert(value == "Hello Zone Tree!");
 ```
 
 ## How to maintain LSM Tree?
@@ -51,11 +50,11 @@ using var zoneTree = new ZoneTreeFactory<int, int>()
     
 using var maintainer = new BasicZoneTreeMaintainer<int, string>(zoneTree);
 for (var i = 0 ; i < 10_000_000; ++i){
-    zoneTree.Insert(i, i+i);
- }
+   zoneTree.Insert(i, i+i);
+}
  
- // Ensure maintainer merge operations are completed before tree disposal.
- maintainer.CompleteRunningTasks();
+// Ensure maintainer merge operations are completed before tree disposal.
+maintainer.CompleteRunningTasks();
 ```
 
 ## How to merge data to the disk segment manually?
@@ -67,7 +66,7 @@ using var zoneTree = new ZoneTreeFactory<int, int>()
     .OpenOrCreate();
     
 for (var i = 0 ; i < 10_000_000; ++i){
-    zoneTree.Insert(i, i+i);
+   zoneTree.Insert(i, i+i);
 }
 
 zoneTree.Maintenance.MoveSegmentZeroForward();
@@ -107,6 +106,7 @@ using var zoneTree = new ZoneTreeFactory<int, MyDeletableValueType>()
 ```
 If you forget to provide the deletion marker delegates, you can never delete the record from your database.
 
+You can use built in generic [Deletable&lt;TValue&gt;](/docs/ZoneTree/api/Tenray.ZoneTree.Core.Deletable-1.html) for deletion.
 
 ## How to iterate over data?
 
@@ -114,20 +114,20 @@ Iteration is possible in both directions, forward and backward.
 Unlike other LSM tree implementations, iteration performance is equal in both directions.
 The following sample shows how to do the iteration.
 ```c#
- using var zoneTree = new ZoneTreeFactory<int, int>()
-    // Additional stuff goes here
-    .OpenOrCreate();
- using var iterator = zoneTree.CreateIterator();
- while(iterator.Next()) {
-    var key = iterator.CurrentKey;
-    var value = iterator.CurrentValue;
- } 
+using var zoneTree = new ZoneTreeFactory<int, int>()
+   // Additional stuff goes here
+   .OpenOrCreate();
+using var iterator = zoneTree.CreateIterator();
+while(iterator.Next()) {
+   var key = iterator.CurrentKey;
+   var value = iterator.CurrentValue;
+} 
  
- using var reverseIterator = zoneTree.CreateReverseIterator();
- while(reverseIterator.Next()) {
-    var key = reverseIterator.CurrentKey;
-    var value = reverseIterator.CurrentValue;
- }
+using var reverseIterator = zoneTree.CreateReverseIterator();
+while(reverseIterator.Next()) {
+   var key = reverseIterator.CurrentKey;
+   var value = reverseIterator.CurrentValue;
+}
 ```
 
 ## How to iterate starting with a key (Seekable Iterator)?
@@ -135,16 +135,16 @@ The following sample shows how to do the iteration.
 ZoneTreeIterator provides Seek() method to jump into any record with in O(log(n)) complexity.
 That is useful for doing prefix search with forward-iterator or with backward-iterator.
 ```c#
- using var zoneTree = new ZoneTreeFactory<string, int>()
-    // Additional stuff goes here
-    .OpenOrCreate();
- using var iterator = zoneTree.CreateIterator();
- // iterator jumps into the first record starting with "SomePrefix" in O(log(n)) complexity. 
- iterator.Seek("SomePrefix");
- 
- //iterator.Next() complexity is O(1)
- while(iterator.Next()) {
-    var key = iterator.CurrentKey;
-    var value = iterator.CurrentValue;
- } 
+using var zoneTree = new ZoneTreeFactory<string, int>()
+   // Additional stuff goes here
+   .OpenOrCreate();
+using var iterator = zoneTree.CreateIterator();
+// iterator jumps into the first record starting with "SomePrefix" in O(log(n)) complexity. 
+iterator.Seek("SomePrefix");
+
+//iterator.Next() complexity is O(1)
+while(iterator.Next()) {
+   var key = iterator.CurrentKey;
+   var value = iterator.CurrentValue;
+} 
 ```
