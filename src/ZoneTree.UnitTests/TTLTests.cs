@@ -41,10 +41,8 @@ public class TTLTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, TTLValue>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new StructSerializer<TTLValue>())
             .SetIsValueDeletedDelegate((in TTLValue x) => x.IsExpired())
             .SetMarkValueDeletedDelegate(void (ref TTLValue x) => x.Expire())

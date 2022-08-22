@@ -5,6 +5,9 @@ using Tenray.ZoneTree.WAL;
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Serializers;
+using System.Runtime.CompilerServices;
 
 namespace Tenray.ZoneTree;
 
@@ -322,12 +325,87 @@ public class ZoneTreeFactory<TKey, TValue>
         return this;
     }
 
+    void FillMissingOptionsForKnownTypes()
+    {
+        FillComparer();
+        FillKeySerializer();
+        FillValueSerializer();
+    }
+
+    void FillComparer()
+    {
+        if (Options.Comparer != null)
+            return;
+        TKey key = default;
+        Options.Comparer = key switch
+        {
+            byte => new ByteComparerAscending() as IRefComparer<TKey>,
+            byte[] => new ByteArrayComparerAscending() as IRefComparer<TKey>,
+            char => new CharComparerAscending() as IRefComparer<TKey>,
+            DateTime => new DateTimeComparerAscending() as IRefComparer<TKey>,
+            decimal => new DecimalComparerAscending() as IRefComparer<TKey>,
+            double => new DoubleComparerAscending() as IRefComparer<TKey>,
+            short => new Int16ComparerAscending() as IRefComparer<TKey>,
+            int => new Int32ComparerAscending() as IRefComparer<TKey>,
+            long => new Int64ComparerAscending() as IRefComparer<TKey>,
+            string => new StringOrdinalComparerAscending() as IRefComparer<TKey>,
+            Guid => new GuidComparerAscending() as IRefComparer<TKey>,
+            _ => null
+        };
+    }
+
+    void FillKeySerializer()
+    {
+        if (Options.KeySerializer != null)
+            return;
+        TKey key = default;
+        Options.KeySerializer = key switch
+        {
+            byte => new ByteSerializer() as ISerializer<TKey>,
+            byte[] => new ByteArraySerializer() as ISerializer<TKey>,
+            char => new CharSerializer() as ISerializer<TKey>,
+            DateTime => new DateTimeSerializer() as ISerializer<TKey>,
+            decimal => new DecimalSerializer() as ISerializer<TKey>,
+            double => new DoubleSerializer() as ISerializer<TKey>,
+            short => new Int16Serializer() as ISerializer<TKey>,
+            int => new Int32Serializer() as ISerializer<TKey>,
+            long => new Int64Serializer() as ISerializer<TKey>,
+            string => new Utf8StringSerializer() as ISerializer<TKey>,
+            Guid => new StructSerializer<Guid>() as ISerializer<TKey>,
+            _ => null
+        };
+    }
+
+    void FillValueSerializer()
+    {
+        if (Options.ValueSerializer != null)
+            return;
+        TValue value = default;
+        Options.ValueSerializer = value switch
+        {
+            byte => new ByteSerializer() as ISerializer<TValue>,
+            byte[] => new ByteArraySerializer() as ISerializer<TValue>,
+            bool => new BooleanSerializer() as ISerializer<TValue>,
+            char => new CharSerializer() as ISerializer<TValue>,
+            DateTime => new DateTimeSerializer() as ISerializer<TValue>,
+            decimal => new DecimalSerializer() as ISerializer<TValue>,
+            double => new DoubleSerializer() as ISerializer<TValue>,
+            short => new Int16Serializer() as ISerializer<TValue>,
+            int => new Int32Serializer() as ISerializer<TValue>,
+            long => new Int64Serializer() as ISerializer<TValue>,
+            string => new Utf8StringSerializer() as ISerializer<TValue>,
+            Guid => new StructSerializer<Guid>() as ISerializer<TValue>,
+            _ => null
+        };
+    }
+
     /// <summary>
     /// Opens or creates a ZoneTree.
     /// </summary>
     /// <returns>ZoneTree Factory</returns>
     public IZoneTree<TKey, TValue> OpenOrCreate()
     {
+        FillMissingOptionsForKnownTypes();
         InitWriteAheadLogProvider();
         var loader = new ZoneTreeLoader<TKey, TValue>(Options);
         if (loader.ZoneTreeMetaExists)
@@ -346,6 +424,7 @@ public class ZoneTreeFactory<TKey, TValue>
     /// <exception cref="DatabaseAlreadyExistsException">Thrown when the database exists in the location.</exception>
     public IZoneTree<TKey, TValue> Create()
     {
+        FillMissingOptionsForKnownTypes();
         InitWriteAheadLogProvider();
         var loader = new ZoneTreeLoader<TKey, TValue>(Options);
         if (loader.ZoneTreeMetaExists)
@@ -360,6 +439,7 @@ public class ZoneTreeFactory<TKey, TValue>
     /// <exception cref="DatabaseNotFoundException">Thrown when database is not found in the location.</exception>
     public IZoneTree<TKey, TValue> Open()
     {
+        FillMissingOptionsForKnownTypes();
         InitWriteAheadLogProvider();
         var loader = new ZoneTreeLoader<TKey, TValue>(Options);
         if (!loader.ZoneTreeMetaExists)

@@ -5,7 +5,18 @@ dotnet add package ZoneTree
 ```
 
 ## How to use ZoneTree?
-The following samples demonstrate creating a ZoneTree database and insert some key-value pairs.
+The following sample shows the most basic setup of a ZoneTree database.
+
+```C#
+using var zoneTree = new ZoneTreeFactory<int, string>()
+   .OpenOrCreate();
+   zoneTree.Upsert(39, "Hello Zone Tree");
+```
+
+The following samples demonstrate creating a ZoneTree database and inserting some key-value pairs.
+The key comparer and serializers are selected automatically in the first example.
+They can also be configured manually through ZoneTreeFactory as follows.
+
 ```C#
 var dataPath = "data/mydatabase";
 using var zoneTree = new ZoneTreeFactory<int, string>()
@@ -35,10 +46,7 @@ Following sample demonstraces creating a ZoneTree database with basic maintainer
 ```C#
 var dataPath = "data/mydatabase";
 using var zoneTree = new ZoneTreeFactory<int, int>()
-    .SetComparer(new Int32ComparerAscending())
     .SetDataDirectory(dataPath)
-    .SetKeySerializer(new Int32Serializer())
-    .SetValueSerializer(new Int32Serializer())
     .OpenOrCreate();
     
 using var maintainer = new BasicZoneTreeMaintainer<int, string>(zoneTree);
@@ -55,10 +63,7 @@ Create Zone Tree insert 10M key-value pairs and manually merge in the end.
 ```C#
 var dataPath = "data/mydatabase";
 using var zoneTree = new ZoneTreeFactory<int, int>()
-    .SetComparer(new Int32ComparerAscending())
     .SetDataDirectory(dataPath)
-    .SetKeySerializer(new Int32Serializer())
-    .SetValueSerializer(new Int32Serializer())
     .OpenOrCreate();
     
 for (var i = 0 ; i < 10_000_000; ++i){
