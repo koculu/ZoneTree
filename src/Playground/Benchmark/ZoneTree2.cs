@@ -111,7 +111,6 @@ public class ZoneTree2
     private static IZoneTree<string, string> OpenOrCreateZoneTree(WriteAheadLogMode mode, string dataPath)
     {
         return new ZoneTreeFactory<string, string>()
-            .SetComparer(new StringOrdinalComparerAscending())
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
             .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
@@ -125,8 +124,6 @@ public class ZoneTree2
                 x.WriteAheadLogMode = mode;
                 x.EnableIncrementalBackup = false;
             })
-            .SetKeySerializer(new Utf8StringSerializer())
-            .SetValueSerializer(new Utf8StringSerializer())
             .SetInitialSparseArrayLength(TestConfig.MinimumSparseArrayLength)
             .OpenOrCreate();
     }

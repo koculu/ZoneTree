@@ -13,12 +13,9 @@ public class FixedSizeKeyAndValueTests
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         using var data = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
 
         for (var i = 0; i < 2000; ++i)
@@ -45,11 +42,9 @@ public class FixedSizeKeyAndValueTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<int, string>()
-            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
             .SetValueSerializer(new UnicodeStringSerializer())
             .OpenOrCreate();
         int n = 2000;
@@ -79,12 +74,10 @@ public class FixedSizeKeyAndValueTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<string, int>()
-            .SetComparer(new StringOrdinalComparerAscending())
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetKeySerializer(new UnicodeStringSerializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
         int n = 2000;
         for (var i = 0; i < n; ++i)
@@ -115,7 +108,6 @@ public class FixedSizeKeyAndValueTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<string, string>()
-            .SetComparer(new StringOrdinalComparerAscending())
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -145,14 +137,11 @@ public class FixedSizeKeyAndValueTests
     private void ReloadIntIntTreeTestHelper(string dataPath, bool destroy)
     {
         using var data = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x => 
                 x.WriteAheadLogMode = WriteAheadLogMode.Immediate)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .OpenOrCreate();

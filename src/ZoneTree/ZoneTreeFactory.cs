@@ -348,10 +348,12 @@ public class ZoneTreeFactory<TKey, TValue>
             short => new Int16ComparerAscending() as IRefComparer<TKey>,
             int => new Int32ComparerAscending() as IRefComparer<TKey>,
             long => new Int64ComparerAscending() as IRefComparer<TKey>,
-            string => new StringOrdinalComparerAscending() as IRefComparer<TKey>,
             Guid => new GuidComparerAscending() as IRefComparer<TKey>,
             _ => null
         };
+        if (typeof(TKey) == typeof(string))
+            Options.Comparer =
+                new StringOrdinalComparerAscending() as IRefComparer<TKey>;
     }
 
     void FillKeySerializer()
@@ -370,10 +372,13 @@ public class ZoneTreeFactory<TKey, TValue>
             short => new Int16Serializer() as ISerializer<TKey>,
             int => new Int32Serializer() as ISerializer<TKey>,
             long => new Int64Serializer() as ISerializer<TKey>,
-            string => new Utf8StringSerializer() as ISerializer<TKey>,
             Guid => new StructSerializer<Guid>() as ISerializer<TKey>,
             _ => null
         };
+
+        if (typeof(TKey) == typeof(string))
+            Options.KeySerializer = 
+                new Utf8StringSerializer() as ISerializer<TKey>;
     }
 
     void FillValueSerializer()
@@ -393,10 +398,13 @@ public class ZoneTreeFactory<TKey, TValue>
             short => new Int16Serializer() as ISerializer<TValue>,
             int => new Int32Serializer() as ISerializer<TValue>,
             long => new Int64Serializer() as ISerializer<TValue>,
-            string => new Utf8StringSerializer() as ISerializer<TValue>,
             Guid => new StructSerializer<Guid>() as ISerializer<TValue>,
             _ => null
         };
+
+        if (typeof(TValue) == typeof(string))
+            Options.ValueSerializer =
+                new Utf8StringSerializer() as ISerializer<TValue>;
     }
 
     /// <summary>

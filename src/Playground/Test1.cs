@@ -19,7 +19,6 @@ public class Test1
         stopWatch.Start();
         int n = 1000000;
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x =>
@@ -27,8 +26,6 @@ public class Test1
                 x.WriteAheadLogMode = WriteAheadLogMode.Immediate;
                 x.EnableIncrementalBackup = true;
             })
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();
         using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
         
@@ -83,7 +80,6 @@ public class Test1
 
         var upload = Stopwatch.StartNew();
         IZoneTree<int, string> GetZoneTree() => new ZoneTreeFactory<int, string>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x =>
@@ -99,8 +95,6 @@ public class Test1
                 x.DiskSegmentMinimumRecordCount = 10_000;
                 x.DiskSegmentMaximumRecordCount = 100_000;
             })
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Utf8StringSerializer())
             .OpenOrCreate();
 
         using (var zoneTree1 = GetZoneTree())
@@ -196,7 +190,6 @@ public class Test1
             Directory.Delete(dataPath, true);
 
         IZoneTree<int, int> GetZoneTree() => new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x =>
@@ -209,8 +202,6 @@ public class Test1
                 x.EnableDiskSegmentCompression = true;
                 x.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
             })
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
 
         using var zoneTree1 = GetZoneTree();

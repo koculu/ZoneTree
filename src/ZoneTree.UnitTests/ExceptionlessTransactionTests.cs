@@ -16,11 +16,8 @@ public class ExceptionlessTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();
 
         zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
@@ -65,7 +62,6 @@ public class ExceptionlessTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x =>
@@ -79,8 +75,6 @@ public class ExceptionlessTransactionTests
                     x.CompressedImmediateModeOptions.TailWriterJobInterval = 0;
                 }
             })
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();
 
         zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;

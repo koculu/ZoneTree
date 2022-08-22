@@ -21,8 +21,6 @@ public class AtomicUpdateTests
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
         for (var i = 0; i < 2000; ++i)
         {
@@ -86,8 +84,6 @@ public class AtomicUpdateTests
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
         for (var i = 0; i < 2000; ++i)
         {
@@ -148,8 +144,6 @@ public class AtomicUpdateTests
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
         for (var i = 0; i < 2000; ++i)
         {
@@ -209,8 +203,6 @@ public class AtomicUpdateTests
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
         var n = 1000;
         var random = new Random();

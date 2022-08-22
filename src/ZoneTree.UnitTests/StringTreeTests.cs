@@ -15,11 +15,8 @@ public class StringTreeTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<string, string>()
-            .SetComparer(new StringOrdinalComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Utf8StringSerializer())
-            .SetValueSerializer(new Utf8StringSerializer())
             .OpenOrCreate();
 
         var keys = new[]

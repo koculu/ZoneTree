@@ -17,11 +17,8 @@ public class OptimisticTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();
 
         zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
@@ -67,12 +64,9 @@ public class OptimisticTransactionTests
 
         int n = 10000;
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreateTransactional();
 
         Parallel.For(0, n, (x) =>
@@ -97,12 +91,9 @@ public class OptimisticTransactionTests
 
         int n = 10000;
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
 
         Parallel.For(0, n, (x) =>
@@ -123,11 +114,8 @@ public class OptimisticTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .OpenOrCreateTransactional();
@@ -179,11 +167,8 @@ public class OptimisticTransactionTests
             Directory.Delete(dataPath, true);
         
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .OpenOrCreateTransactional();
@@ -229,11 +214,8 @@ public class OptimisticTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .OpenOrCreateTransactional();
@@ -267,11 +249,8 @@ public class OptimisticTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .OpenOrCreateTransactional();

@@ -110,7 +110,6 @@ public class ZoneTree3
     private static ITransactionalZoneTree<int, int> OpenOrCreateZoneTree(WriteAheadLogMode mode, string dataPath)
     {
         return new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
             .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
@@ -124,8 +123,6 @@ public class ZoneTree3
                 x.WriteAheadLogMode = mode;
                 x.EnableIncrementalBackup = TestConfig.EnableIncrementalBackup;
             })
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .ConfigureTransactionLog(x =>
             {
                 x.CompactionThreshold = 100_000;

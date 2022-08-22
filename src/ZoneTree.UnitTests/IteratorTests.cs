@@ -14,12 +14,9 @@ public class IteratorTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(11)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .OpenOrCreate();
@@ -87,12 +84,9 @@ public class IteratorTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(11)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .OpenOrCreate();
@@ -181,12 +175,9 @@ public class IteratorTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetComparer(new Int32ComparerAscending())
             .SetMutableSegmentMaxItemCount(250)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .OpenOrCreate();
@@ -253,11 +244,8 @@ public class IteratorTests
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetMutableSegmentMaxItemCount(insertCount * 2)
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
 
         var task = Task.Factory.StartNew(() =>
@@ -304,11 +292,8 @@ public class IteratorTests
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetMutableSegmentMaxItemCount(insertCount * 2)
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .Configure(x =>
             {
                 x.BTreeLockMode = BTreeLockMode.NodeLevelMonitor;
@@ -369,11 +354,8 @@ public class IteratorTests
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetMutableSegmentMaxItemCount(insertCount * 2)
-            .SetComparer(new Int32ComparerAscending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetKeySerializer(new Int32Serializer())
-            .SetValueSerializer(new Int32Serializer())
             .OpenOrCreate();
 
         var task = Task.Factory.StartNew(() =>
