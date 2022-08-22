@@ -36,7 +36,7 @@ public class TTLTests
             out v1, 
             void (ref TTLValue<int> v) => 
                 v.SlideExpiration(TimeSpan.FromMilliseconds(300)));
-        Thread.Sleep(300);
+        Thread.Sleep(450); // initial expiration (300) + slided expiration (300) - Thread.Sleep(150)
         f2 = zoneTree.TryGetAndUpdate(
             5,
             out v2,

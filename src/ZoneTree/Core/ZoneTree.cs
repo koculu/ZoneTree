@@ -219,9 +219,10 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
         if (SegmentZero.TryGet(key, out value))
         {
-            return !IsValueDeleted(value);
+            if (IsValueDeleted(value))
+                return false;
         }
-        if (!TryGetFromReadonlySegments(in key, out value))
+        else if (!TryGetFromReadonlySegments(in key, out value))
             return false;
 
         valueUpdater(ref value);
@@ -238,9 +239,10 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         {
             if (SegmentZero.TryGet(key, out value))
             {
-                return !IsValueDeleted(value);
+                if (IsValueDeleted(value))
+                    return false;
             }
-            if (!TryGetFromReadonlySegments(in key, out value))
+            else if (!TryGetFromReadonlySegments(in key, out value))
                 return false;
 
             valueUpdater(ref value);
