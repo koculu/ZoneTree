@@ -17,9 +17,9 @@ public class BTreeSeekableIterator<TKey, TValue>
 
     public bool HasCurrent => CurrentNode != null && CurrentNode.HasCurrent;
 
-    public bool IsBeginningOfASector => false;
+    public bool IsBeginningOfAPart => false;
 
-    public bool IsEndOfASector => false;
+    public bool IsEndOfAPart => false;
 
     public bool IsFullyFrozen => BTree.IsReadOnly;
 
@@ -90,5 +90,5 @@ public class BTreeSeekableIterator<TKey, TValue>
         throw new NotSupportedException();
     }
 
-    public int GetSectorIndex() => -1;
+    public int GetPartIndex() => -1;
 }

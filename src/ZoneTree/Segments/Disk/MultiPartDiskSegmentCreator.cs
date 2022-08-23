@@ -4,7 +4,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
-public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey, TValue>
+public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey, TValue>
 {
     readonly long SegmentId;
 
@@ -22,11 +22,11 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
 
     readonly int DiskSegmentMinimumRecordCount;
 
-    readonly List<IDiskSegment<TKey, TValue>> Sectors = new();
+    readonly List<IDiskSegment<TKey, TValue>> Parts = new();
 
-    readonly List<TKey> SectorKeys = new();
+    readonly List<TKey> PartKeys = new();
 
-    readonly List<TValue> SectorValues = new();
+    readonly List<TValue> PartValues = new();
 
     readonly Random Random = new();
 
@@ -34,17 +34,17 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
     
     TValue LastAppendedValue;
 
-    public HashSet<long> AppendedSectorSegmentIds { get; } = new();
+    public HashSet<long> AppendedPartSegmentIds { get; } = new();
 
-    public int CurrentSectorLength => NextCreator.Length;
+    public int CurrentPartLength => NextCreator.Length;
 
-    public bool CanSkipCurrentSector =>
+    public bool CanSkipCurrentPart =>
         NextCreator.Length == 0 || 
         NextCreator.Length >= DiskSegmentMinimumRecordCount;
 
     public int NextMaximumRecordCount;
     
-    public MultiSectorDiskSegmentCreator(
+    public MultiPartDiskSegmentCreator(
         ZoneTreeOptions<TKey, TValue> options,
         IIncrementalIdProvider incrementalIdProvider
         )
@@ -71,12 +71,12 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
     {
         var len = NextCreator.Length; 
         if (len == 0) {
-            SectorKeys.Add(key);
-            SectorValues.Add(value);
+            PartKeys.Add(key);
+            PartValues.Add(value);
         }
         else if (len == NextMaximumRecordCount - 1)
         {
-            if (iteratorPosition == IteratorPosition.MiddleOfASector &&
+            if (iteratorPosition == IteratorPosition.MiddleOfAPart &&
                 len < DiskSegmentMaximumRecordCount)
             {
                 ++NextMaximumRecordCount;
@@ -84,11 +84,11 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
             else
             {
                 SetNextMaximumRecordCount();
-                SectorKeys.Add(key);
-                SectorValues.Add(value);
+                PartKeys.Add(key);
+                PartValues.Add(value);
                 NextCreator.Append(key, value, iteratorPosition);
-                var sector = NextCreator.CreateReadOnlyDiskSegment();
-                Sectors.Add(sector);
+                var part = NextCreator.CreateReadOnlyDiskSegment();
+                Parts.Add(part);
                 NextCreator = new(Options, IncrementalIdProvider);
                 return;
             }
@@ -99,7 +99,7 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
     }
 
     public void Append(
-        IDiskSegment<TKey, TValue> sector,
+        IDiskSegment<TKey, TValue> part,
         TKey key1,
         TKey key2,
         TValue value1,
@@ -107,18 +107,18 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
     {
         if (NextCreator.Length > 0)
         {
-            SectorKeys.Add(LastAppendedKey);
-            SectorValues.Add(LastAppendedValue);
-            var currentSector = NextCreator.CreateReadOnlyDiskSegment();
-            Sectors.Add(currentSector);
+            PartKeys.Add(LastAppendedKey);
+            PartValues.Add(LastAppendedValue);
+            var currentPart = NextCreator.CreateReadOnlyDiskSegment();
+            Parts.Add(currentPart);
             NextCreator = new(Options, IncrementalIdProvider);
         }
-        AppendedSectorSegmentIds.Add(sector.SegmentId);
-        Sectors.Add(sector);
-        SectorKeys.Add(key1);
-        SectorKeys.Add(key2);
-        SectorValues.Add(value1);
-        SectorValues.Add(value2);
+        AppendedPartSegmentIds.Add(part.SegmentId);
+        Parts.Add(part);
+        PartKeys.Add(key1);
+        PartKeys.Add(key2);
+        PartValues.Add(value1);
+        PartValues.Add(value2);
     }
 
     public IDiskSegment<TKey, TValue> CreateReadOnlyDiskSegment()
@@ -129,20 +129,20 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
         }
         else
         {
-            SectorKeys.Add(LastAppendedKey);
-            SectorValues.Add(LastAppendedValue);
-            var sector = NextCreator.CreateReadOnlyDiskSegment();
-            Sectors.Add(sector);
+            PartKeys.Add(LastAppendedKey);
+            PartValues.Add(LastAppendedValue);
+            var part = NextCreator.CreateReadOnlyDiskSegment();
+            Parts.Add(part);
         }
 
         WriteMultiDiskSegment();
 
-        var diskSegment = new MultiSectorDiskSegment<TKey, TValue>(
+        var diskSegment = new MultiPartDiskSegment<TKey, TValue>(
             SegmentId, 
             Options,
-            Sectors,
-            SectorKeys.ToArray(),
-            SectorValues.ToArray());
+            Parts,
+            PartKeys.ToArray(),
+            PartValues.ToArray());
         return diskSegment;
     }
 
@@ -150,7 +150,7 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
     {
         using var ms = new MemoryStream();
         using var bw = new BinaryWriter(ms);
-        WriteSectors(bw);
+        WriteParts(bw);
         WriteKeys(bw);
         WriteValues(bw);
         bw.Flush();
@@ -158,7 +158,7 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
         using var multiDevice = Options.RandomAccessDeviceManager.
             CreateWritableDevice(
                     SegmentId,
-                    DiskSegmentConstants.MultiSectorDiskSegmentCategory,
+                    DiskSegmentConstants.MultiPartDiskSegmentCategory,
                     false,
                     0,
                     0,
@@ -167,31 +167,31 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
         var compressedBytes = DataCompression.Compress(ms.ToArray());
         multiDevice.AppendBytesReturnPosition(compressedBytes);
         Options.RandomAccessDeviceManager
-            .RemoveWritableDevice(SegmentId, DiskSegmentConstants.MultiSectorDiskSegmentCategory);
+            .RemoveWritableDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory);
     }
 
-    void WriteSectors(BinaryWriter bw)
+    void WriteParts(BinaryWriter bw)
     {
-        var len = Sectors.Count;
+        var len = Parts.Count;
         bw.Write(len);
         for (var i = 0; i < len; ++i)
-            bw.Write(Sectors[i].SegmentId);        
+            bw.Write(Parts[i].SegmentId);        
     }
 
     void WriteKeys(BinaryWriter bw)
     {
-        var len = Sectors.Count * 2;
+        var len = Parts.Count * 2;
         bw.Write(len);
         for (var i = 0; i < len; ++i)
         {
             var a = i++;
             var b = i;
-            var k1 = SectorKeys[a];
+            var k1 = PartKeys[a];
             var bytes = KeySerializer.Serialize(k1);
             bw.Write(bytes.Length);
             bw.Write(bytes);
 
-            var k2 = SectorKeys[b];
+            var k2 = PartKeys[b];
             bytes = KeySerializer.Serialize(k2);
             bw.Write(bytes.Length);
             bw.Write(bytes);
@@ -200,18 +200,18 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
 
     void WriteValues(BinaryWriter bw)
     {
-        var len = Sectors.Count * 2;
+        var len = Parts.Count * 2;
         bw.Write(len);
         for (var i = 0; i < len; ++i)
         {
             var a = i++;
             var b = i;
-            var v1 = SectorValues[a];
+            var v1 = PartValues[a];
             var bytes = ValueSerializer.Serialize(v1);
             bw.Write(bytes.Length);
             bw.Write(bytes);
 
-            var v2 = SectorValues[b];
+            var v2 = PartValues[b];
             bytes = ValueSerializer.Serialize(v2);
             bw.Write(bytes.Length);
             bw.Write(bytes);
@@ -220,18 +220,18 @@ public sealed class MultiSectorDiskSegmentCreator<TKey, TValue> : IDiskSegmentCr
 
     public void DropDiskSegment()
     {
-        foreach(var sector in Sectors)
+        foreach(var part in Parts)
         {
-            if (AppendedSectorSegmentIds.Contains(sector.SegmentId))
+            if (AppendedPartSegmentIds.Contains(part.SegmentId))
                 continue;
-            sector.Drop();
+            part.Drop();
         }
         using var multiDevice = Options.RandomAccessDeviceManager
-            .GetReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiSectorDiskSegmentCategory,
+            .GetReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory,
             false, 0, 0);
         multiDevice.Delete();
         Options.RandomAccessDeviceManager
-            .RemoveReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiSectorDiskSegmentCategory);
+            .RemoveReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory);
     }
 
     public void Dispose()

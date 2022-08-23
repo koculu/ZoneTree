@@ -22,11 +22,11 @@ public interface ISeekableIterator<TKey, TValue>
 
     void Skip(int offset);
 
-    bool IsBeginningOfASector { get; }
+    bool IsBeginningOfAPart { get; }
 
-    bool IsEndOfASector { get; }
+    bool IsEndOfAPart { get; }
 
-    int GetSectorIndex();
+    int GetPartIndex();
 
     bool IsFullyFrozen { get; }
 }

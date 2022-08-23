@@ -4,5 +4,5 @@ public static class DiskSegmentConstants
 {
     public const string DataHeaderCategory = ".head";
     public const string DataCategory = ".data";
-    public const string MultiSectorDiskSegmentCategory = ".multi";
+    public const string MultiPartDiskSegmentCategory = ".multi";
 }

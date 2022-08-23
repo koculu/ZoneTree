@@ -45,22 +45,22 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     int ReleaseReadBuffers(long ticks);
 
     /// <summary>
-    /// Returns the first keys of every sector.
+    /// Returns the first keys of every part.
     /// </summary>
     /// <returns>Keys</returns>
-    TKey[] GetFirstKeysOfEverySector();
+    TKey[] GetFirstKeysOfEveryPart();
 
     /// <summary>
-    /// Returns the last keys of every sector.
+    /// Returns the last keys of every part.
     /// </summary>
     /// <returns>Keys</returns>
-    TKey[] GetLastKeysOfEverySector();
+    TKey[] GetLastKeysOfEveryPart();
 
     /// <summary>
-    /// Returns the last values of every sector.
+    /// Returns the last values of every part.
     /// </summary>
     /// <returns>Values</returns>
-    TValue[] GetLastValuesOfEverySector();
+    TValue[] GetLastValuesOfEveryPart();
 
     /// <summary>
     /// Exceptions occurs in delayed drops (eg: iterators delays segment drops)
@@ -71,15 +71,15 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     internal Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
     /// <summary>
-    /// Gets sector.
+    /// Gets part.
     /// </summary>
-    /// <param name="sectorIndex"></param>
+    /// <param name="partIndex"></param>
     /// <returns></returns>
-    IDiskSegment<TKey, TValue> GetSector(int sectorIndex);
+    IDiskSegment<TKey, TValue> GetPart(int partIndex);
 
     /// <summary>
     /// Drops all sectos excluding given exclusion list.
     /// </summary>
-    /// <param name="excludedSectorIds"></param>
-    void Drop(HashSet<long> excludedSectorIds);
+    /// <param name="excludedPartIds"></param>
+    void Drop(HashSet<long> excludedPartIds);
 }

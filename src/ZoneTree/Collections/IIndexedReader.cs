@@ -12,11 +12,11 @@ public interface IIndexedReader<TKey, TValue>
 
     int GetFirstGreaterOrEqualPosition(in TKey key);
 
-    bool IsBeginningOfASector(int index);
+    bool IsBeginningOfAPart(int index);
 
-    bool IsEndOfASector(int index);
+    bool IsEndOfAPart(int index);
     
-    int GetSectorIndex(int index);
+    int GetPartIndex(int index);
 }
 
 

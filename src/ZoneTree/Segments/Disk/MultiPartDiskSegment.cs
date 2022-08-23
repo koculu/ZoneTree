@@ -5,7 +5,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
-public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
+public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
     public long SegmentId { get; }
 
@@ -23,11 +23,11 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
 
     readonly object DropLock = new();
 
-    readonly IReadOnlyList<IDiskSegment<TKey, TValue>> Sectors;
+    readonly IReadOnlyList<IDiskSegment<TKey, TValue>> Parts;
 
-    readonly TKey[] SectorKeys;
+    readonly TKey[] PartKeys;
     
-    readonly TValue[] SectorValues;
+    readonly TValue[] PartValues;
 
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
@@ -43,7 +43,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
 
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
-    public MultiSectorDiskSegment(
+    public MultiPartDiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options)
     {
@@ -57,7 +57,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         using var diskSegmentListDevice = randomDeviceManager
                 .GetReadOnlyDevice(
                     segmentId,
-                    DiskSegmentConstants.MultiSectorDiskSegmentCategory, false, 0, 0);
+                    DiskSegmentConstants.MultiPartDiskSegmentCategory, false, 0, 0);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(
@@ -69,9 +69,9 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
 
         using var ms = new MemoryStream(bytes);
         using var br = new BinaryReader(ms);
-        Sectors = ReadSectors(options, br);
-        SectorKeys = ReadKeys(br);
-        SectorValues = ReadValues(br);
+        Parts = ReadParts(options, br);
+        PartKeys = ReadKeys(br);
+        PartValues = ReadValues(br);
         Length = CalculateLength();
     }
 
@@ -79,7 +79,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         long segmentId,
         IRandomAccessDeviceManager randomDeviceManager)
     {
-        var category = DiskSegmentConstants.MultiSectorDiskSegmentCategory;
+        var category = DiskSegmentConstants.MultiPartDiskSegmentCategory;
         if (!randomDeviceManager.DeviceExists(segmentId, category))
             return 0;
         using var diskSegmentListDevice = randomDeviceManager
@@ -98,59 +98,59 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         using var ms = new MemoryStream(bytes);
         using var br = new BinaryReader(ms);
 
-        var sectorCount = br.ReadInt32();
-        var sectors = new IDiskSegment<TKey, TValue>[sectorCount];
+        var partCount = br.ReadInt32();
+        var parts = new IDiskSegment<TKey, TValue>[partCount];
         var result = segmentId;
-        for (var i = 0; i < sectorCount; ++i)
+        for (var i = 0; i < partCount; ++i)
         {
-            var sectorSegmentId = br.ReadInt64();
-            result = Math.Max(sectorSegmentId, result);
+            var partSegmentId = br.ReadInt64();
+            result = Math.Max(partSegmentId, result);
         }
         randomDeviceManager.RemoveReadOnlyDevice(segmentId, category);
         return result;
     }
 
-    public MultiSectorDiskSegment(
+    public MultiPartDiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
-        IReadOnlyList<IDiskSegment<TKey, TValue>> sectors,
-        TKey[] sectorKeys,
-        TValue[] sectorValues)
+        IReadOnlyList<IDiskSegment<TKey, TValue>> parts,
+        TKey[] partKeys,
+        TValue[] partValues)
     {
         SegmentId = segmentId;
         Options = options;
         Comparer = options.Comparer;
         KeySerializer = options.KeySerializer;
         ValueSerializer = options.ValueSerializer;
-        Sectors = sectors;
-        SectorKeys = sectorKeys;
-        SectorValues = sectorValues;
+        Parts = parts;
+        PartKeys = partKeys;
+        PartValues = partValues;
         Length = CalculateLength();
     }
 
     int CalculateLength()
     {
-        var len = Sectors.Count;
-        var sectors = Sectors;
+        var len = Parts.Count;
+        var parts = Parts;
         var result = 0;
         for (var i = 0; i < len; ++i)
-            result += sectors[i].Length;
+            result += parts[i].Length;
         return result;
     }
 
-    static IDiskSegment<TKey, TValue>[] ReadSectors(
+    static IDiskSegment<TKey, TValue>[] ReadParts(
         ZoneTreeOptions<TKey, TValue> options,
         BinaryReader br)
     {
-        var sectorCount = br.ReadInt32();
-        var sectors = new IDiskSegment<TKey, TValue>[sectorCount];
-        for (var i = 0; i < sectorCount; ++i)
+        var partCount = br.ReadInt32();
+        var parts = new IDiskSegment<TKey, TValue>[partCount];
+        for (var i = 0; i < partCount; ++i)
         {
-            var sectorSegmentId = br.ReadInt64();
-            var sector = new DiskSegment<TKey, TValue>(sectorSegmentId, options);
-            sectors[i] = sector;
+            var partSegmentId = br.ReadInt64();
+            var part = new DiskSegment<TKey, TValue>(partSegmentId, options);
+            parts[i] = part;
         }
-        return sectors;
+        return parts;
     }
 
     TKey[] ReadKeys(BinaryReader br)
@@ -179,35 +179,35 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         return values;
     }
 
-    public IDiskSegment<TKey, TValue> GetSector(int sectorIndex)
+    public IDiskSegment<TKey, TValue> GetPart(int partIndex)
     {
-        return Sectors[sectorIndex];
+        return Parts[partIndex];
     }
 
-    public TKey[] GetFirstKeysOfEverySector()
+    public TKey[] GetFirstKeysOfEveryPart()
     {
-        var len = SectorKeys.Length;
+        var len = PartKeys.Length;
         var keys = new TKey[len / 2];
         for (var i = 0; i < len; i += 2)
-            keys[i / 2] = SectorKeys[i];
+            keys[i / 2] = PartKeys[i];
         return keys;
     }
 
-    public TKey[] GetLastKeysOfEverySector()
+    public TKey[] GetLastKeysOfEveryPart()
     {
-        var len = SectorKeys.Length;
+        var len = PartKeys.Length;
         var keys = new TKey[len / 2];
         for (var i = 0; i < len; i += 2)
-            keys[i / 2] = SectorKeys[i + 1];
+            keys[i / 2] = PartKeys[i + 1];
         return keys;
     }
 
-    public TValue[] GetLastValuesOfEverySector()
+    public TValue[] GetLastValuesOfEveryPart()
     {
-        var len = SectorValues.Length;
+        var len = PartValues.Length;
         var values = new TValue[len / 2];
         for (var i = 0; i < len; i += 2)
-            values[i / 2] = SectorValues[i + 1];
+            values[i / 2] = PartValues[i + 1];
         return values;
     }
 
@@ -218,15 +218,15 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
 
     public bool ContainsKey(in TKey key)
     {
-        var sparseArrayLength = SectorKeys.Length;
+        var sparseArrayLength = PartKeys.Length;
         (var left, var found) = SearchLastSmallerOrEqualPositionInSparseArray(in key);
         if (found)
             return true;
         if (left == -1 || left == sparseArrayLength - 1)
             return false;
 
-        var sectorIndex = left / 2;
-        return Sectors[sectorIndex].ContainsKey(in key);
+        var partIndex = left / 2;
+        return Parts[partIndex].ContainsKey(in key);
     }
 
     public void Dispose()
@@ -247,9 +247,9 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
             }
             IsDropRequested = false;
 
-            var len = Sectors.Count;
+            var len = Parts.Count;
             for (var i = 0; i < len; ++i)
-                Sectors[i].Drop();
+                Parts[i].Drop();
 
             DropMeta();
 
@@ -258,7 +258,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     }
 
 
-    public void Drop(HashSet<long> excudedSectorIds)
+    public void Drop(HashSet<long> excudedPartIds)
     {
         lock (DropLock)
         {
@@ -271,14 +271,14 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
             }
             IsDropRequested = false;
 
-            var len = Sectors.Count;
+            var len = Parts.Count;
             for (var i = 0; i < len; ++i)
             {
-                var sector = Sectors[i];
+                var part = Parts[i];
 
-                if (excudedSectorIds.Contains(sector.SegmentId))
+                if (excudedPartIds.Contains(part.SegmentId))
                     continue;
-                sector.Drop();
+                part.Drop();
             }
 
             DropMeta();
@@ -293,46 +293,46 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         using var diskSegmentListDevice = randomDeviceManager
                 .GetReadOnlyDevice(
                     SegmentId,
-                    DiskSegmentConstants.MultiSectorDiskSegmentCategory, false, 0, 0);
+                    DiskSegmentConstants.MultiPartDiskSegmentCategory, false, 0, 0);
         diskSegmentListDevice.Delete();
         randomDeviceManager
-            .RemoveReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiSectorDiskSegmentCategory);
+            .RemoveReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory);
     }
 
     public int GetFirstGreaterOrEqualPosition(in TKey key)
     {
-        var sparseArrayLength = SectorKeys.Length;
+        var sparseArrayLength = PartKeys.Length;
         (var right, var found) = SearchFirstGreaterOrEqualPositionInSparseArray(in key);
-        var sectorIndex = right / 2;
-        var isStartOfSector = right % 2 == 0 ? 1 : 0;
+        var partIndex = right / 2;
+        var isStartOfPart = right % 2 == 0 ? 1 : 0;
         if (found)
         {
             var off2 = 0;
-            var len = sectorIndex + isStartOfSector;
+            var len = partIndex + isStartOfPart;
             for (var i = 0; i < len; ++i)
-                off2 += Sectors[i].Length;
-            return off2 - isStartOfSector;
+                off2 += Parts[i].Length;
+            return off2 - isStartOfPart;
         }
         if (right == sparseArrayLength)
             return Length;
         if (right == -1)
             return Length;
 
-        if (isStartOfSector == 1) {
+        if (isStartOfPart == 1) {
             var off2 = 0;
-            var len = sectorIndex;
+            var len = partIndex;
             for (var i = 0; i < len; ++i)
-                off2 += Sectors[i].Length;
-            return off2 - isStartOfSector;
+                off2 += Parts[i].Length;
+            return off2 - isStartOfPart;
         }
 
-        var position = Sectors[sectorIndex].GetFirstGreaterOrEqualPosition(in key);
-        if (position == Sectors[sectorIndex].Length)
+        var position = Parts[partIndex].GetFirstGreaterOrEqualPosition(in key);
+        if (position == Parts[partIndex].Length)
             return Length;
 
         var off = 0;
-        for (var i = 0; i < sectorIndex; ++i)
-            off += Sectors[i].Length;
+        for (var i = 0; i < partIndex; ++i)
+            off += Parts[i].Length;
         return off + position;
     }
 
@@ -344,78 +344,78 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     public TKey GetKey(int index)
     {
         var off = 0;
-        var sectorIndex = 0;
-        var len = Sectors[sectorIndex].Length;
+        var partIndex = 0;
+        var len = Parts[partIndex].Length;
         while (off + len <= index)
         {
             off += len;
-            ++sectorIndex;
-            len = Sectors[sectorIndex].Length;
+            ++partIndex;
+            len = Parts[partIndex].Length;
         }
         var localIndex = index - off;
 
         if (localIndex == 0)
-            return SectorKeys[sectorIndex*2];
+            return PartKeys[partIndex*2];
         if (localIndex == len - 1)
-            return SectorKeys[sectorIndex * 2 + 1];
+            return PartKeys[partIndex * 2 + 1];
 
-        var key = Sectors[sectorIndex].GetKey(localIndex);
+        var key = Parts[partIndex].GetKey(localIndex);
         return key;
     }
 
     public TValue GetValue(int index)
     {
         var off = 0;
-        var sectorIndex = 0;
-        var len = Sectors[sectorIndex].Length;
+        var partIndex = 0;
+        var len = Parts[partIndex].Length;
         while (off + len <= index)
         {
             off += len;
-            ++sectorIndex;
-            len = Sectors[sectorIndex].Length;
+            ++partIndex;
+            len = Parts[partIndex].Length;
         }
         var localIndex = index - off;
 
         if (localIndex == 0)
-            return SectorValues[sectorIndex * 2];
+            return PartValues[partIndex * 2];
         if (localIndex == len - 1)
-            return SectorValues[sectorIndex * 2 + 1];
+            return PartValues[partIndex * 2 + 1];
 
-        return Sectors[sectorIndex].GetValue(localIndex);
+        return Parts[partIndex].GetValue(localIndex);
     }
 
     public int GetLastSmallerOrEqualPosition(in TKey key)
     {
         (var left, var found) = SearchLastSmallerOrEqualPositionInSparseArray(in key);
-        var sectorIndex = left / 2;
-        var isStartOfSector = left % 2 == 0 ? 1 : 0;
+        var partIndex = left / 2;
+        var isStartOfPart = left % 2 == 0 ? 1 : 0;
         if (found)
         {
             var off2 = 0;
-            var len = sectorIndex + isStartOfSector;
+            var len = partIndex + isStartOfPart;
             for (var i = 0; i < len; ++i)
-                off2 += Sectors[i].Length;
-            return off2 - isStartOfSector;
+                off2 += Parts[i].Length;
+            return off2 - isStartOfPart;
         }
         if (left == -1)
             return -1;
 
-        if (isStartOfSector == 1)
+        if (isStartOfPart == 1)
         {
             var off2 = 0;
-            var len = sectorIndex + 1;
+            var len = partIndex + 1;
             for (var i = 0; i < len; ++i)
-                off2 += Sectors[i].Length;
-            return off2 - isStartOfSector;
+                off2 += Parts[i].Length;
+            return off2 - isStartOfPart;
         }
 
-        var position = Sectors[sectorIndex].GetLastSmallerOrEqualPosition(in key);
+        var position = Parts[partIndex].GetLastSmallerOrEqualPosition(in key);
         if (position == -1)
             return -1;
 
         var off = 0;
-        for (var i = 0; i < sectorIndex; ++i)
-            off += Sectors[i].Length;
+        for (var i = 0; i < partIndex; ++i)
+            off += Parts[i].Length;
         return off + position;
     }
 
@@ -430,25 +430,25 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
 
     public void LoadIntoMemory()
     {
-        var len = Sectors.Count;
+        var len = Parts.Count;
         for (var i = 0; i < len; ++i)
-            Sectors[i].LoadIntoMemory();
+            Parts[i].LoadIntoMemory();
     }
 
     public int ReleaseReadBuffers(long ticks)
     {
-        var len = Sectors.Count;
+        var len = Parts.Count;
         var result = 0;
         for (var i = 0; i < len; ++i)
-            result += Sectors[i].ReleaseReadBuffers(ticks);
+            result += Parts[i].ReleaseReadBuffers(ticks);
         return result;
     }
 
     public void ReleaseResources()
     {
-        var len = Sectors.Count;
+        var len = Parts.Count;
         for (var i = 0; i < len; ++i)
-            Sectors[i].ReleaseResources();
+            Parts[i].ReleaseResources();
     }
 
     public void RemoveReader()
@@ -469,11 +469,11 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
 
     public bool TryGet(in TKey key, out TValue value)
     {
-        var sparseArrayLength = SectorKeys.Length;
+        var sparseArrayLength = PartKeys.Length;
         (var left, var found) = SearchLastSmallerOrEqualPositionInSparseArray(in key);
         if (found)
         {
-            value = SectorValues[left];
+            value = PartValues[left];
             return true;
         }
         if (left == -1 || left == sparseArrayLength - 1)
@@ -482,8 +482,8 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
             return false;
         }
 
-        var sectorIndex = left / 2;
-        return Sectors[sectorIndex].TryGet(in key, out value);
+        var partIndex = left / 2;
+        return Parts[partIndex].TryGet(in key, out value);
     }
 
     #region Binary search
@@ -495,7 +495,7 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
     /// <returns>The length of the sparse array or a valid position</returns>
     int FindFirstGreaterOrEqualPositionInSparseArray(in TKey key)
     {
-        var list = SectorKeys;
+        var list = PartKeys;
         int l = 0, h = list.Length;
         var comp = Comparer;
         while (l < h)
@@ -519,16 +519,16 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         var x = FindFirstGreaterOrEqualPositionInSparseArray(in key);
         if (x == -1)
             return -1;
-        if (x == SectorKeys.Length)
+        if (x == PartKeys.Length)
             return x - 1;
-        if (Comparer.Compare(in key, in SectorKeys[x]) == 0)
+        if (Comparer.Compare(in key, in PartKeys[x]) == 0)
             return x;
         return x - 1;
     }
 
     (int index, bool found) SearchLastSmallerOrEqualPositionInSparseArray(in TKey key)
     {
-        var list = SectorKeys;
+        var list = PartKeys;
         var len = list.Length;
         if (len == 0)
             return (-1, false);
@@ -536,13 +536,13 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         var position = FindLastSmallerOrEqualPositionInSparseArray(in key);
         if (position == -1)
             return (-1, false);
-        var exactMatch = Comparer.Compare(SectorKeys[position], key) == 0;
+        var exactMatch = Comparer.Compare(PartKeys[position], key) == 0;
         return (position, exactMatch);
     }
 
     (int index, bool found) SearchFirstGreaterOrEqualPositionInSparseArray(in TKey key)
     {
-        var list = SectorKeys;
+        var list = PartKeys;
         var len = list.Length;
         if (len == 0)
             return (0, false);
@@ -550,54 +550,54 @@ public sealed class MultiSectorDiskSegment<TKey, TValue> : IDiskSegment<TKey, TV
         var position = FindFirstGreaterOrEqualPositionInSparseArray(in key);
         if (position == len)
             return (len, false);
-        var exactMatch = Comparer.Compare(SectorKeys[position], key) == 0;
+        var exactMatch = Comparer.Compare(PartKeys[position], key) == 0;
         return (position, exactMatch);
     }
     #endregion
 
-    public bool IsBeginningOfASector(int index)
+    public bool IsBeginningOfAPart(int index)
     {
         var off = 0;
-        var sectorIndex = 0;
-        var len = Sectors[sectorIndex].Length;
+        var partIndex = 0;
+        var len = Parts[partIndex].Length;
         while (off + len <= index)
         {
             off += len;
-            ++sectorIndex;
-            len = Sectors[sectorIndex].Length;
+            ++partIndex;
+            len = Parts[partIndex].Length;
         }
         var localIndex = index - off;
 
         return localIndex == 0;
     }
 
-    public bool IsEndOfASector(int index)
+    public bool IsEndOfAPart(int index)
     {
         var off = 0;
-        var sectorIndex = 0;
-        var len = Sectors[sectorIndex].Length;
+        var partIndex = 0;
+        var len = Parts[partIndex].Length;
         while (off + len <= index)
         {
             off += len;
-            ++sectorIndex;
-            len = Sectors[sectorIndex].Length;
+            ++partIndex;
+            len = Parts[partIndex].Length;
         }
         var localIndex = index - off;
 
         return localIndex == len - 1;
     }
 
-    public int GetSectorIndex(int index)
+    public int GetPartIndex(int index)
     {
         var off = 0;
-        var sectorIndex = 0;
-        var len = Sectors[sectorIndex].Length;
+        var partIndex = 0;
+        var len = Parts[partIndex].Length;
         while (off + len <= index)
         {
             off += len;
-            ++sectorIndex;
-            len = Sectors[sectorIndex].Length;
+            ++partIndex;
+            len = Parts[partIndex].Length;
         }
-        return sectorIndex;
+        return partIndex;
     }
 }

@@ -11,9 +11,9 @@ public class NullDiskSegmentSeekableIterator<TKey, TValue> : ISeekableIterator<T
 
     public bool HasCurrent => false;
 
-    public bool IsBeginningOfASector => false;
+    public bool IsBeginningOfAPart => false;
 
-    public bool IsEndOfASector => false;
+    public bool IsEndOfAPart => false;
 
     public bool IsFullyFrozen => true;
 
@@ -52,6 +52,6 @@ public class NullDiskSegmentSeekableIterator<TKey, TValue> : ISeekableIterator<T
         throw new NotSupportedException();
     }
 
-    public int GetSectorIndex() => -1;
+    public int GetPartIndex() => -1;
 }
 

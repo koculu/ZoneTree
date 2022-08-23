@@ -26,9 +26,9 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
 
     public int Length { get; private set; }
 
-    public bool CanSkipCurrentSector => false;
+    public bool CanSkipCurrentPart => false;
 
-    public HashSet<long> AppendedSectorSegmentIds { get; } = new();
+    public HashSet<long> AppendedPartSegmentIds { get; } = new();
 
     public DiskSegmentCreator(
         ZoneTreeOptions<TKey, TValue> options,
@@ -152,7 +152,7 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         DataDevice?.Dispose();
     }
 
-    public void Append(IDiskSegment<TKey, TValue> sector, TKey key1, TKey key2, TValue value1, TValue value2)
+    public void Append(IDiskSegment<TKey, TValue> part, TKey key1, TKey key2, TValue value1, TValue value2)
     {
         throw new NotSupportedException("This method should be called on MultiDiskSegmentCreator.");
     }

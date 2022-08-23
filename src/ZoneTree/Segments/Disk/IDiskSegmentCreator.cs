@@ -4,14 +4,14 @@ namespace Tenray.ZoneTree.Segments.Disk;
 
 public interface IDiskSegmentCreator<TKey, TValue> : IDisposable
 {
-    bool CanSkipCurrentSector { get; }
+    bool CanSkipCurrentPart { get; }
 
-    HashSet<long> AppendedSectorSegmentIds { get; }
+    HashSet<long> AppendedPartSegmentIds { get; }
 
     void Append(TKey key, TValue value, IteratorPosition iteratorPosition);
     
     void Append(
-        IDiskSegment<TKey, TValue> sector,
+        IDiskSegment<TKey, TValue> part,
         TKey key1,
         TKey key2,
         TValue value1,

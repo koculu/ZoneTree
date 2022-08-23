@@ -163,9 +163,9 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
         WriteAheadLog?.Dispose();
     }
 
-    public bool IsBeginningOfASector(int index) => false;
+    public bool IsBeginningOfAPart(int index) => false;
 
-    public bool IsEndOfASector(int index) => false;
+    public bool IsEndOfAPart(int index) => false;
 
-    public int GetSectorIndex(int index) => -1;
+    public int GetPartIndex(int index) => -1;
 }

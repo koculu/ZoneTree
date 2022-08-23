@@ -158,9 +158,9 @@ public class ZoneTreeLoader<TKey, TValue>
             return;
         }
         if (Options.RandomAccessDeviceManager
-            .DeviceExists(segmentId, DiskSegmentConstants.MultiSectorDiskSegmentCategory))
+            .DeviceExists(segmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory))
         {
-            DiskSegment = new MultiSectorDiskSegment<TKey, TValue>(ZoneTreeMeta.DiskSegment, Options);
+            DiskSegment = new MultiPartDiskSegment<TKey, TValue>(ZoneTreeMeta.DiskSegment, Options);
             return;
         }
         DiskSegment = new DiskSegment<TKey, TValue>(ZoneTreeMeta.DiskSegment, Options);
@@ -177,7 +177,7 @@ public class ZoneTreeLoader<TKey, TValue>
     {
         SetMaximumSegmentId(ZoneTreeMeta.SegmentZero);
         SetMaximumSegmentId(ZoneTreeMeta.DiskSegment);
-        SetMaximumSegmentId(MultiSectorDiskSegment<TKey, TValue>
+        SetMaximumSegmentId(MultiPartDiskSegment<TKey, TValue>
             .ReadMaximumSegmentId(ZoneTreeMeta.DiskSegment, Options.RandomAccessDeviceManager));
         var ros = ZoneTreeMeta.ReadOnlySegments;
         var maximumId = ros.Count > 0 ? ros[0] : 0;

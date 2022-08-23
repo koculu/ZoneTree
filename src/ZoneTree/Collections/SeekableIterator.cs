@@ -20,9 +20,9 @@ public class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 
     public bool HasCurrent => position >= 0 && position < Length;
 
-    public bool IsBeginningOfASector => IndexedReader.IsBeginningOfASector(position);
+    public bool IsBeginningOfAPart => IndexedReader.IsBeginningOfAPart(position);
 
-    public bool IsEndOfASector => IndexedReader.IsEndOfASector(position);
+    public bool IsEndOfAPart => IndexedReader.IsEndOfAPart(position);
 
     /// <summary>
     /// All Indexed Readers are always fully frozen.
@@ -83,6 +83,6 @@ public class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
         position += offset;
 
     }
-    public int GetSectorIndex() => IndexedReader.GetSectorIndex(position);
+    public int GetPartIndex() => IndexedReader.GetPartIndex(position);
 }
 

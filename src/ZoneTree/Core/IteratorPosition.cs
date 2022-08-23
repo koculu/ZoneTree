@@ -3,7 +3,7 @@
 public enum IteratorPosition
 {
     None,
-    BeginningOfASector,
-    MiddleOfASector,
-    EndOfASector
+    BeginningOfAPart,
+    MiddleOfAPart,
+    EndOfAPart
 }

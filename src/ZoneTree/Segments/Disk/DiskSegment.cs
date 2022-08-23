@@ -410,22 +410,22 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return -1;
     }
     
-    public TKey[] GetFirstKeysOfEverySector()
+    public TKey[] GetFirstKeysOfEveryPart()
     {
         return Array.Empty<TKey>();
     }
 
-    public TKey[] GetLastKeysOfEverySector()
+    public TKey[] GetLastKeysOfEveryPart()
     {
         return Array.Empty<TKey>();
     }
 
-    public TValue[] GetLastValuesOfEverySector()
+    public TValue[] GetLastValuesOfEveryPart()
     {
         return Array.Empty<TValue>();
     }
 
-    public IDiskSegment<TKey, TValue> GetSector(int sectorIndex)
+    public IDiskSegment<TKey, TValue> GetPart(int partIndex)
     {
         return null;
     }
@@ -568,16 +568,16 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return a + b;
     }
 
-    public void Drop(HashSet<long> excludedSectorIds)
+    public void Drop(HashSet<long> excludedPartIds)
     {
-        if (excludedSectorIds.Contains(SegmentId))
+        if (excludedPartIds.Contains(SegmentId))
             return;
         Drop();
     }
 
-    public bool IsBeginningOfASector(int index) => false;
+    public bool IsBeginningOfAPart(int index) => false;
 
-    public bool IsEndOfASector(int index) => false;
+    public bool IsEndOfAPart(int index) => false;
 
-    public int GetSectorIndex(int index) => -1;
+    public int GetPartIndex(int index) => -1;
 }
