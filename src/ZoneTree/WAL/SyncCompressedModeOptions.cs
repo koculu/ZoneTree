@@ -1,9 +1,9 @@
 ﻿namespace Tenray.ZoneTree.WAL;
 
-public sealed class CompressedImmediateModeOptions
+public sealed class SyncCompressedModeOptions
 {
     /// <summary>
-    /// In compressed WAL mode, if enabled
+    /// In sync-compressed WAL mode, if enabled
     /// a separate thread starts to write the tail block to the file
     /// periodically.
     /// This improves durability in compressed WALs.

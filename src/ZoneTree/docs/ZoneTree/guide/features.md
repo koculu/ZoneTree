@@ -15,7 +15,7 @@
 | Supports optimistic transactions.                          |
 | Supports Atomicity, Consistency, Isolation, Durability.    |
 | Supports Read Committed Isolation.                         |
-| Immediate and Lazy modes for write ahead log.              |
+| 4 different modes for write ahead log.              |
 | Audit support with incremental transaction log backup.     |
 | Live backup.                                               |
 | Configurable amount of data that can stay in memory.       |

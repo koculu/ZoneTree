@@ -2,13 +2,11 @@
 using System.Text;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Exceptions.WAL;
-using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
 
-public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
+public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
     readonly ILogger Logger;
 
@@ -54,7 +52,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public bool EnableIncrementalBackup { get; set; }
 
-    public LazyFileSystemWriteAheadLog(
+    public AsyncCompressedFileSystemWriteAheadLog(
         ILogger logger,
         IFileStreamProvider fileStreamProvider,
         ISerializer<TKey> keySerializer,
@@ -289,7 +287,7 @@ public sealed class LazyFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 CancelWriter();
             }
             // Replacement crash recovery is not required here,
-            // because the lazy write ahead log is not durable.
+            // because the async-compressed write ahead log is not durable.
             // implementing crash recovery here does not make it durable.
             var existingLength = FileStream.Length;
             FileStream.SetLength(0);

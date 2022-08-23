@@ -54,8 +54,8 @@ public class OptimisticTransactionTests
         zoneTree.Maintenance.DestroyTree();
     }
 
-    [TestCase(WriteAheadLogMode.Immediate)]
-    [TestCase(WriteAheadLogMode.Lazy)]
+    [TestCase(WriteAheadLogMode.Sync)]
+    [TestCase(WriteAheadLogMode.AsyncCompressed)]
     public void SeveralParallelTransactions(WriteAheadLogMode walMode)
     {
         var dataPath = "data/SeveralParallelTransactions." + walMode;
@@ -81,8 +81,8 @@ public class OptimisticTransactionTests
         zoneTree.Maintenance.DestroyTree();
     }
 
-    [TestCase(WriteAheadLogMode.Immediate)]
-    [TestCase(WriteAheadLogMode.Lazy)]
+    [TestCase(WriteAheadLogMode.Sync)]
+    [TestCase(WriteAheadLogMode.AsyncCompressed)]
     public void SeveralParallelUpserts(WriteAheadLogMode walMode)
     {
         var dataPath = "data/SeveralParallelUpserts." + walMode;

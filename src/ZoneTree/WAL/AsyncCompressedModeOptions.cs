@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.WAL;
 
-public sealed class LazyModeOptions
+public sealed class AsyncCompressedModeOptions
 {
     /// <summary>
     /// The delay in milliseconds before making the next poll

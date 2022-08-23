@@ -14,7 +14,7 @@ public class WriteAheadLogTests
         if (File.Exists(filePath))
             File.Delete(filePath);
         var serializer = new UnicodeStringSerializer();
-        var wal = new FileSystemWriteAheadLog<string, string>(
+        var wal = new SyncFileSystemWriteAheadLog<string, string>(
             new ConsoleLogger(),
             new LocalFileStreamProvider(),
             serializer, serializer, filePath);

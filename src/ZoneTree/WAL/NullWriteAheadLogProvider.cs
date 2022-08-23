@@ -8,9 +8,9 @@ public class NullWriteAheadLogProvider : IWriteAheadLogProvider
 
     public bool EnableIncrementalBackup { get; set; }
 
-    public CompressedImmediateModeOptions CompressedImmediateModeOptions { get; } = new();
+    public SyncCompressedModeOptions SyncCompressedModeOptions { get; } = new();
 
-    public LazyModeOptions LazyModeOptions { get; } = new();
+    public AsyncCompressedModeOptions AsyncCompressedModeOptions { get; } = new();
 
     public int CompressionBlockSize { get; set; }
 

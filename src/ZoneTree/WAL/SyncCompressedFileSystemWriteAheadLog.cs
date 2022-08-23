@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using System.Runtime.CompilerServices;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions.WAL;
@@ -7,40 +6,46 @@ using Tenray.ZoneTree.Exceptions.WAL;
 namespace Tenray.ZoneTree.WAL;
 
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
-public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
+public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
     readonly ILogger Logger;
 
-    volatile bool IsDisposed;
-
     readonly IFileStreamProvider FileStreamProvider;
 
-    IFileStream FileStream;
+    CompressedFileStream FileStream;
 
     BinaryWriter BinaryWriter;
-    
+
     readonly ISerializer<TKey> KeySerializer;
 
     readonly ISerializer<TValue> ValueSerializer;
+
+    public string FilePath { get; }
     
-    readonly int FileStreamBufferSize;
-
-    public string FilePath { get; }    
-
+    public int CompressionBlockSize { get; }
+    
+    public bool EnableTailWriterJob { get; }
+    
+    public int TailWriterJobInterval { get; }
+    
     public bool EnableIncrementalBackup { get; set; }
 
-    public FileSystemWriteAheadLog(
+    public SyncCompressedFileSystemWriteAheadLog(
         ILogger logger,
         IFileStreamProvider fileStreamProvider,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
-        int fileStreamBufferSize = 4096)
+        int compressionBlockSize,
+        bool enableTailWriterJob,
+        int tailWriterJobInterval)
     {
         Logger = logger;
-        FilePath = filePath;
-        FileStreamBufferSize = fileStreamBufferSize;        
         FileStreamProvider = fileStreamProvider;
+        FilePath = filePath;
+        CompressionBlockSize = compressionBlockSize;
+        EnableTailWriterJob = enableTailWriterJob;
+        TailWriterJobInterval = tailWriterJobInterval;
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
         CreateFileStream();
@@ -48,12 +53,14 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     void CreateFileStream()
     {
-        FileStream = FileStreamProvider.CreateFileStream(FilePath,
-            FileMode.OpenOrCreate,
-            FileAccess.ReadWrite,
-            FileShare.None, FileStreamBufferSize);
-        BinaryWriter = new BinaryWriter(FileStream.ToStream(), Encoding.UTF8, true);
-        FileStream.Seek(0, SeekOrigin.End);
+        FileStream = new CompressedFileStream(
+            Logger,
+            FileStreamProvider,
+            FilePath,
+            CompressionBlockSize,
+            EnableTailWriterJob,
+            TailWriterJobInterval);
+        BinaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
     }
 
     public void Append(in TKey key, in TValue value, long opIndex)
@@ -62,21 +69,18 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         var valueBytes = ValueSerializer.Serialize(value);
         lock (this)
         {
-            AppendLogEntry(BinaryWriter, keyBytes, valueBytes, opIndex);
+            AppendLogEntry(keyBytes, valueBytes, opIndex);
         }
     }
 
     public void Drop()
     {
-        lock (this)
-        {
-            if (!IsDisposed)
-            {
-                FileStream.Dispose();
-                IsDisposed = true;
-            }
+        FileStream.Dispose();
+        if (FileStreamProvider.FileExists(FilePath))
             FileStreamProvider.DeleteFile(FilePath);
-        }
+        var tailPath = FilePath + ".tail";
+        if (FileStreamProvider.FileExists(tailPath))
+            FileStreamProvider.DeleteFile(tailPath);
     }
 
     struct LogEntry
@@ -105,7 +109,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         }
     }
 
-    void AppendLogEntry(BinaryWriter binaryWriter, byte[] keyBytes, byte[] valueBytes, long opIndex)
+    void AppendLogEntry(byte[] keyBytes, byte[] valueBytes, long opIndex)
     {
         var entry = new LogEntry
         {
@@ -116,6 +120,8 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             Value = valueBytes
         };
         entry.Checksum = entry.CreateChecksum();
+
+        var binaryWriter = BinaryWriter;
         binaryWriter.Write(entry.OpIndex);
         binaryWriter.Write(entry.KeyLength);
         binaryWriter.Write(entry.ValueLength);
@@ -124,7 +130,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         if (entry.Value != null)
             binaryWriter.Write(entry.Value);
         binaryWriter.Write(entry.Checksum);
-        Flush();
+        binaryWriter.Flush();
     }
 
     static void ReadLogEntry(BinaryReader reader, ref LogEntry entry)
@@ -144,7 +150,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
     {
         return WriteAheadLogEntryReader.ReadLogEntries<TKey, TValue, LogEntry>(
             Logger,
-            FileStream.ToStream(),
+            FileStream,
             stopReadOnException,
             stopReadOnChecksumFailure,
             ReadLogEntry,
@@ -162,22 +168,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
 
     public void Dispose()
     {
-        if (IsDisposed)
-            return;
-        lock (this)
-        {
-            if (IsDisposed)
-                return;
-            Flush();
-            FileStream.Dispose();
-            IsDisposed = true;
-        }
-    }
-
-    private void Flush()
-    {
-        if (!IsDisposed)
-            FileStream.Flush(true);
+        FileStream.Dispose();
     }
 
     public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values, bool disableBackup)
@@ -192,12 +183,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                         FilePath + ".full",
                         () =>
                         {
-                            FileStream.Flush(true);
-                            FileStream.Seek(0, SeekOrigin.Begin);
-                            var existingLength = FileStream.Length;
-                            var bytes = new byte[existingLength];
-                            FileStream.Read(bytes);
-                            return bytes;
+                            return FileStream.GetFileContentIncludingTail();
                         });
             }
 
@@ -209,38 +195,37 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
                 // 1. Write keys and values to the tmp file.
                 // 2. Use Replace API to replace target file.
 
-                var tmpFilePath = FilePath + ".tmp";
-                var existingFileStream = FileStream;
-                var capacity = keys.Length * (Unsafe.SizeOf<TKey>() + Unsafe.SizeOf<TValue>());
-                using var memoryStream = new MemoryStream(capacity);
-                var binaryWriter = new BinaryWriter(memoryStream, Encoding.UTF8, true);
-                var len = keys.Length;
-                for (var i = 0; i < len; ++i)
-                {
-                    var keyBytes = KeySerializer.Serialize(keys[i]);
-                    var valueBytes = ValueSerializer.Serialize(values[i]);
-                    AppendLogEntry(BinaryWriter, keyBytes, valueBytes, i);
-                }
-
                 FileStream.Dispose();
                 BinaryWriter = null;
 
-                using (var tmpFileStream = FileStreamProvider.CreateFileStream(
+                var tmpFilePath = FilePath + ".tmp";
+                var tmpTailFilePath = FilePath + ".tmp.tail";
+                var existingFileStream = FileStream;
+                using (var tmpFileStream = new CompressedFileStream(
+                    Logger,
+                    FileStreamProvider,
                     tmpFilePath,
-                    FileMode.OpenOrCreate,
-                    FileAccess.ReadWrite,
-                    FileShare.None,
-                    FileStreamBufferSize))
+                    CompressionBlockSize,
+                    EnableTailWriterJob,
+                    TailWriterJobInterval))
                 {
                     FileStream = tmpFileStream;
+                    BinaryWriter = new BinaryWriter(tmpFileStream, Encoding.UTF8, true);
                     tmpFileStream.SetLength(0);
-                    memoryStream.CopyTo(tmpFileStream.ToStream());
+                    var len = keys.Length;
+                    for (var i = 0; i < len; ++i)
+                    {
+                        Append(keys[i], values[i], i);
+                    }
                     diff = existingLength - FileStream.Length;
                     FileStream = null;
                 }
 
-                // atomic replacement using OS API.
+                // CompressedFileStream tail does not have 100% durability.
+                // Therefore implementing replacement for tail with crash-resilience
+                // is not necessary.
                 FileStreamProvider.Replace(tmpFilePath, FilePath, null);
+                FileStreamProvider.Replace(tmpTailFilePath, FilePath + ".tail", null);
                 CreateFileStream();
             }
             catch (Exception e)
@@ -254,7 +239,7 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
             {
                 if (FileStream == null)
                     CreateFileStream();
-                else if (FileStream.FilePath != FilePath)
+                else if(FileStream.FilePath != FilePath)
                 {
                     FileStream?.Dispose();
                     CreateFileStream();
@@ -270,9 +255,9 @@ public sealed class FileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey,
         {
             try
             {
-                Dispose();
+                FileStream.Dispose();
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 Logger.LogError(e);
             }

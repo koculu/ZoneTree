@@ -17,11 +17,11 @@ TestConfig.MinimumSparseArrayLength = 0;
 TestConfig.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
 ConsoleLogger.DefaultLogLevel = LogLevel.Info;
 //BenchmarkRunner.Run<ParallelMassiveInsertTests>();
-//BenchmarkGroups.Iterate3(3_000_000, WriteAheadLogMode.CompressedImmediate)
+//BenchmarkGroups.Iterate3(3_000_000, WriteAheadLogMode.SyncCompressed)
 //RecoverFile.Recover2();
 /*
 while(true)
-    BenchmarkGroups.InsertIterate3(3_000_000, WriteAheadLogMode.CompressedImmediate);
+    BenchmarkGroups.InsertIterate3(3_000_000, WriteAheadLogMode.SyncCompressed);
 */
 
 //Test1.TestTreeIteratorBehavior();
@@ -52,8 +52,8 @@ var c = 10_000_000;
 var m = 1_000_000;
 var a = 10000;
 BenchmarkGroups.Insert1(c);
-ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.Lazy, c, m, a);
-ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.CompressedImmediate, c, m, a);
-ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.Immediate, c, m, a);
+ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.AsyncCompressed, c, m, a);
+ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.SyncCompressed, c, m, a);
+ZoneTree1.InsertSingleAndMerge(WriteAheadLogMode.Sync, c, m, a);
 BenchmarkGroups.Iterate1(c);
 */

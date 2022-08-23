@@ -5,17 +5,17 @@ Benchmark for all modes: [benchmark](https://raw.githubusercontent.com/koculu/Zo
 
 | Insert Benchmarks                               | 1M      | 2M       | 3M         | 10M        |
 | ------------------------------------------------|---------|----------|------------|------------|
-| int-int ZoneTree lazy WAL                       | 343 ms  | 506 ms   | 624 ms     | 2328 ms    |
-| int-int ZoneTree compressed-immediate WAL       | 885 ms  | 1821 ms  | 2737 ms    | 9250 ms    |
-| int-int ZoneTree immediate WAL                  | 2791 ms | 5552 ms  | 8269 ms    | 27883 ms   |
+| int-int ZoneTree async-compressed WAL                       | 343 ms  | 506 ms   | 624 ms     | 2328 ms    |
+| int-int ZoneTree sync-compressed WAL       | 885 ms  | 1821 ms  | 2737 ms    | 9250 ms    |
+| int-int ZoneTree sync WAL                  | 2791 ms | 5552 ms  | 8269 ms    | 27883 ms   |
 ||
-| str-str ZoneTree lazy WAL                       | 796 ms  | 1555 ms  | 2308 ms    | 8712 ms    |
-| str-str ZoneTree compressed-immediate WAL       | 1594 ms | 3187 ms  | 4866 ms    | 17451 ms   |
-| str-str ZoneTree immediate WAL                  | 3617 ms | 7083 ms  | 10481 ms   | 36714 ms   |
+| str-str ZoneTree async-compressed WAL                       | 796 ms  | 1555 ms  | 2308 ms    | 8712 ms    |
+| str-str ZoneTree sync-compressed WAL       | 1594 ms | 3187 ms  | 4866 ms    | 17451 ms   |
+| str-str ZoneTree sync WAL                  | 3617 ms | 7083 ms  | 10481 ms   | 36714 ms   |
 ||
-| RocksDb immediate WAL                           | NOT SUPPORTED                                |
-| int-int RocksDb compressed-immediate WAL        | 8059 ms | 16188 ms | 23599 ms   | 61947 ms   |
-| str-str RocksDb compressed-immediate WAL        | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
+| RocksDb sync WAL                           | NOT SUPPORTED                                |
+| int-int RocksDb sync-compressed WAL        | 8059 ms | 16188 ms | 23599 ms   | 61947 ms   |
+| str-str RocksDb sync-compressed WAL        | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
 ||
 
 Benchmark Configuration:

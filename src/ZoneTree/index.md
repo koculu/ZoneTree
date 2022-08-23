@@ -16,7 +16,7 @@ It is several times faster than Facebook's RocksDB and hundreds of times faster 
 
 You can achieve 100 Million integer key-value pair inserts in 20 seconds by disabling WAL You may get longer durations based on the write-ahead log mode. 
 
-For example, with Lazy WAL mode, you can insert 100M integer key-value pairs in 28 seconds.
+For example, with async-compressed WAL mode, you can insert 100M integer key-value pairs in 28 seconds.
 
 The insert performance is faster for sorted distributions. If you insert randomly distributed keys, merge operations might slow down the entire process. This characteristic is almost the same with all LSM Tree databases.
 

@@ -6,9 +6,9 @@ namespace Tenray.ZoneTree.UnitTests;
 
 public class AtomicUpdateTests
 {
-    [TestCase(WriteAheadLogMode.Immediate)]
-    [TestCase(WriteAheadLogMode.Lazy)]
-    [TestCase(WriteAheadLogMode.CompressedImmediate)]
+    [TestCase(WriteAheadLogMode.Sync)]
+    [TestCase(WriteAheadLogMode.AsyncCompressed)]
+    [TestCase(WriteAheadLogMode.SyncCompressed)]
     public void IntIntAtomicIncrement(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntAtomicIncrement." + walMode;
@@ -76,9 +76,9 @@ public class AtomicUpdateTests
         data.Maintenance.DestroyTree();
     }
 
-    [TestCase(WriteAheadLogMode.Immediate)]
-    [TestCase(WriteAheadLogMode.Lazy)]
-    [TestCase(WriteAheadLogMode.CompressedImmediate)]
+    [TestCase(WriteAheadLogMode.Sync)]
+    [TestCase(WriteAheadLogMode.AsyncCompressed)]
+    [TestCase(WriteAheadLogMode.SyncCompressed)]
     public void IntIntAtomicIncrementForBTree(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntAtomicIncrementForBTree." + walMode;
@@ -140,9 +140,9 @@ public class AtomicUpdateTests
         data.Maintenance.DestroyTree();
     }
 
-    [TestCase(WriteAheadLogMode.Immediate)]
-    [TestCase(WriteAheadLogMode.Lazy)]
-    [TestCase(WriteAheadLogMode.CompressedImmediate)]
+    [TestCase(WriteAheadLogMode.Sync)]
+    [TestCase(WriteAheadLogMode.AsyncCompressed)]
+    [TestCase(WriteAheadLogMode.SyncCompressed)]
     public void IntIntMutableSegmentOnlyAtomicIncrement(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntMutableSegmentOnlyAtomicIncrement." + walMode;
@@ -204,9 +204,9 @@ public class AtomicUpdateTests
         data.Maintenance.DestroyTree();
     }
 
-    [TestCase(WriteAheadLogMode.Immediate)]
-    [TestCase(WriteAheadLogMode.Lazy)]
-    [TestCase(WriteAheadLogMode.CompressedImmediate)]
+    [TestCase(WriteAheadLogMode.Sync)]
+    [TestCase(WriteAheadLogMode.AsyncCompressed)]
+    [TestCase(WriteAheadLogMode.SyncCompressed)]
     public void IntIntMutableSegmentSeveralUpserts(WriteAheadLogMode walMode)
     {
         var dataPath = "data/IntIntMutableSegmentSeveralUpserts." + walMode;

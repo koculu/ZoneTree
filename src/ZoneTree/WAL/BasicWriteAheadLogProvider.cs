@@ -15,15 +15,15 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
     public string WalDirectory { get; }
 
     public WriteAheadLogMode WriteAheadLogMode { get; set; } 
-        = WriteAheadLogMode.Lazy;
+        = WriteAheadLogMode.AsyncCompressed;
 
     public int CompressionBlockSize { get; set; } = 1024 * 32 * 8;
 
     public bool EnableIncrementalBackup { get; set; }
 
-    public CompressedImmediateModeOptions CompressedImmediateModeOptions { get; } = new();
+    public SyncCompressedModeOptions SyncCompressedModeOptions { get; } = new();
 
-    public LazyModeOptions LazyModeOptions { get; } = new();
+    public AsyncCompressedModeOptions AsyncCompressedModeOptions { get; } = new();
 
     public BasicWriteAheadLogProvider(
         ILogger logger,
@@ -52,9 +52,9 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
         {
             case WriteAheadLogMode.None:
                 return new NullWriteAheadLog<TKey, TValue>();
-            case WriteAheadLogMode.Immediate:
+            case WriteAheadLogMode.Sync:
                 {
-                    var wal = new FileSystemWriteAheadLog<TKey, TValue>(
+                    var wal = new SyncFileSystemWriteAheadLog<TKey, TValue>(
                         Logger,
                         FileStreamProvider,
                         keySerializer,
@@ -66,17 +66,17 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                     WALTable.TryAdd(segmentId + category, wal);
                     return wal;
                 }
-            case WriteAheadLogMode.CompressedImmediate:
+            case WriteAheadLogMode.SyncCompressed:
                 {
-                    var wal = new CompressedFileSystemWriteAheadLog<TKey, TValue>(
+                    var wal = new SyncCompressedFileSystemWriteAheadLog<TKey, TValue>(
                         Logger,
                         FileStreamProvider,
                         keySerializer,
                         valueSerializer,
                         walPath,
                         CompressionBlockSize,
-                        CompressedImmediateModeOptions.EnableTailWriterJob,
-                        CompressedImmediateModeOptions.TailWriterJobInterval)
+                        SyncCompressedModeOptions.EnableTailWriterJob,
+                        SyncCompressedModeOptions.TailWriterJobInterval)
                     {
                         EnableIncrementalBackup = EnableIncrementalBackup
                     };
@@ -84,16 +84,16 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                     return wal;
                 }
 
-            case WriteAheadLogMode.Lazy:
+            case WriteAheadLogMode.AsyncCompressed:
                 {
-                    var wal = new LazyFileSystemWriteAheadLog<TKey, TValue>(
+                    var wal = new AsyncCompressedFileSystemWriteAheadLog<TKey, TValue>(
                         Logger,
                         FileStreamProvider,
                         keySerializer,
                         valueSerializer,
                         walPath,
                         CompressionBlockSize,
-                        LazyModeOptions.EmptyQueuePollInterval)
+                        AsyncCompressedModeOptions.EmptyQueuePollInterval)
                     {
                         EnableIncrementalBackup = EnableIncrementalBackup
                     };

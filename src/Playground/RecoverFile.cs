@@ -13,7 +13,7 @@ public class RecoverFile
 {
     public static void Recover1()
     {
-        var path = @"..\..\data\Lazy-50M-str-str";
+        var path = @"..\..\data\AsyncCompressed-50M-str-str";
         var fileStreamProvider = new LocalFileStreamProvider();
         var logger = new ConsoleLogger();
         var deviceManager = new RandomAccessDeviceManager(logger, fileStreamProvider, path);
@@ -23,7 +23,7 @@ public class RecoverFile
             Logger = logger,
             WriteAheadLogProvider = new BasicWriteAheadLogProvider(new ConsoleLogger(), fileStreamProvider, path)
             {
-                WriteAheadLogMode = WriteAheadLogMode.Lazy
+                WriteAheadLogMode = WriteAheadLogMode.AsyncCompressed
             },
             RandomAccessDeviceManager = deviceManager,
             EnableDiskSegmentCompression = true,
@@ -40,7 +40,7 @@ public class RecoverFile
 
     public static void Recover2()
     {
-        var path = @"..\..\data\CompressedImmediate-3M-transactional-int-int";
+        var path = @"..\..\data\SyncCompressed-3M-transactional-int-int";
         var logger = new ConsoleLogger();
         var fileStreamProvider = new LocalFileStreamProvider();
         var deviceManager = new RandomAccessDeviceManager(logger, fileStreamProvider, path);

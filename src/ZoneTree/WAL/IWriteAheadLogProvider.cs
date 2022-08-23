@@ -7,14 +7,14 @@ public interface IWriteAheadLogProvider
     WriteAheadLogMode WriteAheadLogMode { get; set; }
 
     /// <summary>
-    /// Options for compressed immediate mode.
+    /// Options for sync-compressed mode.
     /// </summary>
-    CompressedImmediateModeOptions CompressedImmediateModeOptions { get; }
+    SyncCompressedModeOptions SyncCompressedModeOptions { get; }
 
     /// <summary>
-    /// Options for lazy mode.
+    /// Options for async-compressed mode.
     /// </summary>
-    LazyModeOptions LazyModeOptions { get; }
+    AsyncCompressedModeOptions AsyncCompressedModeOptions { get; }
 
     /// <summary>
     /// Incremental backup is a WAL feature which moves

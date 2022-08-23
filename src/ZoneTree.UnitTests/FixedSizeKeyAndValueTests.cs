@@ -141,7 +141,7 @@ public class FixedSizeKeyAndValueTests
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x => 
-                x.WriteAheadLogMode = WriteAheadLogMode.Immediate)
+                x.WriteAheadLogMode = WriteAheadLogMode.Sync)
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .OpenOrCreate();

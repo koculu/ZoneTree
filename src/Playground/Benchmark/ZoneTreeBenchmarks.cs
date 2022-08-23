@@ -31,21 +31,21 @@ public class ZoneTreeBenchmarks
     }
 
     [Benchmark]
-    public void Insert_1M_Lazy() => BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.Lazy);
+    public void Insert_1M_Lazy() => BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.AsyncCompressed);
 
     [Benchmark]
-    public void Insert_3M1_Lazy() => BenchmarkGroups.Insert1(3_000_000, WriteAheadLogMode.Lazy);
+    public void Insert_3M1_Lazy() => BenchmarkGroups.Insert1(3_000_000, WriteAheadLogMode.AsyncCompressed);
 
     [Benchmark]
-    public void Insert_1M_Immediate() => BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.Immediate);
+    public void Insert_1M_Immediate() => BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.Sync);
 
     [Benchmark]
-    public void Insert_3M_Immediate() => BenchmarkGroups.Insert1(3_000_000, WriteAheadLogMode.Immediate);
+    public void Insert_3M_Immediate() => BenchmarkGroups.Insert1(3_000_000, WriteAheadLogMode.Sync);
 
     [Benchmark]
-    public void Insert_1M_CompressedImmediate() => BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.CompressedImmediate);
+    public void Insert_1M_CompressedImmediate() => BenchmarkGroups.Insert1(1_000_000, WriteAheadLogMode.SyncCompressed);
 
     [Benchmark]
-    public void Insert_3M_CompressedImmediate() => BenchmarkGroups.Insert1(3_000_000, WriteAheadLogMode.CompressedImmediate);
+    public void Insert_3M_CompressedImmediate() => BenchmarkGroups.Insert1(3_000_000, WriteAheadLogMode.SyncCompressed);
 
 }

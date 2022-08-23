@@ -19,9 +19,9 @@ public static class BenchmarkGroups
 
     static readonly WriteAheadLogMode[] TestWALModes = new[] {
         WriteAheadLogMode.None,
-        WriteAheadLogMode.Lazy,
-        WriteAheadLogMode.CompressedImmediate,
-        WriteAheadLogMode.Immediate
+        WriteAheadLogMode.AsyncCompressed,
+        WriteAheadLogMode.SyncCompressed,
+        WriteAheadLogMode.Sync
     };
 
     static void Run(int count, WriteAheadLogMode? mode, Action<WriteAheadLogMode, int> job)

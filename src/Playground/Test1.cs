@@ -23,7 +23,7 @@ public class Test1
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogProvider(x =>
             {
-                x.WriteAheadLogMode = WriteAheadLogMode.Immediate;
+                x.WriteAheadLogMode = WriteAheadLogMode.Sync;
                 x.EnableIncrementalBackup = true;
             })
             .OpenOrCreateTransactional();
@@ -85,7 +85,7 @@ public class Test1
             .ConfigureWriteAheadLogProvider(x =>
             {
                 x.CompressionBlockSize = 1024 * 1024 * 20;
-                x.WriteAheadLogMode = WriteAheadLogMode.Lazy;
+                x.WriteAheadLogMode = WriteAheadLogMode.AsyncCompressed;
             })
             .Configure(x =>
             {
