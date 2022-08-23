@@ -2,6 +2,6 @@
 
 public enum DiskSegmentMode
 {
-    MultipleDiskSegments,
+    MultiPartDiskSegment,
     SingleDiskSegment
 }

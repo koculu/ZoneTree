@@ -24,5 +24,5 @@ public static class TestConfig
 
     public static bool EnableParalelInserts = false;
 
-    public static DiskSegmentMode DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
+    public static DiskSegmentMode DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
 }

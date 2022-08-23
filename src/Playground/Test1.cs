@@ -90,7 +90,7 @@ public class Test1
             .Configure(x =>
             {
                 x.EnableDiskSegmentCompression = true;
-                x.DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
+                x.DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
                 x.DiskSegmentCompressionBlockSize = 1024 * 1024 * 20;
                 x.DiskSegmentMinimumRecordCount = 10_000;
                 x.DiskSegmentMaximumRecordCount = 100_000;

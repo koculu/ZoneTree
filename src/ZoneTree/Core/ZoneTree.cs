@@ -542,7 +542,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             return MergeResult.CANCELLED_BY_USER;
 
         var enableMultiSectorDiskSegment =
-            Options.DiskSegmentMode == DiskSegmentMode.MultipleDiskSegments;
+            Options.DiskSegmentMode == DiskSegmentMode.MultiPartDiskSegment;
 
         var len = mergingSegments.Count;
         var diskSegmentIndex = len - 1;

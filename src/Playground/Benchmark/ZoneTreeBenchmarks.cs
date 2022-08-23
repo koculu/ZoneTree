@@ -27,7 +27,7 @@ public class ZoneTreeBenchmarks
         TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 1;
         TestConfig.WALCompressionBlockSize = 1024 * 1024;
         TestConfig.MinimumSparseArrayLength = 0;
-        TestConfig.DiskSegmentMode = DiskSegmentMode.MultipleDiskSegments;
+        TestConfig.DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
     }
 
     [Benchmark]

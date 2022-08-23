@@ -23,7 +23,7 @@ There are 2 disk segment modes.
 ### Single Disk Segment
  In this disk segment mode, the key-value pairs that belong to the disk segment are stored in a single file.
     
-### Multi Disk Segments
+### Multi-Part Disk Segment
 In this disk segment mode, the key-value pairs that belong to the disk segment are stored in multiple files in a flat hierarchy.
 
 ### Sparse Array

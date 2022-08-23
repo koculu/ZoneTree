@@ -7,15 +7,15 @@ The single disk segment mode is suitable for databases with less than ~10M recor
 It performs better by avoiding handling multiple files for small databases. Above 10M record count the merge operation becomes slower.
 The suggested number (10M) might change depending on the key and value sizes.
 
-#### Multi Disk Segments Mode
-The multi-disk segments mode is suitable for bigger databases. It creates multiple files for a single disk segment with randomly distributed file lengths. The random distribution of file lengths creates the opportunity of skipping the rewriting of several files.
+#### Multi-Part Disk Segment Mode
+The multi-part disk segments mode is suitable for bigger databases. It creates multiple files for a single disk segment with randomly distributed file lengths. The random distribution of file lengths creates the opportunity of skipping the rewriting of several files.
 
 Especially if the inserted keys are in order the merge operation becomes lightning fast for big data.
 
 The random length distribution is controlled by 2 parameters in ZoneTree options.
 [DiskSegmentMinimumRecordCount](/docs/ZoneTree/api/Tenray.ZoneTree.Core.ZoneTreeOptions-2.html#Tenray_ZoneTree_Core_ZoneTreeOptions_2_DiskSegmentMinimumRecordCount) and [DiskSegmentMaximumRecordCount](/docs/ZoneTree/api/Tenray.ZoneTree.Core.ZoneTreeOptions-2.html#Tenray_ZoneTree_Core_ZoneTreeOptions_2_DiskSegmentMaximumRecordCount)
 
-The following schema describes the multi-disk segment file distribution and how it avoids rewriting all files during merges.
+The following schema describes the multi-part disk segment file distribution and how it avoids rewriting all files during merges.
 
 ```
 - We have 3 files, f1, f2, f3 with random lengths between 3-5

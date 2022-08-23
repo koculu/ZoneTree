@@ -65,7 +65,7 @@ public class ZoneTreeOptions<TKey, TValue>
     /// Configures the disk segment mode.
     /// </summary>
     public DiskSegmentMode DiskSegmentMode { get; set; }
-        = DiskSegmentMode.MultipleDiskSegments;
+        = DiskSegmentMode.MultiPartDiskSegment;
 
     /// <summary>
     /// Configures the disk segment compression. Default is true.
@@ -88,14 +88,14 @@ public class ZoneTreeOptions<TKey, TValue>
     public int DiskSegmentBlockCacheLimit { get; set; } = 32;
 
     /// <summary>
-    /// If MultipleDiskSegments mode is enabled, it is the upper bound 
+    /// If MultiPartDiskSegment mode is enabled, it is the upper bound 
     /// record count of a disk segment.
     /// A disk segment cannot have record count more than this value.
     /// </summary>
     public int DiskSegmentMaximumRecordCount { get; set; } = 3_000_000;
 
     /// <summary>
-    /// If MultipleDiskSegments mode is enabled,
+    /// If MultiPartDiskSegment mode is enabled,
     /// the minimum record count cannot be lower than this value
     /// unless there isn't enough records.
     /// </summary>
