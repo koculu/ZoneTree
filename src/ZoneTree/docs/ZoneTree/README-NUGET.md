@@ -314,14 +314,10 @@ The following sample shows traditional way of doing transactions with ZoneTree.
 | MultipleDiskSegments Mode to enable dividing data files into configurable sized chunks.|
 |Snapshot iterators.|
 
-## I need more information. Where can I find it?
-I am going to write more detailed documentation as soon as possible.
-
 ## I want to contribute. What can I do?
 I appreciate any contribution to the project.
 These are the things I do think we need at the moment:
 1. Write tests / benchmarks.
 2. Write documentation.
-3. Convert documentation to a website using static site generators.
-4. Feature requests & bug fixes.
-5. Performance improvements.
+3. Feature requests & bug fixes.
+4. Performance improvements.
