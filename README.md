@@ -14,6 +14,14 @@ For example, with async-compressed WAL mode, you can insert 100M integer key-val
 Loading 100M integer key-value pair database is in 812 ms. The iteration on 100M key-value pairs takes 24 seconds.
 There are so many tuning options wait you to discover.
 
+## [INTRODUCTION](https://tenray.io/docs/ZoneTree/guide/introduction.html)
+## [QUICK START GUIDE](https://tenray.io/docs/ZoneTree/guide/quick-start.html)
+## [API DOCS](https://tenray.io/docs/ZoneTree/api/Tenray.ZoneTree.html)
+## [TUNING ZONETREE](https://tenray.io/docs/ZoneTree/guide/tuning-disk-segment.html)
+## [FEATURES](https://tenray.io/docs/ZoneTree/guide/features.html)
+## [TERMINOLOGY](https://tenray.io/docs/ZoneTree/guide/terminology.html)
+## [PERFORMANCE](https://tenray.io/docs/ZoneTree/guide/performance.html)
+
 ## Why ZoneTree?
 1. It is pure C#.
 2. It is fast. See benchmark below.
@@ -81,6 +89,14 @@ Config: 1M mutable segment size, 2M readonly segments merge-threshold
 ```
 
 ## How to use ZoneTree?
+
+The following sample shows the most basic setup of a ZoneTree database.
+
+```C#
+using var zoneTree = new ZoneTreeFactory<int, string>()
+   .OpenOrCreate();
+zoneTree.Upsert(39, "Hello Zone Tree");
+```
 
 The following sample demonstrates creating a database.
 ```c#

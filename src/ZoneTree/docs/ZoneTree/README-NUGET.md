@@ -4,7 +4,7 @@
 ZoneTree is a persistent, high-performance, transactional, and ACID-compliant [ordered key-value database](https://en.wikipedia.org/wiki/Ordered_Key-Value_Store) for .NET.
 It can operate in memory or on local/cloud storage.
 
-[![Download](https://img.shields.io/badge/download-ZoneTree-blue)](https://www.nuget.org/packages/ZoneTree/)
+[![Downloads](https://img.shields.io/nuget/dt/ZoneTree)](https://www.nuget.org/packages/ZoneTree/)
 
 ZoneTree is a lightweight, transactional and high-performance LSM Tree for .NET.
 
@@ -13,6 +13,14 @@ It is several times faster than Facebook's RocksDB and hundreds of times faster 
 For example, with async-compressed WAL mode, you can insert 100M integer key-value pairs in 28 seconds. Background merge operation that might take a bit longer is excluded from the insert duration because your inserted data is immediately queryable.
 Loading 100M integer key-value pair database is in 812 ms. The iteration on 100M key-value pairs takes 24 seconds.
 There are so many tuning options wait you to discover.
+
+## [INTRODUCTION](https://tenray.io/docs/ZoneTree/guide/introduction.html)
+## [QUICK START GUIDE](https://tenray.io/docs/ZoneTree/guide/quick-start.html)
+## [API DOCS](https://tenray.io/docs/ZoneTree/api/Tenray.ZoneTree.html)
+## [TUNING ZONETREE](https://tenray.io/docs/ZoneTree/guide/tuning-disk-segment.html)
+## [FEATURES](https://tenray.io/docs/ZoneTree/guide/features.html)
+## [TERMINOLOGY](https://tenray.io/docs/ZoneTree/guide/features.html)
+## [PERFORMANCE](https://tenray.io/docs/ZoneTree/guide/features.html)
 
 ## Why ZoneTree?
 1. It is pure C#.
@@ -81,6 +89,14 @@ Config: 1M mutable segment size, 2M readonly segments merge-threshold
 ```
 
 ## How to use ZoneTree?
+
+The following sample shows the most basic setup of a ZoneTree database.
+
+```C#
+using var zoneTree = new ZoneTreeFactory<int, string>()
+   .OpenOrCreate();
+zoneTree.Upsert(39, "Hello Zone Tree");
+```
 
 The following sample demonstrates creating a database.
 ```c#
