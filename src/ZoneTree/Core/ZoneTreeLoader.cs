@@ -104,7 +104,7 @@ public class ZoneTreeLoader<TKey, TValue>
         ValidateSegmentOrder();
     }
 
-    private void ValidateSegmentOrder()
+    void ValidateSegmentOrder()
     {
         var index = long.MaxValue;
         foreach (var ros in ZoneTreeMeta.ReadOnlySegments)

@@ -13,6 +13,7 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
     readonly IRandomAccessDeviceManager RandomDeviceManager;
 
     public string FilePath { get; }
+
     public long SegmentId { get; }
 
     public bool Writable { get; }

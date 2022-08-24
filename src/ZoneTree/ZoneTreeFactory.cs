@@ -109,6 +109,7 @@ public class ZoneTreeFactory<TKey, TValue>
         Options.RandomAccessDeviceManager = new RandomAccessDeviceManager(
             Options.Logger,
             FileStreamProvider, dataDirectory);
+        WalDirectory = dataDirectory;
         return this;
     }
 

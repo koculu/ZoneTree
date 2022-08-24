@@ -78,7 +78,7 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
     /// </summary>
     public TimeSpan PeriodicTimerInterval { get; set; } = TimeSpan.FromSeconds(5);
 
-    ConcurrentDictionary<int, Thread> MergerThreads = new();
+    readonly ConcurrentDictionary<int, Thread> MergerThreads = new();
 
     /// <summary>
     /// Creates a BasicZoneTreeMaintainer.

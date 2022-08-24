@@ -48,17 +48,15 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         var key = GetDeviceKey(segmentId, category);
         if (WritableDevices.ContainsKey(key))
         {
-            throw new Exception($"Writable device can be created only once. guid: {segmentId:X} category: {category}");
+            throw new Exception($"Writable device can be created only once. segmentId: {segmentId:X} category: {category}");
         }
         var filePath = GetFilePath(segmentId, category);
-        if (deleteIfExists && FileStreamProvider.FileExists(filePath))
+        if (deleteIfExists) DeleteFileIfExists(backupIfDelete, filePath);
+        if (isCompressed)
         {
-            if (backupIfDelete)
-                FileStreamProvider.Replace(filePath, 
-                    filePath + ".backup." + Guid.NewGuid().ToString("N"), null);
-            else
-                FileStreamProvider.DeleteFile(filePath);
+            filePath += ".z";
         }
+        if (deleteIfExists) DeleteFileIfExists(backupIfDelete, filePath);
         IRandomAccessDevice device = isCompressed ?
             new CompressedFileRandomAccessDevice(
                 Logger,
@@ -72,6 +70,17 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         return device;
     }
 
+    void DeleteFileIfExists(bool backupIfDelete, string filePath)
+    {
+        if (!FileStreamProvider.FileExists(filePath))
+            return;
+        if (backupIfDelete)
+            FileStreamProvider.Replace(filePath,
+                filePath + ".backup." + Guid.NewGuid().ToString("N"), null);
+        else
+            FileStreamProvider.DeleteFile(filePath);
+    }
+
     public IReadOnlyList<IRandomAccessDevice> GetDevices()
     {
         var a = GetReadOnlyDevices();
@@ -79,7 +88,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         return a.Concat(b).ToArray();
     }
 
-    private static string GetDeviceKey(long segmentId, string category)
+    static string GetDeviceKey(long segmentId, string category)
     {
         return segmentId + category;
     }
@@ -103,6 +112,21 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
             throw new Exception($"ReadOnly device can be created after writable device is closed. segmentId: {segmentId} category: {category}");
         }
         var filePath = GetFilePath(segmentId, category);
+        if (isCompressed && FileStreamProvider.FileExists(filePath))
+        {
+            isCompressed = false;
+        }
+        var compressedfilePath = filePath + ".z";
+        if (!isCompressed && FileStreamProvider.FileExists(compressedfilePath))
+        {
+            isCompressed = true;
+        }
+
+        if (isCompressed)
+        {
+            filePath = compressedfilePath;
+        }
+
         device = isCompressed ?
             new CompressedFileRandomAccessDevice(
                 Logger,
