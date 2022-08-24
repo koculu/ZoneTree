@@ -285,6 +285,7 @@ public class ZoneTreeFactory<TKey, TValue>
     public ZoneTreeFactory<TKey, TValue>
         ConfigureTransactionLog(Action<ITransactionLog<TKey, TValue>> configure)
     {
+        InitWriteAheadLogProvider();
         InitTransactionLog();
         configure(TransactionLog);
         return this;

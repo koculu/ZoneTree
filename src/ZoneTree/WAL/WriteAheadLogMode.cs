@@ -11,14 +11,14 @@ public enum WriteAheadLogMode
     /// It provides maximum durability in case of a crash/power cut,
     /// but slower write speed.
     /// </summary>
-    Sync,
+    Sync = 0,
 
     /// <summary>
     /// Sync mode with compression.
     /// It provides faster write speed but less durability.
     /// (crashes might cause data loss.)
     /// </summary>
-    SyncCompressed,
+    SyncCompressed = 1,
 
     /// <summary>
     /// AsyncCompressed mode write ahead log does not directly write and flush
@@ -28,7 +28,7 @@ public enum WriteAheadLogMode
     /// (crashes might cause data loss.)
     /// AsyncCompressed mode writes to the WAL with compression enabled.
     /// </summary>
-    AsyncCompressed,
+    AsyncCompressed = 2,
 
     /// <summary>
     /// No Write Ahead Log. Nothing is saved to the WAL file.
@@ -38,5 +38,5 @@ public enum WriteAheadLogMode
     /// using MoveSegmentZeroForward and StartMergeOperation
     /// methods in IZoneTreeMaintenance.
     /// </summary>
-    None,
+    None = 3,
 }

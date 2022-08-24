@@ -32,13 +32,15 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer)
     {
-        var walPath = Path.Combine(WalDirectory, category, segmentId + ".wal");
         if (WALTable.TryGetValue(segmentId + category, out var value))
         {
             return (IWriteAheadLog<TKey, TValue>)value;
         }
 
-        switch (options.WriteAheadLogMode)
+        (var walPath, var walMode) = 
+            DetectWalPathAndWriteAheadLogMode(segmentId, category, options);
+
+        switch (walMode)
         {
             case WriteAheadLogMode.None:
                 return new NullWriteAheadLog<TKey, TValue>();
@@ -92,6 +94,23 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                 }
         }
         return null;
+    }
+
+    (string walPath, WriteAheadLogMode walMode)
+        DetectWalPathAndWriteAheadLogMode(
+        long segmentId, string category, WriteAheadLogOptions options)
+    {
+        var walPath = Path.Combine(WalDirectory, category, segmentId + ".wal.");
+        var walMode = options.WriteAheadLogMode;        
+        for(var i = 0; i < 3; ++i)
+        {
+            if (FileStreamProvider.FileExists(walPath + i))
+            {
+                walMode = (WriteAheadLogMode)i;
+                break;
+            }
+        }
+        return (walPath + (int)walMode, walMode);
     }
 
     public IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(long segmentId, string category)
