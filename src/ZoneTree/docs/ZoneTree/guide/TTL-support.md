@@ -39,4 +39,4 @@ var found = zoneTree.TryGetAndUpdate(
         v.SlideExpiration(TimeSpan.FromSeconds(15)));  
 ```
 
-You can use build in [TTLValue](/docs/ZoneTree/api/Tenray.ZoneTree.Core.TTLValue-1.html) or you can write your own with custom expiration logic.
+You can use build in [TTLValue](/docs/ZoneTree/api/Tenray.ZoneTree.PresetTypes.TTLValue-1.html) or you can write your own with custom expiration logic.

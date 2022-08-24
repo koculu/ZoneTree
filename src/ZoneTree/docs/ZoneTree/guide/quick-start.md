@@ -110,7 +110,7 @@ using var zoneTree = new ZoneTreeFactory<int, MyDeletableValueType>()
 ```
 If you forget to provide the deletion marker delegates, you can never delete the record from your database.
 
-You can use built in generic [Deletable&lt;TValue&gt;](/docs/ZoneTree/api/Tenray.ZoneTree.Core.Deletable-1.html) for deletion.
+You can use built in generic [Deletable&lt;TValue&gt;](/docs/ZoneTree/api/Tenray.ZoneTree.PresetTypes.Deletable-1.html) for deletion.
 
 ## How to iterate over data?
 

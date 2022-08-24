@@ -13,6 +13,6 @@ public interface IRefComparer<TKey>
     /// </summary>
     /// <param name="x">The first key</param>
     /// <param name="y">The second key</param>
-    /// <returns>-1 (x < y), 0 (x == y) or 1 (x > y)</returns>    
+    /// <returns>-1 (x &lt; y), 0 (x == y) or 1 (x &gt; y)</returns>    
     int Compare(in TKey x, in TKey y);
 }

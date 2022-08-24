@@ -13,7 +13,7 @@ The multi-part disk segments mode is suitable for bigger databases. It creates m
 Especially if the inserted keys are in order the merge operation becomes lightning fast for big data.
 
 The random length distribution is controlled by 2 parameters in ZoneTree options.
-[DiskSegmentMinimumRecordCount](/docs/ZoneTree/api/Tenray.ZoneTree.Core.ZoneTreeOptions-2.html#Tenray_ZoneTree_Core_ZoneTreeOptions_2_DiskSegmentMinimumRecordCount) and [DiskSegmentMaximumRecordCount](/docs/ZoneTree/api/Tenray.ZoneTree.Core.ZoneTreeOptions-2.html#Tenray_ZoneTree_Core_ZoneTreeOptions_2_DiskSegmentMaximumRecordCount)
+[DiskSegment-MinimumRecordCount](/docs/ZoneTree/api/Tenray.ZoneTree.Options.DiskSegmentOptions.html#Tenray_ZoneTree_Options_DiskSegmentOptions_MinimumRecordCount) and [DiskSegment-MaximumRecordCount](/docs/ZoneTree/api/Tenray.ZoneTree.Options.DiskSegmentOptions.html#Tenray_ZoneTree_Options_DiskSegmentOptions_MaximumRecordCount)
 
 The following schema describes the multi-part disk segment file distribution and how it avoids rewriting all files during merges.
 
@@ -31,4 +31,4 @@ The drop ratio can be tracked in logs using the Trace log level.
 #### Compression Block Size
 You can also tune your disk segment performance by adjusting the following parameters.
 
-[DiskSegmentCompressionBlockSize](/docs/ZoneTree/api/Tenray.ZoneTree.Core.ZoneTreeOptions-2.html#Tenray_ZoneTree_Core_ZoneTreeOptions_2_DiskSegmentMinimumRecordCount) and [DiskSegmentMaximumRecordCount](/docs/ZoneTree/api/Tenray.ZoneTree.Core.ZoneTreeOptions-2.html#Tenray_ZoneTree_Core_ZoneTreeOptions_2_DiskSegmentMaximumRecordCount)
+[DiskSegment-CompressionBlockSize](/docs/ZoneTree/api/Tenray.ZoneTree.Options.DiskSegmentOptions.html#Tenray_ZoneTree_Options_DiskSegmentOptions_CompressionBlockSize) and [DiskSegment-BlockCacheLimit](/docs/ZoneTree/api/Tenray.ZoneTree.Options.DiskSegmentOptions.html#Tenray_ZoneTree_Options_DiskSegmentOptions_BlockCacheLimit)
