@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Tenray.ZoneTree.Compression;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
@@ -155,7 +156,8 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
         WriteKeys(bw);
         WriteValues(bw);
         bw.Flush();
-
+        var compressionMethod = MultiPartDiskSegment<TKey, TValue>
+            .MultiPartHeaderCompressionMethod;
         using var multiDevice = Options.RandomAccessDeviceManager.
             CreateWritableDevice(
                     SegmentId,
@@ -164,8 +166,9 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
                     0,
                     0,
                     false,
-                    false);
-        var compressedBytes = DataCompression.Compress(ms.ToArray());
+                    false,
+                    compressionMethod);
+        var compressedBytes = DataCompression.Compress(compressionMethod, ms.ToArray());
         multiDevice.AppendBytesReturnPosition(compressedBytes);
         Options.RandomAccessDeviceManager
             .RemoveWritableDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory);
@@ -228,8 +231,11 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
             part.Drop();
         }
         using var multiDevice = Options.RandomAccessDeviceManager
-            .GetReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory,
-            false, 0, 0);
+            .GetReadOnlyDevice(
+                SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory,
+                false, 0, 0, 
+                MultiPartDiskSegment<TKey, TValue>
+                .MultiPartHeaderCompressionMethod);
         multiDevice.Delete();
         Options.RandomAccessDeviceManager
             .RemoveReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory);

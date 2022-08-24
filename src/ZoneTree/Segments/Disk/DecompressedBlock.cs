@@ -1,9 +1,12 @@
 ﻿using System.IO.Compression;
+using Tenray.ZoneTree.Compression;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
 public class DecompressedBlock
 {
+    public CompressionMethod CompressionMethod { get; }
+
     public int BlockIndex { get; private set; }
 
     public volatile int _length;
@@ -25,18 +28,20 @@ public class DecompressedBlock
         set => Volatile.Write(ref _lastAccessTicks, value);
     }
 
-    public DecompressedBlock(int blockIndex, int blockSize)
+    public DecompressedBlock(int blockIndex, int blockSize, CompressionMethod compressionMethod)
     {
         BlockIndex = blockIndex;
         Length = 0;
         Bytes = new byte[blockSize];
+        CompressionMethod = compressionMethod;
     }
 
-    public DecompressedBlock(int blockIndex, byte[] bytes)
+    public DecompressedBlock(int blockIndex, byte[] bytes, CompressionMethod method)
     {
         BlockIndex = blockIndex;
         Length = bytes.Length;
         Bytes = bytes;
+        CompressionMethod = method;
     }
 
     public int Append(ReadOnlySpan<byte> data)
@@ -51,21 +56,13 @@ public class DecompressedBlock
     public byte[] Compress()
     {
         var span = Bytes.AsSpan(0, Length);
-        using var msOutput = new MemoryStream();
-        using var gzs = new GZipStream(msOutput, CompressionLevel.Fastest, false);
-        gzs.Write(span);
-        gzs.Flush();
-        return msOutput.ToArray();
+        return DataCompression.Compress(CompressionMethod, span);
     }
 
-    public static DecompressedBlock FromCompressed(int blockIndex, byte[] compressedBytes)
+    public static DecompressedBlock FromCompressed(int blockIndex, byte[] compressedBytes, CompressionMethod method)
     {
-        using var msInput = new MemoryStream(compressedBytes);
-        using var msOutput = new MemoryStream();
-        using var gzs = new GZipStream(msInput, CompressionMode.Decompress);
-        gzs.CopyTo(msOutput);
-        var decompressed = msOutput.ToArray();
-        return new DecompressedBlock(blockIndex, decompressed);
+        var decompressed = DataCompression.Decompress(method, compressedBytes);
+        return new DecompressedBlock(blockIndex, decompressed, method);
     }
 
     public byte[] GetBytes(int offset, int length)

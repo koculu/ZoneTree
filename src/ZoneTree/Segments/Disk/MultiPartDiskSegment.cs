@@ -1,6 +1,6 @@
 ﻿using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Compression;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
@@ -9,6 +9,9 @@ namespace Tenray.ZoneTree.Segments.Disk;
 
 public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
+    public const CompressionMethod MultiPartHeaderCompressionMethod 
+        = CompressionMethod.Gzip;
+
     public long SegmentId { get; }
 
     readonly IRefComparer<TKey> Comparer;
@@ -59,7 +62,9 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         using var diskSegmentListDevice = randomDeviceManager
                 .GetReadOnlyDevice(
                     segmentId,
-                    DiskSegmentConstants.MultiPartDiskSegmentCategory, false, 0, 0);
+                    DiskSegmentConstants
+                    .MultiPartDiskSegmentCategory, false, 0, 0,
+                        MultiPartHeaderCompressionMethod);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(
@@ -67,7 +72,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
         var len = (int)diskSegmentListDevice.Length;
         var compressedBytes = diskSegmentListDevice.GetBytes(0, len);
-        var bytes = DataCompression.Decompress(compressedBytes);
+        var bytes = DataCompression
+            .Decompress(MultiPartHeaderCompressionMethod, compressedBytes);
 
         using var ms = new MemoryStream(bytes);
         using var br = new BinaryReader(ms);
@@ -87,15 +93,15 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         using var diskSegmentListDevice = randomDeviceManager
                 .GetReadOnlyDevice(
                     segmentId,
-                    category, false, 0, 0);
+                    category, false, 0, 0, MultiPartHeaderCompressionMethod);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(
                 diskSegmentListDevice.Length, int.MaxValue);
-        
+
         var len = (int)diskSegmentListDevice.Length;
         var compressedBytes = diskSegmentListDevice.GetBytes(0, len);
-        var bytes = DataCompression.Decompress(compressedBytes);
+        var bytes = DataCompression.Decompress(MultiPartHeaderCompressionMethod, compressedBytes);
 
         using var ms = new MemoryStream(bytes);
         using var br = new BinaryReader(ms);
@@ -295,7 +301,9 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         using var diskSegmentListDevice = randomDeviceManager
                 .GetReadOnlyDevice(
                     SegmentId,
-                    DiskSegmentConstants.MultiPartDiskSegmentCategory, false, 0, 0);
+                    DiskSegmentConstants
+                    .MultiPartDiskSegmentCategory, false, 0, 0,
+                        MultiPartHeaderCompressionMethod);
         diskSegmentListDevice.Delete();
         randomDeviceManager
             .RemoveReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory);

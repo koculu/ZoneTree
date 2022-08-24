@@ -1,15 +1,14 @@
 ﻿using System.IO.Compression;
-using Tenray.ZoneTree.Segments.Disk;
 
-namespace Tenray.ZoneTree.Core;
+namespace Tenray.ZoneTree.Compression;
 
-public static class DataCompression 
+public static class GZipDataCompression
 {
-    public static byte[] Compress(byte[] bytes)
+    public static byte[] Compress(Span<byte> span)
     {
         using var msOutput = new MemoryStream();
         using var gzs = new GZipStream(msOutput, CompressionLevel.Fastest, false);
-        gzs.Write(bytes);
+        gzs.Write(span);
         gzs.Flush();
         return msOutput.ToArray();
     }

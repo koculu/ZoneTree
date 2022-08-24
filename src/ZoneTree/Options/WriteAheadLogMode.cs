@@ -3,7 +3,7 @@
 /// <summary>
 /// Available write ahead log modes.
 /// </summary>
-public enum WriteAheadLogMode
+public enum WriteAheadLogMode : byte
 {
     /// <summary>
     /// Sync mode write ahead log ensures that the data is flushed to the device

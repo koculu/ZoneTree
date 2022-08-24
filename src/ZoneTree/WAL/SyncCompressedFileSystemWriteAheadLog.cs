@@ -2,6 +2,7 @@
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Exceptions.WAL;
 using Tenray.ZoneTree.Logger;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
@@ -24,7 +25,9 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
     public string FilePath { get; }
     
     public int CompressionBlockSize { get; }
-    
+
+    public CompressionMethod CompressionMethod { get; }
+
     public bool EnableTailWriterJob { get; }
     
     public int TailWriterJobInterval { get; }
@@ -37,16 +40,15 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
-        int compressionBlockSize,
-        bool enableTailWriterJob,
-        int tailWriterJobInterval)
+        WriteAheadLogOptions options)
     {
         Logger = logger;
         FileStreamProvider = fileStreamProvider;
         FilePath = filePath;
-        CompressionBlockSize = compressionBlockSize;
-        EnableTailWriterJob = enableTailWriterJob;
-        TailWriterJobInterval = tailWriterJobInterval;
+        CompressionBlockSize = options.CompressionBlockSize;
+        CompressionMethod = options.CompressionMethod;
+        EnableTailWriterJob = options.SyncCompressedModeOptions.EnableTailWriterJob;
+        TailWriterJobInterval = options.SyncCompressedModeOptions.TailWriterJobInterval;
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
         CreateFileStream();
@@ -60,7 +62,8 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
             FilePath,
             CompressionBlockSize,
             EnableTailWriterJob,
-            TailWriterJobInterval);
+            TailWriterJobInterval,
+            CompressionMethod);
         BinaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
     }
 
@@ -208,7 +211,8 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
                     tmpFilePath,
                     CompressionBlockSize,
                     EnableTailWriterJob,
-                    TailWriterJobInterval))
+                    TailWriterJobInterval,
+                    CompressionMethod))
                 {
                     FileStream = tmpFileStream;
                     BinaryWriter = new BinaryWriter(tmpFileStream, Encoding.UTF8, true);

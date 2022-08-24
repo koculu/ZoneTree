@@ -68,9 +68,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                         keySerializer,
                         valueSerializer,
                         walPath,
-                        options.CompressionBlockSize,
-                        options.SyncCompressedModeOptions.EnableTailWriterJob,
-                        options.SyncCompressedModeOptions.TailWriterJobInterval)
+                        options)
                     {
                         EnableIncrementalBackup = options.EnableIncrementalBackup
                     };
@@ -86,8 +84,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                         keySerializer,
                         valueSerializer,
                         walPath,
-                        options.CompressionBlockSize,
-                        options.AsyncCompressedModeOptions.EmptyQueuePollInterval)
+                        options)
                     {
                         EnableIncrementalBackup = options.EnableIncrementalBackup
                     };

@@ -44,7 +44,8 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
     public IRandomAccessDevice CreateWritableDevice(
         long segmentId, string category, 
         bool isCompressed, int compressionBlockSize, int maxCachedBlockCount,
-        bool deleteIfExists, bool backupIfDelete)
+        bool deleteIfExists, bool backupIfDelete,
+        CompressionMethod compressionMethod)
     {
         var key = GetDeviceKey(segmentId, category);
         if (WritableDevices.ContainsKey(key))
@@ -63,7 +64,9 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
                 Logger,
                 maxCachedBlockCount,
                 FileStreamProvider,
-                segmentId, category, this, filePath, true, compressionBlockSize) :
+                segmentId, category, this, filePath, true, 
+                compressionBlockSize,
+                compressionMethod) :
             new FileRandomAccessDevice(
                 FileStreamProvider,
                 segmentId, category, this, filePath, true);
@@ -102,7 +105,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
     public IRandomAccessDevice GetReadOnlyDevice(
         long segmentId, string category, 
         bool isCompressed, int compressionBlockSize, 
-        int maxCachedBlockCount)
+        int maxCachedBlockCount, CompressionMethod compressionMethod)
     {
         var key = GetDeviceKey(segmentId, category);
         if (ReadOnlyDevices.TryGetValue(key, out var device))
@@ -133,7 +136,8 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
                 Logger,
                 maxCachedBlockCount,
                 FileStreamProvider,
-                segmentId, category, this, filePath, false, compressionBlockSize) :
+                segmentId, category, this, filePath, false, 
+                compressionBlockSize, compressionMethod) :
             new FileRandomAccessDevice(
                 FileStreamProvider,
                 segmentId, category, this, filePath, false);

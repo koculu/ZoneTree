@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Text;
+﻿using System.Text;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Logger;
 
@@ -10,6 +9,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     readonly IFileStreamProvider FileStreamProvider;
 
     readonly int BlockSize;
+
+    readonly CompressionMethod CompressionMethod;
 
     readonly string Category;
 
@@ -49,6 +50,22 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     readonly int MaxCachedBlockCount;
 
+    public struct CompressedFileMeta
+    {
+        public int BlockSize;
+
+        public CompressionMethod CompressionMethod;
+
+        public CompressedFileMeta(int blockSize,
+            CompressionMethod compressionMethod) : this()
+        {
+            BlockSize = blockSize;
+            CompressionMethod = compressionMethod;
+        }
+    }
+
+    const int MetaDataSize = 5;
+
     public CompressedFileRandomAccessDevice(
         ILogger logger,
         int maxCachedBlockCount,
@@ -58,7 +75,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         IRandomAccessDeviceManager randomDeviceManager,
         string filePath, 
         bool writable, 
-        int compressionBlockSize,
+        int compressionBlockSize, 
+        CompressionMethod compressionMethod,
         int fileIOBufferSize = 4096)
     {
         MaxCachedBlockCount = maxCachedBlockCount;
@@ -70,6 +88,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         FilePath = filePath;
         Writable = writable;
         BlockSize = compressionBlockSize;
+        CompressionMethod = compressionMethod;
         var fileMode = writable ? FileMode.OpenOrCreate : FileMode.Open;
         var fileAccess = writable ? FileAccess.ReadWrite : FileAccess.Read;
         var fileShare = writable ? FileShare.None : FileShare.Read;
@@ -82,7 +101,10 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             BinaryWriter = new BinaryWriter(FileStream.ToStream(), Encoding.UTF8, true);
         if (FileStream.Length > 0)
         {
-            BlockSize = ReadBlockSize();
+            var meta = ReadMetaData();
+            BlockSize = meta.BlockSize;
+            CompressionMethod = meta.CompressionMethod;
+
             (CompressedBlockPositions, CompressedBlockLengths) =
                 ReadCompressedBlockPositionsAndLengths();
             NextBlockIndex = CompressedBlockPositions.Count - 1;
@@ -95,20 +117,23 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         }
         else
         {
-            WriteBlockSize();
+            WriteMetaData();
         }
     }
 
-    int ReadBlockSize()
+    CompressedFileMeta ReadMetaData()
     {
         FileStream.Position = 0;
-        return BinaryReader.ReadInt32();
+        return new CompressedFileMeta(
+            BinaryReader.ReadInt32(),
+            (CompressionMethod)BinaryReader.ReadByte());
     }
 
-    void WriteBlockSize()
+    void WriteMetaData()
     {
         FileStream.Position = 0;
         BinaryWriter.Write(BlockSize);
+        BinaryWriter.Write((byte)CompressionMethod);
         BinaryWriter.Flush();
         return;
     }
@@ -146,7 +171,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     {
         if (!TryGetBlockCache(NextBlockIndex, out var nextBlock))
         {
-            nextBlock = new DecompressedBlock(NextBlockIndex, BlockSize);
+            nextBlock = new DecompressedBlock(NextBlockIndex, BlockSize, CompressionMethod);
             CircularBlockCache.AddBlock(nextBlock);
             if (MaxCachedBlockCount > 1)
                 CircularBlockCache.RemoveBlock(NextBlockIndex - 1);
@@ -165,7 +190,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     void AppendBlock(DecompressedBlock nextBlock)
     {
         var compressedBytes = nextBlock.Compress();
-        var offset = CompressedBlockPositions.LastOrDefault(sizeof(int));
+        var offset = CompressedBlockPositions.LastOrDefault(MetaDataSize);
         offset += CompressedBlockLengths.LastOrDefault();
         FileStream.Position = offset;
         CompressedBlockPositions.Add(offset);
@@ -226,7 +251,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             var compressedLength = CompressedBlockLengths[blockIndex];
             compressedBytes = BinaryReader.ReadBytes(compressedLength);
         }
-        var decompressedBlock = DecompressedBlock.FromCompressed(blockIndex, compressedBytes);
+        var decompressedBlock = DecompressedBlock.FromCompressed(blockIndex, compressedBytes, CompressionMethod);
         decompressedBlock.LastAccessTicks = DateTime.UtcNow.Ticks; 
         return decompressedBlock;
     }
@@ -269,8 +294,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     public void ClearContent()
     {
         // first 4 bytes hold the block size.
-        FileStream.SetLength(sizeof(int));
-        FileStream.Seek(sizeof(int), SeekOrigin.Begin);
+        FileStream.SetLength(MetaDataSize);
+        FileStream.Seek(MetaDataSize, SeekOrigin.Begin);
 
         NextBlockIndex = 0;
         CompressedBlockPositions.Clear();
@@ -292,7 +317,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     void WriteCompressedBlockPositionsAndLengths()
     {
-        var offset = CompressedBlockPositions.LastOrDefault(sizeof(int));
+        var offset = CompressedBlockPositions.LastOrDefault(MetaDataSize);
         offset += CompressedBlockLengths.LastOrDefault();
         FileStream.SetLength(offset);
         FileStream.Position = offset;
@@ -312,7 +337,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     (List<long> positions, List<int> lengths) ReadCompressedBlockPositionsAndLengths()
     {
-        FileStream.Seek(-sizeof(int) - sizeof(long), SeekOrigin.End);
+        FileStream.Seek(- sizeof(int) - sizeof(long), SeekOrigin.End);
         var br = BinaryReader;
         var len = br.ReadInt32();
         var offset = br.ReadInt64();

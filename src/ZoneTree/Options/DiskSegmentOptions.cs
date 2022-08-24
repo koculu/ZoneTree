@@ -26,6 +26,11 @@ public class DiskSegmentOptions
     public int CompressionBlockSize { get; set; } = 1024 * 1024 * 10;
 
     /// <summary>
+    /// The compression method if the compression is enabled.
+    /// </summary>
+    public CompressionMethod CompressionMethod { get; set; }
+
+    /// <summary>
     /// The disk segment block cache limit.
     /// A disk segment cannot have more cache blocks than the limit.
     /// Total memory space that block cache can take is

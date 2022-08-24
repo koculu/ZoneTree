@@ -30,6 +30,11 @@ public class WriteAheadLogOptions
         = 1024 * 32 * 8;
 
     /// <summary>
+    /// The compression method for the WALs with compression enabled.
+    /// </summary>
+    public CompressionMethod CompressionMethod { get; set; }
+
+    /// <summary>
     /// Options for sync-compressed mode.
     /// </summary>
     public SyncCompressedModeOptions SyncCompressedModeOptions { get; set; } = new();

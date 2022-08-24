@@ -3,6 +3,7 @@ using System.Text;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Exceptions.WAL;
 using Tenray.ZoneTree.Logger;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
@@ -59,19 +60,19 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         string filePath,
-        int compressionBlockSize,
-        int emptyQueuePollInterval)
+        WriteAheadLogOptions options)
     {
         Logger = logger;
         FilePath = filePath;
-        EmptyQueuePollInterval = emptyQueuePollInterval;
+        EmptyQueuePollInterval = options.AsyncCompressedModeOptions.EmptyQueuePollInterval;
         FileStream = new CompressedFileStream(
             Logger,
             fileStreamProvider,
             filePath,
-            compressionBlockSize,
+            options.CompressionBlockSize,
             false,
-            0);
+            0,
+            options.CompressionMethod);
         BinaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
         FileStream.Seek(0, SeekOrigin.End);
         FileStreamProvider = fileStreamProvider;

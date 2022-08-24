@@ -9,6 +9,8 @@ namespace Tenray.ZoneTree.Core;
 
 public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 {
+    const CompressionMethod MetaWALCompressionMethod = CompressionMethod.None;
+
     const int ZoneTreeMetaId = 0;
 
     const string MetaWalCategory = ".meta.wal";
@@ -29,7 +31,9 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         {
             Device = Options
                 .RandomAccessDeviceManager
-                .GetReadOnlyDevice(ZoneTreeMetaId, MetaWalCategory, false, 0, 0);
+                .GetReadOnlyDevice(
+                    ZoneTreeMetaId, MetaWalCategory, false, 0, 0,
+                    MetaWALCompressionMethod);
         }
         else
         {
@@ -37,7 +41,8 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             Device = Options
                 .RandomAccessDeviceManager
                 .CreateWritableDevice(ZoneTreeMetaId, 
-                MetaWalCategory, false, 0, 0, false, false);
+                    MetaWalCategory, false, 0, 0, false, false,
+                    MetaWALCompressionMethod);
         }
     }
 
@@ -206,7 +211,9 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         IRandomAccessDeviceManager deviceManager)
     {
         using var device = deviceManager
-            .GetReadOnlyDevice(ZoneTreeMetaId, MetaFileCategory, false, 0, 0); 
+            .GetReadOnlyDevice(
+                ZoneTreeMetaId, MetaFileCategory, false, 0, 0,
+                MetaWALCompressionMethod); 
         if (device.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(device.Length, int.MaxValue);
         var bytes = device.GetBytes(0, (int)device.Length);
