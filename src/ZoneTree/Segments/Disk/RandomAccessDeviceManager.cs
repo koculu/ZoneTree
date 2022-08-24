@@ -1,4 +1,5 @@
 ﻿using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Logger;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 

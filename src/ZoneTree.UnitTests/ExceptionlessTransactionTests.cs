@@ -1,5 +1,6 @@
 ﻿using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.Transactional;
 
@@ -70,7 +71,7 @@ public class ExceptionlessTransactionTests
                 // to prevent sleep intervals sum up on replacement.
                 if (compactionThreshold == 0)
                 {
-                    x.WriteAheadLogMode = WAL.WriteAheadLogMode.Sync;
+                    x.WriteAheadLogMode = WriteAheadLogMode.Sync;
                     x.AsyncCompressedModeOptions.EmptyQueuePollInterval = 0;
                     x.SyncCompressedModeOptions.TailWriterJobInterval = 0;
                 }

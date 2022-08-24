@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree;
+﻿using Tenray.ZoneTree.Logger;
+
+namespace Tenray.ZoneTree;
 
 /// <summary>
 /// The interface for the core functionality of a ZoneTree.

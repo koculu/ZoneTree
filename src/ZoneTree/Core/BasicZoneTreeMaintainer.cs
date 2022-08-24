@@ -1,10 +1,10 @@
 ﻿#undef TRACE_ENABLED
 
 using System.Collections.Concurrent;
-using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Segments.Disk;
 
-namespace Tenray.ZoneTree.Maintainers;
+namespace Tenray.ZoneTree.Core;
 
 /// <summary>
 /// The maintainer for ZoneTree to control merge operations and memory compaction.
@@ -72,7 +72,7 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
     /// Sets or gets Disk Segment block cache life time.
     /// </summary>
     public long DiskSegmentBufferLifeTime { get; set; } = TimeSpan.FromSeconds(10).Ticks;
-    
+
     /// <summary>
     /// Sets or gets Periodic timer interval.
     /// </summary>

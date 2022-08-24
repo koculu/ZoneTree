@@ -1,5 +1,4 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Core;
+﻿using Tenray.ZoneTree.PresetTypes;
 
 namespace Tenray.ZoneTree.Comparers;
 

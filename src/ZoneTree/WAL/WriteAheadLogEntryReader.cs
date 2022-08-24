@@ -1,6 +1,7 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.TimSort;
+﻿using Tenray.ZoneTree.Collections.TimSort;
+using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions.WAL;
+using Tenray.ZoneTree.Logger;
 
 namespace Tenray.ZoneTree.WAL;
 

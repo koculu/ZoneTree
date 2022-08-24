@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.Text;
 using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Serializers;
 

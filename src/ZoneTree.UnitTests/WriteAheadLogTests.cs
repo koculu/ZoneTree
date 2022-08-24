@@ -1,5 +1,6 @@
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
 

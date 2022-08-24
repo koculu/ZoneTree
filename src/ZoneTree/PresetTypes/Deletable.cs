@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Tenray.ZoneTree.Core;
+namespace Tenray.ZoneTree.PresetTypes;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct Deletable<TValue>

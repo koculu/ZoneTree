@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.BTree;
+﻿using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Collections.BTree.Lock;
+using Tenray.ZoneTree.Comparers;
 
 namespace Playground.InMemoryTreeBenchmark;
 

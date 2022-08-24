@@ -1,5 +1,8 @@
-﻿namespace Tenray.ZoneTree.Core;
+﻿namespace Tenray.ZoneTree;
 
+/// <summary>
+/// The enumeration for merge results.
+/// </summary>
 public enum MergeResult
 {
     SUCCESS,

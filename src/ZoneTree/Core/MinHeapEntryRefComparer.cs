@@ -1,4 +1,4 @@
-﻿using Tenray.ZoneTree.Collections;
+﻿using Tenray.ZoneTree.Comparers;
 
 namespace Tenray.ZoneTree.Core;
 

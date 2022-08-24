@@ -3,6 +3,7 @@ using Tenray.ZoneTree;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Serializers;

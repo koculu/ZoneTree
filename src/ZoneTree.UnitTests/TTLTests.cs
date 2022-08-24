@@ -1,5 +1,5 @@
 ﻿using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.PresetTypes;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.UnitTests;

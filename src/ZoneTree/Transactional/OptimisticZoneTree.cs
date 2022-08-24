@@ -3,6 +3,7 @@ using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Logger;
 
 namespace Tenray.ZoneTree.Transactional;
 

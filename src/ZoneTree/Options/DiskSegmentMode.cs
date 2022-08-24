@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Core;
+﻿namespace Tenray.ZoneTree;
 
 /// <summary>
 /// Available Disk Segment Modes.

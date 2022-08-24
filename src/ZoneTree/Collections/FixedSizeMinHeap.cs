@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Collections;
+﻿using Tenray.ZoneTree.Comparers;
+
+namespace Tenray.ZoneTree.Collections;
 
 public class FixedSizeMinHeap<TKey>
 {

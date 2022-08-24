@@ -1,6 +1,7 @@
 ﻿#undef USE_NODE_IDS
 
 using Tenray.ZoneTree.Collections.BTree.Lock;
+using Tenray.ZoneTree.Comparers;
 
 namespace Tenray.ZoneTree.Collections.BTree;
 

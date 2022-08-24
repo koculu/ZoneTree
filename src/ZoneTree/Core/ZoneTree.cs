@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments;
 using Tenray.ZoneTree.Segments.Disk;

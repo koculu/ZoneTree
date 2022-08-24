@@ -1,5 +1,5 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.TimSort;
+﻿using Tenray.ZoneTree.Collections.TimSort;
+using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.WAL;

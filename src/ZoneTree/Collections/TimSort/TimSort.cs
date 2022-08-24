@@ -82,6 +82,7 @@
 // (i.e. when handling arrays of reference types).
 
 using System.Diagnostics;
+using Tenray.ZoneTree.Comparers;
 using static Tenray.ZoneTree.Collections.TimSort.TimSortUtils;
 
 namespace Tenray.ZoneTree.Collections.TimSort;

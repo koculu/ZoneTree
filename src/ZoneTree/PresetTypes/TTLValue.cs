@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Tenray.ZoneTree.Core;
+namespace Tenray.ZoneTree.PresetTypes;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct TTLValue<TValue>
@@ -24,7 +24,7 @@ public struct TTLValue<TValue>
 
     public bool SlideExpiration(TimeSpan timeSpan)
     {
-        var newExpiration = DateTime.UtcNow.Add(timeSpan);        
+        var newExpiration = DateTime.UtcNow.Add(timeSpan);
         if (newExpiration <= Expiration)
             return false;
         Expiration = newExpiration;

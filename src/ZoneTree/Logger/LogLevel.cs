@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Core;
+﻿namespace Tenray.ZoneTree.Logger;
 
 public enum LogLevel
 {

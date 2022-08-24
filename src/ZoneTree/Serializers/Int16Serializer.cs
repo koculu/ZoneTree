@@ -1,6 +1,4 @@
-﻿using Tenray.ZoneTree.Core;
-
-namespace Tenray.ZoneTree.Serializers;
+﻿namespace Tenray.ZoneTree.Serializers;
 
 public class Int16Serializer : ISerializer<short>
 {

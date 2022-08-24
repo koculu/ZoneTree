@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
 using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Logger;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 

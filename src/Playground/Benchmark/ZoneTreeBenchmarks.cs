@@ -1,8 +1,9 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Engines;
+using Tenray.ZoneTree;
 using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.WAL;
+using Tenray.ZoneTree.Options;
 
 namespace Playground.Benchmark;
 

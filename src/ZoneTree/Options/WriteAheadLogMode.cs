@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.WAL;
+﻿namespace Tenray.ZoneTree.Options;
 
 /// <summary>
 /// Available write ahead log modes.

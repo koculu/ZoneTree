@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Tenray.ZoneTree.Logger;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 

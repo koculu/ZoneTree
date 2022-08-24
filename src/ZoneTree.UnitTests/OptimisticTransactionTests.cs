@@ -1,8 +1,8 @@
 ﻿using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.Transactional;
-using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.UnitTests;
 
