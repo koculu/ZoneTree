@@ -101,7 +101,14 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
         long segmentId, string category, WriteAheadLogOptions options)
     {
         var walPath = Path.Combine(WalDirectory, category, segmentId + ".wal.");
-        var walMode = options.WriteAheadLogMode;        
+        var walMode = options.WriteAheadLogMode;
+        
+        // Backward Compatibility for version < 1.3.8.
+        var oldPathFormat = 
+            Path.Combine(WalDirectory, category, segmentId + ".wal");
+        if (FileStreamProvider.FileExists(oldPathFormat))
+            return (walPath, walMode);
+
         for(var i = 0; i < 3; ++i)
         {
             if (FileStreamProvider.FileExists(walPath + i))
