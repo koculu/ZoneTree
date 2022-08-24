@@ -19,6 +19,7 @@ public class ReadOnlySegmentLoader<TKey, TValue>
         var wal = Options.WriteAheadLogProvider.GetOrCreateWAL(
             segmentId,
             ZoneTree<TKey, TValue>.SegmentWalCategory,
+            Options.WriteAheadLogOptions,
             Options.KeySerializer,
             Options.ValueSerializer);
         var result = wal.ReadLogEntries(false, false, true);
@@ -40,7 +41,8 @@ public class ReadOnlySegmentLoader<TKey, TValue>
         }
         wal.MarkFrozen();
 
-        (var newKeys, var newValues) = WriteAheadLogUtility.StableSortAndCleanUpDeletedKeys(
+        (var newKeys, var newValues) = WriteAheadLogUtility
+            .StableSortAndCleanUpDeletedKeys(
             result.Keys,
             result.Values,
             Options.Comparer,

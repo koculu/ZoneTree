@@ -35,6 +35,7 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
         long segmentId,
         string category,
         IWriteAheadLogProvider writeAheadLogProvider,
+        WriteAheadLogOptions options,
         ISerializer<TKey1> key1Serializer,
         ISerializer<TKey2> key2Serializer,
         ISerializer<TValue> valueSerializer)
@@ -42,7 +43,7 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
         WriteAheadLogProvider = writeAheadLogProvider;
         var combinedSerializer = new CombinedSerializer<TKey2, TValue>(key2Serializer, valueSerializer);
         WriteAheadLog = writeAheadLogProvider
-            .GetOrCreateWAL(segmentId, category, key1Serializer, combinedSerializer);
+            .GetOrCreateWAL(segmentId, category, options, key1Serializer, combinedSerializer);
         SegmentId = segmentId;
         Category = category;
         LoadFromWriteAheadLog();

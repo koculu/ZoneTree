@@ -62,6 +62,13 @@ public class ZoneTreeOptions<TKey, TValue>
     public MarkValueDeletedDelegate<TValue> MarkValueDeleted { get; set; } = (ref TValue x) => { x = default; };
 
     /// <summary>
+    /// Write Ahead Log Options. The options will be used
+    /// for creation of new Write Ahead Logs.
+    /// Existing WALs will be created with their existing options.
+    /// </summary>
+    public WriteAheadLogOptions WriteAheadLogOptions { get; set; } = new();
+
+    /// <summary>
     /// Configures the disk segment mode.
     /// </summary>
     public DiskSegmentMode DiskSegmentMode { get; set; }

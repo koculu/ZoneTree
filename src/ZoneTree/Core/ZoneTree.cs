@@ -157,7 +157,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         ZoneTreeMeta.DiskSegment = DiskSegment.SegmentId;
         ZoneTreeMeta.ReadOnlySegments = ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray();
 
-        ZoneTreeMeta.WriteAheadLogMode = Options.WriteAheadLogProvider.WriteAheadLogMode;
+        ZoneTreeMeta.WriteAheadLogOptions = Options.WriteAheadLogOptions;
         ZoneTreeMeta.EnableDiskSegmentCompression = Options.EnableDiskSegmentCompression;
         ZoneTreeMeta.DiskSegmentCompressionBlockSize = Options.DiskSegmentCompressionBlockSize;
 }
@@ -496,7 +496,6 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             {
                 Logger.LogError(e);
                 OnMergeOperationEnded?.Invoke(this, MergeResult.FAILURE);
-                throw;
             }
             finally
             {

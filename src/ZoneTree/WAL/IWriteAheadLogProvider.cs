@@ -4,36 +4,12 @@ namespace Tenray.ZoneTree.WAL;
 
 public interface IWriteAheadLogProvider
 {
-    WriteAheadLogMode WriteAheadLogMode { get; set; }
-
-    /// <summary>
-    /// Options for sync-compressed mode.
-    /// </summary>
-    SyncCompressedModeOptions SyncCompressedModeOptions { get; }
-
-    /// <summary>
-    /// Options for async-compressed mode.
-    /// </summary>
-    AsyncCompressedModeOptions AsyncCompressedModeOptions { get; }
-
-    /// <summary>
-    /// Incremental backup is a WAL feature which moves
-    /// all WAL data to another incremental log file.
-    /// It is required to compact WAL in memory without data loss in 
-    /// persistent device.
-    /// </summary>
-    bool EnableIncrementalBackup { get; set; }
-
-    /// <summary>
-    /// WAL compressin block size.
-    /// </summary>
-    int CompressionBlockSize { get; set; }
-
     void InitCategory(string category);
 
     IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(
         long segmentId,
         string category,
+        WriteAheadLogOptions options,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerialize);
 

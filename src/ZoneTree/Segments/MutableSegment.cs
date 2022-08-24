@@ -41,13 +41,14 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         IIncrementalIdProvider indexOpProvider)
     {
         SegmentId = segmentId;
+        Options = options;
         WriteAheadLog = options.WriteAheadLogProvider
             .GetOrCreateWAL(
                 SegmentId,
                 ZoneTree<TKey, TValue>.SegmentWalCategory,
+                options.WriteAheadLogOptions,
                 options.KeySerializer,
                 options.ValueSerializer);
-        Options = options;
         Comparer = options.Comparer;
 
         BTree = new(Comparer,

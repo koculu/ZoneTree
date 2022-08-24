@@ -64,7 +64,7 @@ public class ExceptionlessTransactionTests
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x =>
+            .ConfigureWriteAheadLogOptions(x =>
             {
                 // interval sleep count set to zero
                 // to prevent sleep intervals sum up on replacement.

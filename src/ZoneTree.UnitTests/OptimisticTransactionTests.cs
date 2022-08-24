@@ -66,7 +66,7 @@ public class OptimisticTransactionTests
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
+            .ConfigureWriteAheadLogOptions(x => x.WriteAheadLogMode = walMode)
             .OpenOrCreateTransactional();
 
         Parallel.For(0, n, (x) =>
@@ -93,7 +93,7 @@ public class OptimisticTransactionTests
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
+            .ConfigureWriteAheadLogOptions(x => x.WriteAheadLogMode = walMode)
             .OpenOrCreate();
 
         Parallel.For(0, n, (x) =>

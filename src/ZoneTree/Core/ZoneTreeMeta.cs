@@ -16,8 +16,8 @@ public class ZoneTreeMeta
 
     public string ValueSerializerType { get; set; }
 
-    public WriteAheadLogMode WriteAheadLogMode { get; set; }
-    
+    public WriteAheadLogOptions WriteAheadLogOptions { get; set; }
+
     public bool EnableDiskSegmentCompression { get; set; }
 
     public int DiskSegmentCompressionBlockSize { get; set; }

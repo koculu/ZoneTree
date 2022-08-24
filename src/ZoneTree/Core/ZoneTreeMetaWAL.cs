@@ -168,7 +168,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             SegmentZero = segmentZero,
             KeySerializerType = zoneTreeMeta.KeySerializerType,
             ValueSerializerType = zoneTreeMeta.ValueSerializerType,
-            WriteAheadLogMode = zoneTreeMeta.WriteAheadLogMode,
+            WriteAheadLogOptions = zoneTreeMeta.WriteAheadLogOptions,
             EnableDiskSegmentCompression = zoneTreeMeta.EnableDiskSegmentCompression,
             DiskSegmentCompressionBlockSize = zoneTreeMeta.DiskSegmentCompressionBlockSize,
         };

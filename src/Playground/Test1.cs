@@ -21,7 +21,7 @@ public class Test1
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x =>
+            .ConfigureWriteAheadLogOptions(x =>
             {
                 x.WriteAheadLogMode = WriteAheadLogMode.Sync;
                 x.EnableIncrementalBackup = true;
@@ -82,7 +82,7 @@ public class Test1
         IZoneTree<int, string> GetZoneTree() => new ZoneTreeFactory<int, string>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x =>
+            .ConfigureWriteAheadLogOptions(x =>
             {
                 x.CompressionBlockSize = 1024 * 1024 * 20;
                 x.WriteAheadLogMode = WriteAheadLogMode.AsyncCompressed;
@@ -196,7 +196,7 @@ public class Test1
         IZoneTree<int, int> GetZoneTree() => new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x =>
+            .ConfigureWriteAheadLogOptions(x =>
             {
                 x.CompressionBlockSize = 1024 * 1024 * 20;
                 x.WriteAheadLogMode = WriteAheadLogMode.None;

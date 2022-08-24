@@ -140,7 +140,7 @@ public class FixedSizeKeyAndValueTests
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x => 
+            .ConfigureWriteAheadLogOptions(x => 
                 x.WriteAheadLogMode = WriteAheadLogMode.Sync)
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)

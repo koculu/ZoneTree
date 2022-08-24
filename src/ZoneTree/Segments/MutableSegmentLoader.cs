@@ -19,6 +19,7 @@ public class MutableSegmentLoader<TKey, TValue>
             .GetOrCreateWAL(
                 segmentId,
                 ZoneTree<TKey,TValue>.SegmentWalCategory,
+                Options.WriteAheadLogOptions,
                 Options.KeySerializer, Options.ValueSerializer);
         var result = wal.ReadLogEntries(false, false, true);
         if (!result.Success)

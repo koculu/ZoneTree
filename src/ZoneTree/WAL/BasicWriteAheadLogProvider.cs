@@ -14,17 +14,6 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public string WalDirectory { get; }
 
-    public WriteAheadLogMode WriteAheadLogMode { get; set; } 
-        = WriteAheadLogMode.AsyncCompressed;
-
-    public int CompressionBlockSize { get; set; } = 1024 * 32 * 8;
-
-    public bool EnableIncrementalBackup { get; set; }
-
-    public SyncCompressedModeOptions SyncCompressedModeOptions { get; } = new();
-
-    public AsyncCompressedModeOptions AsyncCompressedModeOptions { get; } = new();
-
     public BasicWriteAheadLogProvider(
         ILogger logger,
         IFileStreamProvider fileStreamProvider,
@@ -39,6 +28,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
     public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(
         long segmentId,
         string category,
+        WriteAheadLogOptions options,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer)
     {
@@ -48,7 +38,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
             return (IWriteAheadLog<TKey, TValue>)value;
         }
 
-        switch (WriteAheadLogMode)
+        switch (options.WriteAheadLogMode)
         {
             case WriteAheadLogMode.None:
                 return new NullWriteAheadLog<TKey, TValue>();
@@ -61,7 +51,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                         valueSerializer,
                         walPath)
                     {
-                        EnableIncrementalBackup = EnableIncrementalBackup
+                        EnableIncrementalBackup = options.EnableIncrementalBackup
                     };
                     WALTable.TryAdd(segmentId + category, wal);
                     return wal;
@@ -74,11 +64,11 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                         keySerializer,
                         valueSerializer,
                         walPath,
-                        CompressionBlockSize,
-                        SyncCompressedModeOptions.EnableTailWriterJob,
-                        SyncCompressedModeOptions.TailWriterJobInterval)
+                        options.CompressionBlockSize,
+                        options.SyncCompressedModeOptions.EnableTailWriterJob,
+                        options.SyncCompressedModeOptions.TailWriterJobInterval)
                     {
-                        EnableIncrementalBackup = EnableIncrementalBackup
+                        EnableIncrementalBackup = options.EnableIncrementalBackup
                     };
                     WALTable.TryAdd(segmentId + category, wal);
                     return wal;
@@ -92,10 +82,10 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
                         keySerializer,
                         valueSerializer,
                         walPath,
-                        CompressionBlockSize,
-                        AsyncCompressedModeOptions.EmptyQueuePollInterval)
+                        options.CompressionBlockSize,
+                        options.AsyncCompressedModeOptions.EmptyQueuePollInterval)
                     {
-                        EnableIncrementalBackup = EnableIncrementalBackup
+                        EnableIncrementalBackup = options.EnableIncrementalBackup
                     };
                     WALTable.TryAdd(segmentId + category, wal);
                     return wal;

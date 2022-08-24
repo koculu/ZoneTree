@@ -1,5 +1,8 @@
 ﻿namespace Tenray.ZoneTree.WAL;
 
+/// <summary>
+/// Available write ahead log modes.
+/// </summary>
 public enum WriteAheadLogMode
 {
     /// <summary>

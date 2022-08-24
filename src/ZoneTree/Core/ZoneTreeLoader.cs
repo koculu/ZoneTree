@@ -65,11 +65,6 @@ public class ZoneTreeLoader<TKey, TValue>
                 ZoneTreeMeta.KeySerializerType,
                 Options.KeySerializer.GetType().FullName);
 
-        if (ZoneTreeMeta.WriteAheadLogMode != Options.WriteAheadLogProvider.WriteAheadLogMode)
-            throw new WriteAheadLogModeMismatchException(
-                ZoneTreeMeta.WriteAheadLogMode,
-                Options.WriteAheadLogProvider.WriteAheadLogMode);
-
         if (ZoneTreeMeta.EnableDiskSegmentCompression != Options.EnableDiskSegmentCompression)
             throw new DiskSegmentCompressionModeMismatchException(
                 ZoneTreeMeta.EnableDiskSegmentCompression,

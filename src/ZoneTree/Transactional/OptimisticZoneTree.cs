@@ -397,7 +397,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
             var transaction = GetOrCreateTransaction(transactionId);
             TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             readWriteStamp.WriteStamp = transactionId;
-            if (Options.WriteAheadLogProvider.EnableIncrementalBackup)
+            if (Options.WriteAheadLogOptions.EnableIncrementalBackup)
             {
                 // if incremental backup is enabled,
                 // add the history record.
@@ -424,7 +424,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
             var transaction = GetOrCreateTransaction(transactionId);
             TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
             readWriteStamp.WriteStamp = transactionId;
-            if (Options.WriteAheadLogProvider.EnableIncrementalBackup)
+            if (Options.WriteAheadLogOptions.EnableIncrementalBackup)
             {
                 // if incremental backup is enabled,
                 // add the history record.

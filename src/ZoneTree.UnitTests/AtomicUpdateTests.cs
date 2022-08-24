@@ -20,7 +20,7 @@ public class AtomicUpdateTests
             .SetMutableSegmentMaxItemCount(500)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
+            .ConfigureWriteAheadLogOptions(x => x.WriteAheadLogMode = walMode)
             .OpenOrCreate();
         for (var i = 0; i < 2000; ++i)
         {
@@ -89,7 +89,7 @@ public class AtomicUpdateTests
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
+            .ConfigureWriteAheadLogOptions(x => x.WriteAheadLogMode = walMode)
             .OpenOrCreate();
         for (var i = 0; i < 2000; ++i)
         {
@@ -153,7 +153,7 @@ public class AtomicUpdateTests
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
+            .ConfigureWriteAheadLogOptions(x => x.WriteAheadLogMode = walMode)
             .OpenOrCreate();
         for (var i = 0; i < 2000; ++i)
         {
@@ -216,7 +216,7 @@ public class AtomicUpdateTests
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogProvider(x => x.WriteAheadLogMode = walMode)
+            .ConfigureWriteAheadLogOptions(x => x.WriteAheadLogMode = walMode)
             .OpenOrCreate();
         var n = 1000;
         var random = new Random();

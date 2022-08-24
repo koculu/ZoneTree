@@ -186,7 +186,7 @@ public class ZoneTree1
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .Configure(x => x.DiskSegmentMode = TestConfig.DiskSegmentMode)
-            .ConfigureWriteAheadLogProvider(x =>
+            .ConfigureWriteAheadLogOptions(x =>
             {
                 x.CompressionBlockSize = TestConfig.WALCompressionBlockSize;
                 x.WriteAheadLogMode = mode;

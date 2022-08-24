@@ -21,16 +21,17 @@ public class RecoverFile
         var options = new ZoneTreeOptions<string, string>
         {
             Logger = logger,
-            WriteAheadLogProvider = new BasicWriteAheadLogProvider(new ConsoleLogger(), fileStreamProvider, path)
-            {
-                WriteAheadLogMode = WriteAheadLogMode.AsyncCompressed
-            },
+            WriteAheadLogProvider = new BasicWriteAheadLogProvider(
+                new ConsoleLogger(), fileStreamProvider, path),
             RandomAccessDeviceManager = deviceManager,
             EnableDiskSegmentCompression = true,
             KeySerializer = new Utf8StringSerializer(),
             ValueSerializer = new Utf8StringSerializer(),
             Comparer = new StringOrdinalComparerAscending()
         };
+        options.WriteAheadLogOptions.WriteAheadLogMode
+            = WriteAheadLogMode.AsyncCompressed;
+
         var stopWatch = new Stopwatch();
         var disk = new DiskSegment<string, string>(54, options);
         disk.InitSparseArray(100);
@@ -48,10 +49,9 @@ public class RecoverFile
         var options = new ZoneTreeOptions<int, int>
         {
             Logger = logger,
-            WriteAheadLogProvider = new BasicWriteAheadLogProvider(new ConsoleLogger(), fileStreamProvider, path)
-            {
-                WriteAheadLogMode = meta.WriteAheadLogMode
-            },
+            WriteAheadLogProvider = new BasicWriteAheadLogProvider(
+                new ConsoleLogger(), fileStreamProvider, path),
+            WriteAheadLogOptions = meta.WriteAheadLogOptions,
             DiskSegmentCompressionBlockSize = meta.DiskSegmentCompressionBlockSize,
             RandomAccessDeviceManager = deviceManager,
             EnableDiskSegmentCompression = true,

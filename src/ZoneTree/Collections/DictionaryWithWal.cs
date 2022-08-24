@@ -46,7 +46,8 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
     public DictionaryWithWAL(
         long segmentId,
         string category,
-        IWriteAheadLogProvider writeAheadLogProvider,
+        IWriteAheadLogProvider writeAheadLogProvider, 
+        WriteAheadLogOptions options,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         IRefComparer<TKey> comparer,
@@ -56,7 +57,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         WriteAheadLogProvider = writeAheadLogProvider;
         Comparer = comparer;
         WriteAheadLog = writeAheadLogProvider
-            .GetOrCreateWAL(segmentId, category, keySerializer, valueSerializer);
+            .GetOrCreateWAL(segmentId, category, options, keySerializer, valueSerializer);
         SegmentId = segmentId;
         Category = category;
         IsValueDeleted = isValueDeleted;

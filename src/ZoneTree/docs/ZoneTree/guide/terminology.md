@@ -3,7 +3,7 @@
 ### Segment
 The dictionary meaning of segment is to divide something into separate parts or sections.
 In ZoneTree segments are individual groups of key-value pairs. Keys can be duplicated across segments.
-Hence the order of segments is important. A key lookup query must start from the mutable segment first. If the key is not found there, it continues in read-only segments in FIFO order. The final lookup happens in the disk segment.
+Hence the order of segments is important. A key lookup query must start from the mutable segment first. If the key is not found there, it continues in read-only segments in LIFO order. The final lookup happens in the disk segment.
 
 
 ### Mutable Segment (SegmentZero)

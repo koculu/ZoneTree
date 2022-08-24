@@ -74,6 +74,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             0,
             TxMetaCategory,
             writeAheadLogProvider,
+            options.WriteAheadLogOptions,
             new Int64Serializer(),
             new StructSerializer<TransactionMeta>(),
             new Int64ComparerAscending(),
@@ -85,6 +86,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             0,
             TxHistoryCategory,
             writeAheadLogProvider,
+            options.WriteAheadLogOptions,
             new Int64Serializer(),
             options.KeySerializer,
             combinedSerializer);
@@ -93,6 +95,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             0,
             TxDependencyCategory,
             writeAheadLogProvider,
+            options.WriteAheadLogOptions,
             new Int64Serializer(),
             new Int64Serializer(),
             new BooleanSerializer()
@@ -103,6 +106,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             0,
             TxReadWriteStampCategory,
             options.WriteAheadLogProvider,
+            options.WriteAheadLogOptions,
             options.KeySerializer,
             new StructSerializer<ReadWriteStamp>(),
             options.Comparer,

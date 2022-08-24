@@ -266,15 +266,14 @@ public class ZoneTreeFactory<TKey, TValue>
     }
 
     /// <summary>
-    /// Configures the write ahead log provider.
+    /// Configures the write ahead log options.
     /// </summary>
-    /// <param name="configure">The write ahead log provider configurator delegate</param>
+    /// <param name="configure">The write ahead log options configurator delegate</param>
     /// <returns>ZoneTree Factory</returns>
     public ZoneTreeFactory<TKey, TValue>
-        ConfigureWriteAheadLogProvider(Action<IWriteAheadLogProvider> configure)
+        ConfigureWriteAheadLogOptions(Action<WriteAheadLogOptions> configure)
     {
-        InitWriteAheadLogProvider();
-        configure(Options.WriteAheadLogProvider);
+        configure(Options.WriteAheadLogOptions);
         return this;
     }
 
