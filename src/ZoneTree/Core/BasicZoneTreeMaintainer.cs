@@ -15,7 +15,7 @@ namespace Tenray.ZoneTree.Core;
 /// </remarks>
 /// <typeparam name="TKey">The key type</typeparam>
 /// <typeparam name="TValue">The value type</typeparam>
-public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
+public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
 {
     readonly ILogger Logger;
 
@@ -114,6 +114,17 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
         Maintenance.OnSegmentZeroMovedForward += OnSegmentZeroMovedForward;
         Maintenance.OnDiskSegmentCreated += OnDiskSegmentCreated;
         Maintenance.OnMergeOperationEnded += OnMergeOperationEnded;
+        Maintenance.OnZoneTreeIsDisposing += OnZoneTreeIsDisposing;
+    }
+
+    void OnZoneTreeIsDisposing(IZoneTreeMaintenance<TKey, TValue> zoneTree)
+    {
+        Logger.LogTrace("ZoneTree is disposing. BasicZoneTreeMaintainer disposal started.");
+        PeriodicTimerCancellationTokenSource.Cancel();
+        TryCancelRunningTasks();
+        CompleteRunningTasks();
+        Dispose();
+        Logger.LogTrace("BasicZoneTreeMaintainer is disposed.");
     }
 
     void OnMergeOperationEnded(
@@ -189,6 +200,11 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
         Maintenance.TryCancelMergeOperation();
     }
 
+    public void TryCancelRunningTasks()
+    {
+        TryCancelMergeOperation();
+    }
+
     /// <summary>
     /// Waits until all merge tasks are completed.
     /// </summary>
@@ -238,5 +254,6 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IDisposable
         Maintenance.OnSegmentZeroMovedForward -= OnSegmentZeroMovedForward;
         Maintenance.OnDiskSegmentCreated -= OnDiskSegmentCreated;
         Maintenance.OnMergeOperationEnded -= OnMergeOperationEnded;
+        Maintenance.OnZoneTreeIsDisposing -= OnZoneTreeIsDisposing;
     }
 }
