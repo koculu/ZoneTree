@@ -414,7 +414,8 @@ public sealed class CompressedFileStream : Stream, IDisposable
             }
             return;
         }
-        FileStream.SetLength(0);
+        FileStream.SetLength(MetaDataSize);
+        FileStream.Position = MetaDataSize;
         TailBlock = new DecompressedBlock(TailBlock.BlockIndex, BlockSize, CompressionMethod);
         SkipToTheEnd();
         CurrentBlockPosition = 0;
