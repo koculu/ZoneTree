@@ -41,6 +41,13 @@ public class ZoneTreeLoader<TKey, TValue>
 
     void ValidateZoneTreeMeta()
     {
+        var version = ZoneTreeMeta.Version;
+        if (string.IsNullOrWhiteSpace(version) ||
+            Version.Parse(version) < new Version("1.3.8"))
+            throw new ExistingDatabaseVersionIsNotCompatibleException(
+                Version.Parse(version),
+                ZoneTreeInfo.ProductVersion);
+
         if (!string.Equals(ZoneTreeMeta.KeyType, typeof(TKey).FullName))
             throw new TreeKeyTypeMismatchException(
                 ZoneTreeMeta.KeyType,

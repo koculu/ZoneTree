@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text.Json;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
@@ -154,10 +152,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         long[] readOnlySegments,
         bool createNew = false)
     {
-        string productVersion = 
-            FileVersionInfo
-            .GetVersionInfo(Assembly.GetExecutingAssembly().Location)
-            .FileVersion;
+        string productVersion = ZoneTreeInfo.ProductVersion.ToString();
         var newZoneTreeMeta = new ZoneTreeMeta
         {
             Version = productVersion,
@@ -171,6 +166,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             ValueSerializerType = zoneTreeMeta.ValueSerializerType,
             WriteAheadLogOptions = zoneTreeMeta.WriteAheadLogOptions,
             DiskSegmentOptions = zoneTreeMeta.DiskSegmentOptions,
+            MutableSegmentMaxItemCount = zoneTreeMeta.MutableSegmentMaxItemCount,
         };
 
         var bytes = JsonSerializer.SerializeToUtf8Bytes(

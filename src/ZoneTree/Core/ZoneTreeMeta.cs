@@ -17,6 +17,8 @@ public class ZoneTreeMeta
 
     public string ValueSerializerType { get; set; }
 
+    public int MutableSegmentMaxItemCount { get; set; }
+
     public WriteAheadLogOptions WriteAheadLogOptions { get; set; }
     
     public DiskSegmentOptions DiskSegmentOptions { get; set; }

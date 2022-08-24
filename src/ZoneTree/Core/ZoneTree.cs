@@ -146,7 +146,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         IsValueDeleted = options.IsValueDeleted;
     }
 
-    private void FillZoneTreeMeta()
+    void FillZoneTreeMeta()
     {
         if (SegmentZero != null)
             ZoneTreeMeta.SegmentZero = SegmentZero.SegmentId;
@@ -157,7 +157,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         ZoneTreeMeta.ValueSerializerType = Options.ValueSerializer.GetType().FullName;
         ZoneTreeMeta.DiskSegment = DiskSegment.SegmentId;
         ZoneTreeMeta.ReadOnlySegments = ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray();
-
+        ZoneTreeMeta.MutableSegmentMaxItemCount = Options.MutableSegmentMaxItemCount;
         ZoneTreeMeta.WriteAheadLogOptions = Options.WriteAheadLogOptions;
         ZoneTreeMeta.DiskSegmentOptions = Options.DiskSegmentOptions;
     }

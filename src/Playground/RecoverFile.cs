@@ -55,7 +55,7 @@ public class RecoverFile
             Logger = logger,
             WriteAheadLogProvider = new BasicWriteAheadLogProvider(
                 new ConsoleLogger(), fileStreamProvider, path),
-            WriteAheadLogOptions = meta.WriteAheadLogOptions,            
+            WriteAheadLogOptions = meta.WriteAheadLogOptions,
             RandomAccessDeviceManager = deviceManager,            
             DiskSegmentOptions = new()
             {
@@ -68,9 +68,6 @@ public class RecoverFile
         };
         new ZoneTreeFactory<int, int>().SetOptions(options).Open();
         var stopWatch = new Stopwatch();
-        //var disk = new DiskSegment<int, int>(54, options);
-        //disk.InitSparseArray(100);
-
         Console.WriteLine("Elapsed: " + stopWatch.ElapsedMilliseconds);
     }
 }
