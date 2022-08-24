@@ -202,6 +202,11 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// ZoneTree Logger.
     /// </summary>
     ILogger Logger { get; }
+
+    /// <summary>
+    /// Creates the default ZoneTree Maintainer.
+    /// </summary>
+    IMaintainer CreateMaintainer();
 }
 
 /// <summary>

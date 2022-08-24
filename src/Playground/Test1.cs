@@ -26,7 +26,7 @@ public class Test1
                 x.EnableIncrementalBackup = true;
             })
             .OpenOrCreateTransactional();
-        using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
+        using var basicMaintainer = new ZoneTreeMaintainer<int, int>(zoneTree);
         
         Console.WriteLine("Loaded: " + stopWatch.ElapsedMilliseconds);
 
@@ -98,8 +98,7 @@ public class Test1
 
         using (var zoneTree1 = GetZoneTree())
         {
-            using var maintainer = 
-                new BasicZoneTreeMaintainer<int, string>(zoneTree1);
+            using var maintainer = zoneTree1.CreateMaintainer();
             maintainer.ThresholdForMergeOperationStart = 300000;
             for (int i = 0; i < 1_000_000; i++)
             {
@@ -208,7 +207,7 @@ public class Test1
             .OpenOrCreate();
 
         using var zoneTree1 = GetZoneTree();
-        using var maintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree1);
+        using var maintainer = zoneTree1.CreateMaintainer();
         var t1 = Task.Run(() =>
         {
             for(var i = 0; i < count; ++i)

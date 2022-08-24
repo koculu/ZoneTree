@@ -1,6 +1,4 @@
-﻿#undef TRACE_ENABLED
-
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Segments.Disk;
 
@@ -10,18 +8,20 @@ namespace Tenray.ZoneTree.Core;
 /// The maintainer for ZoneTree to control merge operations and memory compaction.
 /// </summary>
 /// <remarks>
-/// You must complete all pending tasks of this maintainer before disposing associated ZoneTree.
-/// You should not dispose ZoneTree before disposing the maintainer.
+/// You must complete or cancel all pending tasks of this maintainer
+/// before disposing.
 /// </remarks>
 /// <typeparam name="TKey">The key type</typeparam>
 /// <typeparam name="TValue">The value type</typeparam>
-public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
+public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
 {
     readonly ILogger Logger;
 
     volatile bool RestartMerge;
 
     readonly CancellationTokenSource PeriodicTimerCancellationTokenSource = new();
+
+    readonly ConcurrentDictionary<int, Thread> MergerThreads = new();
 
     /// <summary>
     /// The associated ZoneTree instance.
@@ -33,59 +33,33 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDispos
     /// </summary>
     public IZoneTreeMaintenance<TKey, TValue> Maintenance { get; }
 
-    /// <summary>
-    /// Minimum sparse array length when a new disk segment is created.
-    /// Default value is 0.
-    /// </summary>
+    /// <inheritdoc/>
     public int MinimumSparseArrayLength { get; set; } = 0;
 
-    /// <summary>
-    /// Configures sparse array step length when the disk segment length is bigger than
-    /// MinimumSparseArrayLength * SparseArrayStepLength.
-    /// The default value is 1000.
-    /// <remarks>The sparse array length reduce binary lookup range on disk segment
-    /// to reduce IO.
-    /// </remarks>
-    /// </summary>
+    /// <inheritdoc/>
     public int SparseArrayStepLength { get; set; } = 1_000;
 
-    /// <summary>
-    /// Starts merge operation when records count
-    /// in read-only segments exceeds this value.
-    /// Default value is 2M.
-    /// </summary>
+    /// <inheritdoc/>
     public int ThresholdForMergeOperationStart { get; set; } = 2_000_000;
 
-    /// <summary>
-    /// Starts merge operation when read-only segments
-    /// count exceeds this value.
-    /// Default value is 64.
-    /// </summary>
+    /// <inheritdoc/>
     public int MaximumReadOnlySegmentCount { get; set; } = 64;
 
-    /// <summary>
-    /// Enables a periodic timer to release disk segment unused block cache.
-    /// </summary>
+    /// <inheritdoc/>
     public bool EnablePeriodicTimer { get; set; } = true;
 
-    /// <summary>
-    /// Sets or gets Disk Segment block cache life time.
-    /// </summary>
+    /// <inheritdoc/>
     public long DiskSegmentBufferLifeTime { get; set; } = TimeSpan.FromSeconds(10).Ticks;
 
-    /// <summary>
-    /// Sets or gets Periodic timer interval.
-    /// </summary>
+    /// <inheritdoc/>
     public TimeSpan PeriodicTimerInterval { get; set; } = TimeSpan.FromSeconds(5);
 
-    readonly ConcurrentDictionary<int, Thread> MergerThreads = new();
-
     /// <summary>
-    /// Creates a BasicZoneTreeMaintainer.
+    /// Creates a ZoneTreeMaintainer.
     /// </summary>
     /// <param name="zoneTree">The ZoneTree</param>
     /// <param name="logger">The logger</param>
-    public BasicZoneTreeMaintainer(IZoneTree<TKey, TValue> zoneTree, ILogger logger = null)
+    public ZoneTreeMaintainer(IZoneTree<TKey, TValue> zoneTree, ILogger logger = null)
     {
         Logger = logger ?? zoneTree.Logger;
         ZoneTree = zoneTree;
@@ -96,11 +70,11 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDispos
     }
 
     /// <summary>
-    /// Creates a BasicZoneTreeMaintainer.
+    /// Creates a ZoneTreeMaintainer.
     /// </summary>
     /// <param name="zoneTree">The transactional ZoneTree</param>
     /// <param name="logger">The logger</param>
-    public BasicZoneTreeMaintainer(ITransactionalZoneTree<TKey, TValue> zoneTree, ILogger logger = null)
+    public ZoneTreeMaintainer(ITransactionalZoneTree<TKey, TValue> zoneTree, ILogger logger = null)
     {
         Logger = logger ?? zoneTree.Logger;
         ZoneTree = zoneTree.Maintenance.ZoneTree;
@@ -119,12 +93,11 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDispos
 
     void OnZoneTreeIsDisposing(IZoneTreeMaintenance<TKey, TValue> zoneTree)
     {
-        Logger.LogTrace("ZoneTree is disposing. BasicZoneTreeMaintainer disposal started.");
+        Logger.LogTrace("ZoneTree is disposing. ZoneTreeMaintainer disposal started.");
         PeriodicTimerCancellationTokenSource.Cancel();
-        TryCancelRunningTasks();
         CompleteRunningTasks();
         Dispose();
-        Logger.LogTrace("BasicZoneTreeMaintainer is disposed.");
+        Logger.LogTrace("ZoneTreeMaintainer is disposed.");
     }
 
     void OnMergeOperationEnded(
@@ -192,22 +165,13 @@ public sealed class BasicZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDispos
         }
     }
 
-    /// <summary>
-    /// Cancels active merge operation if possible.
-    /// </summary>
-    public void TryCancelMergeOperation()
+    /// <inheritdoc/>
+    public void TryCancelRunningTasks()
     {
         Maintenance.TryCancelMergeOperation();
     }
 
-    public void TryCancelRunningTasks()
-    {
-        TryCancelMergeOperation();
-    }
-
-    /// <summary>
-    /// Waits until all merge tasks are completed.
-    /// </summary>
+    /// <inheritdoc/>
     public void CompleteRunningTasks()
     {
         while (true)

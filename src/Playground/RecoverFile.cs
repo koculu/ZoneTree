@@ -23,7 +23,7 @@ public class RecoverFile
         var options = new ZoneTreeOptions<string, string>
         {
             Logger = logger,
-            WriteAheadLogProvider = new BasicWriteAheadLogProvider(
+            WriteAheadLogProvider = new WriteAheadLogProvider(
                 new ConsoleLogger(), fileStreamProvider, path),
             RandomAccessDeviceManager = deviceManager,
             DiskSegmentOptions = new()
@@ -54,7 +54,7 @@ public class RecoverFile
         var options = new ZoneTreeOptions<int, int>
         {
             Logger = logger,
-            WriteAheadLogProvider = new BasicWriteAheadLogProvider(
+            WriteAheadLogProvider = new WriteAheadLogProvider(
                 new ConsoleLogger(), fileStreamProvider, path),
             WriteAheadLogOptions = meta.WriteAheadLogOptions,
             RandomAccessDeviceManager = deviceManager,            

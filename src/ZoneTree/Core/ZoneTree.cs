@@ -959,4 +959,9 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             includeDiskSegment: false);
         return iterator;
     }
+
+    public IMaintainer CreateMaintainer()
+    {
+        return new ZoneTreeMaintainer<TKey, TValue>(this);
+    }
 }

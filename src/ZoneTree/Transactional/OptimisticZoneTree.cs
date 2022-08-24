@@ -581,4 +581,9 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
             return TransactionResult.Success();
         }
     }
+
+    public IMaintainer CreateMaintainer()
+    {
+        return new ZoneTreeMaintainer<TKey, TValue>(this);
+    }
 }

@@ -48,8 +48,8 @@ public class ZoneTreeFactory<TKey, TValue>
 
         GetWriteAheadLogProvider = (options) =>
             WalDirectory == null ? 
-            new BasicWriteAheadLogProvider(options.Logger, fileStreamProvider) :
-            new BasicWriteAheadLogProvider(options.Logger, fileStreamProvider, WalDirectory);
+            new WriteAheadLogProvider(options.Logger, fileStreamProvider) :
+            new WriteAheadLogProvider(options.Logger, fileStreamProvider, WalDirectory);
     }
 
     /// <summary>

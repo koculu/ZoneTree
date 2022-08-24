@@ -6,7 +6,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
 
-public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
+public class WriteAheadLogProvider : IWriteAheadLogProvider
 {
     readonly ILogger Logger;
 
@@ -16,7 +16,7 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
 
     public string WalDirectory { get; }
 
-    public BasicWriteAheadLogProvider(
+    public WriteAheadLogProvider(
         ILogger logger,
         IFileStreamProvider fileStreamProvider,
         string walDirectory = "data")

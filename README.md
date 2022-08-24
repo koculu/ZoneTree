@@ -119,7 +119,7 @@ Note: For small data you don't need a maintainer.
     .SetValueSerializer(new Utf8StringSerializer())
     .OpenOrCreate();
  
-  using var maintainer = new BasicZoneTreeMaintainer<int, string>(zoneTree);
+  using var maintainer = zoneTree.CreateMaintainer();
 
   // 2. Read/Write data
   zoneTree.Upsert(39, "Hello ZoneTree!");

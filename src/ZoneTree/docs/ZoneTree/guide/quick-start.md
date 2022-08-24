@@ -45,14 +45,14 @@ Big LSM Trees require maintenance tasks. ZoneTree provides the IZoneTreeMaintena
 It also comes with a default maintainer to let you focus on your business logic without wasting time with LSM details.
 You can start using the default maintainer like in the following sample code.
 Note: For small data you don't need a maintainer.
-Following sample demonstraces creating a ZoneTree database with basic maintainer and inserting 10M key-value pairs.
+Following sample demonstraces creating a ZoneTree database, creating the maintainer and inserting 10M key-value pairs.
 ```C#
 var dataPath = "data/mydatabase";
 using var zoneTree = new ZoneTreeFactory<int, int>()
     .SetDataDirectory(dataPath)
     .OpenOrCreate();
     
-using var maintainer = new BasicZoneTreeMaintainer<int, string>(zoneTree);
+using var maintainer = zoneTree.CreateMaintainer();
 for (var i = 0 ; i < 10_000_000; ++i){
    zoneTree.Insert(i, i+i);
 }

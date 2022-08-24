@@ -30,7 +30,7 @@ public class ZoneTree3
         var stopWatch = new Stopwatch();
         stopWatch.Start();
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
-        using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
+        using var basicMaintainer = new ZoneTreeMaintainer<int, int>(zoneTree);
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
         basicMaintainer.MinimumSparseArrayLength = TestConfig.MinimumSparseArrayLength;
         BenchmarkGroups.LogWithColor(
@@ -81,7 +81,7 @@ public class ZoneTree3
         var stopWatch = new Stopwatch();
         stopWatch.Start();
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
-        using var basicMaintainer = new BasicZoneTreeMaintainer<int, int>(zoneTree);
+        using var basicMaintainer = new ZoneTreeMaintainer<int, int>(zoneTree);
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
         basicMaintainer.MinimumSparseArrayLength = TestConfig.MinimumSparseArrayLength;
         BenchmarkGroups.LogWithColor(
