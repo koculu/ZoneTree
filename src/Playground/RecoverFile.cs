@@ -24,7 +24,10 @@ public class RecoverFile
             WriteAheadLogProvider = new BasicWriteAheadLogProvider(
                 new ConsoleLogger(), fileStreamProvider, path),
             RandomAccessDeviceManager = deviceManager,
-            EnableDiskSegmentCompression = true,
+            DiskSegmentOptions = new()
+            {
+                EnableDiskSegmentCompression = true
+            },
             KeySerializer = new Utf8StringSerializer(),
             ValueSerializer = new Utf8StringSerializer(),
             Comparer = new StringOrdinalComparerAscending()
@@ -51,10 +54,13 @@ public class RecoverFile
             Logger = logger,
             WriteAheadLogProvider = new BasicWriteAheadLogProvider(
                 new ConsoleLogger(), fileStreamProvider, path),
-            WriteAheadLogOptions = meta.WriteAheadLogOptions,
-            DiskSegmentCompressionBlockSize = meta.DiskSegmentCompressionBlockSize,
-            RandomAccessDeviceManager = deviceManager,
-            EnableDiskSegmentCompression = true,
+            WriteAheadLogOptions = meta.WriteAheadLogOptions,            
+            RandomAccessDeviceManager = deviceManager,            
+            DiskSegmentOptions = new()
+            {
+                DiskSegmentCompressionBlockSize = meta.DiskSegmentOptions.DiskSegmentCompressionBlockSize,
+                EnableDiskSegmentCompression = true,
+            },
             KeySerializer = new Int32Serializer(),
             ValueSerializer = new Int32Serializer(),
             Comparer = new Int32ComparerAscending()

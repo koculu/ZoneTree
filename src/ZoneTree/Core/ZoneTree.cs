@@ -158,9 +158,8 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         ZoneTreeMeta.ReadOnlySegments = ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray();
 
         ZoneTreeMeta.WriteAheadLogOptions = Options.WriteAheadLogOptions;
-        ZoneTreeMeta.EnableDiskSegmentCompression = Options.EnableDiskSegmentCompression;
-        ZoneTreeMeta.DiskSegmentCompressionBlockSize = Options.DiskSegmentCompressionBlockSize;
-}
+        ZoneTreeMeta.DiskSegmentOptions = Options.DiskSegmentOptions;
+    }
 
     public bool ContainsKey(in TKey key)
     {
@@ -541,7 +540,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
             return MergeResult.CANCELLED_BY_USER;
 
         var enableMultiPartDiskSegment =
-            Options.DiskSegmentMode == DiskSegmentMode.MultiPartDiskSegment;
+            Options.DiskSegmentOptions.DiskSegmentMode == DiskSegmentMode.MultiPartDiskSegment;
 
         var len = mergingSegments.Count;
         var diskSegmentIndex = len - 1;
@@ -591,7 +590,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         var firstKeysOfEveryPart = oldDiskSegment.GetFirstKeysOfEveryPart();
         var lastKeysOfEveryPart = oldDiskSegment.GetLastKeysOfEveryPart();
         var lastValuesOfEveryPart = oldDiskSegment.GetLastValuesOfEveryPart();
-        var diskSegmentMinimumRecordCount = Options.DiskSegmentMinimumRecordCount;
+        var diskSegmentMinimumRecordCount = Options.DiskSegmentOptions.DiskSegmentMinimumRecordCount;
 
         var dropCount = 0;
         var skipCount = 0;

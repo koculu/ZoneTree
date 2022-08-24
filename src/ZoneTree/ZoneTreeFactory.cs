@@ -119,7 +119,7 @@ public class ZoneTreeFactory<TKey, TValue>
     public ZoneTreeFactory<TKey, TValue>
         SetDiskSegmentCompression(bool enabled)
     {
-        Options.EnableDiskSegmentCompression = enabled;
+        Options.DiskSegmentOptions.EnableDiskSegmentCompression = enabled;
         return this;
     }
 
@@ -136,7 +136,7 @@ public class ZoneTreeFactory<TKey, TValue>
             throw new Exception("Compression Block size cannot be smaller than 8KB");
         if (blockSize > 1024 * 1024 * 1024)
             throw new Exception("Compression Block size cannot be greater than 1GB");
-        Options.DiskSegmentCompressionBlockSize = blockSize;
+        Options.DiskSegmentOptions.DiskSegmentCompressionBlockSize = blockSize;
         return this;
     }
 
@@ -161,7 +161,7 @@ public class ZoneTreeFactory<TKey, TValue>
     {
         if (diskSegmentBlockCacheLimit < 1)
             diskSegmentBlockCacheLimit = 1;
-        Options.DiskSegmentBlockCacheLimit = diskSegmentBlockCacheLimit;
+        Options.DiskSegmentOptions.DiskSegmentBlockCacheLimit = diskSegmentBlockCacheLimit;
         return this;
     }
 
@@ -277,6 +277,17 @@ public class ZoneTreeFactory<TKey, TValue>
         return this;
     }
 
+    /// <summary>
+    /// Configures the disk segment options.
+    /// </summary>
+    /// <param name="configure">The disk segment options configurator delegate</param>
+    /// <returns>ZoneTree Factory</returns>
+    public ZoneTreeFactory<TKey, TValue>
+        ConfigureDiskSegmentOptions(Action<DiskSegmentOptions> configure)
+    {
+        configure(Options.DiskSegmentOptions);
+        return this;
+    }
     /// <summary>
     /// Configures the transaction log.
     /// </summary>

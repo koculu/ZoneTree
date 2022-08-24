@@ -33,12 +33,12 @@ public class ZoneTreeLoader<TKey, TValue>
         ValidateZoneTreeMeta();
     }
 
-    private void SetMaximumSegmentId(long newId)
+    void SetMaximumSegmentId(long newId)
     {
         maximumSegmentId = Math.Max(maximumSegmentId, newId);
     }
 
-    private void ValidateZoneTreeMeta()
+    void ValidateZoneTreeMeta()
     {
         if (!string.Equals(ZoneTreeMeta.KeyType, typeof(TKey).FullName))
             throw new TreeKeyTypeMismatchException(
@@ -64,16 +64,6 @@ public class ZoneTreeLoader<TKey, TValue>
             throw new TreeValueSerializerTypeMismatchException(
                 ZoneTreeMeta.KeySerializerType,
                 Options.KeySerializer.GetType().FullName);
-
-        if (ZoneTreeMeta.EnableDiskSegmentCompression != Options.EnableDiskSegmentCompression)
-            throw new DiskSegmentCompressionModeMismatchException(
-                ZoneTreeMeta.EnableDiskSegmentCompression,
-                Options.EnableDiskSegmentCompression);
-
-        if (ZoneTreeMeta.DiskSegmentCompressionBlockSize != Options.DiskSegmentCompressionBlockSize)
-            throw new DiskSegmentCompressionBlockSizeMismatchException(
-                ZoneTreeMeta.DiskSegmentCompressionBlockSize,
-                Options.DiskSegmentCompressionBlockSize);
     }
 
     void LoadZoneTreeMetaWAL()

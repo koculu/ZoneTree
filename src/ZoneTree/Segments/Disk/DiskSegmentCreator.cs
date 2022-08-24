@@ -43,23 +43,23 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         HasFixedSizeKey = !RuntimeHelpers.IsReferenceOrContainsReferences<TKey>();
         HasFixedSizeValue = !RuntimeHelpers.IsReferenceOrContainsReferences<TValue>();
         HasFixedSizeKeyAndValue = HasFixedSizeKey && HasFixedSizeValue;
-
+        var diskOptions = options.DiskSegmentOptions;
         if (!HasFixedSizeKeyAndValue)
             DataHeaderDevice = randomDeviceManager
                 .CreateWritableDevice(
                     SegmentId,
                     DiskSegmentConstants.DataHeaderCategory,
-                    options.EnableDiskSegmentCompression,
-                    options.DiskSegmentCompressionBlockSize,
-                    options.DiskSegmentBlockCacheLimit,
+                    diskOptions.EnableDiskSegmentCompression,
+                    diskOptions.DiskSegmentCompressionBlockSize,
+                    diskOptions.DiskSegmentBlockCacheLimit,
                     true, false);
         DataDevice = randomDeviceManager
             .CreateWritableDevice(
                 SegmentId,
                 DiskSegmentConstants.DataCategory,
-                options.EnableDiskSegmentCompression,
-                options.DiskSegmentCompressionBlockSize,
-                options.DiskSegmentBlockCacheLimit,
+                diskOptions.EnableDiskSegmentCompression,
+                diskOptions.DiskSegmentCompressionBlockSize,
+                diskOptions.DiskSegmentBlockCacheLimit,
                 true, false);
         Options = options;
     }

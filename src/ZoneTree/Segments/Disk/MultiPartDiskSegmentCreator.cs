@@ -55,16 +55,16 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
         Options = options;
         IncrementalIdProvider = incrementalIdProvider;
         NextCreator = new(options, incrementalIdProvider);
-        DiskSegmentMaximumRecordCount = Options.DiskSegmentMaximumRecordCount;
-        DiskSegmentMinimumRecordCount = Options.DiskSegmentMinimumRecordCount;
+        DiskSegmentMaximumRecordCount = Options.DiskSegmentOptions.DiskSegmentMaximumRecordCount;
+        DiskSegmentMinimumRecordCount = Options.DiskSegmentOptions.DiskSegmentMinimumRecordCount;
         SetNextMaximumRecordCount();
     }
 
     void SetNextMaximumRecordCount()
     {
         NextMaximumRecordCount = Random.Next(
-            Options.DiskSegmentMinimumRecordCount,
-            Options.DiskSegmentMaximumRecordCount);
+            Options.DiskSegmentOptions.DiskSegmentMinimumRecordCount,
+            Options.DiskSegmentOptions.DiskSegmentMaximumRecordCount);
     }
     
     public void Append(TKey key, TValue value, IteratorPosition iteratorPosition)

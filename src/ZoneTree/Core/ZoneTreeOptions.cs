@@ -62,51 +62,19 @@ public class ZoneTreeOptions<TKey, TValue>
     public MarkValueDeletedDelegate<TValue> MarkValueDeleted { get; set; } = (ref TValue x) => { x = default; };
 
     /// <summary>
-    /// Write Ahead Log Options. The options will be used
+    /// Write Ahead Log Options. The options is being used
     /// for creation of new Write Ahead Logs.
-    /// Existing WALs will be created with their existing options.
+    /// Existing WALs is being created with their existing options.
     /// </summary>
     public WriteAheadLogOptions WriteAheadLogOptions { get; set; } = new();
 
     /// <summary>
-    /// Configures the disk segment mode.
+    /// Disk Segment options. The options is being used 
+    /// for creation of new disk segments.
+    /// Existing disk segments is being created with
+    /// their existing options.
     /// </summary>
-    public DiskSegmentMode DiskSegmentMode { get; set; }
-        = DiskSegmentMode.MultiPartDiskSegment;
-
-    /// <summary>
-    /// Configures the disk segment compression. Default is true.
-    /// </summary>
-    public bool EnableDiskSegmentCompression { get; set; } = true;
-
-    /// <summary>
-    /// The disk segment compression block size.
-    /// Default: 10 MB
-    /// </summary>
-    public int DiskSegmentCompressionBlockSize { get; set; } = 1024 * 1024 * 10;
-
-    /// <summary>
-    /// The disk segment block cache limit.
-    /// A disk segment cannot have more cache blocks than the limit.
-    /// Total memory space that block cache can take is
-    /// = DiskSegmentCompressionBlockSize X DiskSegmentBlockCacheLimit
-    /// Default: 1024 * 1024 * 10 * 32 = 320 MB
-    /// </summary>
-    public int DiskSegmentBlockCacheLimit { get; set; } = 32;
-
-    /// <summary>
-    /// If MultiPartDiskSegment mode is enabled, it is the upper bound 
-    /// record count of a disk segment.
-    /// A disk segment cannot have record count more than this value.
-    /// </summary>
-    public int DiskSegmentMaximumRecordCount { get; set; } = 3_000_000;
-
-    /// <summary>
-    /// If MultiPartDiskSegment mode is enabled,
-    /// the minimum record count cannot be lower than this value
-    /// unless there isn't enough records.
-    /// </summary>
-    public int DiskSegmentMinimumRecordCount { get; set; } = 1_500_000;
+    public DiskSegmentOptions DiskSegmentOptions { get; set; } = new();
 
     /// <summary>
     /// Controls lock granularity of in memory BTree that represents

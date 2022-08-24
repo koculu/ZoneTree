@@ -87,7 +87,7 @@ public class Test1
                 x.CompressionBlockSize = 1024 * 1024 * 20;
                 x.WriteAheadLogMode = WriteAheadLogMode.AsyncCompressed;
             })
-            .Configure(x =>
+            .ConfigureDiskSegmentOptions(x =>
             {
                 x.EnableDiskSegmentCompression = true;
                 x.DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
@@ -201,7 +201,7 @@ public class Test1
                 x.CompressionBlockSize = 1024 * 1024 * 20;
                 x.WriteAheadLogMode = WriteAheadLogMode.None;
             })
-            .Configure(x =>
+            .ConfigureDiskSegmentOptions(x =>
             {
                 x.EnableDiskSegmentCompression = true;
                 x.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
