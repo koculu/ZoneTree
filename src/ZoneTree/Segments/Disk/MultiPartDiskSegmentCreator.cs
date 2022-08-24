@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;
@@ -55,16 +56,16 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
         Options = options;
         IncrementalIdProvider = incrementalIdProvider;
         NextCreator = new(options, incrementalIdProvider);
-        DiskSegmentMaximumRecordCount = Options.DiskSegmentOptions.DiskSegmentMaximumRecordCount;
-        DiskSegmentMinimumRecordCount = Options.DiskSegmentOptions.DiskSegmentMinimumRecordCount;
+        DiskSegmentMaximumRecordCount = Options.DiskSegmentOptions.MaximumRecordCount;
+        DiskSegmentMinimumRecordCount = Options.DiskSegmentOptions.MinimumRecordCount;
         SetNextMaximumRecordCount();
     }
 
     void SetNextMaximumRecordCount()
     {
         NextMaximumRecordCount = Random.Next(
-            Options.DiskSegmentOptions.DiskSegmentMinimumRecordCount,
-            Options.DiskSegmentOptions.DiskSegmentMaximumRecordCount);
+            Options.DiskSegmentOptions.MinimumRecordCount,
+            Options.DiskSegmentOptions.MaximumRecordCount);
     }
     
     public void Append(TKey key, TValue value, IteratorPosition iteratorPosition)

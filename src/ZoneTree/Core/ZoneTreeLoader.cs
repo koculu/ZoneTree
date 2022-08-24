@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments;
 using Tenray.ZoneTree.Segments.Disk;
 

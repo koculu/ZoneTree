@@ -1,6 +1,6 @@
 ﻿using Tenray.ZoneTree.WAL;
 
-namespace Tenray.ZoneTree.Core;
+namespace Tenray.ZoneTree.Options;
 
 /// <summary>
 /// Write Ahead Log Options. The options will be used
@@ -17,10 +17,16 @@ public class WriteAheadLogOptions
         = WriteAheadLogMode.AsyncCompressed;
 
     /// <summary>
+    /// The custom options are reserved to be used
+    /// by custom write ahead log providers.
+    /// </summary>
+    public object CustomOptions { get; set; }
+
+    /// <summary>
     /// WAL compressin block size. New WALs will be created 
     /// based on this setting. Default value = 256 KB
     /// </summary>
-    public int CompressionBlockSize { get; set; } 
+    public int CompressionBlockSize { get; set; }
         = 1024 * 32 * 8;
 
     /// <summary>

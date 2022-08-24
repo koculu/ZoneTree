@@ -1,5 +1,6 @@
 ﻿using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.Segments;

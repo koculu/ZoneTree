@@ -3,6 +3,7 @@ using Tenray.ZoneTree;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
@@ -26,7 +27,7 @@ public class RecoverFile
             RandomAccessDeviceManager = deviceManager,
             DiskSegmentOptions = new()
             {
-                EnableDiskSegmentCompression = true
+                EnableCompression = true
             },
             KeySerializer = new Utf8StringSerializer(),
             ValueSerializer = new Utf8StringSerializer(),
@@ -58,8 +59,8 @@ public class RecoverFile
             RandomAccessDeviceManager = deviceManager,            
             DiskSegmentOptions = new()
             {
-                DiskSegmentCompressionBlockSize = meta.DiskSegmentOptions.DiskSegmentCompressionBlockSize,
-                EnableDiskSegmentCompression = true,
+                CompressionBlockSize = meta.DiskSegmentOptions.CompressionBlockSize,
+                EnableCompression = true,
             },
             KeySerializer = new Int32Serializer(),
             ValueSerializer = new Int32Serializer(),

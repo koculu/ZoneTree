@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;
@@ -49,17 +50,17 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
                 .CreateWritableDevice(
                     SegmentId,
                     DiskSegmentConstants.DataHeaderCategory,
-                    diskOptions.EnableDiskSegmentCompression,
-                    diskOptions.DiskSegmentCompressionBlockSize,
-                    diskOptions.DiskSegmentBlockCacheLimit,
+                    diskOptions.EnableCompression,
+                    diskOptions.CompressionBlockSize,
+                    diskOptions.BlockCacheLimit,
                     true, false);
         DataDevice = randomDeviceManager
             .CreateWritableDevice(
                 SegmentId,
                 DiskSegmentConstants.DataCategory,
-                diskOptions.EnableDiskSegmentCompression,
-                diskOptions.DiskSegmentCompressionBlockSize,
-                diskOptions.DiskSegmentBlockCacheLimit,
+                diskOptions.EnableCompression,
+                diskOptions.CompressionBlockSize,
+                diskOptions.BlockCacheLimit,
                 true, false);
         Options = options;
     }

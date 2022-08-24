@@ -3,8 +3,9 @@ using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.WAL;
 using Tenray.ZoneTree.Collections.BTree.Lock;
+using Tenray.ZoneTree.Core;
 
-namespace Tenray.ZoneTree.Core;
+namespace Tenray.ZoneTree.Options;
 
 /// <summary>
 /// A delegate to query value deletion state.

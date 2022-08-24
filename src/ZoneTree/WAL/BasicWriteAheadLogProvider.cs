@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.WAL;
 
@@ -103,13 +104,11 @@ public class BasicWriteAheadLogProvider : IWriteAheadLogProvider
         var walPath = Path.Combine(WalDirectory, category, segmentId + ".wal.");
         var walMode = options.WriteAheadLogMode;
         
-        // Backward Compatibility for version < 1.3.8.
-        var oldPathFormat = 
-            Path.Combine(WalDirectory, category, segmentId + ".wal");
-        if (FileStreamProvider.FileExists(oldPathFormat))
-            return (walPath, walMode);
-
-        for(var i = 0; i < 3; ++i)
+        // Sync = 0
+        // SyncCompressed = 1
+        // AsyncCompressed = 2
+        // None = 3 (no file)
+        for (var i = 0; i < 3; ++i)
         {
             if (FileStreamProvider.FileExists(walPath + i))
             {

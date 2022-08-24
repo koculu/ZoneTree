@@ -8,6 +8,7 @@ using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Serializers;
 using System.Runtime.CompilerServices;
+using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree;
 
@@ -119,7 +120,7 @@ public class ZoneTreeFactory<TKey, TValue>
     public ZoneTreeFactory<TKey, TValue>
         SetDiskSegmentCompression(bool enabled)
     {
-        Options.DiskSegmentOptions.EnableDiskSegmentCompression = enabled;
+        Options.DiskSegmentOptions.EnableCompression = enabled;
         return this;
     }
 
@@ -136,7 +137,7 @@ public class ZoneTreeFactory<TKey, TValue>
             throw new Exception("Compression Block size cannot be smaller than 8KB");
         if (blockSize > 1024 * 1024 * 1024)
             throw new Exception("Compression Block size cannot be greater than 1GB");
-        Options.DiskSegmentOptions.DiskSegmentCompressionBlockSize = blockSize;
+        Options.DiskSegmentOptions.CompressionBlockSize = blockSize;
         return this;
     }
 
@@ -161,7 +162,7 @@ public class ZoneTreeFactory<TKey, TValue>
     {
         if (diskSegmentBlockCacheLimit < 1)
             diskSegmentBlockCacheLimit = 1;
-        Options.DiskSegmentOptions.DiskSegmentBlockCacheLimit = diskSegmentBlockCacheLimit;
+        Options.DiskSegmentOptions.BlockCacheLimit = diskSegmentBlockCacheLimit;
         return this;
     }
 

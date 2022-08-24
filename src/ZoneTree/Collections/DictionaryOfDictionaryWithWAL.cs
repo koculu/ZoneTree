@@ -1,5 +1,6 @@
 ﻿using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
 

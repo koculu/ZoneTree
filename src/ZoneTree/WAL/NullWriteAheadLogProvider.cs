@@ -1,4 +1,5 @@
 ﻿using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.WAL;
 

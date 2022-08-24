@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;
@@ -73,17 +74,17 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
                 .GetReadOnlyDevice(
                     SegmentId, 
                     DiskSegmentConstants.DataHeaderCategory,
-                    diskOptions.EnableDiskSegmentCompression,
-                    diskOptions.DiskSegmentCompressionBlockSize,
-                    diskOptions.DiskSegmentBlockCacheLimit
+                    diskOptions.EnableCompression,
+                    diskOptions.CompressionBlockSize,
+                    diskOptions.BlockCacheLimit
                     );
         DataDevice = randomDeviceManager
             .GetReadOnlyDevice(
                 SegmentId,
                 DiskSegmentConstants.DataCategory,
-                diskOptions.EnableDiskSegmentCompression,
-                diskOptions.DiskSegmentCompressionBlockSize,
-                diskOptions.DiskSegmentBlockCacheLimit);
+                diskOptions.EnableCompression,
+                diskOptions.CompressionBlockSize,
+                diskOptions.BlockCacheLimit);
 
         KeySize = Unsafe.SizeOf<TKey>();
         ValueSize = Unsafe.SizeOf<TValue>();

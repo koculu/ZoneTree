@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Exceptions;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments;
 using Tenray.ZoneTree.Segments.Disk;
 
@@ -590,7 +591,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         var firstKeysOfEveryPart = oldDiskSegment.GetFirstKeysOfEveryPart();
         var lastKeysOfEveryPart = oldDiskSegment.GetLastKeysOfEveryPart();
         var lastValuesOfEveryPart = oldDiskSegment.GetLastValuesOfEveryPart();
-        var diskSegmentMinimumRecordCount = Options.DiskSegmentOptions.DiskSegmentMinimumRecordCount;
+        var diskSegmentMinimumRecordCount = Options.DiskSegmentOptions.MinimumRecordCount;
 
         var dropCount = 0;
         var skipCount = 0;

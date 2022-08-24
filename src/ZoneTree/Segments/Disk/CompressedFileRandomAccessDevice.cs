@@ -24,7 +24,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     /// Why not LRUCache?
     /// Because it is 40% slower. See thread-safe LRUBlockCache implementation.
     /// The collision problem of multiple readers of a circular block cache
-    /// can be addressed by increasing DiskSegmentBlockCacheLimit.
+    /// can be addressed by increasing BlockCacheLimit.
     /// </summary>
     readonly CircularBlockCache CircularBlockCache;
 

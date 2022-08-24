@@ -89,11 +89,11 @@ public class Test1
             })
             .ConfigureDiskSegmentOptions(x =>
             {
-                x.EnableDiskSegmentCompression = true;
+                x.EnableCompression = true;
                 x.DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
-                x.DiskSegmentCompressionBlockSize = 1024 * 1024 * 20;
-                x.DiskSegmentMinimumRecordCount = 10_000;
-                x.DiskSegmentMaximumRecordCount = 100_000;
+                x.CompressionBlockSize = 1024 * 1024 * 20;
+                x.MinimumRecordCount = 10_000;
+                x.MaximumRecordCount = 100_000;
             })
             .OpenOrCreate();
 
@@ -203,7 +203,7 @@ public class Test1
             })
             .ConfigureDiskSegmentOptions(x =>
             {
-                x.EnableDiskSegmentCompression = true;
+                x.EnableCompression = true;
                 x.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
             })
             .OpenOrCreate();
