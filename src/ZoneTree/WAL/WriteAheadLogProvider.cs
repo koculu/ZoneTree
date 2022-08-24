@@ -108,6 +108,8 @@ public class WriteAheadLogProvider : IWriteAheadLogProvider
         // None = 3 (no file)
         for (var i = 0; i < 3; ++i)
         {
+            if ((WriteAheadLogMode)i == walMode)
+                continue;
             if (FileStreamProvider.FileExists(walPath + i))
             {
                 walMode = (WriteAheadLogMode)i;
