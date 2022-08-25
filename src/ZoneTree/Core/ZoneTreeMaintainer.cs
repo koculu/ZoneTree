@@ -19,9 +19,11 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
 
     volatile bool RestartMerge;
 
-    readonly CancellationTokenSource PeriodicTimerCancellationTokenSource = new();
+    CancellationTokenSource PeriodicTimerCancellationTokenSource = new();
 
     readonly ConcurrentDictionary<int, Thread> MergerThreads = new();
+
+    volatile bool isPeriodicTimerRunning;
 
     /// <summary>
     /// The associated ZoneTree instance.
@@ -46,7 +48,15 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     public int MaximumReadOnlySegmentCount { get; set; } = 64;
 
     /// <inheritdoc/>
-    public bool EnablePeriodicTimer { get; set; } = true;
+    public bool EnablePeriodicTimer { 
+        get => isPeriodicTimerRunning;
+        set {
+            if (value && !isPeriodicTimerRunning)
+                Task.Run(StartPeriodicTimer);
+            else
+                StopPeriodicTimer();
+        }
+    }
 
     /// <inheritdoc/>
     public long DiskSegmentBufferLifeTime { get; set; } = TimeSpan.FromSeconds(10).Ticks;
@@ -58,14 +68,17 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     /// Creates a ZoneTreeMaintainer.
     /// </summary>
     /// <param name="zoneTree">The ZoneTree</param>
+    /// <param name="startPeriodicTimer">Starts periodic timer if true.</param>
     /// <param name="logger">The logger</param>
-    public ZoneTreeMaintainer(IZoneTree<TKey, TValue> zoneTree, ILogger logger = null)
+    public ZoneTreeMaintainer(IZoneTree<TKey, TValue> zoneTree, 
+        bool startPeriodicTimer = true,
+        ILogger logger = null)
     {
         Logger = logger ?? zoneTree.Logger;
         ZoneTree = zoneTree;
         Maintenance = zoneTree.Maintenance;
         AttachEvents();
-        if (EnablePeriodicTimer)
+        if (startPeriodicTimer)
             Task.Run(StartPeriodicTimer);
     }
 
@@ -192,12 +205,24 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         }
     }
 
+    void StopPeriodicTimer()
+    {
+        PeriodicTimerCancellationTokenSource.Cancel();
+        isPeriodicTimerRunning = false;
+        PeriodicTimerCancellationTokenSource = new();
+    }
+
     async Task StartPeriodicTimer()
     {
+        if (isPeriodicTimerRunning)
+            StopPeriodicTimer();
+        isPeriodicTimerRunning = true;
         var cts = PeriodicTimerCancellationTokenSource;
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+        using var timer = new PeriodicTimer(PeriodicTimerInterval);
         while (await timer.WaitForNextTickAsync(cts.Token))
         {
+            if (cts.IsCancellationRequested) 
+                break;
             var ticks = DateTime.UtcNow.Ticks - DiskSegmentBufferLifeTime;
             var releasedCount = ZoneTree.Maintenance.DiskSegment.ReleaseReadBuffers(ticks);
             Trace("Released Buffers: " + releasedCount);

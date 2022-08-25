@@ -42,6 +42,7 @@ public interface IMaintainer : IDisposable
 
     /// <summary>
     /// Enables a periodic timer to release disk segment unused block cache.
+    /// Changing this property would start or stop the periodic timer.
     /// Default value is true.
     /// </summary>
     bool EnablePeriodicTimer { get; set; }
