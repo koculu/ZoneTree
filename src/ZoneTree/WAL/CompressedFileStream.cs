@@ -260,14 +260,13 @@ public sealed class CompressedFileStream : Stream, IDisposable
             BinarySerializerHelper.FromByteArray<int>(bytes, 0);
         var compressedBlockSize = 
             BinarySerializerHelper.FromByteArray<int>(bytes, sizeof(int));
-#if DEBUG
         var blockSize = 
             BinarySerializerHelper.FromByteArray<int>(bytes, 2 * sizeof(int));
-#endif
 
         bytes = BinaryReader.ReadBytes(compressedBlockSize);
 
-        var nextBlock = DecompressedBlock.FromCompressed(blockIndex, bytes, CompressionMethod);
+        var nextBlock = DecompressedBlock
+            .FromCompressed(blockIndex, bytes, CompressionMethod, blockSize);
         CurrentBlock = nextBlock;
         return true;
     }
@@ -464,7 +463,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
                 var diff = truncatedLength - off;
                 bytes = BinaryReader.ReadBytes(compressedBlockSize);
                 var truncatedBytes = DecompressedBlock
-                    .FromCompressed(0, bytes, CompressionMethod).GetBytes(0, (int)diff);
+                    .FromCompressed(0, bytes, CompressionMethod, blockSize).GetBytes(0, (int)diff);
                 var compressedBytes = new DecompressedBlock(0, truncatedBytes, CompressionMethod).Compress();
                 FileStream.Position = physicalPosition + sizeof(int);
                 var bw = BinaryWriter;

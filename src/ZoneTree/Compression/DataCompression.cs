@@ -26,13 +26,26 @@ public static class DataCompression
         };
     }
 
-    public static byte[] Decompress(CompressionMethod method, byte[] compressedBytes)
+    public static byte[] Decompress(
+        CompressionMethod method, byte[] compressedBytes)
     {
         return method switch
         {
             CompressionMethod.LZ4 => LZ4DataCompression.Decompress(compressedBytes),
             CompressionMethod.Gzip => GZipDataCompression.Decompress(compressedBytes),
             CompressionMethod.None => compressedBytes,            
+            _ => throw new ArgumentOutOfRangeException(nameof(method)),
+        };
+    }
+
+    public static byte[] DecompressFast(
+        CompressionMethod method, byte[] compressedBytes, int decompressedLength)
+    {
+        return method switch
+        {
+            CompressionMethod.LZ4 => LZ4DataCompression.DecompressFast(compressedBytes, decompressedLength),
+            CompressionMethod.Gzip => GZipDataCompression.DecompressFast(compressedBytes, decompressedLength),
+            CompressionMethod.None => compressedBytes,
             _ => throw new ArgumentOutOfRangeException(nameof(method)),
         };
     }

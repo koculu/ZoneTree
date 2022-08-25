@@ -256,7 +256,11 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             var compressedLength = CompressedBlockLengths[blockIndex];
             compressedBytes = BinaryReader.ReadBytes(compressedLength);
         }
-        var decompressedBlock = DecompressedBlock.FromCompressed(blockIndex, compressedBytes, CompressionMethod);
+        var decompressedLength = DecompressedBlockLengths[blockIndex];
+        var decompressedBlock = DecompressedBlock
+            .FromCompressed(
+                blockIndex, compressedBytes,
+                CompressionMethod, decompressedLength);
         decompressedBlock.LastAccessTicks = Environment.TickCount64; 
         return decompressedBlock;
     }

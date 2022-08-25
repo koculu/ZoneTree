@@ -41,6 +41,9 @@ public class ReadOnlySegmentLoader<TKey, TValue>
             }
         }
         wal.MarkFrozen();
+        Options.WriteAheadLogProvider.RemoveWAL(
+            segmentId,
+            ZoneTree<TKey, TValue>.SegmentWalCategory);
 
         (var newKeys, var newValues) = WriteAheadLogUtility
             .StableSortAndCleanUpDeletedKeys(

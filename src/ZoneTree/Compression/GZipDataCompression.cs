@@ -22,4 +22,14 @@ public static class GZipDataCompression
         var decompressed = msOutput.ToArray();
         return decompressed;
     }
+
+    public static byte[] DecompressFast(byte[] compressedBytes, int decompressedLength)
+    {
+        var decompressed = new byte[decompressedLength];
+        using var msInput = new MemoryStream(compressedBytes);
+        using var msOutput = new MemoryStream(decompressed);
+        using var gzs = new GZipStream(msInput, CompressionMode.Decompress);
+        gzs.CopyTo(msOutput);
+        return decompressed;
+    }
 }

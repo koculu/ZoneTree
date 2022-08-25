@@ -59,9 +59,12 @@ public class DecompressedBlock
         return DataCompression.Compress(CompressionMethod, span);
     }
 
-    public static DecompressedBlock FromCompressed(int blockIndex, byte[] compressedBytes, CompressionMethod method)
+    public static DecompressedBlock FromCompressed(
+        int blockIndex, byte[] compressedBytes, CompressionMethod method, 
+        int decompressedLength)
     {
-        var decompressed = DataCompression.Decompress(method, compressedBytes);
+        var decompressed = DataCompression
+            .DecompressFast(method, compressedBytes, decompressedLength);
         return new DecompressedBlock(blockIndex, decompressed, method);
     }
 
