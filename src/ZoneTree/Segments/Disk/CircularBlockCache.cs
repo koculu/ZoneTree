@@ -41,7 +41,7 @@ public class CircularBlockCache
                 var existingBlockIndex = existingBlock.BlockIndex;
                 if (existingBlockIndex == blockIndex)
                     return block;
-                var now = DateTime.UtcNow.Ticks;
+                var now = Environment.TickCount64;
                 LastReplacementTicks.TryGetValue(existingBlockIndex, out var lastReplacementTicks);
                 var delta = now - lastReplacementTicks;
                 if (delta <

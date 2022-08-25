@@ -176,7 +176,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             if (MaxCachedBlockCount > 1)
                 CircularBlockCache.RemoveBlock(NextBlockIndex - 1);
         }
-        nextBlock.LastAccessTicks = DateTime.UtcNow.Ticks;
+        nextBlock.LastAccessTicks = Environment.TickCount64;
 
         var copyLength = nextBlock.Append(bytes);
         LastBlockLength = nextBlock.Length;
@@ -227,7 +227,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
             return ReadBlockAndAddToCache(blockIndex, offsetInBlock, length);
         }
-        block.LastAccessTicks = DateTime.UtcNow.Ticks;
+        block.LastAccessTicks = Environment.TickCount64;
         return block.GetBytes(offsetInBlock, length);
     }
 
@@ -252,7 +252,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             compressedBytes = BinaryReader.ReadBytes(compressedLength);
         }
         var decompressedBlock = DecompressedBlock.FromCompressed(blockIndex, compressedBytes, CompressionMethod);
-        decompressedBlock.LastAccessTicks = DateTime.UtcNow.Ticks; 
+        decompressedBlock.LastAccessTicks = Environment.TickCount64; 
         return decompressedBlock;
     }
 
