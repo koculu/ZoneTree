@@ -26,4 +26,17 @@ public static class TestConfig
     public static bool EnableParalelInserts = false;
 
     public static DiskSegmentMode DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
+
+    public static void PrintConfig()
+    {
+        Console.WriteLine($"ThresholdForMergeOperationStart: {ThresholdForMergeOperationStart}");
+        Console.WriteLine($"MutableSegmentMaxItemCount: {MutableSegmentMaxItemCount}");
+        Console.WriteLine($"EnableIncrementalBackup: {EnableIncrementalBackup}");
+        Console.WriteLine($"EnableDiskSegmentCompression: {EnableDiskSegmentCompression}");
+        Console.WriteLine($"WALCompressionBlockSize: {WALCompressionBlockSize}");
+        Console.WriteLine($"DiskCompressionBlockSize: {DiskCompressionBlockSize}");
+        Console.WriteLine($"DiskSegmentMaximumCachedBlockCount: {DiskSegmentMaximumCachedBlockCount}");
+        Console.WriteLine($"MinimumSparseArrayLength: {MinimumSparseArrayLength}");
+        Console.WriteLine($"EnableParalelInserts: {EnableParalelInserts}");
+    }
 }

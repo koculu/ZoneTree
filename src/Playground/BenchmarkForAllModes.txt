@@ -1,627 +1,636 @@
-Compression Method: LZ4
+ThresholdForMergeOperationStart: 2000000
+MutableSegmentMaxItemCount: 1000000
+EnableIncrementalBackup: False
+EnableDiskSegmentCompression: True
+WALCompressionBlockSize: 262144
+DiskCompressionBlockSize: 10485760
+DiskSegmentMaximumCachedBlockCount: 1
+MinimumSparseArrayLength: 0
+EnableParalelInserts: False
+
 --------------------------
 
 None Insert <int,int> 1M
 
-Loaded in: 74
-Completed in: 339
-Merged in: 315
+Loaded in: 77
+Completed in: 353
+Merged in: 257
 
 None Iterate <int,int> 1M
 
-Loaded in: 68
-Completed in: 299
+Loaded in: 65
+Completed in: 269
 
 --------------------------
 
 None Insert <int,int> 2M
 
-Loaded in: 5
-Completed in: 430
-Merged in: 380
+Loaded in: 4
+Completed in: 489
+Merged in: 322
 
 None Iterate <int,int> 2M
 
 Loaded in: 22
-Completed in: 359
+Completed in: 351
 
 --------------------------
 
 None Insert <int,int> 3M
 
 Loaded in: 4
-Completed in: 648
-Merged in: 524
+Completed in: 654
+Merged in: 453
 
 None Iterate <int,int> 3M
 
-Loaded in: 13
-Completed in: 479
+Loaded in: 11
+Completed in: 420
 
 --------------------------
 
 None Insert <int,int> 10M
 
 Loaded in: 4
-Completed in: 2279
-Merged in: 2532
+Completed in: 2193
+Merged in: 1946
 
 None Iterate <int,int> 10M
 
-Loaded in: 21
-Completed in: 1550
+Loaded in: 14
+Completed in: 1401
 
 --------------------------
 
 AsyncCompressed Insert <int,int> 1M
 
 Loaded in: 9
-Completed in: 267
+Completed in: 265
 Merged in: 0
 
 AsyncCompressed Iterate <int,int> 1M
 
-Loaded in: 506
-Completed in: 607
+Loaded in: 564
+Completed in: 671
 
 --------------------------
 
 AsyncCompressed Insert <int,int> 2M
 
 Loaded in: 6
-Completed in: 464
+Completed in: 491
 Merged in: 0
 
 AsyncCompressed Iterate <int,int> 2M
 
-Loaded in: 780
-Completed in: 933
+Loaded in: 744
+Completed in: 903
 
 --------------------------
 
 AsyncCompressed Insert <int,int> 3M
 
 Loaded in: 6
-Completed in: 716
+Completed in: 726
 Merged in: 0
 
 AsyncCompressed Iterate <int,int> 3M
 
-Loaded in: 820
-Completed in: 998
+Loaded in: 852
+Completed in: 1051
 
 --------------------------
 
 AsyncCompressed Insert <int,int> 10M
 
 Loaded in: 7
-Completed in: 2693
-Merged in: 2392
+Completed in: 2659
+Merged in: 1894
 
 AsyncCompressed Iterate <int,int> 10M
 
-Loaded in: 513
-Completed in: 2081
+Loaded in: 491
+Completed in: 1894
 
 --------------------------
 
 SyncCompressed Insert <int,int> 1M
 
 Loaded in: 7
-Completed in: 834
+Completed in: 804
 Merged in: 0
 
 SyncCompressed Iterate <int,int> 1M
 
-Loaded in: 457
-Completed in: 538
+Loaded in: 513
+Completed in: 573
 
 --------------------------
 
 SyncCompressed Insert <int,int> 2M
 
-Loaded in: 6
-Completed in: 1617
+Loaded in: 7
+Completed in: 1648
 Merged in: 0
 
 SyncCompressed Iterate <int,int> 2M
 
-Loaded in: 827
-Completed in: 966
+Loaded in: 755
+Completed in: 894
 
 --------------------------
 
 SyncCompressed Insert <int,int> 3M
 
 Loaded in: 6
-Completed in: 2546
+Completed in: 2512
 Merged in: 0
 
 SyncCompressed Iterate <int,int> 3M
 
-Loaded in: 864
-Completed in: 1063
+Loaded in: 839
+Completed in: 1044
 
 --------------------------
 
 SyncCompressed Insert <int,int> 10M
 
 Loaded in: 6
-Completed in: 8642
-Merged in: 2138
+Completed in: 8710
+Merged in: 1427
 
 SyncCompressed Iterate <int,int> 10M
 
-Loaded in: 532
-Completed in: 2053
+Loaded in: 477
+Completed in: 1864
 
 --------------------------
 
 Sync Insert <int,int> 1M
 
 Loaded in: 4
-Completed in: 2742
+Completed in: 2771
 Merged in: 0
 
 Sync Iterate <int,int> 1M
 
-Loaded in: 430
-Completed in: 499
+Loaded in: 433
+Completed in: 492
 
 --------------------------
 
 Sync Insert <int,int> 2M
 
 Loaded in: 4
-Completed in: 5533
+Completed in: 5618
 Merged in: 0
 
 Sync Iterate <int,int> 2M
 
-Loaded in: 636
-Completed in: 764
+Loaded in: 648
+Completed in: 802
 
 --------------------------
 
 Sync Insert <int,int> 3M
 
 Loaded in: 4
-Completed in: 8242
+Completed in: 8484
 Merged in: 0
 
 Sync Iterate <int,int> 3M
 
-Loaded in: 699
-Completed in: 879
+Loaded in: 711
+Completed in: 934
 
 --------------------------
 
 Sync Insert <int,int> 10M
 
 Loaded in: 4
-Completed in: 27497
+Completed in: 28705
 Merged in: 0
 
 Sync Iterate <int,int> 10M
 
-Loaded in: 465
-Completed in: 2018
+Loaded in: 422
+Completed in: 1880
 
 --------------------------
 
 None Insert <string,string> 1M
 
 Loaded in: 13
-Completed in: 761
-Merged in: 628
+Completed in: 795
+Merged in: 525
 
 None Iterate <string,string> 1M
 
-Loaded in: 31
-Completed in: 566
+Loaded in: 38
+Completed in: 499
 
 --------------------------
 
 None Insert <string,string> 2M
 
 Loaded in: 4
-Completed in: 1392
-Merged in: 1144
+Completed in: 1431
+Merged in: 974
 
 None Iterate <string,string> 2M
 
 Loaded in: 13
-Completed in: 1000
+Completed in: 921
 
 --------------------------
 
 None Insert <string,string> 3M
 
 Loaded in: 4
-Completed in: 2115
-Merged in: 1677
+Completed in: 2127
+Merged in: 1523
 
 None Iterate <string,string> 3M
 
-Loaded in: 21
-Completed in: 1592
+Loaded in: 26
+Completed in: 1402
 
 --------------------------
 
 None Insert <string,string> 10M
 
 Loaded in: 4
-Completed in: 7849
-Merged in: 12298
+Completed in: 7963
+Merged in: 10998
 
 None Iterate <string,string> 10M
 
 Loaded in: 36
-Completed in: 5092
+Completed in: 4561
 
 --------------------------
 
 AsyncCompressed Insert <string,string> 1M
 
-Loaded in: 7
-Completed in: 892
+Loaded in: 9
+Completed in: 921
 Merged in: 0
 
 AsyncCompressed Iterate <string,string> 1M
 
-Loaded in: 1497
-Completed in: 1622
+Loaded in: 1452
+Completed in: 1599
 
 --------------------------
 
 AsyncCompressed Insert <string,string> 2M
 
-Loaded in: 6
-Completed in: 1833
+Loaded in: 7
+Completed in: 1841
 Merged in: 0
 
 AsyncCompressed Iterate <string,string> 2M
 
-Loaded in: 2561
-Completed in: 2792
+Loaded in: 2613
+Completed in: 2850
 
 --------------------------
 
 AsyncCompressed Insert <string,string> 3M
 
 Loaded in: 6
-Completed in: 2711
+Completed in: 2692
 Merged in: 0
 
 AsyncCompressed Iterate <string,string> 3M
 
-Loaded in: 3260
-Completed in: 3613
+Loaded in: 3504
+Completed in: 3865
 
 --------------------------
 
 AsyncCompressed Insert <string,string> 10M
 
-Loaded in: 8
-Completed in: 9443
-Merged in: 10181
+Loaded in: 7
+Completed in: 9769
+Merged in: 8488
 
 AsyncCompressed Iterate <string,string> 10M
 
-Loaded in: 1755
-Completed in: 7082
+Loaded in: 1259
+Completed in: 6392
 
 --------------------------
 
 SyncCompressed Insert <string,string> 1M
 
 Loaded in: 7
-Completed in: 1752
+Completed in: 1721
 Merged in: 0
 
 SyncCompressed Iterate <string,string> 1M
 
-Loaded in: 1449
-Completed in: 1557
+Loaded in: 1476
+Completed in: 1592
 
 --------------------------
 
 SyncCompressed Insert <string,string> 2M
 
 Loaded in: 6
-Completed in: 3397
+Completed in: 3419
 Merged in: 0
 
 SyncCompressed Iterate <string,string> 2M
 
-Loaded in: 2522
-Completed in: 2734
+Loaded in: 2530
+Completed in: 2741
 
 --------------------------
 
 SyncCompressed Insert <string,string> 3M
 
 Loaded in: 6
-Completed in: 5070
+Completed in: 5284
 Merged in: 0
 
 SyncCompressed Iterate <string,string> 3M
 
-Loaded in: 3319
-Completed in: 3671
+Loaded in: 3377
+Completed in: 3741
 
 --------------------------
 
 SyncCompressed Insert <string,string> 10M
 
 Loaded in: 6
-Completed in: 19153
-Merged in: 7341
+Completed in: 18848
+Merged in: 13066
 
 SyncCompressed Iterate <string,string> 10M
 
-Loaded in: 1285
-Completed in: 6883
+Loaded in: 1867
+Completed in: 6400
 
 --------------------------
 
 Sync Insert <string,string> 1M
 
 Loaded in: 4
-Completed in: 3488
+Completed in: 3961
 Merged in: 0
 
 Sync Iterate <string,string> 1M
 
-Loaded in: 1558
-Completed in: 1662
+Loaded in: 1562
+Completed in: 1710
 
 --------------------------
 
 Sync Insert <string,string> 2M
 
 Loaded in: 4
-Completed in: 7002
+Completed in: 7856
 Merged in: 0
 
 Sync Iterate <string,string> 2M
 
-Loaded in: 2555
-Completed in: 2768
+Loaded in: 2390
+Completed in: 2604
 
 --------------------------
 
 Sync Insert <string,string> 3M
 
 Loaded in: 4
-Completed in: 10483
+Completed in: 12273
 Merged in: 0
 
 Sync Iterate <string,string> 3M
 
-Loaded in: 3047
-Completed in: 3404
+Loaded in: 3180
+Completed in: 3543
 
 --------------------------
 
 Sync Insert <string,string> 10M
 
-Loaded in: 5
-Completed in: 38727
-Merged in: 6107
+Loaded in: 4
+Completed in: 42773
+Merged in: 0
 
 Sync Iterate <string,string> 10M
 
-Loaded in: 1346
-Completed in: 6923
+Loaded in: 3939
+Completed in: 8392
 
 --------------------------
 
 None Transaction Insert <int,int> 1M
 
-Loaded in: 20
-Completed in: 663
-Merged in: 184
+Loaded in: 19
+Completed in: 673
+Merged in: 247
 
 None Transaction Iterate <int,int> 1M
 
-Loaded in: 15
-Completed in: 167
+Loaded in: 17
+Completed in: 178
 
 --------------------------
 
 None Transaction Insert <int,int> 2M
 
-Loaded in: 4
-Completed in: 1199
-Merged in: 314
+Loaded in: 6
+Completed in: 1287
+Merged in: 303
 
 None Transaction Iterate <int,int> 2M
 
-Loaded in: 19
-Completed in: 348
+Loaded in: 22
+Completed in: 335
 
 --------------------------
 
 None Transaction Insert <int,int> 3M
 
 Loaded in: 4
-Completed in: 1801
-Merged in: 460
+Completed in: 1912
+Merged in: 421
 
 None Transaction Iterate <int,int> 3M
 
 Loaded in: 14
-Completed in: 500
+Completed in: 465
 
 --------------------------
 
 None Transaction Insert <int,int> 10M
 
 Loaded in: 4
-Completed in: 5998
-Merged in: 3542
+Completed in: 6369
+Merged in: 2516
 
 None Transaction Iterate <int,int> 10M
 
-Loaded in: 24
-Completed in: 1607
+Loaded in: 20
+Completed in: 1430
 
 --------------------------
 
 AsyncCompressed Transaction Insert <int,int> 1M
 
-Loaded in: 37
-Completed in: 925
+Loaded in: 36
+Completed in: 970
 Merged in: 0
 
 AsyncCompressed Transaction Iterate <int,int> 1M
 
-Loaded in: 537
-Completed in: 620
+Loaded in: 587
+Completed in: 651
 
 --------------------------
 
 AsyncCompressed Transaction Insert <int,int> 2M
 
 Loaded in: 23
-Completed in: 1846
+Completed in: 1919
 Merged in: 0
 
 AsyncCompressed Transaction Iterate <int,int> 2M
 
-Loaded in: 828
-Completed in: 942
+Loaded in: 893
+Completed in: 1011
 
 --------------------------
 
 AsyncCompressed Transaction Insert <int,int> 3M
 
-Loaded in: 24
-Completed in: 2727
+Loaded in: 26
+Completed in: 2874
 Merged in: 0
 
 AsyncCompressed Transaction Iterate <int,int> 3M
 
-Loaded in: 858
-Completed in: 1056
+Loaded in: 926
+Completed in: 1103
 
 --------------------------
 
 AsyncCompressed Transaction Insert <int,int> 10M
 
 Loaded in: 24
-Completed in: 9608
-Merged in: 2100
+Completed in: 10091
+Merged in: 1332
 
 AsyncCompressed Transaction Iterate <int,int> 10M
 
-Loaded in: 606
-Completed in: 2119
+Loaded in: 577
+Completed in: 1970
 
 --------------------------
 
 SyncCompressed Transaction Insert <int,int> 1M
 
-Loaded in: 38
-Completed in: 4175
+Loaded in: 34
+Completed in: 4316
 Merged in: 0
 
 SyncCompressed Transaction Iterate <int,int> 1M
 
-Loaded in: 553
-Completed in: 608
+Loaded in: 564
+Completed in: 651
 
 --------------------------
 
 SyncCompressed Transaction Insert <int,int> 2M
 
-Loaded in: 21
-Completed in: 8360
+Loaded in: 24
+Completed in: 8638
 Merged in: 0
 
 SyncCompressed Transaction Iterate <int,int> 2M
 
-Loaded in: 804
-Completed in: 917
+Loaded in: 883
+Completed in: 1027
 
 --------------------------
 
 SyncCompressed Transaction Insert <int,int> 3M
 
-Loaded in: 21
-Completed in: 12605
+Loaded in: 22
+Completed in: 14846
 Merged in: 0
 
 SyncCompressed Transaction Iterate <int,int> 3M
 
-Loaded in: 937
-Completed in: 1137
+Loaded in: 870
+Completed in: 1076
 
 --------------------------
 
 SyncCompressed Transaction Insert <int,int> 10M
 
-Loaded in: 21
-Completed in: 68815
+Loaded in: 65
+Completed in: 78224
 Merged in: 0
 
 SyncCompressed Transaction Iterate <int,int> 10M
 
-Loaded in: 597
-Completed in: 2172
+Loaded in: 594
+Completed in: 1941
 
 --------------------------
 
 Sync Transaction Insert <int,int> 1M
 
-Loaded in: 22
-Completed in: 12074
+Loaded in: 23
+Completed in: 11681
 Merged in: 0
 
 Sync Transaction Iterate <int,int> 1M
 
-Loaded in: 463
-Completed in: 551
+Loaded in: 470
+Completed in: 526
 
 --------------------------
 
 Sync Transaction Insert <int,int> 2M
 
 Loaded in: 5
-Completed in: 23904
+Completed in: 23185
 Merged in: 0
 
 Sync Transaction Iterate <int,int> 2M
 
-Loaded in: 720
-Completed in: 834
+Loaded in: 717
+Completed in: 855
 
 --------------------------
 
 Sync Transaction Insert <int,int> 3M
 
-Loaded in: 8
-Completed in: 35643
+Loaded in: 5
+Completed in: 34653
 Merged in: 0
 
 Sync Transaction Iterate <int,int> 3M
 
-Loaded in: 737
-Completed in: 946
+Loaded in: 761
+Completed in: 958
 
 --------------------------
 
 Sync Transaction Insert <int,int> 10M
 
 Loaded in: 5
-Completed in: 120782
+Completed in: 117031
 Merged in: 0
 
 Sync Transaction Iterate <int,int> 10M
 
-Loaded in: 554
-Completed in: 2137
+Loaded in: 503
+Completed in: 1915
 
-D:\code\modern\ZoneTree\src\Playground\bin\Release\net6.0\Playground.exe (process 24908) exited with code 0.
+D:\code\modern\ZoneTree\src\Playground\bin\Release\net6.0\Playground.exe (process 10392) exited with code 0.
 Press any key to close this window . . .
