@@ -43,7 +43,7 @@ public class ZoneTreeLoader<TKey, TValue>
     {
         var version = ZoneTreeMeta.Version;
         if (string.IsNullOrWhiteSpace(version) ||
-            Version.Parse(version) < new Version("1.3.8"))
+            Version.Parse(version) < new Version("1.4.1"))
             throw new ExistingDatabaseVersionIsNotCompatibleException(
                 Version.Parse(version),
                 ZoneTreeInfo.ProductVersion);

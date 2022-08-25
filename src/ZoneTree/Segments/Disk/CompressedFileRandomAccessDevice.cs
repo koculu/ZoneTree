@@ -34,6 +34,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     
     readonly List<int> CompressedBlockLengths = new();
 
+    readonly List<int> DecompressedBlockLengths = new();
+
     int NextBlockIndex = 0;
 
     DecompressedBlock NextBlock;
@@ -73,9 +75,9 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         long segmentId,
         string category,
         IRandomAccessDeviceManager randomDeviceManager,
-        string filePath, 
-        bool writable, 
-        int compressionBlockSize, 
+        string filePath,
+        bool writable,
+        int compressionBlockSize,
         CompressionMethod compressionMethod,
         int fileIOBufferSize = 4096)
     {
@@ -104,16 +106,16 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             BlockSize = meta.BlockSize;
             CompressionMethod = meta.CompressionMethod;
 
-            (CompressedBlockPositions, CompressedBlockLengths) =
+            (CompressedBlockPositions,
+             CompressedBlockLengths, 
+             DecompressedBlockLengths) =
                 ReadCompressedBlockPositionsAndLengths();
             NextBlockIndex = CompressedBlockPositions.Count - 1;
             if (NextBlockIndex == -1)
                 NextBlockIndex = 0;
             else
             {
-                // TODO: Add support to read block length
-                // without reading entire block
-                LastBlockLength = ReadBlock(NextBlockIndex).Length;
+                LastBlockLength = DecompressedBlockLengths.LastOrDefault();
             }
         }
         else
@@ -194,6 +196,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         FileStream.Position = offset;
         CompressedBlockPositions.Add(offset);
         CompressedBlockLengths.Add(compressedBytes.Length);
+        DecompressedBlockLengths.Add(nextBlock.Length);
         FileStream.Write(compressedBytes);
         FileStream.Flush(true);
         CircularBlockCache.RemoveBlock(nextBlock.BlockIndex);
@@ -302,6 +305,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         NextBlockIndex = 0;
         CompressedBlockPositions.Clear();
         CompressedBlockLengths.Clear();
+        DecompressedBlockLengths.Clear();
         LastBlockLength = 0;
         CircularBlockCache.Clear();
     }
@@ -326,20 +330,24 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         FileStream.SetLength(offset);
         FileStream.Position = offset;
         var positions = CompressedBlockPositions;
-        var lengths = CompressedBlockLengths;
+        var lengths1 = CompressedBlockLengths;
+        var lengths2 = DecompressedBlockLengths;
         var len = positions.Count;
         var bw = BinaryWriter;
         for (var i = 0; i < len; ++i)
         {
             bw.Write(positions[i]);
-            bw.Write(lengths[i]);
+            bw.Write(lengths1[i]);
+            bw.Write(lengths2[i]);
         }
         bw.Write(positions.Count);
         bw.Write(offset);
         FileStream.Flush(true);
     }
 
-    (List<long> positions, List<int> lengths) ReadCompressedBlockPositionsAndLengths()
+    (List<long> positions,
+     List<int> compressedLengths,
+     List<int> decompressedLengths) ReadCompressedBlockPositionsAndLengths()
     {
         FileStream.Seek(- sizeof(int) - sizeof(long), SeekOrigin.End);
         var br = BinaryReader;
@@ -347,13 +355,15 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         var offset = br.ReadInt64();
         FileStream.Seek(offset, SeekOrigin.Begin);
         var positions = new List<long>(len);
-        var lengths = new List<int>(len);
+        var compressedLengths = new List<int>(len);
+        var decompressedLengths = new List<int>(len);
         for (var i = 0; i < len; ++i)
         {
             positions.Add(br.ReadInt64());
-            lengths.Add(br.ReadInt32());
+            compressedLengths.Add(br.ReadInt32());
+            decompressedLengths.Add(br.ReadInt32());
         }
-        return (positions, lengths);
+        return (positions, compressedLengths, decompressedLengths);
     }
 
     public int ReleaseReadBuffers(long ticks)
