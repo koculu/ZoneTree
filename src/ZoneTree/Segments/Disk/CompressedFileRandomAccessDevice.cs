@@ -50,8 +50,6 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public int ReadBufferCount => CircularBlockCache.Count;
 
-    readonly int MaxCachedBlockCount;
-
     public struct CompressedFileMeta
     {
         public int BlockSize;
@@ -81,7 +79,6 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         CompressionMethod compressionMethod,
         int fileIOBufferSize = 4096)
     {
-        MaxCachedBlockCount = maxCachedBlockCount;
         CircularBlockCache = new(logger, maxCachedBlockCount);
         FileStreamProvider = fileStreamProvider;
         SegmentId = segmentId;
@@ -114,8 +111,9 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
                 NextBlockIndex = 0;
             else
             {
-                NextBlock = ReadBlock(NextBlockIndex);
-                LastBlockLength = NextBlock.Length;
+                // TODO: Add support to read block length
+                // without reading entire block
+                LastBlockLength = ReadBlock(NextBlockIndex).Length;
             }
         }
         else
@@ -221,7 +219,9 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             Array.Copy(chunk2, 0, bytes, chunk1.Length, chunk2.Length);
             return bytes;
         }
-        if (!TryGetBlockCache(blockIndex, out var block))
+        var block = NextBlock;
+        if ((block == null || block.BlockIndex != blockIndex) &&
+            !TryGetBlockCache(blockIndex, out block))
         {
             if (blockIndex >= CompressedBlockPositions.Count)
                 return Array.Empty<byte>();
@@ -239,6 +239,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     {
         DecompressedBlock decompressedBlock = ReadBlock(blockIndex);
         CircularBlockCache.AddBlock(decompressedBlock);
+        NextBlock = decompressedBlock;
         return decompressedBlock.GetBytes(offsetInBlock, length);
     }
 
@@ -357,6 +358,11 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public int ReleaseReadBuffers(long ticks)
     {
+        if (NextBlock != null && 
+            NextBlock.LastAccessTicks <= ticks)
+        {
+            NextBlock = null;
+        }
         var removed = 0;
         var blocks = CircularBlockCache.ToArray();
         var len = blocks.Length;
