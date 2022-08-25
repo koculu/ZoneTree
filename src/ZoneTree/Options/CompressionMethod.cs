@@ -14,4 +14,9 @@ public enum CompressionMethod : byte
     /// Gzip algorithm.
     /// </summary>
     Gzip = 1,
+
+    /// <summary>
+    /// LZ4 algorithm.
+    /// </summary>
+    LZ4 = 2,
 }

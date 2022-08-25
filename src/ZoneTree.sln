@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZoneTree.UnitTests", "ZoneT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Playground", "Playground\Playground.csproj", "{12DECC58-574A-4F52-BBA1-6498910E8F36}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tenray.LZ4", "Tenray.LZ4\Tenray.LZ4.csproj", "{B2BE2931-0055-4046-BC04-7B3EFBBCB3A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,12 @@ Global
 		{12DECC58-574A-4F52-BBA1-6498910E8F36}.Release|Any CPU.Build.0 = Release|Any CPU
 		{12DECC58-574A-4F52-BBA1-6498910E8F36}.ReleaseWithDoc|Any CPU.ActiveCfg = ReleaseWithDoc|Any CPU
 		{12DECC58-574A-4F52-BBA1-6498910E8F36}.ReleaseWithDoc|Any CPU.Build.0 = ReleaseWithDoc|Any CPU
+		{B2BE2931-0055-4046-BC04-7B3EFBBCB3A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2BE2931-0055-4046-BC04-7B3EFBBCB3A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2BE2931-0055-4046-BC04-7B3EFBBCB3A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2BE2931-0055-4046-BC04-7B3EFBBCB3A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2BE2931-0055-4046-BC04-7B3EFBBCB3A1}.ReleaseWithDoc|Any CPU.ActiveCfg = Release|Any CPU
+		{B2BE2931-0055-4046-BC04-7B3EFBBCB3A1}.ReleaseWithDoc|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -10,7 +10,7 @@ namespace Tenray.ZoneTree.Segments.Disk;
 public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
     public const CompressionMethod MultiPartHeaderCompressionMethod 
-        = CompressionMethod.Gzip;
+        = CompressionMethod.LZ4;
 
     public long SegmentId { get; }
 

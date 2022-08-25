@@ -49,4 +49,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Tenray.LZ4\Tenray.LZ4.csproj" />
+  </ItemGroup>
 </Project>

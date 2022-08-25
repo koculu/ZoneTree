@@ -33,7 +33,7 @@ public class WriteAheadLogOptions
     /// The compression method for the WALs with compression enabled.
     /// Default value is Gzip;
     /// </summary>
-    public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.Gzip;
+    public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.LZ4;
 
     /// <summary>
     /// Options for sync-compressed mode.

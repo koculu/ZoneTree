@@ -28,7 +28,7 @@ public class DiskSegmentOptions
     /// <summary>
     /// The compression method if the compression is enabled.
     /// </summary>
-    public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.Gzip;
+    public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.LZ4;
 
     /// <summary>
     /// The disk segment block cache limit.
