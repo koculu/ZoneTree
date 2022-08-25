@@ -36,6 +36,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     int NextBlockIndex = 0;
 
+    DecompressedBlock NextBlock;
+
     int LastBlockLength = 0;
 
     public string FilePath { get; }
@@ -112,7 +114,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
                 NextBlockIndex = 0;
             else
             {
-                LastBlockLength = ReadBlock(NextBlockIndex).Length;
+                NextBlock = ReadBlock(NextBlockIndex);
+                LastBlockLength = NextBlock.Length;
             }
         }
         else
@@ -169,13 +172,11 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     /// <returns>Appended bytes length.</returns>
     int AppendBytesInternal(ReadOnlySpan<byte> bytes)
     {
-        if (!TryGetBlockCache(NextBlockIndex, out var nextBlock))
+        if (NextBlock == null)
         {
-            nextBlock = new DecompressedBlock(NextBlockIndex, BlockSize, CompressionMethod);
-            CircularBlockCache.AddBlock(nextBlock);
-            if (MaxCachedBlockCount > 1)
-                CircularBlockCache.RemoveBlock(NextBlockIndex - 1);
+            NextBlock = new DecompressedBlock(NextBlockIndex, BlockSize, CompressionMethod);
         }
+        var nextBlock = NextBlock;
         nextBlock.LastAccessTicks = Environment.TickCount64;
 
         var copyLength = nextBlock.Append(bytes);
@@ -200,6 +201,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         CircularBlockCache.RemoveBlock(nextBlock.BlockIndex);
         ++NextBlockIndex;
         LastBlockLength = 0;
+        NextBlock = null;
     }
 
     public byte[] GetBytes(long offset, int length)
@@ -218,7 +220,6 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             Array.Copy(chunk1, bytes, chunk1.Length);
             Array.Copy(chunk2, 0, bytes, chunk1.Length, chunk2.Length);
             return bytes;
-
         }
         if (!TryGetBlockCache(blockIndex, out var block))
         {
@@ -306,11 +307,13 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public void SealDevice()
     {
-        if (TryGetBlockCache(NextBlockIndex, out var nextBlock))
+        var nextBlock = NextBlock;
+        if (nextBlock != null)
         {
             AppendBlock(nextBlock);
             LastBlockLength = nextBlock.Length;
             --NextBlockIndex;
+            NextBlock = null;
         }
         WriteCompressedBlockPositionsAndLengths();
     }
