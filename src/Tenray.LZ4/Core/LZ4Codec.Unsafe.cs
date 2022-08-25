@@ -28,7 +28,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Tenray.LZ4.Core;
 
-#if INCLUDE_UNSAFE
 /// <summary>Unsafe LZ4 codec.</summary>
 public static partial class LZ4Codec
 {
@@ -626,4 +625,3 @@ public static partial class LZ4Codec
 
 #endregion
 }
-#endif

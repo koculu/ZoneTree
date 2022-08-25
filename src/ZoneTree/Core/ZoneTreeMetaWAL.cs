@@ -124,7 +124,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         Device = null;
     }
 
-    private void AppendRecord(in MetaWalRecord record)
+    void AppendRecord(in MetaWalRecord record)
     {
         lock (this)
         {

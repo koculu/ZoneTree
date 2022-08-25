@@ -457,7 +457,6 @@ public class LZ4Stream : Stream
             int chunk = Math.Min(count, _bufferLength - _bufferOffset);
             if (chunk > 0)
             {
-#if INCLUDE_UNSAFE
                 unsafe {
                     fixed (byte* srcPtr = _buffer) {
                         fixed (byte* dstPtr = buffer) {
@@ -465,9 +464,6 @@ public class LZ4Stream : Stream
                         }
                     }
                 }
-#else
-                Buffer.BlockCopy(_buffer, _bufferOffset, buffer, offset, chunk);
-#endif
                 _bufferOffset += chunk;
                 offset += chunk;
                 count -= chunk;
@@ -560,7 +556,6 @@ public class LZ4Stream : Stream
             int chunk = Math.Min(count, _bufferLength - _bufferOffset);
             if (chunk > 0)
             {
-#if INCLUDE_UNSAFE
                 unsafe {
                     fixed (byte* srcPtr = buffer) {
                         fixed (byte* dstPtr = _buffer) {
@@ -568,9 +563,6 @@ public class LZ4Stream : Stream
                         }
                     }
                 }
-#else
-                Buffer.BlockCopy(buffer, offset, _buffer, _bufferOffset, chunk);
-#endif
                 offset += chunk;
                 count -= chunk;
                 _bufferOffset += chunk;

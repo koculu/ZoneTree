@@ -187,7 +187,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         return false;
     }
 
-    private bool TryGetFromReadonlySegments(in TKey key, out TValue value)
+    bool TryGetFromReadonlySegments(in TKey key, out TValue value)
     {
         foreach (var segment in ReadOnlySegmentQueue.Reverse())
         {
@@ -408,7 +408,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     /// if the current segment zero is the given segment zero.
     /// </summary>
     /// <param name="segmentZero">The segment zero to move forward.</param>
-    private void MoveSegmentZeroForward(IMutableSegment<TKey, TValue> segmentZero)
+    void MoveSegmentZeroForward(IMutableSegment<TKey, TValue> segmentZero)
     {
         lock (AtomicUpdateLock)
         {
@@ -470,7 +470,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         return thread;
     }
 
-    private void StartMergeOperationInternal()
+    void StartMergeOperationInternal()
     {
         if (IsMerging)
         {
@@ -747,7 +747,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
     int TotalSkipCount;
     int TotalDropCount;
 
-    private void ReportDropFailure(IDiskSegment<TKey, TValue> ds, Exception e)
+    void ReportDropFailure(IDiskSegment<TKey, TValue> ds, Exception e)
     {
         OnCanNotDropDiskSegment?.Invoke(ds, e);
     }

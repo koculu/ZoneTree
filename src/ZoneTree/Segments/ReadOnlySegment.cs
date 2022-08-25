@@ -66,7 +66,7 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
         return index >= 0;
     }
 
-    private int BinarySearch(in TKey key)
+    int BinarySearch(in TKey key)
     {
         var list = SortedKeys;
         var comp = Comparer;

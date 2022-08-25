@@ -42,8 +42,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //    limitations under the License.
 #endregion
 
-
-// ReSharper disable InconsistentNaming
+using System.Runtime.CompilerServices;
 
 namespace Tenray.LZ4.Core;
 
@@ -191,8 +190,7 @@ public static partial class LZ4Codec
     /// </summary>
     /// <remarks>
     ///     Self-optimises to use 32 or 64 bit implementation depending on execution environment word size.
-    ///     Will use 'unsafe' implementation also, if LZ4.Portable was compiled in ReleaseUnsafe configuration 
-    ///     (uses an INCLUDE_UNSAFE directive; recommended if at all possible, as performance is much higher).
+    ///     Will use 'unsafe' implementation also, if LZ4.Portable was compiled in ReleaseUnsafe configuration     
     /// </remarks>
     /// <param name="input">Buffer containing data to be compressed.</param>
     /// <param name="inputOffset">Offset in <paramref name="input"/> to read from.</param>
@@ -202,29 +200,13 @@ public static partial class LZ4Codec
     /// <param name="outputLength">Maximum size of output to generate.</param>
     /// <param name="highCompression">If <c>true</c>, use a higher-compression but slower codec variant.</param>
     /// <returns>Number of bytes written to <paramref name="output"/> buffer.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Encode(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset, int outputLength,
         bool highCompression = false)
     {
-        switch (_platform)
-        {
-            case 32:
-                // x86 or other 32-bit word size ISA
-                return highCompression
-                    ? Encode32HC(input, inputOffset, inputLength, output, outputOffset, outputLength)
-                    : Encode32(input, inputOffset, inputLength, output, outputOffset, outputLength);
-            case 64:
-#if INCLUDE_UNSAFE
-                return highCompression ?
+        return highCompression ?
                     Encode64HC(input, inputOffset, inputLength, output, outputOffset, outputLength)
                     : Encode64(input, inputOffset, inputLength, output, outputOffset, outputLength);
-#else
-                return highCompression ?
-                    Encode32HC(input, inputOffset, inputLength, output, outputOffset, outputLength)
-                    : Encode32(input, inputOffset, inputLength, output, outputOffset, outputLength);
-#endif
-            default:
-                throw new InvalidOperationException();
-        }
     }
 
     /// <summary>
@@ -233,8 +215,7 @@ public static partial class LZ4Codec
     /// </summary>
     /// <remarks>
     ///     Self-optimises to use 32 or 64 bit implementation depending on execution environment word size.
-    ///     Will use 'unsafe' implementation also, if LZ4.Portable was compiled in ReleaseUnsafe configuration 
-    ///     (uses an INCLUDE_UNSAFE directive; recommended if at all possible, as performance is much higher).
+    ///     Will use 'unsafe' implementation also, if LZ4.Portable was compiled in ReleaseUnsafe configuration     
     /// </remarks>
     /// <param name="input">Buffer containing data to be decompressed.</param>
     /// <param name="inputOffset">Offset in <paramref name="input"/> to read from.</param>
@@ -244,24 +225,10 @@ public static partial class LZ4Codec
     /// <param name="outputLength">Maximum size of output allowable.</param>
     /// <param name="knownLength">If <c>true</c>, length of the input block is known.</param>
     /// <returns>Number of bytes written to <paramref name="output"/> buffer.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Decode(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset, int outputLength,
         bool knownLength = false)
     {
-        switch (_platform)
-        {
-            case 32:
-                // x86 or other 32-bit word size ISA
-                return Decode64(input, inputOffset, inputLength, output, outputOffset, outputLength, knownLength);
-            case 64:
-#if INCLUDE_UNSAFE
-                return Decode32(input, inputOffset, inputLength, output, outputOffset, outputLength, knownLength);
-#else
-                return Decode64(input, inputOffset, inputLength, output, outputOffset, outputLength, knownLength);
-#endif
-            default:
-                throw new InvalidOperationException();
-        }
+        return Decode32(input, inputOffset, inputLength, output, outputOffset, outputLength, knownLength);
     }
 }
-
-// ReSharper restore InconsistentNaming

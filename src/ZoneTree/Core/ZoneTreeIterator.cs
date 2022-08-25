@@ -92,12 +92,12 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
         ZoneTree.OnZoneTreeIsDisposing += OnZoneTreeIsDisposing;
     }
 
-    private void OnZoneTreeIsDisposing(IZoneTreeMaintenance<TKey, TValue> zoneTree)
+    void OnZoneTreeIsDisposing(IZoneTreeMaintenance<TKey, TValue> zoneTree)
     {
         ReleaseResources();
     }
 
-    private void OnZoneTreeSegmentZeroMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)
+    void OnZoneTreeSegmentZeroMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)
     {
         DoesRequireRefresh = true;
     }

@@ -175,7 +175,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         }
     }
 
-    private void Flush()
+    void Flush()
     {
         if (!IsDisposed)
             FileStream.Flush(true);

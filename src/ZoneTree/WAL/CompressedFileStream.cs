@@ -423,7 +423,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         WriteTail();
     }
 
-    private void TruncateFile(long truncatedLength)
+    void TruncateFile(long truncatedLength)
     {
         FileStream.Position = MetaDataSize;
         var len = FileStream.Length;
@@ -518,7 +518,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         }
     }
 
-    private void CommitTailBlock()
+    void CommitTailBlock()
     {
         if (IsClosed || !FileStream.CanWrite)
             return;

@@ -148,7 +148,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
         return diskSegment;
     }
 
-    private void WriteMultiDiskSegment()
+    void WriteMultiDiskSegment()
     {
         using var ms = new MemoryStream();
         using var bw = new BinaryWriter(ms);

@@ -93,7 +93,7 @@ public class FixedSizeMinHeap<TKey>
         }
     }
 
-    private void Swap(int i, int j)
+    void Swap(int i, int j)
     {
         (keys[j], keys[i]) = (keys[i], keys[j]);
     }
@@ -142,7 +142,7 @@ public class FixedSizeMinHeap<TKey>
         }
     }
 
-    private void HeapifyLastLeaf()
+    void HeapifyLastLeaf()
     {
         int i = count - 1;
         while (i > 0)
