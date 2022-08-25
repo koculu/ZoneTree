@@ -32,7 +32,7 @@ public class ParallelMassiveInsertTests
             RandomLongInserts.GetSortedArray(Count);
     }
 
-    long[] Data = Array.Empty<long>();
+    public long[] Data = Array.Empty<long>();
 
     [Benchmark]
     public void Parallel_BTree() => MassiveInsertsAndReadsBTree();

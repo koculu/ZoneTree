@@ -27,6 +27,7 @@ public class DiskSegmentOptions
 
     /// <summary>
     /// The compression method if the compression is enabled.
+    /// Default is LZ4.
     /// </summary>
     public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.LZ4;
 

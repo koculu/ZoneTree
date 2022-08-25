@@ -37,13 +37,13 @@ Benchmark for all modes: [benchmark](https://raw.githubusercontent.com/koculu/Zo
 
 | Insert Benchmarks                               | 1M      | 2M       | 3M         | 10M        |
 | ------------------------------------------------|---------|----------|------------|------------|
-| int-int ZoneTree async-compressed WAL                       | 343 ms  | 506 ms   | 624 ms     | 2328 ms    |
-| int-int ZoneTree sync-compressed WAL       | 885 ms  | 1821 ms  | 2737 ms    | 9250 ms    |
-| int-int ZoneTree sync WAL                  | 2791 ms | 5552 ms  | 8269 ms    | 27883 ms   |
+| int-int ZoneTree async-compressed WAL                       | 267 ms  | 464 ms   | 716 ms     | 2693 ms    |
+| int-int ZoneTree sync-compressed WAL       | 834 ms  | 1617 ms  | 2546 ms    | 8642 ms    |
+| int-int ZoneTree sync WAL                  | 2742 ms | 5533 ms  | 8242 ms    | 27497 ms   |
 ||
-| str-str ZoneTree async-compressed WAL                       | 796 ms  | 1555 ms  | 2308 ms    | 8712 ms    |
-| str-str ZoneTree sync-compressed WAL       | 1594 ms | 3187 ms  | 4866 ms    | 17451 ms   |
-| str-str ZoneTree sync WAL                  | 3617 ms | 7083 ms  | 10481 ms   | 36714 ms   |
+| str-str ZoneTree async-compressed WAL                       | 892 ms  | 1833 ms  | 2711 ms    | 9443 ms    |
+| str-str ZoneTree sync-compressed WAL       | 1752 ms | 3397 ms  | 5070 ms    | 19153 ms   |
+| str-str ZoneTree sync WAL                  | 3488 ms | 7002 ms  | 10483 ms   | 38727 ms   |
 ||
 | RocksDb sync WAL                           | NOT SUPPORTED                                |
 | int-int RocksDb sync-compressed WAL        | 8059 ms | 16188 ms | 23599 ms   | 61947 ms   |
