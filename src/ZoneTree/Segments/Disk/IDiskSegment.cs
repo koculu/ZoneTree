@@ -7,7 +7,7 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     /// <summary>
     /// Gets number of the records in the segment.
     /// </summary>
-    new int Length { get; }
+    new long Length { get; }
 
     /// <summary>
     /// Returns read buffer count.

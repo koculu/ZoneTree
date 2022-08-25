@@ -153,7 +153,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     void OnDiskSegmentCreated(IZoneTreeMaintenance<TKey, TValue> zoneTree, IDiskSegment<TKey, TValue> newDiskSegment)
     {
         var sparseArraySize = newDiskSegment.Length / SparseArrayStepLength;
-        newDiskSegment.InitSparseArray(Math.Min(MinimumSparseArrayLength, sparseArraySize));
+        newDiskSegment.InitSparseArray((int)Math.Min(MinimumSparseArrayLength, sparseArraySize));
     }
 
     void OnSegmentZeroMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)

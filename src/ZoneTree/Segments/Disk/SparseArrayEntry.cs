@@ -6,9 +6,9 @@ public class SparseArrayEntry<TKey, TValue>
 
     public readonly TValue Value;
 
-    public readonly int Index;
+    public readonly long Index;
 
-    public SparseArrayEntry(TKey key, TValue value, int index)
+    public SparseArrayEntry(TKey key, TValue value, long index)
     {
         Key = key;
         Value = value;

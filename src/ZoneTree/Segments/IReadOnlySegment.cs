@@ -6,7 +6,7 @@ public interface IReadOnlySegment<TKey, TValue>
 {
     long SegmentId { get; }
 
-    int Length { get; }
+    long Length { get; }
 
     long MaximumOpIndex { get; }
 

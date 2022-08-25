@@ -36,19 +36,19 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     /// <summary>
     /// Retrieves the number of records in read only segments.
     /// </summary>
-    int ReadOnlySegmentsRecordCount { get; }
+    long ReadOnlySegmentsRecordCount { get; }
 
     /// <summary>
     /// Retrieves the number of records in mutable segment (SegmentZero).
     /// </summary>
-    int MutableSegmentRecordCount { get; }
+    long MutableSegmentRecordCount { get; }
 
     /// <summary>
     /// Retrieves the total number of records that lies in memory
     /// excluding the sparse array records of DiskSegment.
     /// In an LSM tree, records can be duplicated across different segments.
     /// </summary>
-    int InMemoryRecordCount { get; }
+    long InMemoryRecordCount { get; }
 
     /// <summary>
     /// Retrieves the total number of records that lies in memory and disk
@@ -57,7 +57,7 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     /// Hence, this is not the actual unique record count of the tree.
     /// To get exact record count, a partial database scan is needed.
     /// </summary>
-    int TotalRecordCount { get; }
+    long TotalRecordCount { get; }
 
     /// <summary>
     /// true if merge operation is running, otherwise false.

@@ -131,7 +131,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// This operation scans the in-memory segments and queries the disk segment.
     /// </summary>
     /// <returns>Number of the valid records in the tree.</returns>
-    int Count();
+    long Count();
 
     /// <summary>
     /// Counts Keys in the entire database with a full scan.
@@ -142,7 +142,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// contains deleted records. In that case, a full scan is required for the count.
     /// </remarks>
     /// <returns>Number of the valid records in the tree.</returns>
-    int CountFullScan();
+    long CountFullScan();
 
     /// <summary>
     /// Creates an iterator that enables scanning of the entire database.

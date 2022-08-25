@@ -85,7 +85,7 @@ public class BTreeSeekableIterator<TKey, TValue>
         return HasCurrent;
     }
 
-    public void Skip(int offset)
+    public void Skip(long offset)
     {
         throw new NotSupportedException();
     }

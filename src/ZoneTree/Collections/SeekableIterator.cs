@@ -4,9 +4,9 @@ public class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 {
     readonly IIndexedReader<TKey, TValue> IndexedReader;
 
-    readonly int Length;
+    readonly long Length;
 
-    int position = -1;
+    long position = -1;
 
     public TKey CurrentKey =>
         position == -1 || position >= Length ?
@@ -78,7 +78,7 @@ public class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
         return HasCurrent;
     }
 
-    public void Skip(int offset)
+    public void Skip(long offset)
     {
         position += offset;
 

@@ -52,11 +52,11 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
 
     public int ReadOnlySegmentsCount => ReadOnlySegmentQueue.Count;
 
-    public int ReadOnlySegmentsRecordCount => ReadOnlySegmentQueue.Sum(x => x.Length);
+    public long ReadOnlySegmentsRecordCount => ReadOnlySegmentQueue.Sum(x => x.Length);
 
-    public int MutableSegmentRecordCount => SegmentZero.Length;
+    public long MutableSegmentRecordCount => SegmentZero.Length;
 
-    public int InMemoryRecordCount
+    public long InMemoryRecordCount
     {
         get
         {
@@ -67,7 +67,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         }
     }
 
-    public int TotalRecordCount
+    public long TotalRecordCount
     {
         get
         {
@@ -419,7 +419,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
                 return;
 
             //Don't move empty segment zero.
-            int c = segmentZero.Length;
+            var c = segmentZero.Length;
             if (c == 0)
                 return;
 
@@ -775,7 +775,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         Options.RandomAccessDeviceManager.DropStore();
     }
 
-    public int Count()
+    public long Count()
     {
         var iterator = CreateInMemorySegmentsIterator(
             autoRefresh: false,
@@ -810,7 +810,7 @@ public sealed class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeM
         return count;
     }
 
-    public int CountFullScan()
+    public long CountFullScan()
     {
         var iterator = CreateIterator(IteratorType.NoRefresh, false);
         var count = 0;

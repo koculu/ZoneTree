@@ -22,7 +22,7 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
 
     readonly IWriteAheadLog<TKey, TValue> WriteAheadLog;
 
-    public int Length => SortedKeys.Count;
+    public long Length => SortedKeys.Count;
 
     public bool IsFullyFrozen => true;
 
@@ -94,14 +94,14 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
         return -1;
     }
 
-    public TKey GetKey(int index)
+    public TKey GetKey(long index)
     {
-        return SortedKeys[index];
+        return SortedKeys[(int)index];
     }
 
-    public TValue GetValue(int index)
+    public TValue GetValue(long index)
     {
-        return SortedValues[index];
+        return SortedValues[(int)index];
     }
 
     public void Drop()
@@ -125,14 +125,14 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
     /// </summary>
     /// <param name="key">The key</param>
     /// <returns>-1 or a valid position</returns>
-    public int GetLastSmallerOrEqualPosition(in TKey key)
+    public long GetLastSmallerOrEqualPosition(in TKey key)
     {
         var x = GetFirstGreaterOrEqualPosition(in key);
         if (x == -1)
             return -1;
         if (x == SortedKeys.Count)
             return x - 1;
-        if (Comparer.Compare(in key, SortedKeys[x]) == 0)
+        if (Comparer.Compare(in key, SortedKeys[(int)x]) == 0)
             return x;
         return x - 1;
     }
@@ -142,7 +142,7 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
     /// </summary>
     /// <param name="key">The key</param>
     /// <returns>The length of the segment or a valid position</returns>
-    public int GetFirstGreaterOrEqualPosition(in TKey key)
+    public long GetFirstGreaterOrEqualPosition(in TKey key)
     {
         // This is the lower bound algorithm.
         var list = SortedKeys;
@@ -165,9 +165,9 @@ public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIn
         WriteAheadLog?.Dispose();
     }
 
-    public bool IsBeginningOfAPart(int index) => false;
+    public bool IsBeginningOfAPart(long index) => false;
 
-    public bool IsEndOfAPart(int index) => false;
+    public bool IsEndOfAPart(long index) => false;
 
-    public int GetPartIndex(int index) => -1;
+    public int GetPartIndex(long index) => -1;
 }

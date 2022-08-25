@@ -2,21 +2,21 @@
 
 public interface IIndexedReader<TKey, TValue>
 {
-    int Length { get; }
+    long Length { get; }
 
-    TKey GetKey(int index);
+    TKey GetKey(long index);
 
-    TValue GetValue(int index);
+    TValue GetValue(long index);
 
-    int GetLastSmallerOrEqualPosition(in TKey key);
+    long GetLastSmallerOrEqualPosition(in TKey key);
 
-    int GetFirstGreaterOrEqualPosition(in TKey key);
+    long GetFirstGreaterOrEqualPosition(in TKey key);
 
-    bool IsBeginningOfAPart(int index);
+    bool IsBeginningOfAPart(long index);
 
-    bool IsEndOfAPart(int index);
+    bool IsEndOfAPart(long index);
     
-    int GetPartIndex(int index);
+    int GetPartIndex(long index);
 }
 
 

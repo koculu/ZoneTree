@@ -133,7 +133,7 @@ public class FixedSizeKeyAndValueTests
         data.Maintenance.DestroyTree();
     }
 
-    private void ReloadIntIntTreeTestHelper(string dataPath, bool destroy)
+    static void ReloadIntIntTreeTestHelper(string dataPath, bool destroy)
     {
         using var data = new ZoneTreeFactory<int, int>()
             .SetMutableSegmentMaxItemCount(5)

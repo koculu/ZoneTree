@@ -47,7 +47,7 @@ public class NullDiskSegmentSeekableIterator<TKey, TValue> : ISeekableIterator<T
         return false;
     }
 
-    public void Skip(int offset)
+    public void Skip(long offset)
     {
         throw new NotSupportedException();
     }

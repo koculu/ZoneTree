@@ -32,7 +32,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public bool IsFullyFrozen => IsFrozenFlag && BTree.IsReadOnly;
 
-    public int Length => BTree.Length;
+    public long Length => BTree.Length;
 
     public long MaximumOpIndex => BTree.GetLastOpIndex();
 

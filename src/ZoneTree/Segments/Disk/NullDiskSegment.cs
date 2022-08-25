@@ -4,7 +4,7 @@ namespace Tenray.ZoneTree.Segments.Disk;
 
 public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
-    public int Length => 0;
+    public long Length => 0;
 
     public long MaximumOpIndex => 0;
 
@@ -21,12 +21,12 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return false;
     }
 
-    public TKey GetKey(int index)
+    public TKey GetKey(long index)
     {
         throw new IndexOutOfRangeException();
     }
 
-    public TValue GetValue(int index)
+    public TValue GetValue(long index)
     {
         throw new IndexOutOfRangeException();
     }
@@ -93,12 +93,12 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         // Nothing to remove
     }
 
-    public int GetLastSmallerOrEqualPosition(in TKey key)
+    public long GetLastSmallerOrEqualPosition(in TKey key)
     {
         return -1;
     }
 
-    public int GetFirstGreaterOrEqualPosition(in TKey key)
+    public long GetFirstGreaterOrEqualPosition(in TKey key)
     {
         return -1;
     }
@@ -122,10 +122,10 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     {
     }
 
-    public bool IsBeginningOfAPart(int index) => false;
+    public bool IsBeginningOfAPart(long index) => false;
 
-    public bool IsEndOfAPart(int index) => false;
+    public bool IsEndOfAPart(long index) => false;
 
-    public int GetPartIndex(int index) => -1;
+    public int GetPartIndex(long index) => -1;
 }
 

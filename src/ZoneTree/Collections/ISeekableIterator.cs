@@ -20,7 +20,7 @@ public interface ISeekableIterator<TKey, TValue>
 
     TValue CurrentValue { get; }
 
-    void Skip(int offset);
+    void Skip(long offset);
 
     bool IsBeginningOfAPart { get; }
 

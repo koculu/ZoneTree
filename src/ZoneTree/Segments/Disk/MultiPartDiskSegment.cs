@@ -36,7 +36,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
-    public int Length { get; }
+    public long Length { get; }
 
     public long MaximumOpIndex => 0;
 
@@ -136,11 +136,11 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         Length = CalculateLength();
     }
 
-    int CalculateLength()
+    long CalculateLength()
     {
         var len = Parts.Count;
         var parts = Parts;
-        var result = 0;
+        long result = 0;
         for (var i = 0; i < len; ++i)
             result += parts[i].Length;
         return result;
@@ -309,7 +309,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
             .RemoveReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory);
     }
 
-    public int GetFirstGreaterOrEqualPosition(in TKey key)
+    public long GetFirstGreaterOrEqualPosition(in TKey key)
     {
         var sparseArrayLength = PartKeys.Length;
         (var right, var found) = SearchFirstGreaterOrEqualPositionInSparseArray(in key);
@@ -317,7 +317,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         var isStartOfPart = right % 2 == 0 ? 1 : 0;
         if (found)
         {
-            var off2 = 0;
+            long off2 = 0;
             var len = partIndex + isStartOfPart;
             for (var i = 0; i < len; ++i)
                 off2 += Parts[i].Length;
@@ -329,7 +329,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
             return Length;
 
         if (isStartOfPart == 1) {
-            var off2 = 0;
+            long off2 = 0;
             var len = partIndex;
             for (var i = 0; i < len; ++i)
                 off2 += Parts[i].Length;
@@ -340,7 +340,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         if (position == Parts[partIndex].Length)
             return Length;
 
-        var off = 0;
+        long off = 0;
         for (var i = 0; i < partIndex; ++i)
             off += Parts[i].Length;
         return off + position;
@@ -351,9 +351,9 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         return this;
     }
 
-    public TKey GetKey(int index)
+    public TKey GetKey(long index)
     {
-        var off = 0;
+        long off = 0;
         var partIndex = 0;
         var len = Parts[partIndex].Length;
         while (off + len <= index)
@@ -373,9 +373,9 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         return key;
     }
 
-    public TValue GetValue(int index)
+    public TValue GetValue(long index)
     {
-        var off = 0;
+        long off = 0;
         var partIndex = 0;
         var len = Parts[partIndex].Length;
         while (off + len <= index)
@@ -394,14 +394,14 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         return Parts[partIndex].GetValue(localIndex);
     }
 
-    public int GetLastSmallerOrEqualPosition(in TKey key)
+    public long GetLastSmallerOrEqualPosition(in TKey key)
     {
         (var left, var found) = SearchLastSmallerOrEqualPositionInSparseArray(in key);
         var partIndex = left / 2;
         var isStartOfPart = left % 2 == 0 ? 1 : 0;
         if (found)
         {
-            var off2 = 0;
+            long off2 = 0;
             var len = partIndex + isStartOfPart;
             for (var i = 0; i < len; ++i)
                 off2 += Parts[i].Length;
@@ -412,7 +412,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
         if (isStartOfPart == 1)
         {
-            var off2 = 0;
+            long off2 = 0;
             var len = partIndex + 1;
             for (var i = 0; i < len; ++i)
                 off2 += Parts[i].Length;
@@ -423,7 +423,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         if (position == -1)
             return -1;
 
-        var off = 0;
+        long off = 0;
         for (var i = 0; i < partIndex; ++i)
             off += Parts[i].Length;
         return off + position;
@@ -565,9 +565,9 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
     }
     #endregion
 
-    public bool IsBeginningOfAPart(int index)
+    public bool IsBeginningOfAPart(long index)
     {
-        var off = 0;
+        long off = 0;
         var partIndex = 0;
         var len = Parts[partIndex].Length;
         while (off + len <= index)
@@ -581,9 +581,9 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         return localIndex == 0;
     }
 
-    public bool IsEndOfAPart(int index)
+    public bool IsEndOfAPart(long index)
     {
-        var off = 0;
+        long off = 0;
         var partIndex = 0;
         var len = Parts[partIndex].Length;
         while (off + len <= index)
@@ -597,9 +597,9 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         return localIndex == len - 1;
     }
 
-    public int GetPartIndex(int index)
+    public int GetPartIndex(long index)
     {
-        var off = 0;
+        long off = 0;
         var partIndex = 0;
         var len = Parts[partIndex].Length;
         while (off + len <= index)

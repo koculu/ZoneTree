@@ -40,7 +40,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     readonly object DropLock = new();
 
-    public int Length { get; }
+    public long Length { get; }
 
     public long MaximumOpIndex => 0;
 
@@ -92,19 +92,19 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         ValueSize = Unsafe.SizeOf<TValue>();
         if (HasFixedSizeKeyAndValue)
         {
-            Length = (int)(DataDevice.Length / (KeySize + ValueSize));
+            Length = DataDevice.Length / (KeySize + ValueSize);
         }
         else if (HasFixedSizeKey)
         {
-            Length = (int)(DataHeaderDevice.Length / (KeySize + sizeof(ValueHead)));
+            Length = DataHeaderDevice.Length / (KeySize + sizeof(ValueHead));
         }
         else if (HasFixedSizeValue)
         {
-            Length = (int)(DataHeaderDevice.Length / (ValueSize + sizeof(KeyHead)));
+            Length = DataHeaderDevice.Length / (ValueSize + sizeof(KeyHead));
         }
         else
         {
-            Length = (int)(DataHeaderDevice.Length / sizeof(EntryHead));
+            Length = DataHeaderDevice.Length / sizeof(EntryHead);
         }
     }
 
@@ -129,27 +129,27 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
         if (HasFixedSizeKeyAndValue)
         {
-            Length = (int)(DataDevice.Length / (KeySize + ValueSize));
+            Length = DataDevice.Length / (KeySize + ValueSize);
         }
         else if (HasFixedSizeKey)
         {
-            Length = (int)(DataHeaderDevice.Length / (KeySize + sizeof(ValueHead)));
+            Length = DataHeaderDevice.Length / (KeySize + sizeof(ValueHead));
         }
         else if (HasFixedSizeValue)
         {
-            Length = (int)(DataHeaderDevice.Length / (ValueSize + sizeof(KeyHead)));
+            Length = DataHeaderDevice.Length / (ValueSize + sizeof(KeyHead));
         }
         else
         {
-            Length = (int)(DataHeaderDevice.Length / sizeof(EntryHead));
+            Length = DataHeaderDevice.Length / sizeof(EntryHead);
         }
     }
 
     public bool ContainsKey(in TKey key)
     {
         var sparseArrayLength = SparseArray.Count;
-        var lower = 0;
-        var upper = Length - 1;
+        long lower = 0;
+        long upper = Length - 1;
 
         if (sparseArrayLength != 0)
         {
@@ -162,16 +162,16 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
             upper = SparseArray[index + 1].Index;
         }
 
-        int res = BinarySearch(in key, lower, upper);
+        var res = BinarySearch(in key, lower, upper);
         return res >= 0;
     }
 
-    public TKey GetKey(int index)
+    public TKey GetKey(long index)
     {
         return ReadKey(index);
     }
 
-    public TValue GetValue(int index)
+    public TValue GetValue(long index)
     {
         return ReadValue(index);
     }
@@ -179,8 +179,8 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public bool TryGet(in TKey key, out TValue value)
     {
         var sparseArrayLength = SparseArray.Count;
-        var lower = 0;
-        var upper = Length - 1;
+        long lower = 0;
+        long upper = Length - 1;
 
         if (sparseArrayLength != 0)
         {
@@ -199,7 +199,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
             upper = SparseArray[index + 1].Index - 1;
         }
 
-        int result = BinarySearch(in key, lower, upper);
+        var result = BinarySearch(in key, lower, upper);
         if (result < 0)
         {
             value = default;
@@ -212,13 +212,13 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public unsafe void InitSparseArray(int size)
     {
         var len = Length;
-        size = Math.Min(size, len);
+        size = (int)Math.Min(size, len);
         if (size < 1)
         {
             SparseArray = Array.Empty<SparseArrayEntry<TKey, TValue>>();
             return;
         }
-        var step = len / size;
+        var step = (int)(len / size);
         if (step < 1)
             return;
         var sparseArray = new List<SparseArrayEntry<TKey, TValue>>();
@@ -237,10 +237,10 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public void LoadIntoMemory()
     {
-        InitSparseArray(Length);
+        InitSparseArray((int)Math.Min(Length, int.MaxValue));
     }
 
-    unsafe SparseArrayEntry<TKey, TValue> CreateSparseArrayEntry(int index)
+    unsafe SparseArrayEntry<TKey, TValue> CreateSparseArrayEntry(long index)
     {
         // Optimisation possibility? read key and value together to reduce IO calls.
         var key = ReadKey(index);
@@ -249,12 +249,12 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return sparseArrayEntry;
     }
 
-    unsafe TKey ReadKey(int index)
+    unsafe TKey ReadKey(long index)
     {
         if (HasFixedSizeKeyAndValue)
         {
             var itemSize = KeySize + ValueSize;
-            var keyBytes = DataDevice.GetBytes(itemSize * index, KeySize);
+            var keyBytes = DataDevice.GetBytes(itemSize * (long)index, KeySize);
             return KeySerializer.Deserialize(keyBytes);
         }
         else if (HasFixedSizeKey)
@@ -273,14 +273,14 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         }
         else
         {
-            var headBytes = DataHeaderDevice.GetBytes((long)index * sizeof(EntryHead), sizeof(KeyHead));
+            var headBytes = DataHeaderDevice.GetBytes(index * sizeof(EntryHead), sizeof(KeyHead));
             var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
             var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
             return KeySerializer.Deserialize(keyBytes);
         }
     }
 
-    unsafe TValue ReadValue(int index)
+    unsafe TValue ReadValue(long index)
     {
         if (HasFixedSizeKeyAndValue)
         {
@@ -386,13 +386,13 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     /// <param name="lower">Lower inclusive</param>
     /// <param name="upper">Upper inclusive</param>
     /// <returns>-1 or the position of the key.</returns>
-    int BinarySearch(in TKey key, int lower, int upper)
+    long BinarySearch(in TKey key, long lower, long upper)
     {
         var comp = Comparer;
-        int l = lower, r = upper;
+        long l = lower, r = upper;
         while (l <= r)
         {
-            int m = l + (r - l) / 2;
+            var m = l + (r - l) / 2;
 
             // Check if key is present at mid
             var rec = ReadKey(m);
@@ -488,7 +488,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return new SeekableIterator<TKey, TValue>(this);
     }
 
-    int GetLastSmallerOrEqualPosition(in TKey key, int l, int h)
+    long GetLastSmallerOrEqualPosition(in TKey key, long l, long h)
     {
         var x = GetFirstGreaterOrEqualPosition(in key, l, h);
         if (x == -1)
@@ -501,13 +501,13 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return x - 1;
     }
 
-    int GetFirstGreaterOrEqualPosition(in TKey key, int l, int h)
+    long GetFirstGreaterOrEqualPosition(in TKey key, long l, long h)
     {
         // This is the lower bound algorithm.
         var comp = Comparer;
         while (l < h)
         {
-            int mid = l + (h - l) / 2;
+            var mid = l + (h - l) / 2;
             var rec = ReadKey(mid);
             if (comp.Compare(in key, in rec) <= 0)
                 h = mid;
@@ -517,11 +517,11 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return l;
     }
 
-    public int GetLastSmallerOrEqualPosition(in TKey key)
+    public long GetLastSmallerOrEqualPosition(in TKey key)
     {
         var sparseArrayLength = SparseArray.Count;
-        var lower = 0;
-        var upper = Length;
+        long lower = 0;
+        long upper = Length;
         if (sparseArrayLength != 0)
         {
             (var index, var found) = SearchLastSmallerOrEqualPositionInSparseArray(in key);
@@ -537,11 +537,11 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return GetLastSmallerOrEqualPosition(in key, lower, upper);
     }
 
-    public int GetFirstGreaterOrEqualPosition(in TKey key)
+    public long GetFirstGreaterOrEqualPosition(in TKey key)
     {
         var sparseArrayLength = SparseArray.Count;
-        var lower = 0;
-        var upper = Length;
+        long lower = 0;
+        long upper = Length;
         if (sparseArrayLength != 0)
         {
             (var index, var found) = SearchFirstGreaterOrEqualPositionInSparseArray(in key);
@@ -578,9 +578,9 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         Drop();
     }
 
-    public bool IsBeginningOfAPart(int index) => false;
+    public bool IsBeginningOfAPart(long index) => false;
 
-    public bool IsEndOfAPart(int index) => false;
+    public bool IsEndOfAPart(long index) => false;
 
-    public int GetPartIndex(int index) => -1;
+    public int GetPartIndex(long index) => -1;
 }
