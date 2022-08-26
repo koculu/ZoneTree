@@ -30,10 +30,10 @@ while(true)
 */
 
 //Test1.TestTreeIteratorBehavior();
-/*var c = 1_000_000;
+var c = 1_000_000;
 var ic = 1000;
 ZoneTree1.Insert(WriteAheadLogMode.None, c);
-ZoneTree1.MultipleIterate(WriteAheadLogMode.None, c, ic);*/
+ZoneTree1.MultipleIterate(WriteAheadLogMode.None, c, ic);
 
 //BenchmarkGroups.InsertIterate1(10_000_000, WriteAheadLogMode.None);
 
