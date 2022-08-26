@@ -49,6 +49,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         bool isCompressed, int compressionBlockSize, int maxCachedBlockCount,
         bool deleteIfExists, bool backupIfDelete,
         CompressionMethod compressionMethod,
+        int compressionLevel,
         long blockCacheReplacementWarningDuration)
     {
         var key = GetDeviceKey(segmentId, category);
@@ -71,6 +72,7 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
                 segmentId, category, this, filePath, true, 
                 compressionBlockSize,
                 compressionMethod,
+                compressionLevel,
                 blockCacheReplacementWarningDuration) :
             new FileRandomAccessDevice(
                 FileStreamProvider,
@@ -110,7 +112,9 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
     public IRandomAccessDevice GetReadOnlyDevice(
         long segmentId, string category, 
         bool isCompressed, int compressionBlockSize, 
-        int maxCachedBlockCount, CompressionMethod compressionMethod,
+        int maxCachedBlockCount, 
+        CompressionMethod compressionMethod,
+        int compressionLevel,
         long blockCacheReplacementWarningDuration)
     {
         var key = GetDeviceKey(segmentId, category);
@@ -143,7 +147,9 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
                 maxCachedBlockCount,
                 FileStreamProvider,
                 segmentId, category, this, filePath, false, 
-                compressionBlockSize, compressionMethod,
+                compressionBlockSize,
+                compressionMethod,
+                compressionLevel,
                 blockCacheReplacementWarningDuration) :
             new FileRandomAccessDevice(
                 FileStreamProvider,

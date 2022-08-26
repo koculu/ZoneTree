@@ -32,6 +32,12 @@ public class DiskSegmentOptions
     public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.LZ4;
 
     /// <summary>
+    /// The compression level of the selected compression method.
+    /// Default is 0.
+    /// </summary>
+    public int CompressionLevel { get; set; }
+
+    /// <summary>
     /// The disk segment block cache limit.
     /// A disk segment cannot have more cache blocks than the limit.
     /// Total memory space that block cache can take is

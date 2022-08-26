@@ -124,12 +124,57 @@ public class ZoneTreeOptions<TKey, TValue>
             exception = new MissingOptionException("WriteAheadLogProvider");
             return false;
         }
+
+        exception = ValidateCompressionLevel(
+            "disk segment", 
+            DiskSegmentOptions.CompressionMethod, 
+            DiskSegmentOptions.CompressionLevel);
+        
+        if (exception != null)
+            return false;
+
+        exception = ValidateCompressionLevel(
+            "write ahead log",
+            WriteAheadLogOptions.CompressionMethod,
+            WriteAheadLogOptions.CompressionLevel);
+
+        if (exception != null)
+            return false;
+
         exception = null;
         return true;
     }
 
+    static Exception ValidateCompressionLevel(
+        string option, 
+        CompressionMethod method, 
+        int level)
+    {
+        var exception = new CompressionLevelIsOutOfRangeException
+            (option, method, level);
+        return method switch
+        {
+            CompressionMethod.None => null,
+            CompressionMethod.Gzip => 
+                (level >= CompressionLevels.GzipOptimal &&
+                level <= CompressionLevels.GzipSmallestSize) ?
+                null : exception,
+            CompressionMethod.LZ4 => 
+                (level >= 0 && level <= 1) ? null : exception,
+            CompressionMethod.Zstd => 
+                (level >= CompressionLevels.ZstdMin &&
+                level <= CompressionLevels.ZstdMax) ?
+                null : exception,
+            CompressionMethod.Brotli =>
+                (level >= CompressionLevels.BrotliOptimal &&
+                level <= CompressionLevels.BrotliSmallestSize) ?
+                null : exception,
+            _ => null,
+        };
+    }
+
     /// <summary>
-    /// Validats the ZoneTree options.
+    /// Validates the ZoneTree options.
     /// </summary>
     public void Validate()
     {

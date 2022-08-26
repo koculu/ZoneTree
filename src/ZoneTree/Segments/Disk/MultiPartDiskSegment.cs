@@ -10,7 +10,9 @@ namespace Tenray.ZoneTree.Segments.Disk;
 public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
     public const CompressionMethod MultiPartHeaderCompressionMethod 
-        = CompressionMethod.LZ4;
+        = CompressionMethod.None;
+    public const int MultiPartHeaderCompressionLevel
+        = 0;
 
     public long SegmentId { get; }
 
@@ -67,6 +69,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
                     compressionBlockSize: 0,
                     maxCachedBlockCount: 0,
                     MultiPartHeaderCompressionMethod,
+                    MultiPartHeaderCompressionLevel,
                     blockCacheReplacementWarningDuration: 0);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
@@ -101,6 +104,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
                     compressionBlockSize: 0,
                     maxCachedBlockCount: 0,
                     MultiPartHeaderCompressionMethod,
+                    MultiPartHeaderCompressionLevel,
                     blockCacheReplacementWarningDuration: 0);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
@@ -314,6 +318,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
                     compressionBlockSize: 0,
                     maxCachedBlockCount: 0,
                     MultiPartHeaderCompressionMethod,
+                    MultiPartHeaderCompressionLevel,
                     blockCacheReplacementWarningDuration: 0);
 
         diskSegmentListDevice.Delete();

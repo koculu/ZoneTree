@@ -14,6 +14,8 @@ public sealed class CompressedFileStream : Stream, IDisposable
     readonly int BlockSize;
 
     readonly CompressionMethod CompressionMethod;
+    
+    readonly int CompressionLevel;
 
     readonly IFileStream FileStream;
 
@@ -76,8 +78,10 @@ public sealed class CompressedFileStream : Stream, IDisposable
         int blockSize,
         bool enableTailWriterJob,
         int tailWriterJobInterval,
-        CompressionMethod compressionMethod)
+        CompressionMethod compressionMethod,
+        int compressionLevel)
     {
+        CompressionLevel = compressionLevel;
         Logger = logger;
         FilePath = filePath;
         FileStream = fileStreamProvider.CreateFileStream(filePath,
@@ -119,7 +123,8 @@ public sealed class CompressedFileStream : Stream, IDisposable
             // if the block index is equal or smaller.
             _length -= TailBlock.Length;
             Position -= TailBlock.Length;
-            TailBlock = new DecompressedBlock(lastBlockIndex + 1, BlockSize, CompressionMethod);
+            TailBlock = new DecompressedBlock(
+                lastBlockIndex + 1, BlockSize, CompressionMethod, CompressionLevel);
         }
         CurrentBlockPosition = 0;
         CurrentBlock = TailBlock;
@@ -181,21 +186,21 @@ public sealed class CompressedFileStream : Stream, IDisposable
         var bytesLen = bytes.Length;
         if (bytesLen < sizeof(int))
         {
-            TailBlock = new DecompressedBlock(0, BlockSize, CompressionMethod);
+            TailBlock = new DecompressedBlock(0, BlockSize, CompressionMethod, CompressionLevel);
             return;
         }
         var blockIndex =
             BinarySerializerHelper.FromByteArray<int>(bytes, 0);
         if (bytesLen < 2 * sizeof(int))
         {
-            TailBlock = new DecompressedBlock(blockIndex, BlockSize, CompressionMethod);
+            TailBlock = new DecompressedBlock(blockIndex, BlockSize, CompressionMethod, CompressionLevel);
             return;
         }
         var decompressedLength =
             BinarySerializerHelper.FromByteArray<int>(bytes, sizeof(int));
         if (decompressedLength < 0)
         {
-            TailBlock = new DecompressedBlock(blockIndex, BlockSize, CompressionMethod);
+            TailBlock = new DecompressedBlock(blockIndex, BlockSize, CompressionMethod, CompressionLevel);
             return;
         }
         var len = TailStream.Length;
@@ -204,12 +209,12 @@ public sealed class CompressedFileStream : Stream, IDisposable
             decompressedLength = (int)(len - 2 * sizeof(int));
             if (decompressedLength <= 0)
             {
-                TailBlock = new DecompressedBlock(blockIndex, BlockSize, CompressionMethod);
+                TailBlock = new DecompressedBlock(blockIndex, BlockSize, CompressionMethod, CompressionLevel);
                 return;
             }
         }
         bytes = br.ReadBytes(decompressedLength);
-        TailBlock = new DecompressedBlock(blockIndex, bytes, CompressionMethod);
+        TailBlock = new DecompressedBlock(blockIndex, bytes, CompressionMethod, CompressionLevel);
     }
 
     public void WriteTail()
@@ -266,7 +271,10 @@ public sealed class CompressedFileStream : Stream, IDisposable
         bytes = BinaryReader.ReadBytes(compressedBlockSize);
 
         var nextBlock = DecompressedBlock
-            .FromCompressed(blockIndex, bytes, CompressionMethod, blockSize);
+            .FromCompressed(
+                blockIndex, bytes,
+                CompressionMethod, CompressionLevel,
+                blockSize);
         CurrentBlock = nextBlock;
         return true;
     }
@@ -415,7 +423,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         }
         FileStream.SetLength(MetaDataSize);
         FileStream.Position = MetaDataSize;
-        TailBlock = new DecompressedBlock(TailBlock.BlockIndex, BlockSize, CompressionMethod);
+        TailBlock = new DecompressedBlock(TailBlock.BlockIndex, BlockSize, CompressionMethod, CompressionLevel);
         SkipToTheEnd();
         CurrentBlockPosition = 0;
         LastWrittenTailIndex = -1;
@@ -463,8 +471,12 @@ public sealed class CompressedFileStream : Stream, IDisposable
                 var diff = truncatedLength - off;
                 bytes = BinaryReader.ReadBytes(compressedBlockSize);
                 var truncatedBytes = DecompressedBlock
-                    .FromCompressed(0, bytes, CompressionMethod, blockSize).GetBytes(0, (int)diff);
-                var compressedBytes = new DecompressedBlock(0, truncatedBytes, CompressionMethod).Compress();
+                    .FromCompressed(
+                        0, bytes,
+                        CompressionMethod,
+                        CompressionLevel,
+                        blockSize).GetBytes(0, (int)diff);
+                var compressedBytes = new DecompressedBlock(0, truncatedBytes, CompressionMethod, CompressionLevel).Compress();
                 FileStream.Position = physicalPosition + sizeof(int);
                 var bw = BinaryWriter;
                 bw.Write(compressedBytes.Length);
@@ -529,7 +541,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         bw.Write(tailBlock.Length);
         bw.Write(compressedBytes);
         FileStream.Flush(true);
-        TailBlock = new DecompressedBlock(tailBlock.BlockIndex + 1, BlockSize, CompressionMethod);
+        TailBlock = new DecompressedBlock(tailBlock.BlockIndex + 1, BlockSize, CompressionMethod, CompressionLevel);
     }
 
     public new void Dispose()

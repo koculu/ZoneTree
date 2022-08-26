@@ -11,6 +11,8 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 {
     const CompressionMethod MetaWALCompressionMethod = CompressionMethod.None;
 
+    const int MetaWALCompressionLevel = 0;
+
     const int ZoneTreeMetaId = 0;
 
     const string MetaWalCategory = ".meta.wal";
@@ -38,6 +40,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
                     compressionBlockSize: 0,
                     maxCachedBlockCount: 0,
                     MetaWALCompressionMethod,
+                    MetaWALCompressionLevel,
                     blockCacheReplacementWarningDuration: 0);
         }
         else
@@ -54,6 +57,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
                     deleteIfExists: false,
                     backupIfDelete: false,
                     MetaWALCompressionMethod,
+                    MetaWALCompressionLevel,
                     blockCacheReplacementWarningDuration: 0);
         }
     }
@@ -230,6 +234,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
                 compressionBlockSize: 0,
                 maxCachedBlockCount: 0,
                 MetaWALCompressionMethod,
+                MetaWALCompressionLevel,
                 blockCacheReplacementWarningDuration: 0); 
 
         if (device.Length > int.MaxValue)

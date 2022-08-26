@@ -6,11 +6,11 @@ public static class LZ4DataCompression
 {
     const int BlockSize = 1024 * 32 * 8;
 
-    public static byte[] Compress(Span<byte> span)
+    public static byte[] Compress(Span<byte> span, int level)
     {
         using var msOutput = new MemoryStream();
         using var gzs = new LZ4Stream(msOutput,
-            CompressionMode.Compress, true, false, BlockSize);
+            CompressionMode.Compress, true, level == 1, BlockSize);
         gzs.Write(span);
         gzs.Flush();
         return msOutput.ToArray();

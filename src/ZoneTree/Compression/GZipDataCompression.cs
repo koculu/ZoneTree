@@ -4,10 +4,10 @@ namespace Tenray.ZoneTree.Compression;
 
 public static class GZipDataCompression
 {
-    public static byte[] Compress(Span<byte> span)
+    public static byte[] Compress(Span<byte> span, int level)
     {
         using var msOutput = new MemoryStream();
-        using var gzs = new GZipStream(msOutput, CompressionLevel.Fastest, false);
+        using var gzs = new GZipStream(msOutput, (CompressionLevel)level, false);
         gzs.Write(span);
         gzs.Flush();
         return msOutput.ToArray();

@@ -36,6 +36,12 @@ public class WriteAheadLogOptions
     public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.LZ4;
 
     /// <summary>
+    /// The compression level of the selected compression method.
+    /// Default is 0.
+    /// </summary>
+    public int CompressionLevel { get; set; }
+
+    /// <summary>
     /// Options for sync-compressed mode.
     /// </summary>
     public SyncCompressedModeOptions SyncCompressedModeOptions { get; set; } = new();

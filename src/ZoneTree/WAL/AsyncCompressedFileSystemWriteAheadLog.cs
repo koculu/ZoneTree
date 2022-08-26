@@ -72,7 +72,8 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
             options.CompressionBlockSize,
             false,
             0,
-            options.CompressionMethod);
+            options.CompressionMethod,
+            options.CompressionLevel);
         BinaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
         FileStream.Seek(0, SeekOrigin.End);
         FileStreamProvider = fileStreamProvider;

@@ -4,9 +4,9 @@ namespace Tenray.ZoneTree.Compression;
 
 public static class ZstdDataCompression
 {
-    public static byte[] Compress(Span<byte> span)
+    public static byte[] Compress(Span<byte> span, int level)
     {
-        using var compressor = new Compressor();
+        using var compressor = new Compressor(level);
         return compressor.Wrap(span).ToArray();
     }
 

@@ -13,6 +13,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     readonly int BlockSize;
 
     readonly CompressionMethod CompressionMethod;
+    
+    readonly int CompressionLevel;
 
     readonly string Category;
 
@@ -81,6 +83,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         bool writable,
         int compressionBlockSize,
         CompressionMethod compressionMethod,
+        int compressionLevel,
         long blockCacheReplacementWarningDuration,
         int fileIOBufferSize = 4096)
     {
@@ -99,6 +102,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         Writable = writable;
         BlockSize = compressionBlockSize;
         CompressionMethod = compressionMethod;
+        CompressionLevel = compressionLevel;
         var fileMode = writable ? FileMode.OpenOrCreate : FileMode.Open;
         var fileAccess = writable ? FileAccess.ReadWrite : FileAccess.Read;
         var fileShare = writable ? FileShare.None : FileShare.Read;
@@ -183,7 +187,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     {
         if (NextBlock == null)
         {
-            NextBlock = new DecompressedBlock(NextBlockIndex, BlockSize, CompressionMethod);
+            NextBlock = new DecompressedBlock(
+                NextBlockIndex, BlockSize, CompressionMethod, CompressionLevel);
         }
         var nextBlock = NextBlock;
         nextBlock.LastAccessTicks = Environment.TickCount64;
@@ -280,7 +285,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         var decompressedBlock = DecompressedBlock
             .FromCompressed(
                 blockIndex, compressedBytes,
-                CompressionMethod, decompressedLength);
+                CompressionMethod, CompressionLevel, decompressedLength);
         decompressedBlock.LastAccessTicks = Environment.TickCount64; 
         return decompressedBlock;
     }

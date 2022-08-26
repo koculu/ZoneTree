@@ -7,6 +7,8 @@ public class DecompressedBlock
 {
     public CompressionMethod CompressionMethod { get; }
 
+    public int CompressionLevel { get; }
+
     public int BlockIndex { get; private set; }
 
     public volatile int _length;
@@ -28,20 +30,30 @@ public class DecompressedBlock
         set => Volatile.Write(ref _lastAccessTicks, value);
     }
 
-    public DecompressedBlock(int blockIndex, int blockSize, CompressionMethod compressionMethod)
+    public DecompressedBlock(
+        int blockIndex,
+        int blockSize,
+        CompressionMethod compressionMethod,
+        int compressionLevel)
     {
         BlockIndex = blockIndex;
         Length = 0;
         Bytes = new byte[blockSize];
         CompressionMethod = compressionMethod;
+        CompressionLevel = compressionLevel;
     }
 
-    public DecompressedBlock(int blockIndex, byte[] bytes, CompressionMethod method)
+    public DecompressedBlock(
+        int blockIndex,
+        byte[] bytes,
+        CompressionMethod method,
+        int compressionLevel)
     {
         BlockIndex = blockIndex;
         Length = bytes.Length;
         Bytes = bytes;
         CompressionMethod = method;
+        CompressionLevel = compressionLevel;
     }
 
     public int Append(ReadOnlySpan<byte> data)
@@ -56,16 +68,17 @@ public class DecompressedBlock
     public byte[] Compress()
     {
         var span = Bytes.AsSpan(0, Length);
-        return DataCompression.Compress(CompressionMethod, span);
+        return DataCompression.Compress(CompressionMethod, CompressionLevel, span);
     }
 
     public static DecompressedBlock FromCompressed(
-        int blockIndex, byte[] compressedBytes, CompressionMethod method, 
+        int blockIndex, byte[] compressedBytes,
+        CompressionMethod method, int compressionLevel,
         int decompressedLength)
     {
         var decompressed = DataCompression
             .DecompressFast(method, compressedBytes, decompressedLength);
-        return new DecompressedBlock(blockIndex, decompressed, method);
+        return new DecompressedBlock(blockIndex, decompressed, method, compressionLevel);
     }
 
     public byte[] GetBytes(int offset, int length)

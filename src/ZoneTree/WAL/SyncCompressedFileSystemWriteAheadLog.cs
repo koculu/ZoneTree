@@ -27,6 +27,8 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
     public int CompressionBlockSize { get; }
 
     public CompressionMethod CompressionMethod { get; }
+    
+    public int CompressionLevel { get; }
 
     public bool EnableTailWriterJob { get; }
     
@@ -47,6 +49,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
         FilePath = filePath;
         CompressionBlockSize = options.CompressionBlockSize;
         CompressionMethod = options.CompressionMethod;
+        CompressionLevel = options.CompressionLevel;
         EnableTailWriterJob = options.SyncCompressedModeOptions.EnableTailWriterJob;
         TailWriterJobInterval = options.SyncCompressedModeOptions.TailWriterJobInterval;
         KeySerializer = keySerializer;
@@ -63,7 +66,8 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
             CompressionBlockSize,
             EnableTailWriterJob,
             TailWriterJobInterval,
-            CompressionMethod);
+            CompressionMethod,
+            CompressionLevel);
         BinaryWriter = new BinaryWriter(FileStream, Encoding.UTF8, true);
     }
 
@@ -212,7 +216,8 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
                     CompressionBlockSize,
                     EnableTailWriterJob,
                     TailWriterJobInterval,
-                    CompressionMethod))
+                    CompressionMethod,
+                    CompressionLevel))
                 {
                     FileStream = tmpFileStream;
                     BinaryWriter = new BinaryWriter(tmpFileStream, Encoding.UTF8, true);
