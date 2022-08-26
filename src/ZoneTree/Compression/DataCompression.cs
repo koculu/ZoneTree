@@ -1,4 +1,5 @@
 ﻿using System.IO.Compression;
+using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.Compression;
 

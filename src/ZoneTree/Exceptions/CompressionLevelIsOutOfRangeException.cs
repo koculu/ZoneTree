@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Exceptions;
+﻿using Tenray.ZoneTree.Options;
+
+namespace Tenray.ZoneTree.Exceptions;
 
 public class CompressionLevelIsOutOfRangeException : ZoneTreeException
 {
