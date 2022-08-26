@@ -48,8 +48,8 @@ public interface IMaintainer : IDisposable
     bool EnablePeriodicTimer { get; set; }
 
     /// <summary>
-    /// Sets or gets Disk Segment block cache life time.
-    /// Default value is 10 seconds.
+    /// Sets or gets Disk Segment block cache life time in milliseconds.
+    /// Default value is 10_000 milliseconds.
     /// </summary>
     long DiskSegmentBufferLifeTime { get; set; }
 

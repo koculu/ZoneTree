@@ -26,7 +26,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
     readonly DictionaryWithWAL<TKey, ReadWriteStamp> ReadWriteStamps;
 
-    public int CompactionThreshold { get; set; } = 100000;
+    public int CompactionThreshold { get; set; } = 100_000;
 
     public int TransactionCount
     {
@@ -414,10 +414,11 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
         // Dummy transaction ensures the next transaction id
         // is not lost on the next load of the transaction log.
         var transactionId = GetNextTransactionId();
+        var ticks = DateTime.UtcNow.Ticks;
         var dummyTransaction = new TransactionMeta
         {
-            StartedAt = DateTime.UtcNow.Ticks,
-            EndedAt = DateTime.UtcNow.Ticks,
+            StartedAt = ticks,
+            EndedAt = ticks,
             State = TransactionState.Committed
         };
         Transactions.Upsert(transactionId, in dummyTransaction);

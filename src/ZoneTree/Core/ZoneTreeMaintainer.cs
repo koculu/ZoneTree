@@ -59,7 +59,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     }
 
     /// <inheritdoc/>
-    public long DiskSegmentBufferLifeTime { get; set; } = TimeSpan.FromSeconds(10).Ticks;
+    public long DiskSegmentBufferLifeTime { get; set; } = 10_000;
 
     /// <inheritdoc/>
     public TimeSpan PeriodicTimerInterval { get; set; } = TimeSpan.FromSeconds(5);
@@ -223,7 +223,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         {
             if (cts.IsCancellationRequested) 
                 break;
-            var ticks = DateTime.UtcNow.Ticks - DiskSegmentBufferLifeTime;
+            var ticks = Environment.TickCount64 - DiskSegmentBufferLifeTime;
             var releasedCount = ZoneTree.Maintenance.DiskSegment.ReleaseReadBuffers(ticks);
             Trace("Released Buffers: " + releasedCount);
         }

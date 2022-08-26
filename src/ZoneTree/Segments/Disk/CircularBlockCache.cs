@@ -17,9 +17,10 @@ public class CircularBlockCache
     public int Count => Table.Count;
 
     /// <summary>
-    /// 10,000 ticks in a millisecond.
+    /// Block replacement warning ticks length in millisecond.
+    /// Default value is 1000 ms;
     /// </summary>
-    public long BlockReplacementWarningTicksLength = 10_000 * 500;
+    public long BlockReplacementWarningTicksLength = 1000;
 
     public CircularBlockCache(ILogger logger, int maxCachedBlockCount)
     {

@@ -19,8 +19,8 @@ There are so many tuning options wait you to discover.
 ## [API DOCS](https://tenray.io/docs/ZoneTree/api/Tenray.ZoneTree.html)
 ## [TUNING ZONETREE](https://tenray.io/docs/ZoneTree/guide/tuning-disk-segment.html)
 ## [FEATURES](https://tenray.io/docs/ZoneTree/guide/features.html)
-## [TERMINOLOGY](https://tenray.io/docs/ZoneTree/guide/features.html)
-## [PERFORMANCE](https://tenray.io/docs/ZoneTree/guide/features.html)
+## [TERMINOLOGY](https://tenray.io/docs/ZoneTree/guide/terminology.html)
+## [PERFORMANCE](https://tenray.io/docs/ZoneTree/guide/performance.html)
 
 ## Why ZoneTree?
 1. It is pure C#.
