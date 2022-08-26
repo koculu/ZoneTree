@@ -1,16 +1,13 @@
-﻿using Tenray.LZ4;
+﻿using System.IO.Compression;
 
 namespace Tenray.ZoneTree.Compression;
 
-public static class LZ4DataCompression
+public static class BrotliDataCompression
 {
-    const int BlockSize = 1024 * 32 * 8;
-
     public static byte[] Compress(Span<byte> span)
     {
         using var msOutput = new MemoryStream();
-        using var gzs = new LZ4Stream(msOutput,
-            CompressionMode.Compress, true, false, BlockSize);
+        using var gzs = new BrotliStream(msOutput, CompressionLevel.Fastest, false);
         gzs.Write(span);
         gzs.Flush();
         return msOutput.ToArray();
@@ -20,8 +17,7 @@ public static class LZ4DataCompression
     {
         using var msInput = new MemoryStream(compressedBytes);
         using var msOutput = new MemoryStream();
-        using var gzs = new LZ4Stream(
-            msInput, CompressionMode.Decompress, true, false, BlockSize);
+        using var gzs = new BrotliStream(msInput, CompressionMode.Decompress);
         gzs.CopyTo(msOutput);
         var decompressed = msOutput.ToArray();
         return decompressed;
@@ -32,8 +28,7 @@ public static class LZ4DataCompression
         var decompressed = new byte[decompressedLength];
         using var msInput = new MemoryStream(compressedBytes);
         using var msOutput = new MemoryStream(decompressed);
-        using var gzs = new LZ4Stream(
-            msInput, CompressionMode.Decompress, true, false, BlockSize);
+        using var gzs = new BrotliStream(msInput, CompressionMode.Decompress);
         gzs.CopyTo(msOutput);
         return decompressed;
     }

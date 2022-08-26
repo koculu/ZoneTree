@@ -19,4 +19,14 @@ public enum CompressionMethod : byte
     /// LZ4 algorithm.
     /// </summary>
     LZ4 = 2,
+
+    /// <summary>
+    /// ZStd algorithm.
+    /// </summary>
+    Zstd = 3,
+
+    /// <summary>
+    /// Brotli algorithm.
+    /// </summary>
+    Brotli = 4,
 }

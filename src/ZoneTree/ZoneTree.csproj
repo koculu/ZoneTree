@@ -48,6 +48,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="ZstdSharp.Port" Version="0.6.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Tenray.LZ4\Tenray.LZ4.csproj" />
