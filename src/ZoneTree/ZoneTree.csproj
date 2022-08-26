@@ -36,6 +36,14 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <None Include="..\3rdParty\LZ4\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\3rdParty\LZ4</PackagePath>
+    </None>
+    <None Include="..\3rdParty\ZstdSharp\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\3rdParty\ZstdSharp</PackagePath>
+    </None>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'ReleaseWithDoc'">
     <PackageReference Include="docfx.console" Version="2.59.3">
