@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Tenray.ZoneTree.Compression;
+﻿using Tenray.ZoneTree.Compression;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;

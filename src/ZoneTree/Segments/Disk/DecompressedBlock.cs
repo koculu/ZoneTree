@@ -1,5 +1,4 @@
-﻿using System.IO.Compression;
-using Tenray.ZoneTree.Compression;
+﻿using Tenray.ZoneTree.Compression;
 using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.Segments.Disk;

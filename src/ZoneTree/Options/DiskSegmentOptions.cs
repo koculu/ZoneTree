@@ -1,6 +1,4 @@
-﻿using Tenray.ZoneTree.Core;
-
-namespace Tenray.ZoneTree.Options;
+﻿namespace Tenray.ZoneTree.Options;
 
 /// <summary>
 /// Represents the Disk Segment Options.
