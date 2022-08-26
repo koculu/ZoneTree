@@ -77,7 +77,8 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
                     diskOptions.EnableCompression,
                     diskOptions.CompressionBlockSize,
                     diskOptions.BlockCacheLimit,
-                    diskOptions.CompressionMethod
+                    diskOptions.CompressionMethod,
+                    diskOptions.BlockCacheReplacementWarningDuration
                     );
         DataDevice = randomDeviceManager
             .GetReadOnlyDevice(
@@ -86,7 +87,8 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
                 diskOptions.EnableCompression,
                 diskOptions.CompressionBlockSize,
                 diskOptions.BlockCacheLimit,
-                diskOptions.CompressionMethod);
+                diskOptions.CompressionMethod,
+                diskOptions.BlockCacheReplacementWarningDuration);
 
         KeySize = Unsafe.SizeOf<TKey>();
         ValueSize = Unsafe.SizeOf<TValue>();

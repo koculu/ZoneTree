@@ -79,9 +79,11 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         bool writable,
         int compressionBlockSize,
         CompressionMethod compressionMethod,
+        long blockCacheReplacementWarningDuration,
         int fileIOBufferSize = 4096)
     {
-        CircularBlockCache = new(logger, maxCachedBlockCount);
+        CircularBlockCache = new(
+            logger, maxCachedBlockCount, blockCacheReplacementWarningDuration);
         FileStreamProvider = fileStreamProvider;
         SegmentId = segmentId;
         Category = category;

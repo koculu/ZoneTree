@@ -17,15 +17,19 @@ public class CircularBlockCache
     public int Count => Table.Count;
 
     /// <summary>
-    /// Block replacement warning ticks length in millisecond.
+    /// Block replacement warning duration in millisecond.
     /// Default value is 1000 ms;
     /// </summary>
-    public long BlockReplacementWarningTicksLength = 1000;
+    readonly long BlockCacheReplacementWarningDuration;
 
-    public CircularBlockCache(ILogger logger, int maxCachedBlockCount)
+    public CircularBlockCache(
+        ILogger logger,
+        int maxCachedBlockCount,
+        long blockCacheReplacementWarningDuration)
     {
         Logger = logger;
         MaxCachedBlockCount = maxCachedBlockCount;
+        BlockCacheReplacementWarningDuration = blockCacheReplacementWarningDuration;
     }
 
     public void AddBlock(DecompressedBlock block)
@@ -46,7 +50,7 @@ public class CircularBlockCache
                 LastReplacementTicks.TryGetValue(existingBlockIndex, out var lastReplacementTicks);
                 var delta = now - lastReplacementTicks;
                 if (delta <
-                    BlockReplacementWarningTicksLength)
+                    BlockCacheReplacementWarningDuration)
                 {
                     var warning = new BlockCacheTooFrequentReplacementWarning
                     {

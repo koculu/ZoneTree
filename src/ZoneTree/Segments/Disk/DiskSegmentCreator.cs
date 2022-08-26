@@ -53,8 +53,10 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
                     diskOptions.EnableCompression,
                     diskOptions.CompressionBlockSize,
                     diskOptions.BlockCacheLimit,
-                    true, false,
-                    diskOptions.CompressionMethod);
+                    deleteIfExists: true,
+                    backupIfDelete: false,
+                    diskOptions.CompressionMethod,
+                    diskOptions.BlockCacheReplacementWarningDuration);
         DataDevice = randomDeviceManager
             .CreateWritableDevice(
                 SegmentId,
@@ -62,8 +64,10 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
                 diskOptions.EnableCompression,
                 diskOptions.CompressionBlockSize,
                 diskOptions.BlockCacheLimit,
-                true, false,
-                diskOptions.CompressionMethod);
+                deleteIfExists: true,
+                backupIfDelete: false,
+                diskOptions.CompressionMethod,
+                diskOptions.BlockCacheReplacementWarningDuration);
         Options = options;
     }
 

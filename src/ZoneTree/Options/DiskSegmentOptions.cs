@@ -55,4 +55,12 @@ public class DiskSegmentOptions
     /// Default value is 1.5M.
     /// </summary>
     public int MinimumRecordCount { get; set; } = 1_500_000;
+
+    /// <summary>
+    /// If the block cache replacement occurs quicker than given duration
+    /// a warning is created and the circular
+    /// block cache size is increased automatically.
+    /// Default value is 1_000 ms;
+    /// </summary>
+    public long BlockCacheReplacementWarningDuration { get; set; } = 1_000;
 }

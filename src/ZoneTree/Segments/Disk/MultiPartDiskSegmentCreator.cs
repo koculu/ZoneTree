@@ -162,12 +162,13 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
             CreateWritableDevice(
                     SegmentId,
                     DiskSegmentConstants.MultiPartDiskSegmentCategory,
-                    false,
-                    0,
-                    0,
-                    false,
-                    false,
-                    compressionMethod);
+                    isCompressed: false,
+                    compressionBlockSize: 0,
+                    maxCachedBlockCount: 0,
+                    deleteIfExists: false,
+                    backupIfDelete: false,
+                    compressionMethod,
+                    blockCacheReplacementWarningDuration: 0);
         var compressedBytes = DataCompression.Compress(compressionMethod, ms.ToArray());
         multiDevice.AppendBytesReturnPosition(compressedBytes);
         Options.RandomAccessDeviceManager
@@ -232,10 +233,14 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
         }
         using var multiDevice = Options.RandomAccessDeviceManager
             .GetReadOnlyDevice(
-                SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory,
-                false, 0, 0, 
-                MultiPartDiskSegment<TKey, TValue>
-                .MultiPartHeaderCompressionMethod);
+                SegmentId, 
+                DiskSegmentConstants.MultiPartDiskSegmentCategory,
+                isCompressed: false,
+                compressionBlockSize: 0,
+                maxCachedBlockCount: 0,
+                MultiPartDiskSegment<TKey, TValue>.MultiPartHeaderCompressionMethod,
+                blockCacheReplacementWarningDuration: 0);
+
         multiDevice.Delete();
         Options.RandomAccessDeviceManager
             .RemoveReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory);

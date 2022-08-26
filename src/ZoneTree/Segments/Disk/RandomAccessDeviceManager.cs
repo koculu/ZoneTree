@@ -21,7 +21,10 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
     public int WritableDeviceCount => WritableDevices.Count;
 
-    public RandomAccessDeviceManager(ILogger logger, IFileStreamProvider fileStreamProvider, string dataDirectory = "data")
+    public RandomAccessDeviceManager(
+        ILogger logger, 
+        IFileStreamProvider fileStreamProvider,
+        string dataDirectory = "data")
     {
         Logger = logger;
         FileStreamProvider = fileStreamProvider;
@@ -45,7 +48,8 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         long segmentId, string category, 
         bool isCompressed, int compressionBlockSize, int maxCachedBlockCount,
         bool deleteIfExists, bool backupIfDelete,
-        CompressionMethod compressionMethod)
+        CompressionMethod compressionMethod,
+        long blockCacheReplacementWarningDuration)
     {
         var key = GetDeviceKey(segmentId, category);
         if (WritableDevices.ContainsKey(key))
@@ -66,7 +70,8 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
                 FileStreamProvider,
                 segmentId, category, this, filePath, true, 
                 compressionBlockSize,
-                compressionMethod) :
+                compressionMethod,
+                blockCacheReplacementWarningDuration) :
             new FileRandomAccessDevice(
                 FileStreamProvider,
                 segmentId, category, this, filePath, true);
@@ -105,7 +110,8 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
     public IRandomAccessDevice GetReadOnlyDevice(
         long segmentId, string category, 
         bool isCompressed, int compressionBlockSize, 
-        int maxCachedBlockCount, CompressionMethod compressionMethod)
+        int maxCachedBlockCount, CompressionMethod compressionMethod,
+        long blockCacheReplacementWarningDuration)
     {
         var key = GetDeviceKey(segmentId, category);
         if (ReadOnlyDevices.TryGetValue(key, out var device))
@@ -137,7 +143,8 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
                 maxCachedBlockCount,
                 FileStreamProvider,
                 segmentId, category, this, filePath, false, 
-                compressionBlockSize, compressionMethod) :
+                compressionBlockSize, compressionMethod,
+                blockCacheReplacementWarningDuration) :
             new FileRandomAccessDevice(
                 FileStreamProvider,
                 segmentId, category, this, filePath, false);

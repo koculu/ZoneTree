@@ -32,17 +32,29 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             Device = Options
                 .RandomAccessDeviceManager
                 .GetReadOnlyDevice(
-                    ZoneTreeMetaId, MetaWalCategory, false, 0, 0,
-                    MetaWALCompressionMethod);
+                    ZoneTreeMetaId,
+                    MetaWalCategory,
+                    isCompressed: false,
+                    compressionBlockSize: 0,
+                    maxCachedBlockCount: 0,
+                    MetaWALCompressionMethod,
+                    blockCacheReplacementWarningDuration: 0);
         }
         else
         {
 
             Device = Options
                 .RandomAccessDeviceManager
-                .CreateWritableDevice(ZoneTreeMetaId, 
-                    MetaWalCategory, false, 0, 0, false, false,
-                    MetaWALCompressionMethod);
+                .CreateWritableDevice(
+                    ZoneTreeMetaId, 
+                    MetaWalCategory,
+                    isCompressed: false,
+                    compressionBlockSize: 0,
+                    maxCachedBlockCount: 0,
+                    deleteIfExists: false,
+                    backupIfDelete: false,
+                    MetaWALCompressionMethod,
+                    blockCacheReplacementWarningDuration: 0);
         }
     }
 
@@ -212,8 +224,14 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
     {
         using var device = deviceManager
             .GetReadOnlyDevice(
-                ZoneTreeMetaId, MetaFileCategory, false, 0, 0,
-                MetaWALCompressionMethod); 
+                ZoneTreeMetaId,
+                MetaFileCategory,
+                isCompressed: false,
+                compressionBlockSize: 0,
+                maxCachedBlockCount: 0,
+                MetaWALCompressionMethod,
+                blockCacheReplacementWarningDuration: 0); 
+
         if (device.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(device.Length, int.MaxValue);
         var bytes = device.GetBytes(0, (int)device.Length);

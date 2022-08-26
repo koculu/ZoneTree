@@ -62,9 +62,12 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         using var diskSegmentListDevice = randomDeviceManager
                 .GetReadOnlyDevice(
                     segmentId,
-                    DiskSegmentConstants
-                    .MultiPartDiskSegmentCategory, false, 0, 0,
-                        MultiPartHeaderCompressionMethod);
+                    DiskSegmentConstants.MultiPartDiskSegmentCategory,
+                    isCompressed: false,
+                    compressionBlockSize: 0,
+                    maxCachedBlockCount: 0,
+                    MultiPartHeaderCompressionMethod,
+                    blockCacheReplacementWarningDuration: 0);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(
@@ -93,7 +96,12 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         using var diskSegmentListDevice = randomDeviceManager
                 .GetReadOnlyDevice(
                     segmentId,
-                    category, false, 0, 0, MultiPartHeaderCompressionMethod);
+                    category,
+                    isCompressed: false,
+                    compressionBlockSize: 0,
+                    maxCachedBlockCount: 0,
+                    MultiPartHeaderCompressionMethod,
+                    blockCacheReplacementWarningDuration: 0);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(
@@ -301,9 +309,13 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         using var diskSegmentListDevice = randomDeviceManager
                 .GetReadOnlyDevice(
                     SegmentId,
-                    DiskSegmentConstants
-                    .MultiPartDiskSegmentCategory, false, 0, 0,
-                        MultiPartHeaderCompressionMethod);
+                    DiskSegmentConstants.MultiPartDiskSegmentCategory,
+                    isCompressed: false,
+                    compressionBlockSize: 0,
+                    maxCachedBlockCount: 0,
+                    MultiPartHeaderCompressionMethod,
+                    blockCacheReplacementWarningDuration: 0);
+
         diskSegmentListDevice.Delete();
         randomDeviceManager
             .RemoveReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory);
