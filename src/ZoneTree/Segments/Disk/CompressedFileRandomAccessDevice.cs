@@ -6,6 +6,8 @@ namespace Tenray.ZoneTree.Segments.Disk;
 
 public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 {
+    const int MetaDataSize = 5;
+
     readonly IFileStreamProvider FileStreamProvider;
 
     readonly int BlockSize;
@@ -35,6 +37,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     readonly List<int> CompressedBlockLengths = new();
 
     readonly List<int> DecompressedBlockLengths = new();
+
+    readonly object[] BlockReadLocks = new object[33];
 
     int NextBlockIndex = 0;
 
@@ -66,8 +70,6 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         }
     }
 
-    const int MetaDataSize = 5;
-
     public CompressedFileRandomAccessDevice(
         ILogger logger,
         int maxCachedBlockCount,
@@ -82,6 +84,11 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         long blockCacheReplacementWarningDuration,
         int fileIOBufferSize = 4096)
     {
+        for (var i = 0; i < BlockReadLocks.Length; ++i)
+        {
+            BlockReadLocks[i] = new object();
+        }
+
         CircularBlockCache = new(
             logger, maxCachedBlockCount, blockCacheReplacementWarningDuration);
         FileStreamProvider = fileStreamProvider;
@@ -242,10 +249,21 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         int offsetInBlock,
         int length)
     {
-        DecompressedBlock decompressedBlock = ReadBlock(blockIndex);
-        CircularBlockCache.AddBlock(decompressedBlock);
-        NextBlock = decompressedBlock;
-        return decompressedBlock.GetBytes(offsetInBlock, length);
+        var blockLock = BlockReadLocks[blockIndex % BlockReadLocks.Length];
+        lock (blockLock)
+        {
+            var block = NextBlock;
+            if ((block == null || block.BlockIndex != blockIndex) &&
+                !TryGetBlockCache(blockIndex, out block))
+            {
+                DecompressedBlock decompressedBlock = ReadBlock(blockIndex);
+                CircularBlockCache.AddBlock(decompressedBlock);
+                NextBlock = decompressedBlock;
+                return decompressedBlock.GetBytes(offsetInBlock, length);
+            }
+            block.LastAccessTicks = Environment.TickCount64;
+            return block.GetBytes(offsetInBlock, length);
+        }
     }
 
     DecompressedBlock ReadBlock(int blockIndex)
