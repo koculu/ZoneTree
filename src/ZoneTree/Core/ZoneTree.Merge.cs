@@ -105,25 +105,29 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         IsCancelMergeRequested = true;
     }
 
-    readonly int ReadOnlySegmentFullyFrozenSpinTimeout = 1000;
+    readonly int ReadOnlySegmentFullyFrozenSpinTimeout = 2000;
 
     MergeResult MergeReadOnlySegmentsInternal()
     {
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        Logger.LogTrace("Merge started.");
+        Logger.LogTrace("Merge starting.");
 
         var oldDiskSegment = DiskSegment;
         var roSegments = ReadOnlySegmentQueue.ToArray();
 
         if (roSegments.Any(x => !x.IsFullyFrozen))
         {
+            //Thread.Sleep(ReadOnlySegmentFullyFrozenSpinTimeout);
             SpinWait.SpinUntil(() => !roSegments.Any(x => !x.IsFullyFrozen), 
                 ReadOnlySegmentFullyFrozenSpinTimeout);
             if (roSegments.Any(x => !x.IsFullyFrozen))
                 return MergeResult.RETRY_READONLY_SEGMENTS_ARE_NOT_READY;
         }
 
+        Logger.LogTrace("Merge started.");
+
+        var hasBottomSegments = !BottomSegmentQueue.IsEmpty;
         var readOnlySegmentsArray = roSegments.Select(x => x.GetSeekableIterator()).ToArray();
         if (readOnlySegmentsArray.Length == 0)
             return MergeResult.NOTHING_TO_MERGE;
@@ -210,8 +214,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             var minEntry = heap.MinValue;
             minSegmentIndex = minEntry.SegmentIndex;
 
-            // ignore deleted entries.
-            if (IsValueDeleted(minEntry.Value))
+            // ignore deleted entries if bottom segments queue is empty.
+            if (!hasBottomSegments && IsValueDeleted(minEntry.Value))
             {
                 skipElement();
                 prevKey = minEntry.Key;
@@ -298,8 +302,18 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         OnDiskSegmentCreated?.Invoke(this, newDiskSegment);
         lock (ShortMergerLock)
         {
-            DiskSegment = newDiskSegment;
-            MetaWal.NewDiskSegment(newDiskSegment.SegmentId);
+            if (newDiskSegment.Length > Options.DiskSegmentMaxItemCount)
+            {
+                BottomSegmentQueue.Enqueue(newDiskSegment);
+                MetaWal.EnqueueBottomSegment(newDiskSegment.SegmentId);
+                MetaWal.NewDiskSegment(0);
+                DiskSegment = new NullDiskSegment<TKey,TValue>();
+            }
+            else
+            {
+                DiskSegment = newDiskSegment;
+                MetaWal.NewDiskSegment(newDiskSegment.SegmentId);
+            }
             try
             {
                 oldDiskSegment.Drop(diskSegmentCreator.AppendedPartSegmentIds);

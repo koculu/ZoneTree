@@ -39,6 +39,13 @@ public class ZoneTreeOptions<TKey, TValue>
     public int MutableSegmentMaxItemCount { get; set; } = 1_000_000;
 
     /// <summary>
+    /// Disk segment maximumum key-value pair count.
+    /// When the maximum count is reached
+    /// The disk Segment is enqueued into to the bottom segment layer.
+    /// </summary>
+    public int DiskSegmentMaxItemCount { get; set; } = 20_000_000;
+
+    /// <summary>
     /// The key comparer.
     /// </summary>
     public IRefComparer<TKey> Comparer { get; set; }

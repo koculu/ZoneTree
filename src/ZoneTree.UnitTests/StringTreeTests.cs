@@ -32,7 +32,7 @@ public class StringTreeTests
             zoneTree.Upsert(keys[i], values[i]);
         }
 
-        var iterator = zoneTree.CreateIterator();
+        using var iterator = zoneTree.CreateIterator();
         var j = 0;
         while (iterator.Next())
         {
@@ -44,12 +44,12 @@ public class StringTreeTests
         maintenance.MoveSegmentZeroForward();
         maintenance.StartMergeOperation()?.Join();
 
-        iterator = zoneTree.CreateIterator();
+        using var iterator2 = zoneTree.CreateIterator();
         j = 0;
-        while (iterator.Next())
+        while (iterator2.Next())
         {
-            Assert.That(iterator.CurrentKey, Is.EqualTo(keys[j]));
-            Assert.That(iterator.CurrentValue, Is.EqualTo(values[j]));
+            Assert.That(iterator2.CurrentKey, Is.EqualTo(keys[j]));
+            Assert.That(iterator2.CurrentValue, Is.EqualTo(values[j]));
             ++j;
         }
         zoneTree.Maintenance.DestroyTree();

@@ -27,6 +27,14 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         {
             return !IsValueDeleted(value);
         }
+
+        foreach (var segment in BottomSegmentQueue.Reverse())
+        {
+            if (segment.TryGet(key, out value))
+            {
+                return !IsValueDeleted(value);
+            }
+        }
         return false;
     }
 
@@ -43,6 +51,14 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         if (DiskSegment.TryGet(key, out value))
         {
             return !IsValueDeleted(value);
+        }
+
+        foreach (var segment in BottomSegmentQueue.Reverse())
+        {
+            if (segment.TryGet(key, out value))
+            {
+                return !IsValueDeleted(value);
+            }
         }
         return false;
     }

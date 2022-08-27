@@ -18,6 +18,8 @@ public class ZoneTreeMeta
 
     public int MutableSegmentMaxItemCount { get; set; }
 
+    public int DiskSegmentMaxItemCount { get; set; } = 20_000_000;
+
     public WriteAheadLogOptions WriteAheadLogOptions { get; set; }
     
     public DiskSegmentOptions DiskSegmentOptions { get; set; }
@@ -27,4 +29,6 @@ public class ZoneTreeMeta
     public IReadOnlyList<long> ReadOnlySegments { get; set; }
 
     public long DiskSegment { get; set; }
+
+    public IReadOnlyList<long> BottomSegments { get; set; }
 }

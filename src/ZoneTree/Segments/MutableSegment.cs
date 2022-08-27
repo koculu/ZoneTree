@@ -166,7 +166,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
     public void Freeze()
     {
         IsFrozenFlag = true;
-        Task.Factory.StartNew(FreezeWriteAheadLog);
+        new Thread(FreezeWriteAheadLog).Start();
     }
 
     void FreezeWriteAheadLog()
@@ -179,6 +179,7 @@ public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             }
             WriteAheadLog.MarkFrozen();
             BTree.SetTreeReadOnlyAndLockFree();
+
         }
         catch(Exception e)
         {

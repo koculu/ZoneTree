@@ -5,7 +5,6 @@ The dictionary meaning of segment is to divide something into separate parts or 
 In ZoneTree segments are individual groups of key-value pairs. Keys can be duplicated across segments.
 Hence the order of segments is important. A key lookup query must start from the mutable segment first. If the key is not found there, it continues in read-only segments in LIFO order. The final lookup happens in the disk segment.
 
-
 ### Mutable Segment (SegmentZero)
 In ZoneTree there is only one segment that can accept new key-value pairs. It is called mutable segment or SegmentZero.
 
@@ -16,6 +15,14 @@ There can be 0 or many read-only segments at a given time.
 ### Disk Segment
 The disk segment is also read-only. It is an immutable group of key-value pairs that are kept in the disk.
 There is only a single disk segment at a given time. The disk segment can be empty.
+Note: In Bottom Segments layer there can be zero or many disk segments.
+
+### Bottom Segments
+This is the layer of disk segments. When a disk segment is full it is enqueued to the bottom segments layer. Bottom segments optimize the write and merge speed when the database size is big.
+
+It is the vertical expansion of disk segments. (See Multi-Part Disk Segment section for horizontal expansion.) 
+
+The ideal bottom segments should be in a pyramid-like shape. The pyramid-like shape will be provided by a separate background thread in a future release.
 
 ### Disk Segment Mode
 There are 2 disk segment modes. 
@@ -25,6 +32,8 @@ There are 2 disk segment modes.
     
 ### Multi-Part Disk Segment
 In this disk segment mode, the key-value pairs that belong to the disk segment are stored in multiple files in a flat hierarchy.
+
+It is the horizontal expansion of disk segments.
 
 ### Sparse Array
 Sparse arrays are in-memory sorted arrays that contain deserialized key-value pairs of a disk segment to reduce file IO. For example, if the disk segment contains 1M record and a sparse array has 1K records the disk lookup range will be 1M / 1K = 1K (SparseArrayStepLength). 

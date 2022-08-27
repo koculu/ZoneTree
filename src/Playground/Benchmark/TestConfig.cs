@@ -38,5 +38,6 @@ public static class TestConfig
         Console.WriteLine($"DiskSegmentMaximumCachedBlockCount: {DiskSegmentMaximumCachedBlockCount}");
         Console.WriteLine($"MinimumSparseArrayLength: {MinimumSparseArrayLength}");
         Console.WriteLine($"EnableParalelInserts: {EnableParalelInserts}");
+        Console.WriteLine($"DiskSegmentMode: {DiskSegmentMode}");
     }
 }

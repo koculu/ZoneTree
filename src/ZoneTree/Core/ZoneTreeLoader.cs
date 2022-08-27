@@ -12,11 +12,13 @@ public class ZoneTreeLoader<TKey, TValue>
 
     ZoneTreeMeta ZoneTreeMeta;
 
+    IMutableSegment<TKey, TValue> SegmentZero { get; set; }
+
     IReadOnlyList<IReadOnlySegment<TKey, TValue>> ReadOnlySegments;
 
     IDiskSegment<TKey, TValue> DiskSegment { get; set; }
 
-    IMutableSegment<TKey, TValue> SegmentZero { get; set; }
+    IReadOnlyList<IDiskSegment<TKey, TValue>> BottomSegments;
 
     long maximumSegmentId = 1;
     public ZoneTreeLoader(ZoneTreeOptions<TKey, TValue> options)
@@ -79,6 +81,7 @@ public class ZoneTreeLoader<TKey, TValue>
         using var metaWal = new ZoneTreeMetaWAL<TKey, TValue>(Options, false);
         var records = metaWal.GetAllRecords();
         var readOnlySegments = ZoneTreeMeta.ReadOnlySegments.ToList();
+        var bottomSegments = ZoneTreeMeta.BottomSegments?.ToList() ?? new List<long>();
         foreach (var record in records)
         {
             var segmentId = record.SegmentId;
@@ -100,6 +103,15 @@ public class ZoneTreeLoader<TKey, TValue>
                         throw new WriteAheadLogCorruptionException(segmentId, null);
                     readOnlySegments.RemoveAt(readOnlySegments.Count - 1);
                     break;
+                case MetaWalOperation.EnqueueBottomSegment:
+                    bottomSegments.Insert(0, segmentId);
+                    break;
+                case MetaWalOperation.DequeueBottomSegment:
+                    if (bottomSegments.Count == 0 ||
+                        bottomSegments.Last() != segmentId)
+                        throw new WriteAheadLogCorruptionException(segmentId, null);
+                    bottomSegments.RemoveAt(bottomSegments.Count - 1);
+                    break;
             }
         }
         ZoneTreeMeta.ReadOnlySegments = readOnlySegments;
@@ -107,7 +119,8 @@ public class ZoneTreeLoader<TKey, TValue>
             ZoneTreeMeta,
             ZoneTreeMeta.SegmentZero,
             ZoneTreeMeta.DiskSegment,
-            readOnlySegments.ToArray());
+            readOnlySegments.ToArray(),
+            bottomSegments.ToArray());
         ValidateSegmentOrder();
     }
 
@@ -120,6 +133,21 @@ public class ZoneTreeLoader<TKey, TValue>
                 throw new ZoneTreeMetaCorruptionException();
             index = ros;
         }
+
+        index = long.MaxValue;
+        foreach (var bs in ZoneTreeMeta.BottomSegments)
+        {
+            if (index <= bs)
+                throw new ZoneTreeMetaCorruptionException();
+            index = bs;
+        }
+    }
+
+    void LoadSegmentZero(long maximumOpIndex)
+    {
+        var loader = new MutableSegmentLoader<TKey, TValue>(Options);
+        SegmentZero = loader
+            .LoadMutableSegment(ZoneTreeMeta.SegmentZero, maximumOpIndex);
     }
 
     long LoadReadOnlySegments()
@@ -153,17 +181,34 @@ public class ZoneTreeLoader<TKey, TValue>
         if (Options.RandomAccessDeviceManager
             .DeviceExists(segmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory))
         {
-            DiskSegment = new MultiPartDiskSegment<TKey, TValue>(ZoneTreeMeta.DiskSegment, Options);
+            DiskSegment = new MultiPartDiskSegment<TKey, TValue>(segmentId, Options);
             return;
         }
-        DiskSegment = new DiskSegment<TKey, TValue>(ZoneTreeMeta.DiskSegment, Options);
+        DiskSegment = new DiskSegment<TKey, TValue>(segmentId, Options);
     }
 
-    void LoadSegmentZero(long maximumOpIndex)
+    void LoadBottomSegments()
     {
-        var loader = new MutableSegmentLoader<TKey, TValue>(Options);
-        SegmentZero = loader
-            .LoadMutableSegment(ZoneTreeMeta.SegmentZero, maximumOpIndex);
+        var segments = ZoneTreeMeta.BottomSegments;
+        var map = new ConcurrentDictionary<long, IDiskSegment<TKey, TValue>>();
+
+        var loader = new ReadOnlySegmentLoader<TKey, TValue>(Options);
+        Parallel.ForEach(segments, (segmentId) =>
+        {
+            if (Options.RandomAccessDeviceManager
+                .DeviceExists(segmentId,
+                    DiskSegmentConstants.MultiPartDiskSegmentCategory))
+            {
+                var ds = new MultiPartDiskSegment<TKey, TValue>(segmentId, Options);
+                map.AddOrUpdate(segmentId, ds, (_, _) => ds);
+            }
+            else
+            {
+                var ds = new DiskSegment<TKey, TValue>(segmentId, Options);
+                map.AddOrUpdate(segmentId, ds, (_, _) => ds);
+            }
+        });
+        BottomSegments = segments.Select(x => map[x]).ToArray();
     }
 
     void SetMaximumId()
@@ -175,6 +220,9 @@ public class ZoneTreeLoader<TKey, TValue>
         var ros = ZoneTreeMeta.ReadOnlySegments;
         var maximumId = ros.Count > 0 ? ros[0] : 0;
         SetMaximumSegmentId(maximumId);
+        var bs = ZoneTreeMeta.BottomSegments;
+        maximumId = bs.Count > 0 ? bs[0] : 0;
+        SetMaximumSegmentId(maximumId);
     }
     public ZoneTree<TKey, TValue> LoadZoneTree()
     {
@@ -184,8 +232,9 @@ public class ZoneTreeLoader<TKey, TValue>
         var maximumOpIndex = LoadReadOnlySegments();
         LoadSegmentZero(maximumOpIndex);
         LoadDiskSegment();
+        LoadBottomSegments();
         var zoneTree = new ZoneTree<TKey, TValue>(Options, ZoneTreeMeta,
-            ReadOnlySegments, SegmentZero, DiskSegment, maximumSegmentId);
+            ReadOnlySegments, SegmentZero, DiskSegment, BottomSegments, maximumSegmentId);
         return zoneTree;
     }
 }

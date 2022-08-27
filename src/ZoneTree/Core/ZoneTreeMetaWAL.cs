@@ -112,6 +112,26 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         AppendRecord(record);
     }
 
+    public void EnqueueBottomSegment(long segmentId)
+    {
+        var record = new MetaWalRecord
+        {
+            Operation = MetaWalOperation.EnqueueBottomSegment,
+            SegmentId = segmentId
+        };
+        AppendRecord(record);
+    }
+
+    public void DequeueBottomySegment(long segmentId)
+    {
+        var record = new MetaWalRecord
+        {
+            Operation = MetaWalOperation.DequeueBottomSegment,
+            SegmentId = segmentId
+        };
+        AppendRecord(record);
+    }
+
     public void ClearContent()
     {
         Device.ClearContent();
@@ -171,6 +191,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         long segmentZero,
         long diskSegment,
         long[] readOnlySegments,
+        long[] bottomSegments,
         bool createNew = false)
     {
         string productVersion = ZoneTreeInfo.ProductVersion.ToString();
@@ -188,6 +209,8 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             WriteAheadLogOptions = zoneTreeMeta.WriteAheadLogOptions,
             DiskSegmentOptions = zoneTreeMeta.DiskSegmentOptions,
             MutableSegmentMaxItemCount = zoneTreeMeta.MutableSegmentMaxItemCount,
+            DiskSegmentMaxItemCount = zoneTreeMeta.DiskSegmentMaxItemCount,
+            BottomSegments = bottomSegments,
         };
 
         var bytes = JsonSerializer.SerializeToUtf8Bytes(
@@ -218,9 +241,11 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
                 .WriteAllBytes(metaFilePath, bytes);
         }
         ClearContent();
+        zoneTreeMeta.Version = productVersion;
         zoneTreeMeta.SegmentZero = segmentZero;
         zoneTreeMeta.DiskSegment = diskSegment;
         zoneTreeMeta.ReadOnlySegments = readOnlySegments;
+        zoneTreeMeta.BottomSegments = bottomSegments;
     }
 
     public static ZoneTreeMeta LoadZoneTreeMetaWithoutWALRecords(
@@ -252,7 +277,9 @@ public enum MetaWalOperation
     EnqueueReadOnlySegment,
     DequeueReadOnlySegment,
     NewSegmentZero,
-    NewDiskSegment
+    NewDiskSegment,
+    EnqueueBottomSegment,
+    DequeueBottomSegment,
 }
 
 [StructLayout(LayoutKind.Sequential)]

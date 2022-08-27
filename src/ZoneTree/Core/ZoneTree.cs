@@ -26,6 +26,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     readonly ConcurrentQueue<IReadOnlySegment<TKey, TValue>> ReadOnlySegmentQueue = new();
 
+    readonly ConcurrentQueue<IDiskSegment<TKey, TValue>> BottomSegmentQueue = new();
+
     readonly IIncrementalIdProvider IncrementalIdProvider = new IncrementalIdProvider();
 
     readonly object AtomicUpdateLock = new();
@@ -116,6 +118,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             SegmentZero.SegmentId,
             DiskSegment.SegmentId,
             Array.Empty<long>(),
+            Array.Empty<long>(),
             true);
     }
 
@@ -125,6 +128,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         IReadOnlyList<IReadOnlySegment<TKey, TValue>> readOnlySegments,
         IMutableSegment<TKey, TValue> segmentZero,
         IDiskSegment<TKey, TValue> diskSegment,
+        IReadOnlyList<IDiskSegment<TKey, TValue>> bottomSegments,
         long maximumSegmentId
         )
     {
@@ -141,6 +145,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         DiskSegment.DropFailureReporter = (ds, e) => ReportDropFailure(ds, e);
         foreach (var ros in readOnlySegments.Reverse())
             ReadOnlySegmentQueue.Enqueue(ros);
+        foreach (var bs in bottomSegments.Reverse())
+            BottomSegmentQueue.Enqueue(bs);
         IsValueDeleted = options.IsValueDeleted;
     }
 
@@ -155,7 +161,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         ZoneTreeMeta.ValueSerializerType = Options.ValueSerializer.GetType().FullName;
         ZoneTreeMeta.DiskSegment = DiskSegment.SegmentId;
         ZoneTreeMeta.ReadOnlySegments = ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray();
+        ZoneTreeMeta.BottomSegments = BottomSegmentQueue.Select(x => x.SegmentId).Reverse().ToArray();
         ZoneTreeMeta.MutableSegmentMaxItemCount = Options.MutableSegmentMaxItemCount;
+        ZoneTreeMeta.DiskSegmentMaxItemCount = Options.DiskSegmentMaxItemCount;
         ZoneTreeMeta.WriteAheadLogOptions = Options.WriteAheadLogOptions;
         ZoneTreeMeta.DiskSegmentOptions = Options.DiskSegmentOptions;
     }
@@ -174,7 +182,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     ZoneTreeMeta,
                     SegmentZero.SegmentId,
                     DiskSegment.SegmentId,
-                    ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray());
+                    ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray(),
+                    BottomSegmentQueue.Select(x => x.SegmentId).Reverse().ToArray());
             }
     }
 
@@ -186,6 +195,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         MetaWal.Dispose();
         foreach (var ros in ReadOnlySegments)
             ros.ReleaseResources();
+        foreach (var bs in BottomSegmentQueue)
+            bs.ReleaseResources();
     }
 
     public void DestroyTree()
@@ -197,13 +208,15 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         var readOnlySegments = ReadOnlySegmentQueue.ToArray();
         foreach (var ros in readOnlySegments)
             ros.Drop();
+        foreach (var bs in BottomSegmentQueue.ToArray())
+            bs.ReleaseResources();
         Options.WriteAheadLogProvider.DropStore();
         Options.RandomAccessDeviceManager.DropStore();
     }
 
     public long Count()
     {
-        var iterator = CreateInMemorySegmentsIterator(
+        using var iterator = CreateInMemorySegmentsIterator(
             autoRefresh: false,
             includeDeletedRecords: true);
 
@@ -216,8 +229,11 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 diskSegment = DiskSegment;
                 iterator.Refresh();
             }
-        var count = diskSegment.Length;
 
+        if (!BottomSegmentQueue.IsEmpty)
+            return CountFullScan();
+
+        var count = diskSegment.Length;
         while (iterator.Next())
         {
             var hasKey = diskSegment.ContainsKey(iterator.CurrentKey);
@@ -238,7 +254,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     public long CountFullScan()
     {
-        var iterator = CreateIterator(IteratorType.NoRefresh, false);
+        using var iterator = CreateIterator(IteratorType.NoRefresh, false);
         var count = 0;
         while (iterator.Next())
             ++count;

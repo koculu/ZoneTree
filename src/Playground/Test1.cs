@@ -223,7 +223,7 @@ public class Test1
             var c = zoneTree1.Count();
             var s = 0;
             Console.WriteLine("count:" + c);
-            var it = reverse ? 
+            using var it = reverse ? 
                 zoneTree1.CreateReverseIterator() :
                 zoneTree1.CreateIterator();
             it.Next();

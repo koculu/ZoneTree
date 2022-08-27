@@ -7,7 +7,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 {
     public SegmentCollection CollectSegments(
         bool includeSegmentZero,
-        bool includeDiskSegment)
+        bool includeDiskSegment,
+        bool includeBottomSegments)
     {
         lock (ShortMergerLock)
             lock (AtomicUpdateLock)
@@ -33,6 +34,18 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                         diskSegment.AddReader();
                         result.DiskSegment = diskSegment;
                         seekableIterators.Add(diskSegment.GetSeekableIterator());
+                    }                    
+                }
+
+                if (includeBottomSegments)
+                {
+                    var bottomSegments = BottomSegmentQueue.Reverse().ToArray();
+                    foreach (var bottom in bottomSegments)
+                    {
+                        bottom.AddReader();
+                        result.BottomSegments = bottomSegments;
+                        seekableIterators.Add(bottom.GetSeekableIterator());
+
                     }
                 }
                 return result;
@@ -44,6 +57,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         public IReadOnlyList<ISeekableIterator<TKey, TValue>> SeekableIterators { get; set; }
 
         public IDiskSegment<TKey, TValue> DiskSegment { get; set; }
+        
+        public IDiskSegment<TKey, TValue>[] BottomSegments { get; set; }
     }
 
     public IZoneTreeIterator<TKey, TValue> CreateIterator(
@@ -60,7 +75,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             isReverseIterator: false,
             includeDeletedRecords,
             includeSegmentZero: includeSegmentZero,
-            includeDiskSegment: true);
+            includeDiskSegment: true,
+            includeBottomSegments: true);
 
         if (iteratorType == IteratorType.Snapshot)
         {
@@ -90,7 +106,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             isReverseIterator: true,
             includeDeletedRecords,
             includeSegmentZero: includeSegmentZero,
-            includeDiskSegment: true);
+            includeDiskSegment: true,
+            includeBottomSegments: true);
 
         if (iteratorType == IteratorType.Snapshot)
         {
@@ -121,7 +138,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             isReverseIterator: false,
             includeDeletedRecords,
             includeSegmentZero: false,
-            includeDiskSegment: false);
+            includeDiskSegment: false,
+            includeBottomSegments: false);
         return iterator;
     }
 
@@ -142,7 +160,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             isReverseIterator: false,
             includeDeletedRecords,
             includeSegmentZero: true,
-            includeDiskSegment: false);
+            includeDiskSegment: false,
+            includeBottomSegments: false);
         return iterator;
     }
 }
