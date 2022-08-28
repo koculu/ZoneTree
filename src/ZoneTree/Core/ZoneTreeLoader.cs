@@ -219,7 +219,7 @@ public class ZoneTreeLoader<TKey, TValue>
         var maximumId = ros.Count > 0 ? ros[0] : 0;
         SetMaximumSegmentId(maximumId);
         var bs = ZoneTreeMeta.BottomSegments;
-        maximumId = bs.Count > 0 ? bs[0] : 0;
+        maximumId = bs.Count > 0 ? bs.Max() : 0;
         SetMaximumSegmentId(maximumId);
     }
     public ZoneTree<TKey, TValue> LoadZoneTree()

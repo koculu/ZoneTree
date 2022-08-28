@@ -457,7 +457,13 @@ public class ZoneTreeFactory<TKey, TValue>
         if (loader.ZoneTreeMetaExists)
         {
             var zoneTree = loader.LoadZoneTree();
-            zoneTree.Maintenance.DiskSegment.InitSparseArray(InitialSparseArrayLength);
+            var t1 = Task.Run(() =>
+                zoneTree.Maintenance.DiskSegment.InitSparseArray(InitialSparseArrayLength));
+            Parallel.ForEach(zoneTree.Maintenance.BottomSegments, (bs) =>
+            {
+                bs.InitSparseArray(InitialSparseArrayLength);
+            });
+            t1.Wait();
             return zoneTree;
         }
         return new ZoneTree<TKey, TValue>(Options);

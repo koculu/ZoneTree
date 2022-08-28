@@ -43,10 +43,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     foreach (var bottom in bottomSegments)
                     {
                         bottom.AttachIterator();
-                        result.BottomSegments = bottomSegments;
                         seekableIterators.Add(bottom.GetSeekableIterator());
-
                     }
+                    result.BottomSegments = bottomSegments;
                 }
                 return result;
             }
