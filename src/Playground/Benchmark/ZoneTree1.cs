@@ -67,6 +67,99 @@ public class ZoneTree1
             ConsoleColor.DarkCyan);
     }
 
+    public static void MergeBottomSegment(WriteAheadLogMode mode, int count, int from, int to)
+    {
+        var recCount = count / 1000000.0 + "M";
+        BenchmarkGroups.LogWithColor($"\r\n{mode} MergeBottomSegments <int,int> {recCount}\r\n", ConsoleColor.Cyan);
+
+        string dataPath = GetDataPath(mode, count);
+        var stopWatch = new Stopwatch();
+        stopWatch.Start();
+        using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
+        BenchmarkGroups.LogWithColor(
+            "Loaded in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.DarkYellow);
+        zoneTree.Maintenance.StartBottomSegmentsMergeOperation(from, to).Join();
+        ShowBottomSegments(zoneTree);
+
+        BenchmarkGroups.LogWithColor(
+            "Completed in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.Green);
+    }
+
+    private static void ShowBottomSegments(IZoneTree<int, int> z)
+    {
+        var ds = z.Maintenance.DiskSegment;
+        Console.WriteLine($"------------------------------");
+        Console.WriteLine($"Length \t\t Segment Id");
+        Console.WriteLine($"------------------------------");
+        Console.WriteLine($"Disk segment:");
+        Console.WriteLine($"------------------------------");
+        Console.WriteLine($"{ds.Length} \t {ds.SegmentId}");
+        Console.WriteLine($"------------------------------");
+        Console.WriteLine("Bottom Segments:");
+        Console.WriteLine($"------------------------------");
+        var bos = z.Maintenance.BottomSegments;
+        foreach (var bs in bos)
+        {
+            Console.WriteLine($"{bs.Length} \t {bs.SegmentId}");
+        }
+        Console.WriteLine($"------------------------------");
+    }
+
+    public static void ShowBottomSegments(WriteAheadLogMode mode, int count)
+    {
+        var recCount = count / 1000000.0 + "M";
+        BenchmarkGroups.LogWithColor($"\r\n{mode} ShowBottomSegments <int,int> {recCount}\r\n", ConsoleColor.Cyan);
+
+        string dataPath = GetDataPath(mode, count);
+        var stopWatch = new Stopwatch();
+        stopWatch.Start();
+        TestConfig.DiskSegmentMaximumCachedBlockCount = 400;
+        TestConfig.MinimumSparseArrayLength = 33;
+        using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
+
+        BenchmarkGroups.LogWithColor(
+            "Loaded in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.DarkYellow);
+        
+        var random = new Random(); 
+        Parallel.For(0, 750000, (i) =>
+        {
+            var key = random.Next(0, 999_999_999);
+            using var it = zoneTree.CreateReverseIterator();
+            it.Seek(key);
+            it.Next();
+            if (it.CurrentKey != key)
+                throw new Exception(it.CurrentKey + " != " + key);
+
+            using var it2 = zoneTree.CreateIterator();
+            it2.Seek(key);
+            it2.Next();
+            if (it2.CurrentKey != key)
+                throw new Exception(it2.CurrentKey + " != " + key);
+
+            if (!zoneTree.ContainsKey(key))
+                throw new Exception($"{key} not found.");
+            if (!zoneTree.TryGet(key, out var value))
+                throw new Exception($"{key} not found.");
+            if (value != 2 * key)
+                throw new Exception($"{key} != {value / 2}");
+        }
+        );
+
+        ShowBottomSegments(zoneTree);
+
+        BenchmarkGroups.LogWithColor(
+            "Completed in:",
+            stopWatch.ElapsedMilliseconds,
+            ConsoleColor.Green);
+
+    }
+
     public static void InsertSingleAndMerge(WriteAheadLogMode mode, int count, int key, int amount)
     {
         var recCount = count / 1000000.0 + "M";

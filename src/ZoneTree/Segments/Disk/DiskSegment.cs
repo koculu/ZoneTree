@@ -608,8 +608,10 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
                 return SparseArray[index].Index;
             if (index == sparseArrayLength)
                 return upper;
-            if (index == sparseArrayLength - 1)
+            if (index == 0)
                 return SparseArray[index].Index;
+            if (index > 0)
+                --index;
             lower = SparseArray[index].Index;
             upper = SparseArray[index + 1].Index;
         }
