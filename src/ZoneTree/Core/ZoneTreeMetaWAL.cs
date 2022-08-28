@@ -122,11 +122,32 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         AppendRecord(record);
     }
 
-    public void DequeueBottomySegment(long segmentId)
+    public void DequeueBottomSegment(long segmentId)
     {
         var record = new MetaWalRecord
         {
             Operation = MetaWalOperation.DequeueBottomSegment,
+            SegmentId = segmentId
+        };
+        AppendRecord(record);
+    }
+
+    public void InsertBottomSegment(long segmentId, int index)
+    {
+        var record = new MetaWalRecord
+        {
+            Operation = MetaWalOperation.InsertBottomSegment,
+            SegmentId = segmentId,
+            Index = index
+        };
+        AppendRecord(record);
+    }
+
+    public void DeleteBottomSegment(long segmentId)
+    {
+        var record = new MetaWalRecord
+        {
+            Operation = MetaWalOperation.DeleteBottomSegment,
             SegmentId = segmentId
         };
         AppendRecord(record);
@@ -280,11 +301,16 @@ public enum MetaWalOperation
     NewDiskSegment,
     EnqueueBottomSegment,
     DequeueBottomSegment,
+    InsertBottomSegment,
+    DeleteBottomSegment,
 }
 
 [StructLayout(LayoutKind.Sequential)]
 public struct MetaWalRecord
 {
     public MetaWalOperation Operation;
+
     public long SegmentId;
+    
+    public int Index;
 }

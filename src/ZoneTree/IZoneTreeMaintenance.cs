@@ -17,16 +17,22 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     IMutableSegment<TKey, TValue> SegmentZero { get; }
 
     /// <summary>
+    /// Gets current readonly segments in-memory.
+    /// MoveSegmentZero operation moves writable segment to the read-only
+    /// segments layer.
+    /// The readonly segments remains in memory until merge operation done.
+    /// </summary>
+    IReadOnlyList<IReadOnlySegment<TKey, TValue>> ReadOnlySegments { get; }
+
+    /// <summary>
     /// Gets current disk segment.
     /// </summary>
     IDiskSegment<TKey, TValue> DiskSegment { get; }
 
     /// <summary>
-    /// Gets current readonly segments.
-    /// MoveSegmentZero operation moves writable segment to the read only segments section.
-    /// The readonly segments remains in memory until merge operation done.
+    /// Gets current bottom segments.
     /// </summary>
-    IReadOnlyList<IReadOnlySegment<TKey, TValue>> ReadOnlySegments { get; }
+    IReadOnlyList<IDiskSegment<TKey, TValue>> BottomSegments { get; }
 
     /// <summary>
     /// Retrieves the number of read only segments.
@@ -34,7 +40,7 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     int ReadOnlySegmentsCount { get; }
 
     /// <summary>
-    /// Retrieves the number of records in read only segments.
+    /// Retrieves the number of records in read-only segments.
     /// </summary>
     long ReadOnlySegmentsRecordCount { get; }
 
@@ -52,10 +58,11 @@ public interface IZoneTreeMaintenance<TKey, TValue>
 
     /// <summary>
     /// Retrieves the total number of records that lies in memory and disk
-    /// excluding the sparse array records of DiskSegment.
+    /// excluding the sparse array records of DiskSegments.
     /// In an LSM tree, records can be duplicated across different segments.
     /// Hence, this is not the actual unique record count of the tree.
     /// To get exact record count, a partial database scan is needed.
+    /// Use Count() and CountFullScan() for actual record count.
     /// </summary>
     long TotalRecordCount { get; }
 
@@ -65,6 +72,11 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     bool IsMerging { get; }
 
     /// <summary>
+    /// true if bottom segments merge operation is running, otherwise false.
+    /// </summary>
+    bool IsBottomSegmentsMerging { get; }
+
+    /// <summary>
     /// Moves mutable segment into readonly segment.
     /// This will clear the writable region of the LSM tree.
     /// This method is thread safe and can be called from many threads.
@@ -72,15 +84,27 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     void MoveSegmentZeroForward();
 
     /// <summary>
-    /// Merges available readonly segments with bottom segment.
-    /// Bottom segment is usually persistance segment. ex: Disk or any IO device.
+    /// Merges available in-memory read-only segments to the disk segment.
     /// </summary>
     Thread StartMergeOperation();
+
+    /// <summary>
+    /// Merges selected bottom segments into a single bottom disk segment.
+    /// </summary>
+    /// <param name="from">The lower bound</param>
+    /// <param name="to">The upper bound</param>
+    /// <returns></returns>
+    Thread StartBottomSegmentsMergeOperation(int from, int to);
 
     /// <summary>
     /// Attempts to cancel merge operation.
     /// </summary>
     void TryCancelMergeOperation();
+
+    /// <summary>
+    /// Attempts to cancel bottom segments merge operation.
+    /// </summary>
+    void TryCancelBottomSegmentsMergeOperation();
 
     /// <summary>
     /// Saves tree meta data and clears the meta wal record.
@@ -187,14 +211,34 @@ public delegate void MergeOperationEnded<TKey, TValue>
 
 
 /// <summary>
+/// Event is fired when the bottom segments merge operation is started.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="zoneTree">The ZoneTree maintenance</param>
+public delegate void BottomSegmentsMergeOperationStarted<TKey, TValue>
+    (IZoneTreeMaintenance<TKey, TValue> zoneTree);
+
+/// <summary>
+/// Event is fired when the bottom segments merge operation is ended.
+/// </summary>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="zoneTree">The ZoneTree maintenance</param>
+/// <param name="mergeResult">The merge operation result</param>
+public delegate void BottomSegmentsMergeOperationEnded<TKey, TValue>
+    (IZoneTreeMaintenance<TKey, TValue> zoneTree, MergeResult mergeResult);
+
+/// <summary>
 /// Event is fired when the disk segment is created.
 /// </summary>
 /// <typeparam name="TKey">The key type</typeparam>
 /// <typeparam name="TValue">The value type</typeparam>
 /// <param name="zoneTree">The ZoneTree maintenance</param>
 /// <param name="newDiskSegment">The new disk segment</param>
+/// <param name="isBottomSegment">True if the bottom disk segment is created, otherwise false.</param>
 public delegate void DiskSegmentCreated<TKey, TValue>
-    (IZoneTreeMaintenance<TKey, TValue> zoneTree, IDiskSegment<TKey, TValue> newDiskSegment);
+    (IZoneTreeMaintenance<TKey, TValue> zoneTree, IDiskSegment<TKey, TValue> newDiskSegment, bool isBottomSegment);
 
 /// <summary>
 /// Event is fired when the disk segment is activated.
@@ -203,8 +247,9 @@ public delegate void DiskSegmentCreated<TKey, TValue>
 /// <typeparam name="TValue">The value type</typeparam>
 /// <param name="zoneTree">The ZoneTree maintenance</param>
 /// <param name="newDiskSegment">The new disk segment</param>
+/// /// <param name="isBottomSegment">True if the bottom disk segment is activated, otherwise false.</param>
 public delegate void DiskSegmentActivated<TKey, TValue>
-    (IZoneTreeMaintenance<TKey, TValue> zoneTree, IDiskSegment<TKey, TValue> newDiskSegment);
+    (IZoneTreeMaintenance<TKey, TValue> zoneTree, IDiskSegment<TKey, TValue> newDiskSegment, bool isBottomSegment);
 
 /// <summary>
 /// Event is fired when the read-only segment can not be dropped.

@@ -45,7 +45,7 @@ public class ZoneTreeLoader<TKey, TValue>
     {
         var version = ZoneTreeMeta.Version;
         if (string.IsNullOrWhiteSpace(version) ||
-            Version.Parse(version) < new Version("1.4.1"))
+            Version.Parse(version) < new Version("1.4.5"))
             throw new ExistingDatabaseVersionIsNotCompatibleException(
                 Version.Parse(version),
                 ZoneTreeInfo.ProductVersion);
@@ -112,9 +112,16 @@ public class ZoneTreeLoader<TKey, TValue>
                         throw new WriteAheadLogCorruptionException(segmentId, null);
                     bottomSegments.RemoveAt(bottomSegments.Count - 1);
                     break;
+                case MetaWalOperation.InsertBottomSegment:
+                    bottomSegments.Insert(record.Index, segmentId);
+                    break;
+                case MetaWalOperation.DeleteBottomSegment:
+                    bottomSegments.Remove(segmentId);
+                    break;
             }
         }
         ZoneTreeMeta.ReadOnlySegments = readOnlySegments;
+        ZoneTreeMeta.BottomSegments = bottomSegments;
         metaWal.SaveMetaData(
             ZoneTreeMeta,
             ZoneTreeMeta.SegmentZero,
@@ -132,14 +139,6 @@ public class ZoneTreeLoader<TKey, TValue>
             if (index <= ros)
                 throw new ZoneTreeMetaCorruptionException();
             index = ros;
-        }
-
-        index = long.MaxValue;
-        foreach (var bs in ZoneTreeMeta.BottomSegments)
-        {
-            if (index <= bs)
-                throw new ZoneTreeMetaCorruptionException();
-            index = bs;
         }
     }
 
@@ -192,7 +191,6 @@ public class ZoneTreeLoader<TKey, TValue>
         var segments = ZoneTreeMeta.BottomSegments;
         var map = new ConcurrentDictionary<long, IDiskSegment<TKey, TValue>>();
 
-        var loader = new ReadOnlySegmentLoader<TKey, TValue>(Options);
         Parallel.ForEach(segments, (segmentId) =>
         {
             if (Options.RandomAccessDeviceManager

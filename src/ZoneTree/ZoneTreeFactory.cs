@@ -89,11 +89,23 @@ public class ZoneTreeFactory<TKey, TValue>
     /// Configures mutable segment maximum item count.
     /// </summary>
     /// <param name="mutableSegmentMaxItemCount">The maximum item count</param>
-    /// <returns></returns>
+    /// <returns>ZoneTree Factory</returns>
     public ZoneTreeFactory<TKey, TValue>
         SetMutableSegmentMaxItemCount(int mutableSegmentMaxItemCount)
     {
         Options.MutableSegmentMaxItemCount = mutableSegmentMaxItemCount;
+        return this;
+    }
+
+    /// <summary>
+    /// Configures disk segment maximum item count.
+    /// </summary>
+    /// <param name="diskSegmentMaxItemCount">The maximum item count</param>
+    /// <returns>ZoneTree Factory</returns>
+    public ZoneTreeFactory<TKey, TValue>
+        SetDiskSegmentMaxItemCount(int diskSegmentMaxItemCount)
+    {
+        Options.DiskSegmentMaxItemCount = diskSegmentMaxItemCount;
         return this;
     }
 

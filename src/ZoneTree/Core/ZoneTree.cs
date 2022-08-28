@@ -26,7 +26,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     readonly ConcurrentQueue<IReadOnlySegment<TKey, TValue>> ReadOnlySegmentQueue = new();
 
-    readonly ConcurrentQueue<IDiskSegment<TKey, TValue>> BottomSegmentQueue = new();
+    volatile ConcurrentQueue<IDiskSegment<TKey, TValue>> BottomSegmentQueue = new();
 
     readonly IIncrementalIdProvider IncrementalIdProvider = new IncrementalIdProvider();
 
@@ -34,20 +34,32 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     readonly object LongMergerLock = new();
 
+    readonly object LongBottomSegmentsMergerLock = new();
+
     readonly object ShortMergerLock = new();
 
     volatile bool IsMergingFlag;
 
+    volatile bool IsBottomSegmentsMergingFlag;
+
     volatile bool IsCancelMergeRequested = false;
 
-    public IMutableSegment<TKey, TValue> SegmentZero { get; private set; }
+    volatile bool IsCancelBottomSegmentsMergeRequested = false;
 
-    public IDiskSegment<TKey, TValue> DiskSegment { get; private set; } = new NullDiskSegment<TKey, TValue>();
+    public IMutableSegment<TKey, TValue> SegmentZero { get; private set; }
 
     public IReadOnlyList<IReadOnlySegment<TKey, TValue>> ReadOnlySegments =>
         ReadOnlySegmentQueue.ToArray();
 
+    public IDiskSegment<TKey, TValue> DiskSegment { get; private set; }
+        = new NullDiskSegment<TKey, TValue>();
+
+    public IReadOnlyList<IDiskSegment<TKey, TValue>> BottomSegments =>
+        BottomSegmentQueue.ToArray();
+
     public bool IsMerging { get => IsMergingFlag; private set => IsMergingFlag = value; }
+
+    public bool IsBottomSegmentsMerging { get => IsBottomSegmentsMergingFlag; private set => IsBottomSegmentsMergingFlag = value; }
 
     public int ReadOnlySegmentsCount => ReadOnlySegmentQueue.Count;
 
@@ -72,7 +84,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         {
             lock (ShortMergerLock)
             {
-                return InMemoryRecordCount + DiskSegment.Length;
+                return InMemoryRecordCount +
+                    DiskSegment.Length +
+                    BottomSegmentQueue.Sum(x => x.Length);
             }
         }
     }
@@ -84,6 +98,10 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     public event MergeOperationStarted<TKey, TValue> OnMergeOperationStarted;
 
     public event MergeOperationEnded<TKey, TValue> OnMergeOperationEnded;
+
+    public event BottomSegmentsMergeOperationStarted<TKey, TValue> OnBottomSegmentsMergeOperationStarted;
+
+    public event BottomSegmentsMergeOperationEnded<TKey, TValue> OnBottomSegmentsMergeOperationEnded;
 
     public event DiskSegmentCreated<TKey, TValue> OnDiskSegmentCreated;
 

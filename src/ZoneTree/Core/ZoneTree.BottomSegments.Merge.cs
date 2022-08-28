@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments;
 using Tenray.ZoneTree.Segments.Disk;
@@ -8,142 +10,97 @@ namespace Tenray.ZoneTree.Core;
 
 public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeMaintenance<TKey, TValue>
 {
-    /// <summary>
-    /// Moves mutable segment into readonly segment.
-    /// This will clear the writable region of the LSM tree.
-    /// This method is thread safe and can be called from many threads.
-    /// The movement only occurs
-    /// if the current segment zero is the given segment zero.
-    /// </summary>
-    /// <param name="segmentZero">The segment zero to move forward.</param>
-    void MoveSegmentZeroForward(IMutableSegment<TKey, TValue> segmentZero)
+    public Thread StartBottomSegmentsMergeOperation(int from, int to)
     {
-        lock (AtomicUpdateLock)
+        if (from >= to)
         {
-            // move segment zero only if
-            // the given segment zero is the current segment zero (not already moved)
-            // and it is not frozen.
-            if (segmentZero.IsFrozen || segmentZero != SegmentZero)
-                return;
-
-            //Don't move empty segment zero.
-            var c = segmentZero.Length;
-            if (c == 0)
-                return;
-
-            segmentZero.Freeze();
-            ReadOnlySegmentQueue.Enqueue(segmentZero);
-            MetaWal.EnqueueReadOnlySegment(segmentZero.SegmentId);
-
-            SegmentZero = new MutableSegment<TKey, TValue>(
-                Options, IncrementalIdProvider.NextId(),
-                segmentZero.OpIndexProvider);
-            MetaWal.NewSegmentZero(SegmentZero.SegmentId);
+            throw new InvalidMergeRangeException(from, to);
         }
-        OnSegmentZeroMovedForward?.Invoke(this);
-    }
-
-    public void MoveSegmentZeroForward()
-    {
-        lock (AtomicUpdateLock)
+        if (IsBottomSegmentsMerging)
         {
-            MoveSegmentZeroForward(SegmentZero);
-        }
-    }
-
-    public Thread StartMergeOperation()
-    {
-        if (IsMerging)
-        {
-            OnMergeOperationEnded?.Invoke(this, MergeResult.ANOTHER_MERGE_IS_RUNNING);
+            OnBottomSegmentsMergeOperationEnded?.Invoke(this, MergeResult.ANOTHER_MERGE_IS_RUNNING);
             return null;
         }
-            
-        OnMergeOperationStarted?.Invoke(this);
-        var thread = new Thread(StartMergeOperationInternal);
+
+        OnBottomSegmentsMergeOperationStarted?.Invoke(this);
+        var thread = new Thread(() => 
+            StartBottomSegmentsMergeOperationInternal(from, to));
         thread.Start();
         return thread;
     }
 
-    void StartMergeOperationInternal()
+    void StartBottomSegmentsMergeOperationInternal(int from, int to)
     {
-        if (IsMerging)
+        if (IsBottomSegmentsMerging)
         {
-            OnMergeOperationEnded?.Invoke(this, MergeResult.ANOTHER_MERGE_IS_RUNNING);
+            OnBottomSegmentsMergeOperationEnded?.Invoke(this, MergeResult.ANOTHER_MERGE_IS_RUNNING);
             return;
         }
-        IsCancelMergeRequested = false;
-        lock (LongMergerLock)
+        IsCancelBottomSegmentsMergeRequested = false;
+        lock (LongBottomSegmentsMergerLock)
         {
             try
             {
-                if (IsMerging)
+                if (IsBottomSegmentsMerging)
                 {
-                    OnMergeOperationEnded?.Invoke(this, MergeResult.ANOTHER_MERGE_IS_RUNNING);
+                    OnBottomSegmentsMergeOperationEnded?.Invoke(this, MergeResult.ANOTHER_MERGE_IS_RUNNING);
                     return;
                 }
-                IsMerging = true;
-                var mergeResult = MergeReadOnlySegmentsInternal();
-                IsMerging = false;
-                OnMergeOperationEnded?.Invoke(this, mergeResult);
+                IsBottomSegmentsMerging = true;
+                var mergeResult = MergeBottomSegmentsInternal(from, to);
+                IsBottomSegmentsMerging = false;
+                OnBottomSegmentsMergeOperationEnded?.Invoke(this, mergeResult);
 
             }
             catch (Exception e)
             {
                 Logger.LogError(e);
-                OnMergeOperationEnded?.Invoke(this, MergeResult.FAILURE);
+                OnBottomSegmentsMergeOperationEnded?.Invoke(this, MergeResult.FAILURE);
             }
             finally
             {
-                IsMerging = false;
+                IsBottomSegmentsMerging = false;
             }
         }
     }
 
-    public void TryCancelMergeOperation()
+    public void TryCancelBottomSegmentsMergeOperation()
     {
-        IsCancelMergeRequested = true;
+        IsCancelBottomSegmentsMergeRequested = true;
     }
 
-    readonly int ReadOnlySegmentFullyFrozenSpinTimeout = 2000;
-
-    MergeResult MergeReadOnlySegmentsInternal()
+    MergeResult MergeBottomSegmentsInternal(int from, int to)
     {
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        Logger.LogTrace("Merge starting.");
 
-        var oldDiskSegment = DiskSegment;
-        var roSegments = ReadOnlySegmentQueue.ToArray();
+        var bottomSegments = BottomSegmentQueue.ToArray().Reverse().ToArray();
 
-        if (roSegments.Any(x => !x.IsFullyFrozen))
-        {
-            SpinWait.SpinUntil(() => !roSegments.Any(x => !x.IsFullyFrozen), 
-                ReadOnlySegmentFullyFrozenSpinTimeout);
-            if (roSegments.Any(x => !x.IsFullyFrozen))
-                return MergeResult.RETRY_READONLY_SEGMENTS_ARE_NOT_READY;
-        }
+        var writeDeletedValues = from > 0;
 
-        Logger.LogTrace("Merge started.");
+        var mergingSegments = bottomSegments
+            .Select(x => x.GetSeekableIterator())
+            .Skip(from)
+            .Take(to - from + 1)
+            .ToArray();
+        to = from + mergingSegments.Length - 1;
+        if (mergingSegments.Length == 0)
+            return MergeResult.NOTHING_TO_MERGE;
+        var bottomDiskSegment = bottomSegments[from];
+        Logger.LogTrace($"Bottom Segments Merge started." +
+            $" from: {from} - to: {to} out of: {bottomSegments.Length} ");
 
-        var hasBottomSegments = !BottomSegmentQueue.IsEmpty;
-        var readOnlySegmentsArray = roSegments.Select(x => x.GetSeekableIterator()).ToArray();
-        if (readOnlySegmentsArray.Length == 0)
+        if (mergingSegments.Length == 0)
             return MergeResult.NOTHING_TO_MERGE;
 
-        var mergingSegments = new List<ISeekableIterator<TKey, TValue>>();
-        mergingSegments.AddRange(readOnlySegmentsArray.Reverse());
-        if (oldDiskSegment is not NullDiskSegment<TKey, TValue>)
-            mergingSegments.Add(oldDiskSegment.GetSeekableIterator());
-
-        if (IsCancelMergeRequested)
+        if (IsCancelBottomSegmentsMergeRequested)
             return MergeResult.CANCELLED_BY_USER;
 
         var enableMultiPartDiskSegment =
             Options.DiskSegmentOptions.DiskSegmentMode == DiskSegmentMode.MultiPartDiskSegment;
 
-        var len = mergingSegments.Count;
-        var diskSegmentIndex = len - 1;
+        var len = mergingSegments.Length;
+        var bottomIndex = len - 1;
 
         using IDiskSegmentCreator<TKey, TValue> diskSegmentCreator = 
             enableMultiPartDiskSegment ? 
@@ -187,16 +144,16 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         var hasPrev = false;
         TKey prevKey = default;
 
-        var firstKeysOfEveryPart = oldDiskSegment.GetFirstKeysOfEveryPart();
-        var lastKeysOfEveryPart = oldDiskSegment.GetLastKeysOfEveryPart();
-        var lastValuesOfEveryPart = oldDiskSegment.GetLastValuesOfEveryPart();
+        var firstKeysOfEveryPart = bottomDiskSegment.GetFirstKeysOfEveryPart();
+        var lastKeysOfEveryPart = bottomDiskSegment.GetLastKeysOfEveryPart();
+        var lastValuesOfEveryPart = bottomDiskSegment.GetLastValuesOfEveryPart();
         var diskSegmentMinimumRecordCount = Options.DiskSegmentOptions.MinimumRecordCount;
 
         var dropCount = 0;
         var skipCount = 0;
         while (heap.Count > 0)
         {
-            if (IsCancelMergeRequested)
+            if (IsCancelBottomSegmentsMergeRequested)
             {
                 try
                 {
@@ -213,8 +170,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             var minEntry = heap.MinValue;
             minSegmentIndex = minEntry.SegmentIndex;
 
-            // ignore deleted entries if bottom segments queue is empty.
-            if (!hasBottomSegments && IsValueDeleted(minEntry.Value))
+            // ignore deleted entries if writeDeletedValues is false.
+            if (!writeDeletedValues && IsValueDeleted(minEntry.Value))
             {
                 skipElement();
                 prevKey = minEntry.Key;
@@ -230,7 +187,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
             prevKey = minEntry.Key;
             hasPrev = true;
-            var isDiskSegmentKey = minSegmentIndex == diskSegmentIndex;
+            var isDiskSegmentKey = minSegmentIndex == bottomIndex;
             var iteratorPosition = IteratorPosition.None;
             var currentPartIndex = -1;
             if (isDiskSegmentKey)
@@ -250,7 +207,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 isDiskSegmentKey &&
                 iteratorPosition == IteratorPosition.BeginningOfAPart)
             {
-                var part = oldDiskSegment
+                var part = bottomDiskSegment
                     .GetPart(currentPartIndex);
                 if (part.Length > diskSegmentMinimumRecordCount &&
                     diskSegmentCreator.CanSkipCurrentPart)
@@ -279,7 +236,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                             lastKey,
                             minEntry.Value, 
                             lastValuesOfEveryPart[currentPartIndex]);
-                        mergingSegments[diskSegmentIndex].Skip(part.Length - 2);
+                        mergingSegments[bottomIndex].Skip(part.Length - 2);
                         prevKey = lastKey;
                         skipElement();
                         ++skipCount;
@@ -297,63 +254,64 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
         var newDiskSegment = diskSegmentCreator.CreateReadOnlyDiskSegment();
         newDiskSegment.DropFailureReporter = (ds, e) => ReportDropFailure(ds, e);
-        OnDiskSegmentCreated?.Invoke(this, newDiskSegment, false);
+        OnDiskSegmentCreated?.Invoke(this, newDiskSegment, true);
         lock (ShortMergerLock)
         {
-            if (newDiskSegment.Length > Options.DiskSegmentMaxItemCount)
+            bottomSegments = BottomSegmentQueue.ToArray().Reverse().ToArray();
+            var bottomSegmentsLength = bottomSegments.Length;
+            var queue = new Queue<IDiskSegment<TKey, TValue>>();
+            for(var i = 0; i < bottomSegmentsLength; ++i)
             {
-                BottomSegmentQueue.Enqueue(newDiskSegment);
-                MetaWal.EnqueueBottomSegment(newDiskSegment.SegmentId);
-                MetaWal.NewDiskSegment(0);
-                DiskSegment = new NullDiskSegment<TKey,TValue>();
+                var ri = bottomSegmentsLength - i - 1;
+                if (i > from && i <= to)
+                {
+                    MetaWal.DeleteBottomSegment(bottomSegments[i].SegmentId);
+                    continue;
+                }
+                if (i == from)
+                {
+                    MetaWal.InsertBottomSegment(newDiskSegment.SegmentId, i);
+                    MetaWal.DeleteBottomSegment(bottomSegments[i].SegmentId);
+                    queue.Enqueue(newDiskSegment);
+                }
+                else
+                {
+                    queue.Enqueue(bottomSegments[i]);
+                }
             }
-            else
-            {
-                DiskSegment = newDiskSegment;
-                MetaWal.NewDiskSegment(newDiskSegment.SegmentId);
-            }
-            try
-            {
-                oldDiskSegment.Drop(diskSegmentCreator.AppendedPartSegmentIds);
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e);
-                OnCanNotDropDiskSegment?.Invoke(oldDiskSegment, e);
-            }
+            var newQueue = new ConcurrentQueue<IDiskSegment<TKey, TValue>>(queue.Reverse());
+            BottomSegmentQueue = newQueue;
 
-            len = readOnlySegmentsArray.Length;
-            while (len > 0)
+            for (var i = from; i <= to; ++i)
             {
-                ReadOnlySegmentQueue.TryDequeue(out var segment);
-                MetaWal.DequeueReadOnlySegment(segment.SegmentId);
+                var ri = bottomSegmentsLength - i - 1;
+                var diskSegmentToDrop = bottomSegments[i];
                 try
                 {
-                    segment.Drop();
+                    diskSegmentToDrop.Drop(diskSegmentCreator.AppendedPartSegmentIds);
                 }
                 catch (Exception e)
                 {
                     Logger.LogError(e);
-                    OnCanNotDropReadOnlySegment?.Invoke(segment, e);
+                    OnCanNotDropDiskSegment?.Invoke(diskSegmentToDrop, e);
                 }
-                --len;
             }
         }
 
-        TotalSkipCount += skipCount;
-        TotalDropCount += dropCount;
+        TotalBottomSegmentsMergeSkipCount += skipCount;
+        TotalBottomSegmentsMergeDropCount += dropCount;
         Logger.LogTrace(
             new LogMergerSuccess(
                 dropCount,
                 skipCount,
                 stopwatch.ElapsedMilliseconds,
-                TotalDropCount,
-                TotalSkipCount));
+                TotalBottomSegmentsMergeDropCount,
+                TotalBottomSegmentsMergeSkipCount));
 
-        OnDiskSegmentActivated?.Invoke(this, newDiskSegment, false);
+        OnDiskSegmentActivated?.Invoke(this, newDiskSegment, true);
         return MergeResult.SUCCESS;
     }
 
-    int TotalSkipCount;
-    int TotalDropCount;
+    int TotalBottomSegmentsMergeSkipCount;
+    int TotalBottomSegmentsMergeDropCount;
 }

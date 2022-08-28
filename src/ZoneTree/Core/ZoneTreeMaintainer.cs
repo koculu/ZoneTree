@@ -150,7 +150,10 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         MergerThreads.Remove(Environment.CurrentManagedThreadId, out _);
     }
 
-    void OnDiskSegmentCreated(IZoneTreeMaintenance<TKey, TValue> zoneTree, IDiskSegment<TKey, TValue> newDiskSegment)
+    void OnDiskSegmentCreated(
+        IZoneTreeMaintenance<TKey, TValue> zoneTree,
+        IDiskSegment<TKey, TValue> newDiskSegment,
+        bool isBottomSegment)
     {
         var sparseArraySize = newDiskSegment.Length / SparseArrayStepLength;
         newDiskSegment.InitSparseArray((int)Math.Min(MinimumSparseArrayLength, sparseArraySize));

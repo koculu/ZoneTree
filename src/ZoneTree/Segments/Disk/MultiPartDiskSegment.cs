@@ -11,6 +11,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 {
     public const CompressionMethod MultiPartHeaderCompressionMethod 
         = CompressionMethod.None;
+
     public const int MultiPartHeaderCompressionLevel
         = 0;
 
