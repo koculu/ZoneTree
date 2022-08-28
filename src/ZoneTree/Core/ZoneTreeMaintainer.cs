@@ -106,11 +106,11 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
 
     void OnZoneTreeIsDisposing(IZoneTreeMaintenance<TKey, TValue> zoneTree)
     {
-        Logger.LogTrace("ZoneTree is disposing. ZoneTreeMaintainer disposal started.");
+        Trace("ZoneTree is disposing. ZoneTreeMaintainer disposal started.");
         PeriodicTimerCancellationTokenSource.Cancel();
         CompleteRunningTasks();
         Dispose();
-        Logger.LogTrace("ZoneTreeMaintainer is disposed.");
+        Trace("ZoneTreeMaintainer is disposed.");
     }
 
     void OnMergeOperationEnded(

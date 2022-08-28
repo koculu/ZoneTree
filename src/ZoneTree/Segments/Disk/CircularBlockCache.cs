@@ -94,7 +94,8 @@ public class CircularBlockCache
             }
             MaxCachedBlockCount = newCapacity;
             Table = newTable;
-            Logger.LogInfo($"Block cache capacity increased from {currentCacheCapacity} to {newCapacity}.");
+            Logger.LogInfo(
+                new BlockCacheCapacityIncreased(currentCacheCapacity, newCapacity));
         }
     }
 
@@ -131,7 +132,7 @@ public class CircularBlockCache
         return Table.Where(x => x != null).ToArray();
     }
 
-    public class BlockCacheTooFrequentReplacementWarning
+    public class BlockCacheTooFrequentReplacementWarning : LogObject
     {
         public int BlockIndex { get; set; }
 
@@ -150,6 +151,24 @@ public class CircularBlockCache
                 $"\tCurrent Capacity:{CurrentCacheCapacity}" +
                 Environment.NewLine;
             return str;
+        }
+    }
+
+    public class BlockCacheCapacityIncreased : LogObject
+    {
+        public int CurrentCacheCapacity { get; }
+
+        public int NewCapacity { get; }
+
+        public BlockCacheCapacityIncreased(int currentCacheCapacity, int newCapacity)
+        {
+            CurrentCacheCapacity = currentCacheCapacity;
+            NewCapacity = newCapacity;
+        }
+
+        public override string ToString()
+        {
+            return $"Block cache capacity increased from {CurrentCacheCapacity} to {NewCapacity}.";
         }
     }
 }

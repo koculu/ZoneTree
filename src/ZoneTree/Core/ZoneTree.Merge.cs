@@ -288,8 +288,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     }
                 }
                 ++dropCount;
-                Logger.LogTrace(
-                    $"drop: {part.SegmentId} ({dropCount} / {skipCount + dropCount})");
+                Logger.LogTrace(new LogMergerDrop(part.SegmentId, dropCount, skipCount));
 
             }
             
@@ -344,10 +343,13 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
         TotalSkipCount += skipCount;
         TotalDropCount += dropCount;
-        Logger.LogTrace($"Merge SUCCESS in {stopwatch.ElapsedMilliseconds} ms ({dropCount} / {skipCount + dropCount})");
-        var total = TotalSkipCount + TotalDropCount;
-        var dropPercentage = 1.0 * TotalDropCount / (total == 0 ? 1 : total);
-        Logger.LogTrace($"Total Drop Ratio ({TotalDropCount} / {TotalSkipCount + TotalDropCount}) => {dropPercentage*100:0.##}%");
+        Logger.LogTrace(
+            new LogMergerSuccess(
+                dropCount,
+                skipCount,
+                stopwatch.ElapsedMilliseconds,
+                TotalDropCount,
+                TotalSkipCount));
 
         OnDiskSegmentActivated?.Invoke(this, newDiskSegment);
         return MergeResult.SUCCESS;
