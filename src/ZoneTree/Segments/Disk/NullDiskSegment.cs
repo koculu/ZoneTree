@@ -83,12 +83,12 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return this;
     }
 
-    public void AddReader()
+    public void AttachIterator()
     {
         // Nothing to add
     }
 
-    public void RemoveReader()
+    public void DetachIterator()
     {
         // Nothing to remove
     }

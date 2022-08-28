@@ -29,7 +29,7 @@ ThresholdForMergeOperationStart = 2_000_000;
 
 Additional Notes:
 According to our tests, ZoneTree is stable and fast even with big data.
-Tested up to 200M records in desktop computers till now.
+Tested up to 1 billion records in desktop computers till now.
 
 ### Environment:
 ```

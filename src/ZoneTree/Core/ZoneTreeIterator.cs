@@ -70,6 +70,8 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
     public IDiskSegment<TKey, TValue> DiskSegment { get; private set; }
 
+    public IDiskSegment<TKey, TValue>[] BottomSegments { get; private set; }
+
     public ZoneTreeIterator(
         ZoneTreeOptions<TKey, TValue> options,
         ZoneTree<TKey, TValue> zoneTree,
@@ -199,9 +201,26 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
     {
         IsHeapFilled = false;
         Heap = null;
-        DiskSegment?.RemoveReader();
-        DiskSegment = null;
+        DetachFromDiskSegments();
         SeekableIterators = null;
+    }
+
+    void DetachFromDiskSegments()
+    {
+        lock (this)
+        {
+            DiskSegment?.DetachIterator();
+            DiskSegment = null;
+            if (BottomSegments == null)
+                return;
+            var bos = BottomSegments;
+            var len = bos.Length;
+            for (var i = 0; i < len; ++i)
+            {
+                bos[i]?.DetachIterator();
+            }
+            BottomSegments = null;
+        }
     }
 
     void ClearMarkers()
@@ -224,6 +243,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
                 IncludeDiskSegment,
                 IncludeBottomSegments);
         DiskSegment = segments.DiskSegment;
+        BottomSegments =segments.BottomSegments;
         SeekableIterators = segments.SeekableIterators;
         Length = SeekableIterators.Count;
         Heap = new FixedSizeMinHeap<HeapEntry<TKey, TValue>>(Length + 1, HeapEntryComparer);
@@ -342,7 +362,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
         if (AutoRefresh)
             ZoneTree.OnSegmentZeroMovedForward -= OnZoneTreeSegmentZeroMovedForward;
         ZoneTree.OnZoneTreeIsDisposing -= OnZoneTreeIsDisposing;
-        DiskSegment?.RemoveReader();
+        ReleaseResources();
     }
 
     public void WaitUntilReadOnlySegmentsBecomeFullyFrozen()

@@ -23,19 +23,29 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             }
         }
 
-        if (DiskSegment.TryGet(key, out value))
+        while (true)
         {
-            return !IsValueDeleted(value);
-        }
-
-        foreach (var segment in BottomSegmentQueue.Reverse())
-        {
-            if (segment.TryGet(key, out value))
+            try
             {
-                return !IsValueDeleted(value);
+                if (DiskSegment.TryGet(key, out value))
+                {
+                    return !IsValueDeleted(value);
+                }
+
+                foreach (var segment in BottomSegmentQueue.Reverse())
+                {
+                    if (segment.TryGet(key, out value))
+                    {
+                        return !IsValueDeleted(value);
+                    }
+                }
+                return false;
+            }
+            catch (DiskSegmentIsDroppingException)
+            {
+                continue;
             }
         }
-        return false;
     }
 
     bool TryGetFromReadonlySegments(in TKey key, out TValue value)
@@ -48,19 +58,29 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             }
         }
 
-        if (DiskSegment.TryGet(key, out value))
+        while (true)
         {
-            return !IsValueDeleted(value);
-        }
-
-        foreach (var segment in BottomSegmentQueue.Reverse())
-        {
-            if (segment.TryGet(key, out value))
+            try
             {
-                return !IsValueDeleted(value);
+                if (DiskSegment.TryGet(key, out value))
+                {
+                    return !IsValueDeleted(value);
+                }
+
+                foreach (var segment in BottomSegmentQueue.Reverse())
+                {
+                    if (segment.TryGet(key, out value))
+                    {
+                        return !IsValueDeleted(value);
+                    }
+                }
+                return false;
+            }
+            catch (DiskSegmentIsDroppingException)
+            {
+                continue;
             }
         }
-        return false;
     }
 
     public bool TryGet(in TKey key, out TValue value)

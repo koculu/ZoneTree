@@ -22,7 +22,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
     readonly ISerializer<TValue> ValueSerializer;
 
-    int ReaderCount;
+    int IteratorReaderCount;
 
     bool IsDropRequested = false;
 
@@ -231,9 +231,12 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         return values;
     }
 
-    public void AddReader()
+    public void AttachIterator()
     {
-        Interlocked.Increment(ref ReaderCount);
+        lock (DropLock)
+        {
+            ++IteratorReaderCount;
+        }
     }
 
     public bool ContainsKey(in TKey key)
@@ -260,12 +263,14 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         {
             if (IsDropped)
                 return;
-            if (ReaderCount > 0)
+            if (IteratorReaderCount > 0)
             {
+                // iterators are long-lived objects.
+                // Cancel the drop, and let the iterators
+                // call drop when they are disposed.
                 IsDropRequested = true;
                 return;
             }
-            IsDropRequested = false;
 
             var len = Parts.Count;
             for (var i = 0; i < len; ++i)
@@ -277,19 +282,20 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         }
     }
 
-
     public void Drop(HashSet<long> excudedPartIds)
     {
         lock (DropLock)
         {
             if (IsDropped)
                 return;
-            if (ReaderCount > 0)
+            if (IteratorReaderCount > 0)
             {
+                // iterators are long-lived objects.
+                // Cancel the drop, and let the iterators
+                // call drop when they are disposed.
                 IsDropRequested = true;
                 return;
             }
-            IsDropRequested = false;
 
             var len = Parts.Count;
             for (var i = 0; i < len; ++i)
@@ -453,6 +459,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
     public void InitSparseArray(int size)
     {
+        // Don't init sparse array for multi-part segments.
+        // Sparse arrays can be individually created per the parts.
     }
 
     public void LoadIntoMemory()
@@ -478,18 +486,21 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
             Parts[i].ReleaseResources();
     }
 
-    public void RemoveReader()
+    public void DetachIterator()
     {
-        Interlocked.Decrement(ref ReaderCount);
-        if (IsDropRequested && ReaderCount == 0)
+        lock (DropLock)
         {
-            try
+            --IteratorReaderCount;
+            if (IsDropRequested && IteratorReaderCount == 0)
             {
-                Drop();
-            }
-            catch (Exception e)
-            {
-                DropFailureReporter?.Invoke(this, e);
+                try
+                {
+                    Drop();
+                }
+                catch (Exception e)
+                {
+                    DropFailureReporter?.Invoke(this, e);
+                }
             }
         }
     }

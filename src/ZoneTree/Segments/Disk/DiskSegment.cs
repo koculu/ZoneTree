@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
 
@@ -32,9 +33,13 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     IReadOnlyList<SparseArrayEntry<TKey, TValue>> SparseArray = Array.Empty<SparseArrayEntry<TKey, TValue>>();
 
-    int ReaderCount;
+    int IteratorReaderCount;
 
-    bool IsDropRequested = false;
+    volatile int ReadCount;
+
+    volatile bool IsDropRequested = false;
+
+    volatile bool IsDroppping = false;
 
     bool IsDropped = false;
 
@@ -255,65 +260,89 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     unsafe TKey ReadKey(long index)
     {
-        if (HasFixedSizeKeyAndValue)
+        try
         {
-            var itemSize = KeySize + ValueSize;
-            var keyBytes = DataDevice.GetBytes(itemSize * (long)index, KeySize);
-            return KeySerializer.Deserialize(keyBytes);
+            Interlocked.Increment(ref ReadCount);
+            if (IsDroppping)
+            {
+                throw new DiskSegmentIsDroppingException();
+            }
+            if (HasFixedSizeKeyAndValue)
+            {
+                var itemSize = KeySize + ValueSize;
+                var keyBytes = DataDevice.GetBytes(itemSize * index, KeySize);
+                return KeySerializer.Deserialize(keyBytes);
+            }
+            else if (HasFixedSizeKey)
+            {
+                var headSize = sizeof(ValueHead) + KeySize;
+                var keyBytes = DataHeaderDevice.GetBytes(index * headSize, KeySize);
+                return KeySerializer.Deserialize(keyBytes);
+            }
+            else if (HasFixedSizeValue)
+            {
+                var headSize = sizeof(KeyHead) + ValueSize;
+                var headBytes = DataHeaderDevice.GetBytes(index * headSize, sizeof(KeyHead));
+                var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
+                var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
+                return KeySerializer.Deserialize(keyBytes);
+            }
+            else
+            {
+                var headBytes = DataHeaderDevice.GetBytes(index * sizeof(EntryHead), sizeof(KeyHead));
+                var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
+                var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
+                return KeySerializer.Deserialize(keyBytes);
+            }
         }
-        else if (HasFixedSizeKey)
+        finally
         {
-            var headSize = sizeof(ValueHead) + KeySize;
-            var keyBytes = DataHeaderDevice.GetBytes((long)index * headSize, KeySize);
-            return KeySerializer.Deserialize(keyBytes);
-        }
-        else if (HasFixedSizeValue)
-        {
-            var headSize = sizeof(KeyHead) + ValueSize;
-            var headBytes = DataHeaderDevice.GetBytes((long)index * headSize, sizeof(KeyHead));
-            var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
-            var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
-            return KeySerializer.Deserialize(keyBytes);
-        }
-        else
-        {
-            var headBytes = DataHeaderDevice.GetBytes(index * sizeof(EntryHead), sizeof(KeyHead));
-            var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
-            var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
-            return KeySerializer.Deserialize(keyBytes);
+            Interlocked.Decrement(ref ReadCount);
         }
     }
 
     unsafe TValue ReadValue(long index)
     {
-        if (HasFixedSizeKeyAndValue)
+        try
         {
-            var itemSize = KeySize + ValueSize;
-            var valueBytes = DataDevice.GetBytes(itemSize * index + KeySize, ValueSize);
-            return ValueSerializer.Deserialize(valueBytes);
+            Interlocked.Increment(ref ReadCount);
+            if (IsDroppping)
+            {
+                throw new DiskSegmentIsDroppingException();
+            }
+            if (HasFixedSizeKeyAndValue)
+            {
+                var itemSize = KeySize + ValueSize;
+                var valueBytes = DataDevice.GetBytes(itemSize * index + KeySize, ValueSize);
+                return ValueSerializer.Deserialize(valueBytes);
+            }
+            else if (HasFixedSizeKey)
+            {
+                var headSize = sizeof(ValueHead) + KeySize;
+                var headBytes = DataHeaderDevice
+                    .GetBytes((long)index * headSize + KeySize, sizeof(ValueHead));
+                var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
+                var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
+                return ValueSerializer.Deserialize(valueBytes);
+            }
+            else if (HasFixedSizeValue)
+            {
+                var headSize = sizeof(KeyHead) + ValueSize;
+                var valueBytes = DataHeaderDevice
+                    .GetBytes((long)index * headSize + sizeof(KeyHead), ValueSize);
+                return ValueSerializer.Deserialize(valueBytes);
+            }
+            else
+            {
+                var headBytes = DataHeaderDevice.GetBytes((long)index * sizeof(EntryHead) + sizeof(KeyHead), sizeof(ValueHead));
+                var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
+                var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
+                return ValueSerializer.Deserialize(valueBytes);
+            }
         }
-        else if (HasFixedSizeKey)
+        finally
         {
-            var headSize = sizeof(ValueHead) + KeySize;
-            var headBytes = DataHeaderDevice
-                .GetBytes((long)index * headSize + KeySize, sizeof(ValueHead));
-            var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
-            var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
-            return ValueSerializer.Deserialize(valueBytes);
-        }
-        else if (HasFixedSizeValue)
-        {
-            var headSize = sizeof(KeyHead) + ValueSize;
-            var valueBytes = DataHeaderDevice
-                .GetBytes((long)index * headSize + sizeof(KeyHead), ValueSize);
-            return ValueSerializer.Deserialize(valueBytes);
-        }
-        else
-        {
-            var headBytes = DataHeaderDevice.GetBytes((long)index * sizeof(EntryHead) + sizeof(KeyHead), sizeof(ValueHead));
-            var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
-            var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
-            return ValueSerializer.Deserialize(valueBytes);
+            Interlocked.Decrement(ref ReadCount);
         }
     }
 
@@ -448,12 +477,32 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         {
             if (IsDropped)
                 return;
-            if (ReaderCount > 0)
+            if (IteratorReaderCount > 0)
             {
+                // iterators are long-lived objects.
+                // Cancel the drop, and let the iterators
+                // call drop when they are disposed.
                 IsDropRequested = true;
                 return;
             }
-            IsDropRequested = false;
+            
+            // reads will increase ReadCount when they begin,
+            // and decrease ReadCount when they end.
+            IsDroppping = true;
+            // After the flag change,
+            // reads will start throwing DiskSegmentIsDroppingException
+
+            // Delay the drop operation until all reads finalized
+            // either with success or exception.
+            if (ReadCount > 0)
+            {
+                // Synchronize reads with drop operation.
+                SpinWait.SpinUntil(() => ReadCount == 0);
+            }
+
+            // No active reads remaining.
+            // Safe to drop.
+
             if (!HasFixedSizeKeyAndValue)
                 DataHeaderDevice.Delete();
             DataDevice.Delete();
@@ -466,23 +515,29 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return this;
     }
 
-    public void AddReader()
+    public void AttachIterator()
     {
-        Interlocked.Increment(ref ReaderCount);
+        lock (DropLock)
+        {
+            ++IteratorReaderCount;
+        }
     }
 
-    public void RemoveReader()
+    public void DetachIterator()
     {
-        Interlocked.Decrement(ref ReaderCount);
-        if (IsDropRequested && ReaderCount == 0)
+        lock (DropLock)
         {
-            try
+            --IteratorReaderCount;
+            if (IsDropRequested && IteratorReaderCount == 0)
             {
-                Drop();
-            }
-            catch (Exception e)
-            {
-                DropFailureReporter?.Invoke(this, e);
+                try
+                {
+                    Drop();
+                }
+                catch (Exception e)
+                {
+                    DropFailureReporter?.Invoke(this, e);
+                }
             }
         }
     }

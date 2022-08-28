@@ -27,15 +27,19 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     void LoadIntoMemory();
 
     /// <summary>
-    /// Increments the reader counter to ensure that disk segment stays alive 
-    /// until all readers call remove reader.
+    /// Increments the iterator reader counter
+    /// to ensure that disk segment stays alive 
+    /// until all iterators call DetachIterator.
     /// </summary>
-    void AddReader();
+    void AttachIterator();
 
     /// <summary>
-    /// Decreases the reader counter.
+    /// Decrements the iterator reader counter. 
+    /// When there is no attached iterator remaining and
+    /// the drop is already requested,
+    /// calls Drop().
     /// </summary>
-    void RemoveReader();
+    void DetachIterator();
 
     /// <summary>
     /// Release internal read buffers 

@@ -31,10 +31,10 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     var diskSegment = DiskSegment;
                     if (diskSegment is not NullDiskSegment<TKey, TValue>)
                     {
-                        diskSegment.AddReader();
+                        diskSegment.AttachIterator();
                         result.DiskSegment = diskSegment;
                         seekableIterators.Add(diskSegment.GetSeekableIterator());
-                    }                    
+                    }
                 }
 
                 if (includeBottomSegments)
@@ -42,7 +42,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     var bottomSegments = BottomSegmentQueue.Reverse().ToArray();
                     foreach (var bottom in bottomSegments)
                     {
-                        bottom.AddReader();
+                        bottom.AttachIterator();
                         result.BottomSegments = bottomSegments;
                         seekableIterators.Add(bottom.GetSeekableIterator());
 
