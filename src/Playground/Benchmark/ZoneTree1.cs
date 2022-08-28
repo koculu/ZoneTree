@@ -57,7 +57,7 @@ public class ZoneTree1
 
         if (mode == WriteAheadLogMode.None)
         {
-            zoneTree.Maintenance.MoveSegmentZeroForward();
+            zoneTree.Maintenance.MoveMutableSegmentForward();
             zoneTree.Maintenance.StartMergeOperation()?.Join();
         }
         basicMaintainer.CompleteRunningTasks(); 
@@ -181,7 +181,7 @@ public class ZoneTree1
             zoneTree.Upsert(key, key + key);
             ++key;
         }
-        zoneTree.Maintenance.MoveSegmentZeroForward();
+        zoneTree.Maintenance.MoveMutableSegmentForward();
         zoneTree.Maintenance.StartMergeOperation()?.Join();
 
         basicMaintainer.CompleteRunningTasks();

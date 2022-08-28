@@ -33,7 +33,7 @@ public class ZoneTreeOptions<TKey, TValue>
     /// <summary>
     /// Mutable segment maximumum key-value pair count.
     /// When the maximum count is reached 
-    /// MoveSegmentZero is called and current mutable segment is enqueued to
+    /// MoveMutableSegmentForward is called and current mutable segment is enqueued to
     /// ReadOnlySegments layer.
     /// </summary>
     public int MutableSegmentMaxItemCount { get; set; } = 1_000_000;

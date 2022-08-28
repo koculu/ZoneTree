@@ -6,7 +6,7 @@ namespace Tenray.ZoneTree.Core;
 public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeMaintenance<TKey, TValue>
 {
     public SegmentCollection CollectSegments(
-        bool includeSegmentZero,
+        bool includeMutableSegment,
         bool includeDiskSegment,
         bool includeBottomSegments)
     {
@@ -15,8 +15,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             {
                 var roSegments = ReadOnlySegmentQueue.ToArray();
                 var seekableIterators = new List<ISeekableIterator<TKey, TValue>>();
-                if (includeSegmentZero)
-                    seekableIterators.Add(SegmentZero.GetSeekableIterator());
+                if (includeMutableSegment)
+                    seekableIterators.Add(MutableSegment.GetSeekableIterator());
 
                 var readOnlySegmentsArray = roSegments.Select(x => x.GetSeekableIterator()).ToArray();
                 seekableIterators.AddRange(readOnlySegmentsArray.Reverse());
@@ -63,7 +63,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     public IZoneTreeIterator<TKey, TValue> CreateIterator(
         IteratorType iteratorType, bool includeDeletedRecords)
     {
-        var includeSegmentZero = iteratorType is not IteratorType.Snapshot and
+        var includeMutableSegment = iteratorType is not IteratorType.Snapshot and
             not IteratorType.ReadOnlyRegion;
 
         var iterator = new ZoneTreeIterator<TKey, TValue>(
@@ -73,13 +73,13 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             autoRefresh: iteratorType == IteratorType.AutoRefresh,
             isReverseIterator: false,
             includeDeletedRecords,
-            includeSegmentZero: includeSegmentZero,
+            includeMutableSegment: includeMutableSegment,
             includeDiskSegment: true,
             includeBottomSegments: true);
 
         if (iteratorType == IteratorType.Snapshot)
         {
-            MoveSegmentZeroForward();
+            MoveMutableSegmentForward();
             iterator.Refresh();
             iterator.WaitUntilReadOnlySegmentsBecomeFullyFrozen();
         }
@@ -94,7 +94,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     public IZoneTreeIterator<TKey, TValue> CreateReverseIterator(
         IteratorType iteratorType, bool includeDeletedRecords)
     {
-        var includeSegmentZero = iteratorType is not IteratorType.Snapshot and
+        var includeMutableSegment = iteratorType is not IteratorType.Snapshot and
             not IteratorType.ReadOnlyRegion;
 
         var iterator = new ZoneTreeIterator<TKey, TValue>(
@@ -104,13 +104,13 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             autoRefresh: iteratorType == IteratorType.AutoRefresh,
             isReverseIterator: true,
             includeDeletedRecords,
-            includeSegmentZero: includeSegmentZero,
+            includeMutableSegment: includeMutableSegment,
             includeDiskSegment: true,
             includeBottomSegments: true);
 
         if (iteratorType == IteratorType.Snapshot)
         {
-            MoveSegmentZeroForward();
+            MoveMutableSegmentForward();
             iterator.Refresh();
             iterator.WaitUntilReadOnlySegmentsBecomeFullyFrozen();
         }
@@ -136,7 +136,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             autoRefresh: autoRefresh,
             isReverseIterator: false,
             includeDeletedRecords,
-            includeSegmentZero: false,
+            includeMutableSegment: false,
             includeDiskSegment: false,
             includeBottomSegments: false);
         return iterator;
@@ -158,7 +158,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             autoRefresh: autoRefresh,
             isReverseIterator: false,
             includeDeletedRecords,
-            includeSegmentZero: true,
+            includeMutableSegment: true,
             includeDiskSegment: false,
             includeBottomSegments: false);
         return iterator;

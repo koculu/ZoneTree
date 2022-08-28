@@ -46,7 +46,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     volatile bool IsCancelBottomSegmentsMergeRequested = false;
 
-    public IMutableSegment<TKey, TValue> SegmentZero { get; private set; }
+    public IMutableSegment<TKey, TValue> MutableSegment { get; private set; }
 
     public IReadOnlyList<IReadOnlySegment<TKey, TValue>> ReadOnlySegments =>
         ReadOnlySegmentQueue.ToArray();
@@ -65,7 +65,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     public long ReadOnlySegmentsRecordCount => ReadOnlySegmentQueue.Sum(x => x.Length);
 
-    public long MutableSegmentRecordCount => SegmentZero.Length;
+    public long MutableSegmentRecordCount => MutableSegment.Length;
 
     public long InMemoryRecordCount
     {
@@ -73,7 +73,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         {
             lock (AtomicUpdateLock)
             {
-                return SegmentZero.Length + ReadOnlySegmentsRecordCount;
+                return MutableSegment.Length + ReadOnlySegmentsRecordCount;
             }
         }
     }
@@ -93,7 +93,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     public IZoneTreeMaintenance<TKey, TValue> Maintenance => this;
 
-    public event SegmentZeroMovedForward<TKey, TValue> OnSegmentZeroMovedForward;
+    public event MutableSegmentMovedForward<TKey, TValue> OnMutableSegmentMovedForward;
 
     public event MergeOperationStarted<TKey, TValue> OnMergeOperationStarted;
 
@@ -127,13 +127,13 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         Options = options;
         MinHeapEntryComparer = new MinHeapEntryRefComparer<TKey, TValue>(options.Comparer);
         MaxHeapEntryComparer = new MaxHeapEntryRefComparer<TKey, TValue>(options.Comparer);
-        SegmentZero = new MutableSegment<TKey, TValue>(
+        MutableSegment = new MutableSegment<TKey, TValue>(
             options, IncrementalIdProvider.NextId(), new IncrementalIdProvider());
         IsValueDeleted = options.IsValueDeleted;
         FillZoneTreeMeta();
         MetaWal.SaveMetaData(
             ZoneTreeMeta,
-            SegmentZero.SegmentId,
+            MutableSegment.SegmentId,
             DiskSegment.SegmentId,
             Array.Empty<long>(),
             Array.Empty<long>(),
@@ -144,7 +144,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         ZoneTreeOptions<TKey, TValue> options,
         ZoneTreeMeta meta,
         IReadOnlyList<IReadOnlySegment<TKey, TValue>> readOnlySegments,
-        IMutableSegment<TKey, TValue> segmentZero,
+        IMutableSegment<TKey, TValue> mutableSegment,
         IDiskSegment<TKey, TValue> diskSegment,
         IReadOnlyList<IDiskSegment<TKey, TValue>> bottomSegments,
         long maximumSegmentId
@@ -158,7 +158,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         Options = options;
         MinHeapEntryComparer = new MinHeapEntryRefComparer<TKey, TValue>(options.Comparer);
         MaxHeapEntryComparer = new MaxHeapEntryRefComparer<TKey, TValue>(options.Comparer);
-        SegmentZero = segmentZero;
+        MutableSegment = mutableSegment;
         DiskSegment = diskSegment;
         DiskSegment.DropFailureReporter = (ds, e) => ReportDropFailure(ds, e);
         foreach (var ros in readOnlySegments.Reverse())
@@ -170,8 +170,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     void FillZoneTreeMeta()
     {
-        if (SegmentZero != null)
-            ZoneTreeMeta.SegmentZero = SegmentZero.SegmentId;
+        if (MutableSegment != null)
+            ZoneTreeMeta.MutableSegment = MutableSegment.SegmentId;
         ZoneTreeMeta.ComparerType = Options.Comparer.GetType().FullName;
         ZoneTreeMeta.KeyType = typeof(TKey).FullName;
         ZoneTreeMeta.ValueType = typeof(TValue).FullName;
@@ -198,7 +198,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             {
                 MetaWal.SaveMetaData(
                     ZoneTreeMeta,
-                    SegmentZero.SegmentId,
+                    MutableSegment.SegmentId,
                     DiskSegment.SegmentId,
                     ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray(),
                     BottomSegmentQueue.Select(x => x.SegmentId).Reverse().ToArray());
@@ -208,7 +208,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     public void Dispose()
     {
         OnZoneTreeIsDisposing?.Invoke(this);
-        SegmentZero.ReleaseResources();
+        MutableSegment.ReleaseResources();
         DiskSegment.Dispose();
         MetaWal.Dispose();
         foreach (var ros in ReadOnlySegments)
@@ -220,7 +220,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     public void DestroyTree()
     {
         MetaWal.Dispose();
-        SegmentZero.Drop();
+        MutableSegment.Drop();
         DiskSegment.Drop();
         DiskSegment.Dispose();
         var readOnlySegments = ReadOnlySegmentQueue.ToArray();

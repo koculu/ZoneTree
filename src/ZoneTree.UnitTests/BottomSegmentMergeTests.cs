@@ -26,7 +26,7 @@ public class BottomSegmentMergeTests
             zoneTree.Upsert(i, i + i);
             if (i % p == p - 1)
             {
-                m.MoveSegmentZeroForward();
+                m.MoveMutableSegmentForward();
                 m.StartMergeOperation().Join();
                 for (var j = 0; j < p - 10; ++j)
                 {

@@ -9,9 +9,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     public bool ContainsKey(in TKey key)
     {
         TValue value;
-        if (SegmentZero.ContainsKey(key))
+        if (MutableSegment.ContainsKey(key))
         {
-            if (SegmentZero.TryGet(key, out value))
+            if (MutableSegment.TryGet(key, out value))
                 return !IsValueDeleted(value);
         }
 
@@ -85,7 +85,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     public bool TryGet(in TKey key, out TValue value)
     {
-        if (SegmentZero.TryGet(key, out value))
+        if (MutableSegment.TryGet(key, out value))
         {
             return !IsValueDeleted(value);
         }
@@ -97,7 +97,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
 
-        if (SegmentZero.TryGet(key, out value))
+        if (MutableSegment.TryGet(key, out value))
         {
             if (IsValueDeleted(value))
                 return false;
@@ -122,7 +122,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
         lock (AtomicUpdateLock)
         {
-            if (SegmentZero.TryGet(key, out value))
+            if (MutableSegment.TryGet(key, out value))
             {
                 if (IsValueDeleted(value))
                     return false;
@@ -175,31 +175,31 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
         AddOrUpdateResult status;
-        IMutableSegment<TKey, TValue> segmentZero;
+        IMutableSegment<TKey, TValue> mutableSegment;
         while (true)
         {
             lock (AtomicUpdateLock)
             {
-                segmentZero = SegmentZero;
-                if (segmentZero.IsFrozen)
+                mutableSegment = MutableSegment;
+                if (mutableSegment.IsFrozen)
                 {
                     status = AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
                 }
-                else if (segmentZero.TryGet(in key, out var existing))
+                else if (mutableSegment.TryGet(in key, out var existing))
                 {
                     if (!valueUpdater(ref existing))
                         return false;
-                    status = segmentZero.Upsert(key, existing);
+                    status = mutableSegment.Upsert(key, existing);
                 }
                 else if (TryGetFromReadonlySegments(in key, out existing))
                 {
                     if (!valueUpdater(ref existing))
                         return false;
-                    status = segmentZero.Upsert(key, existing);
+                    status = mutableSegment.Upsert(key, existing);
                 }
                 else
                 {
-                    status = segmentZero.Upsert(key, valueToAdd);
+                    status = mutableSegment.Upsert(key, valueToAdd);
                 }
             }
             switch (status)
@@ -207,7 +207,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
                     continue;
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
-                    MoveSegmentZeroForward(segmentZero);
+                    MoveMutableSegmentForward(mutableSegment);
                     continue;
                 default:
                     return status == AddOrUpdateResult.ADDED;
@@ -231,14 +231,14 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             throw new ZoneTreeIsReadOnlyException();
         while (true)
         {
-            var segmentZero = SegmentZero;
-            var status = segmentZero.Upsert(key, value);
+            var mutableSegment = MutableSegment;
+            var status = mutableSegment.Upsert(key, value);
             switch (status)
             {
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
                     continue;
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
-                    MoveSegmentZeroForward(segmentZero);
+                    MoveMutableSegmentForward(mutableSegment);
                     continue;
                 default:
                     return;
@@ -262,15 +262,15 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             throw new ZoneTreeIsReadOnlyException();
         while (true)
         {
-            var segmentZero = SegmentZero;
-            var status = segmentZero.Delete(key);
+            var mutableSegment = MutableSegment;
+            var status = mutableSegment.Delete(key);
             switch (status)
             {
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
                     ForceDelete(key);
                     continue;
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
-                    MoveSegmentZeroForward(segmentZero);
+                    MoveMutableSegmentForward(mutableSegment);
                     ForceDelete(key);
                     continue;
                 default: return;

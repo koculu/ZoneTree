@@ -21,7 +21,7 @@ public class FixedSizeKeyAndValueTests
         {
             data.Upsert(i, i + i);
         }
-        data.Maintenance.MoveSegmentZeroForward();
+        data.Maintenance.MoveMutableSegmentForward();
         data.Maintenance.StartMergeOperation().Join();
         for (var i = 0; i < 2000; ++i)
         {
@@ -51,7 +51,7 @@ public class FixedSizeKeyAndValueTests
         {
             data.Upsert(i, (i + i).ToString());
         }
-        data.Maintenance.MoveSegmentZeroForward();
+        data.Maintenance.MoveMutableSegmentForward();
         data.Maintenance.StartMergeOperation().Join();
         for (var i = 0; i < n; ++i)
         {
@@ -83,7 +83,7 @@ public class FixedSizeKeyAndValueTests
         {
             data.Upsert(i.ToString(), i + i);
         }
-        data.Maintenance.MoveSegmentZeroForward();
+        data.Maintenance.MoveMutableSegmentForward();
         data.Maintenance.StartMergeOperation().Join();
         if (useSparseArray)
             data.Maintenance.DiskSegment.InitSparseArray(200);
@@ -118,7 +118,7 @@ public class FixedSizeKeyAndValueTests
         {
             data.Upsert(i.ToString(), (i + i).ToString());
         }
-        data.Maintenance.MoveSegmentZeroForward();
+        data.Maintenance.MoveMutableSegmentForward();
         data.Maintenance.StartMergeOperation().Join();
         if (useSparseArray)
             data.Maintenance.DiskSegment.InitSparseArray(200);

@@ -14,11 +14,11 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     /// Gets current Segment Zero.
     /// Segment Zero is the writable part of the LSM tree.
     /// </summary>
-    IMutableSegment<TKey, TValue> SegmentZero { get; }
+    IMutableSegment<TKey, TValue> MutableSegment { get; }
 
     /// <summary>
     /// Gets current readonly segments in-memory.
-    /// MoveSegmentZero operation moves writable segment to the read-only
+    /// MoveMutableSegmentForward operation moves writable segment to the read-only
     /// segments layer.
     /// The readonly segments remains in memory until merge operation done.
     /// </summary>
@@ -45,7 +45,7 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     long ReadOnlySegmentsRecordCount { get; }
 
     /// <summary>
-    /// Retrieves the number of records in mutable segment (SegmentZero).
+    /// Retrieves the number of records in mutable segment.
     /// </summary>
     long MutableSegmentRecordCount { get; }
 
@@ -81,7 +81,7 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     /// This will clear the writable region of the LSM tree.
     /// This method is thread safe and can be called from many threads.
     /// </summary>
-    void MoveSegmentZeroForward();
+    void MoveMutableSegmentForward();
 
     /// <summary>
     /// Merges available in-memory read-only segments to the disk segment.
@@ -128,7 +128,7 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     /// <summary>
     /// Event is fired when segment zero is moved forward.
     /// </summary>
-    event SegmentZeroMovedForward<TKey, TValue> OnSegmentZeroMovedForward;
+    event MutableSegmentMovedForward<TKey, TValue> OnMutableSegmentMovedForward;
 
     /// <summary>
     /// Event is fired when merge operation is started.
@@ -187,7 +187,7 @@ public interface IZoneTreeMaintenance<TKey, TValue>
 /// <typeparam name="TKey">The key type</typeparam>
 /// <typeparam name="TValue">The value type</typeparam>
 /// <param name="zoneTree">The ZoneTree maintenance</param>
-public delegate void SegmentZeroMovedForward<TKey, TValue>
+public delegate void MutableSegmentMovedForward<TKey, TValue>
     (IZoneTreeMaintenance<TKey, TValue> zoneTree);
 
 /// <summary>

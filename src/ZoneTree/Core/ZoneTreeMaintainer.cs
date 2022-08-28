@@ -98,7 +98,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
 
     void AttachEvents()
     {
-        Maintenance.OnSegmentZeroMovedForward += OnSegmentZeroMovedForward;
+        Maintenance.OnMutableSegmentMovedForward += OnMutableSegmentMovedForward;
         Maintenance.OnDiskSegmentCreated += OnDiskSegmentCreated;
         Maintenance.OnMergeOperationEnded += OnMergeOperationEnded;
         Maintenance.OnZoneTreeIsDisposing += OnZoneTreeIsDisposing;
@@ -159,7 +159,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         newDiskSegment.InitSparseArray((int)Math.Min(MinimumSparseArrayLength, sparseArraySize));
     }
 
-    void OnSegmentZeroMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)
+    void OnMutableSegmentMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)
     {
         if (Maintenance.ReadOnlySegmentsCount > MaximumReadOnlySegmentCount)
             StartMerge();
@@ -243,7 +243,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     public void Dispose()
     {
         PeriodicTimerCancellationTokenSource.Cancel();
-        Maintenance.OnSegmentZeroMovedForward -= OnSegmentZeroMovedForward;
+        Maintenance.OnMutableSegmentMovedForward -= OnMutableSegmentMovedForward;
         Maintenance.OnDiskSegmentCreated -= OnDiskSegmentCreated;
         Maintenance.OnMergeOperationEnded -= OnMergeOperationEnded;
         Maintenance.OnZoneTreeIsDisposing -= OnZoneTreeIsDisposing;

@@ -92,11 +92,11 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         AppendRecord(record);
     }
 
-    public void NewSegmentZero(long segmentId)
+    public void NewMutableSegment(long segmentId)
     {
         var record = new MetaWalRecord
         {
-            Operation = MetaWalOperation.NewSegmentZero,
+            Operation = MetaWalOperation.NewMutableSegment,
             SegmentId = segmentId
         };
         AppendRecord(record);
@@ -209,7 +209,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
     public void SaveMetaData(
         ZoneTreeMeta zoneTreeMeta,
-        long segmentZero,
+        long mutableSegment,
         long diskSegment,
         long[] readOnlySegments,
         long[] bottomSegments,
@@ -224,7 +224,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             ComparerType = zoneTreeMeta.ComparerType,
             DiskSegment = diskSegment,
             ReadOnlySegments = readOnlySegments,
-            SegmentZero = segmentZero,
+            MutableSegment = mutableSegment,
             KeySerializerType = zoneTreeMeta.KeySerializerType,
             ValueSerializerType = zoneTreeMeta.ValueSerializerType,
             WriteAheadLogOptions = zoneTreeMeta.WriteAheadLogOptions,
@@ -263,7 +263,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         }
         ClearContent();
         zoneTreeMeta.Version = productVersion;
-        zoneTreeMeta.SegmentZero = segmentZero;
+        zoneTreeMeta.MutableSegment = mutableSegment;
         zoneTreeMeta.DiskSegment = diskSegment;
         zoneTreeMeta.ReadOnlySegments = readOnlySegments;
         zoneTreeMeta.BottomSegments = bottomSegments;
@@ -297,7 +297,7 @@ public enum MetaWalOperation
 {
     EnqueueReadOnlySegment,
     DequeueReadOnlySegment,
-    NewSegmentZero,
+    NewMutableSegment,
     NewDiskSegment,
     EnqueueBottomSegment,
     DequeueBottomSegment,

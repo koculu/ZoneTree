@@ -24,7 +24,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
     readonly bool IncludeDeletedRecords;
 
-    readonly bool IncludeSegmentZero;
+    readonly bool IncludeMutableSegment;
 
     readonly bool IncludeDiskSegment;
 
@@ -79,7 +79,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
         bool autoRefresh,
         bool isReverseIterator,
         bool includeDeletedRecords,
-        bool includeSegmentZero,
+        bool includeMutableSegment,
         bool includeDiskSegment,
         bool includeBottomSegments)
     {
@@ -90,10 +90,10 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
         AutoRefresh = autoRefresh;
         IsReverseIterator = isReverseIterator;
         IncludeDeletedRecords = includeDeletedRecords;
-        IncludeSegmentZero = includeSegmentZero;
+        IncludeMutableSegment = includeMutableSegment;
         IncludeDiskSegment = includeDiskSegment;
         if (autoRefresh)
-            ZoneTree.OnSegmentZeroMovedForward += OnZoneTreeSegmentZeroMovedForward;
+            ZoneTree.OnMutableSegmentMovedForward += OnZoneTreeMutableSegmentMovedForward;
         ZoneTree.OnZoneTreeIsDisposing += OnZoneTreeIsDisposing;
         IncludeBottomSegments = includeBottomSegments;
     }
@@ -103,7 +103,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
         ReleaseResources();
     }
 
-    void OnZoneTreeSegmentZeroMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)
+    void OnZoneTreeMutableSegmentMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)
     {
         DoesRequireRefresh = true;
     }
@@ -239,7 +239,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
         ReleaseResources();
         var segments = ZoneTree
             .CollectSegments(
-                IncludeSegmentZero,
+                IncludeMutableSegment,
                 IncludeDiskSegment,
                 IncludeBottomSegments);
         DiskSegment = segments.DiskSegment;
@@ -360,7 +360,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
     public void Dispose()
     {
         if (AutoRefresh)
-            ZoneTree.OnSegmentZeroMovedForward -= OnZoneTreeSegmentZeroMovedForward;
+            ZoneTree.OnMutableSegmentMovedForward -= OnZoneTreeMutableSegmentMovedForward;
         ZoneTree.OnZoneTreeIsDisposing -= OnZoneTreeIsDisposing;
         ReleaseResources();
     }

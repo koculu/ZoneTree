@@ -61,7 +61,7 @@ public class ZoneTree3
 
         if (mode == WriteAheadLogMode.None)
         {
-            zoneTree.Maintenance.ZoneTree.Maintenance.MoveSegmentZeroForward();
+            zoneTree.Maintenance.ZoneTree.Maintenance.MoveMutableSegmentForward();
             zoneTree.Maintenance.ZoneTree.Maintenance.StartMergeOperation()?.Join();
         }
 

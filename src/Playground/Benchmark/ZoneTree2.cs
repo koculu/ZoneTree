@@ -62,7 +62,7 @@ public class ZoneTree2
         stopWatch.Restart();
         if (mode == WriteAheadLogMode.None)
         {
-            zoneTree.Maintenance.MoveSegmentZeroForward();
+            zoneTree.Maintenance.MoveMutableSegmentForward();
             zoneTree.Maintenance.StartMergeOperation()?.Join();
         }
         basicMaintainer.CompleteRunningTasks();

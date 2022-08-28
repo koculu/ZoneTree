@@ -73,7 +73,7 @@ for (var i = 0 ; i < 10_000_000; ++i){
    zoneTree.Insert(i, i+i);
 }
 
-zoneTree.Maintenance.MoveSegmentZeroForward();
+zoneTree.Maintenance.MoveMutableSegmentForward();
 zoneTree.Maintenance.StartMergeOperation()?.Join();
 ```
 

@@ -66,7 +66,7 @@ public class IteratorTests
 
         Assert.That(reverseIterator.Next(), Is.False);
 
-        zoneTree.Maintenance.MoveSegmentZeroForward();
+        zoneTree.Maintenance.MoveMutableSegmentForward();
         zoneTree.Maintenance.StartMergeOperation().Join();
 
         Assert.That(zoneTree.Maintenance.DiskSegment.Length, Is.EqualTo(b - 4));
@@ -157,7 +157,7 @@ public class IteratorTests
         Assert.That(reverseIterator.CurrentKey, Is.EqualTo(b - 2));
         Assert.That(zoneTree.Count(), Is.EqualTo(b - 4));
 
-        zoneTree.Maintenance.MoveSegmentZeroForward();
+        zoneTree.Maintenance.MoveMutableSegmentForward();
         zoneTree.Maintenance.StartMergeOperation().Join();
 
         Assert.That(zoneTree.Maintenance.DiskSegment.Length, Is.EqualTo(b - 4));
@@ -211,7 +211,7 @@ public class IteratorTests
              * This is not a bug. Callers can always double check
              * with TryGetKey() if they want to read most recent values
              * for every key they read from iteration.
-             * Auto refresh property was made for SegmentZeroMoveForward
+             * Auto refresh property was made for MutableSegmentMoveForward
              * event. A manual refresh also works but it is expensive to call
              * for every key.
              */

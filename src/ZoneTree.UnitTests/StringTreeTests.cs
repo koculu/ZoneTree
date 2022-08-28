@@ -41,7 +41,7 @@ public class StringTreeTests
             ++j;
         }
         var maintenance = zoneTree.Maintenance;
-        maintenance.MoveSegmentZeroForward();
+        maintenance.MoveMutableSegmentForward();
         maintenance.StartMergeOperation()?.Join();
 
         using var iterator2 = zoneTree.CreateIterator();

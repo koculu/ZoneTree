@@ -5,10 +5,12 @@ The dictionary meaning of segment is to divide something into separate parts or 
 In ZoneTree segments are individual groups of key-value pairs. Keys can be duplicated across segments.
 Hence the order of segments is important. A key lookup query must start from the mutable segment first. If the key is not found there, it continues in read-only segments in LIFO order. The final lookup happens in the disk segment.
 
-### Mutable Segment (SegmentZero)
-In ZoneTree there is only one segment that can accept new key-value pairs. It is called mutable segment or SegmentZero.
+### Mutable Segment
+In ZoneTree there is only one segment that can accept new key-value pairs. It is an in-memory efficient B+Tree. When the mutable segment is filled,
+it is automatically moved to the read-only segment layer and a new empty mutable segment is created.
 
-### ReadOnlySegment
+
+### Read-Only Segment
 A read-only segment is an immutable group of key-value pairs that are kept in memory. When a mutable segment is filled, it is moved to the read-only segments group and another empty mutable segment is created to accept new modifications.
 There can be 0 or many read-only segments at a given time.
 
@@ -51,8 +53,8 @@ There are 4 types of WAL modes in ZoneTree. These WAL modes provide different le
 
 Please see [Write Ahead Log](write-ahead-log.md) section for more details on the topic.
 
-### MoveSegmentZeroForward
-It is the atomic operation of moving the mutable segment (SegmentZero) into the read-only segments layer and creating a new and empty mutable segment.
+### Move Mutable Segment Forward
+It is the atomic operation of moving the mutable segment into the read-only segments layer and creating a new and empty mutable segment.
 
 ### Merge Operation (Compaction)
 ZoneTree can keep all data in memory through Mutable Segment and Readonly Segments. 
@@ -68,3 +70,16 @@ Merge operation uses *merge K sorted array* algorithm. This is a background oper
 Merge operation is cancellable.
 
 An unexpected crash of a merge operation does not harm the state of the database.
+
+If a disk segment exceeds the configured limit, it is moved to the bottom segments layer to stabilize insert speed for big data.
+
+### Bottom Segment Merge Operation (Compaction)
+
+Bottom disk segments can also be merged with a background operation.
+
+To start a bottom segments merge operation call IZoneTree.Maintenance.StartBottomSegmentsMergeOperation with desired from-to values.
+
+
+
+
+

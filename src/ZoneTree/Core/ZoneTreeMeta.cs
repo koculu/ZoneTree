@@ -24,7 +24,7 @@ public class ZoneTreeMeta
     
     public DiskSegmentOptions DiskSegmentOptions { get; set; }
 
-    public long SegmentZero { get; set; }
+    public long MutableSegment { get; set; }
 
     public IReadOnlyList<long> ReadOnlySegments { get; set; }
 

@@ -35,7 +35,7 @@ public enum WriteAheadLogMode : byte
     /// Every inserts stay in memory. Data in memory can disappear on 
     /// process crashes / terminations or power cuts.
     /// It is still possible to save in memory data to the disk segments
-    /// using MoveSegmentZeroForward and StartMergeOperation
+    /// using MoveMutableSegmentForward and StartMergeOperation
     /// methods in IZoneTreeMaintenance.
     /// </summary>
     None = 3,

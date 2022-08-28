@@ -15,39 +15,39 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     /// The movement only occurs
     /// if the current segment zero is the given segment zero.
     /// </summary>
-    /// <param name="segmentZero">The segment zero to move forward.</param>
-    void MoveSegmentZeroForward(IMutableSegment<TKey, TValue> segmentZero)
+    /// <param name="mutableSegment">The segment zero to move forward.</param>
+    void MoveMutableSegmentForward(IMutableSegment<TKey, TValue> mutableSegment)
     {
         lock (AtomicUpdateLock)
         {
             // move segment zero only if
             // the given segment zero is the current segment zero (not already moved)
             // and it is not frozen.
-            if (segmentZero.IsFrozen || segmentZero != SegmentZero)
+            if (mutableSegment.IsFrozen || mutableSegment != MutableSegment)
                 return;
 
             //Don't move empty segment zero.
-            var c = segmentZero.Length;
+            var c = mutableSegment.Length;
             if (c == 0)
                 return;
 
-            segmentZero.Freeze();
-            ReadOnlySegmentQueue.Enqueue(segmentZero);
-            MetaWal.EnqueueReadOnlySegment(segmentZero.SegmentId);
+            mutableSegment.Freeze();
+            ReadOnlySegmentQueue.Enqueue(mutableSegment);
+            MetaWal.EnqueueReadOnlySegment(mutableSegment.SegmentId);
 
-            SegmentZero = new MutableSegment<TKey, TValue>(
+            MutableSegment = new MutableSegment<TKey, TValue>(
                 Options, IncrementalIdProvider.NextId(),
-                segmentZero.OpIndexProvider);
-            MetaWal.NewSegmentZero(SegmentZero.SegmentId);
+                mutableSegment.OpIndexProvider);
+            MetaWal.NewMutableSegment(MutableSegment.SegmentId);
         }
-        OnSegmentZeroMovedForward?.Invoke(this);
+        OnMutableSegmentMovedForward?.Invoke(this);
     }
 
-    public void MoveSegmentZeroForward()
+    public void MoveMutableSegmentForward()
     {
         lock (AtomicUpdateLock)
         {
-            MoveSegmentZeroForward(SegmentZero);
+            MoveMutableSegmentForward(MutableSegment);
         }
     }
 

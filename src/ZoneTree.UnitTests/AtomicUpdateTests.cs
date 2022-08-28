@@ -26,7 +26,7 @@ public class AtomicUpdateTests
         {
             data.Upsert(i, i + i);
         }
-        data.Maintenance.MoveSegmentZeroForward();
+        data.Maintenance.MoveMutableSegmentForward();
         data.Maintenance.StartMergeOperation().Join();
         var random = new Random();
         var off = -1;
@@ -69,7 +69,7 @@ public class AtomicUpdateTests
             });
         }
 
-        data.Maintenance.MoveSegmentZeroForward();
+        data.Maintenance.MoveMutableSegmentForward();
         data.Maintenance.StartMergeOperation().Join();
         data.TryGet(counterKey, out var finalValue);
         Assert.That(finalValue, Is.EqualTo(off));
