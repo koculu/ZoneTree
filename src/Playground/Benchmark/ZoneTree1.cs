@@ -125,32 +125,33 @@ public class ZoneTree1
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
-        
-        var random = new Random(); 
-        Parallel.For(0, 750000, (i) =>
+        if (false)
         {
-            var key = random.Next(0, 999_999_999);
-            using var it = zoneTree.CreateReverseIterator();
-            it.Seek(key);
-            it.Next();
-            if (it.CurrentKey != key)
-                throw new Exception(it.CurrentKey + " != " + key);
+            var random = new Random();
+            Parallel.For(0, 750000, (i) =>
+            {
+                var key = random.Next(0, 999_999_999);
+                using var it = zoneTree.CreateReverseIterator();
+                it.Seek(key);
+                it.Next();
+                if (it.CurrentKey != key)
+                    throw new Exception(it.CurrentKey + " != " + key);
 
-            using var it2 = zoneTree.CreateIterator();
-            it2.Seek(key);
-            it2.Next();
-            if (it2.CurrentKey != key)
-                throw new Exception(it2.CurrentKey + " != " + key);
+                using var it2 = zoneTree.CreateIterator();
+                it2.Seek(key);
+                it2.Next();
+                if (it2.CurrentKey != key)
+                    throw new Exception(it2.CurrentKey + " != " + key);
 
-            if (!zoneTree.ContainsKey(key))
-                throw new Exception($"{key} not found.");
-            if (!zoneTree.TryGet(key, out var value))
-                throw new Exception($"{key} not found.");
-            if (value != 2 * key)
-                throw new Exception($"{key} != {value / 2}");
+                if (!zoneTree.ContainsKey(key))
+                    throw new Exception($"{key} not found.");
+                if (!zoneTree.TryGet(key, out var value))
+                    throw new Exception($"{key} not found.");
+                if (value != 2 * key)
+                    throw new Exception($"{key} != {value / 2}");
+            }
+            );
         }
-        );
-
         ShowBottomSegments(zoneTree);
 
         BenchmarkGroups.LogWithColor(

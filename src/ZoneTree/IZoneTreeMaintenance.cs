@@ -141,6 +141,16 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     event MergeOperationEnded<TKey, TValue> OnMergeOperationEnded;
 
     /// <summary>
+    /// Event is fired when bottom segments merge operation is completed.
+    /// </summary>
+    public event BottomSegmentsMergeOperationStarted<TKey, TValue> OnBottomSegmentsMergeOperationStarted;
+
+    /// <summary>
+    /// Event is fired when bottom segments merge operation is completed.
+    /// </summary>
+    public event BottomSegmentsMergeOperationEnded<TKey, TValue> OnBottomSegmentsMergeOperationEnded;
+
+    /// <summary>
     /// Event is fired when the new disk segment is created.
     /// This is the best moment to initialize a sparse array.
     /// SparseArray is an in memory array that reduces disk reads.

@@ -26,8 +26,8 @@ if (false)
     // bottom segment merger tests.
     var c = 1_000_000_000;
     ZoneTree1.ShowBottomSegments(WriteAheadLogMode.None, c);
-    ZoneTree1.MergeBottomSegment(WriteAheadLogMode.None, c, 3, 6);
-    ZoneTree1.Iterate(WriteAheadLogMode.None, c);
+    //ZoneTree1.MergeBottomSegment(WriteAheadLogMode.None, c, 3, 6);
+    //ZoneTree1.Iterate(WriteAheadLogMode.None, c);
 }
 
 if (false) {
@@ -38,6 +38,9 @@ if (false) {
     ZoneTree1.MultipleIterate(WriteAheadLogMode.None, c, ic);
 }
 
-BenchmarkGroups.InsertIterate1(0);
-BenchmarkGroups.InsertIterate2(0);
-BenchmarkGroups.InsertIterate3(0);
+if (true)
+{
+    BenchmarkGroups.InsertIterate1(0);
+    BenchmarkGroups.InsertIterate2(0);
+    BenchmarkGroups.InsertIterate3(0);
+}
