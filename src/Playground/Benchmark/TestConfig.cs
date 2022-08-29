@@ -27,6 +27,10 @@ public static class TestConfig
 
     public static DiskSegmentMode DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
 
+    public static CompressionMethod CompressionMethod = CompressionMethod.LZ4;
+    
+    public static int CompressionLevel = 0;
+
     public static void PrintConfig()
     {
         Console.WriteLine($"ThresholdForMergeOperationStart: {ThresholdForMergeOperationStart}");
@@ -39,5 +43,7 @@ public static class TestConfig
         Console.WriteLine($"MinimumSparseArrayLength: {MinimumSparseArrayLength}");
         Console.WriteLine($"EnableParalelInserts: {EnableParalelInserts}");
         Console.WriteLine($"DiskSegmentMode: {DiskSegmentMode}");
+        Console.WriteLine($"CompressionMethod: {CompressionMethod}");
+        Console.WriteLine($"CompressionLevel: {CompressionLevel}");
     }
 }

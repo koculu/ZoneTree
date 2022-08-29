@@ -4,7 +4,7 @@ using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
 
 namespace Playground.Benchmark;
-public class ZoneTree1
+public class OldTests
 {
     const string DataPath = "../../data/";
     const string FolderName = "-int-int";
@@ -18,7 +18,7 @@ public class ZoneTree1
     {
         var recCount = count / 1000000.0 + "M";
         Console.WriteLine("\r\n--------------------------");
-        BenchmarkGroups.LogWithColor($"\r\n{mode} Insert <int,int> {recCount}\r\n", ConsoleColor.Cyan); 
+        new StatsCollector().LogWithColor($"\r\n{mode} Insert <int,int> {recCount}\r\n", ConsoleColor.Cyan); 
         string dataPath = GetDataPath(mode, count);
         if (TestConfig.RecreateDatabases && Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
@@ -29,7 +29,7 @@ public class ZoneTree1
         using var basicMaintainer = zoneTree.CreateMaintainer();
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
         basicMaintainer.MinimumSparseArrayLength = TestConfig.MinimumSparseArrayLength;
-        BenchmarkGroups.LogWithColor(
+        new StatsCollector().LogWithColor(
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
@@ -48,8 +48,8 @@ public class ZoneTree1
                 zoneTree.Upsert(x, x + x);
             }
         }
-        
-        BenchmarkGroups.LogWithColor(
+
+        new StatsCollector().LogWithColor(
             "Completed in:",
             stopWatch.ElapsedMilliseconds, 
             ConsoleColor.Green);
@@ -60,8 +60,8 @@ public class ZoneTree1
             zoneTree.Maintenance.MoveMutableSegmentForward();
             zoneTree.Maintenance.StartMergeOperation()?.Join();
         }
-        basicMaintainer.CompleteRunningTasks(); 
-        BenchmarkGroups.LogWithColor(
+        basicMaintainer.CompleteRunningTasks();
+        new StatsCollector().LogWithColor(
             "Merged in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkCyan);
@@ -70,20 +70,20 @@ public class ZoneTree1
     public static void MergeBottomSegment(WriteAheadLogMode mode, int count, int from, int to)
     {
         var recCount = count / 1000000.0 + "M";
-        BenchmarkGroups.LogWithColor($"\r\n{mode} MergeBottomSegments <int,int> {recCount}\r\n", ConsoleColor.Cyan);
+        new StatsCollector().LogWithColor($"\r\n{mode} MergeBottomSegments <int,int> {recCount}\r\n", ConsoleColor.Cyan);
 
         string dataPath = GetDataPath(mode, count);
         var stopWatch = new Stopwatch();
         stopWatch.Start();
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
-        BenchmarkGroups.LogWithColor(
+        new StatsCollector().LogWithColor(
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
         zoneTree.Maintenance.StartBottomSegmentsMergeOperation(from, to).Join();
         ShowBottomSegments(zoneTree);
 
-        BenchmarkGroups.LogWithColor(
+        new StatsCollector().LogWithColor(
             "Completed in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
@@ -112,7 +112,7 @@ public class ZoneTree1
     public static void ShowBottomSegments(WriteAheadLogMode mode, int count)
     {
         var recCount = count / 1000000.0 + "M";
-        BenchmarkGroups.LogWithColor($"\r\n{mode} ShowBottomSegments <int,int> {recCount}\r\n", ConsoleColor.Cyan);
+        new StatsCollector().LogWithColor($"\r\n{mode} ShowBottomSegments <int,int> {recCount}\r\n", ConsoleColor.Cyan);
 
         string dataPath = GetDataPath(mode, count);
         var stopWatch = new Stopwatch();
@@ -121,7 +121,7 @@ public class ZoneTree1
         TestConfig.MinimumSparseArrayLength = 33;
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
 
-        BenchmarkGroups.LogWithColor(
+        new StatsCollector().LogWithColor(
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
@@ -154,7 +154,7 @@ public class ZoneTree1
         }
         ShowBottomSegments(zoneTree);
 
-        BenchmarkGroups.LogWithColor(
+        new StatsCollector().LogWithColor(
             "Completed in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
@@ -165,7 +165,7 @@ public class ZoneTree1
     {
         var recCount = count / 1000000.0 + "M";
         Console.WriteLine("\r\n--------------------------");
-        BenchmarkGroups.LogWithColor($"\r\n{mode} Single Insert and Merge <int,int> {recCount}\r\n", ConsoleColor.Cyan);
+        new StatsCollector().LogWithColor($"\r\n{mode} Single Insert and Merge <int,int> {recCount}\r\n", ConsoleColor.Cyan);
         string dataPath = GetDataPath(mode, count);
         var stopWatch = new Stopwatch();
         stopWatch.Start();
@@ -173,7 +173,7 @@ public class ZoneTree1
         using var basicMaintainer = zoneTree.CreateMaintainer();
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
         basicMaintainer.MinimumSparseArrayLength = TestConfig.MinimumSparseArrayLength;
-        BenchmarkGroups.LogWithColor(
+        new StatsCollector().LogWithColor(
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
@@ -186,7 +186,7 @@ public class ZoneTree1
         zoneTree.Maintenance.StartMergeOperation()?.Join();
 
         basicMaintainer.CompleteRunningTasks();
-        BenchmarkGroups.LogWithColor(
+        new StatsCollector().LogWithColor(
             "Merged in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
@@ -195,7 +195,7 @@ public class ZoneTree1
     public static void Iterate(WriteAheadLogMode mode, int count)
     {
         var recCount = count / 1000000.0 + "M";
-        BenchmarkGroups.LogWithColor($"\r\n{mode} Iterate <int,int> {recCount}\r\n", ConsoleColor.Cyan);
+        new StatsCollector().LogWithColor($"\r\n{mode} Iterate <int,int> {recCount}\r\n", ConsoleColor.Cyan);
 
         string dataPath = GetDataPath(mode, count);
         var stopWatch = new Stopwatch();
@@ -204,7 +204,7 @@ public class ZoneTree1
         using var basicMaintainer = zoneTree.CreateMaintainer();
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
 
-        BenchmarkGroups.LogWithColor(
+        new StatsCollector().LogWithColor(
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
@@ -220,7 +220,7 @@ public class ZoneTree1
         if (off != count)
             throw new Exception($"missing records. {off} != {count}");
 
-        BenchmarkGroups.LogWithColor(
+        new StatsCollector().LogWithColor(
             "Completed in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
@@ -230,7 +230,7 @@ public class ZoneTree1
     public static void MultipleIterate(WriteAheadLogMode mode, int count, int iteratorCount)
     {
         var recCount = count / 1000000.0 + "M";
-        BenchmarkGroups.LogWithColor($"\r\n{mode} Iterate <int,int> {recCount}\r\n", ConsoleColor.Cyan);
+        new StatsCollector().LogWithColor($"\r\n{mode} Iterate <int,int> {recCount}\r\n", ConsoleColor.Cyan);
 
         string dataPath = GetDataPath(mode, count);
         var stopWatch = new Stopwatch();
@@ -239,7 +239,7 @@ public class ZoneTree1
         using var basicMaintainer = zoneTree.CreateMaintainer();
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
 
-        BenchmarkGroups.LogWithColor(
+        new StatsCollector().LogWithColor(
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
@@ -258,9 +258,9 @@ public class ZoneTree1
                 throw new Exception($"missing records. {off} != {count} TID:"
                     + Environment.CurrentManagedThreadId);
         });
-        
 
-        BenchmarkGroups.LogWithColor(
+
+        new StatsCollector().LogWithColor(
             "Completed in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
