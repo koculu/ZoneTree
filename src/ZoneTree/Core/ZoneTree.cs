@@ -227,7 +227,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         foreach (var ros in readOnlySegments)
             ros.Drop();
         foreach (var bs in BottomSegmentQueue.ToArray())
-            bs.ReleaseResources();
+            bs.Drop();
         Options.WriteAheadLogProvider.DropStore();
         Options.RandomAccessDeviceManager.DropStore();
     }

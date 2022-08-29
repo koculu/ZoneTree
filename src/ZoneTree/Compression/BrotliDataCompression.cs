@@ -6,6 +6,10 @@ public static class BrotliDataCompression
 {
     public static byte[] Compress(Span<byte> span, int level)
     {
+        /// Brotli Optimum level is extremely slow.
+        /// Changing the optimum level to fastest!
+        if (level == 0)
+            level = 1;
         using var msOutput = new MemoryStream();
         using var gzs = new BrotliStream(msOutput, (CompressionLevel)level, false);
         gzs.Write(span);
