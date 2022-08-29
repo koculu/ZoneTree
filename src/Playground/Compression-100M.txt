@@ -1,0 +1,336 @@
+ThresholdForMergeOperationStart: 2000000
+MutableSegmentMaxItemCount: 1000000
+EnableIncrementalBackup: False
+EnableDiskSegmentCompression: True
+WALCompressionBlockSize: 262144
+DiskCompressionBlockSize: 10485760
+DiskSegmentMaximumCachedBlockCount: 1
+MinimumSparseArrayLength: 0
+EnableParalelInserts: True
+DiskSegmentMode: SingleDiskSegment
+CompressionMethod: LZ4
+CompressionLevel: 0
+----------------------------------
+int-int insert
+----------------------------------
+----------------------------------
+Memory At Begin: 90.01 KB
+None Insert <int, int> 100M - LZ4
+Loaded In: 77
+Inserted In: 39435
+Merged In: 4115
+Memory At End: 2.59 GB
+Disk Usage: 759.26 MB
+----------------------------------
+Memory At Begin: 362.88 KB
+None Insert <int, int> 100M - Brotli
+Loaded In: 6
+Inserted In: 41915
+Merged In: 3044
+Memory At End: 2.38 GB
+Disk Usage: 562.29 MB
+----------------------------------
+Memory At Begin: 405.9 KB
+None Insert <int, int> 100M - Zstd
+Loaded In: 5
+Inserted In: 45994
+Merged In: 4441
+Memory At End: 2.62 GB
+Disk Usage: 561.89 MB
+----------------------------------
+Memory At Begin: 454.59 KB
+None Insert <int, int> 100M - Gzip
+Loaded In: 5
+Inserted In: 54500
+Merged In: 38658
+Memory At End: 2.17 GB
+Disk Usage: 300.5 MB
+----------------------------------
+str-str insert
+----------------------------------
+----------------------------------
+Memory At Begin: 472.13 KB
+None Insert <str, str> 100M - LZ4
+Loaded In: 16
+Inserted In: 136992
+Merged In: 41595
+Memory At End: 15.69 GB
+Disk Usage: 1.56 GB
+----------------------------------
+Memory At Begin: 486.91 KB
+None Insert <str, str> 100M - Brotli
+Loaded In: 6
+Inserted In: 119369
+Merged In: 42646
+Memory At End: 11.2 GB
+Disk Usage: 508.73 MB
+----------------------------------
+Memory At Begin: 498.05 KB
+None Insert <str, str> 100M - Zstd
+Loaded In: 7
+Inserted In: 125968
+Merged In: 59974
+Memory At End: 12.16 GB
+Disk Usage: 301.77 MB
+----------------------------------
+Memory At Begin: 504.79 KB
+None Insert <str, str> 100M - Gzip
+Loaded In: 5
+Inserted In: 141428
+Merged In: 119064
+Memory At End: 12.2 GB
+Disk Usage: 622.38 MB
+
+D:\code\modern\ZoneTree\src\Playground\bin\Release\net6.0\Playground.exe (process 27416) exited with code 0.
+Press any key to close this window . . .
+
+[
+  {
+    "Section": "int-int insert",
+    "Name": "Insert",
+    "Options": {
+      "WAL": "None",
+      "Compression": "LZ4",
+      "Count": 100000000
+    },
+    "AdditionalStats": {
+      "Disk Usage": "759.26 MB"
+    },
+    "Stages": {
+      "Stages": {
+        "Loaded In": {
+          "ElapsedMilliseconds": 77,
+          "Name": "Loaded In"
+        },
+        "Inserted In": {
+          "ElapsedMilliseconds": 39435,
+          "Name": "Inserted In"
+        },
+        "Merged In": {
+          "ElapsedMilliseconds": 4115,
+          "Name": "Merged In"
+        }
+      },
+      "TotalElapsedMilliseconds": 43627
+    },
+    "MemoryUsageAtBegin": 92168,
+    "MemoryUsageAtEnd": 2782339360
+  },
+  {
+    "Section": "int-int insert",
+    "Name": "Insert",
+    "Options": {
+      "WAL": "None",
+      "Compression": "Brotli",
+      "Count": 100000000
+    },
+    "AdditionalStats": {
+      "Disk Usage": "562.29 MB"
+    },
+    "Stages": {
+      "Stages": {
+        "Loaded In": {
+          "ElapsedMilliseconds": 6,
+          "Name": "Loaded In"
+        },
+        "Inserted In": {
+          "ElapsedMilliseconds": 41915,
+          "Name": "Inserted In"
+        },
+        "Merged In": {
+          "ElapsedMilliseconds": 3044,
+          "Name": "Merged In"
+        }
+      },
+      "TotalElapsedMilliseconds": 44965
+    },
+    "MemoryUsageAtBegin": 371592,
+    "MemoryUsageAtEnd": 2551393384
+  },
+  {
+    "Section": "int-int insert",
+    "Name": "Insert",
+    "Options": {
+      "WAL": "None",
+      "Compression": "Zstd",
+      "Count": 100000000
+    },
+    "AdditionalStats": {
+      "Disk Usage": "561.89 MB"
+    },
+    "Stages": {
+      "Stages": {
+        "Loaded In": {
+          "ElapsedMilliseconds": 5,
+          "Name": "Loaded In"
+        },
+        "Inserted In": {
+          "ElapsedMilliseconds": 45994,
+          "Name": "Inserted In"
+        },
+        "Merged In": {
+          "ElapsedMilliseconds": 4441,
+          "Name": "Merged In"
+        }
+      },
+      "TotalElapsedMilliseconds": 50440
+    },
+    "MemoryUsageAtBegin": 415640,
+    "MemoryUsageAtEnd": 2812703864
+  },
+  {
+    "Section": "int-int insert",
+    "Name": "Insert",
+    "Options": {
+      "WAL": "None",
+      "Compression": "Gzip",
+      "Count": 100000000
+    },
+    "AdditionalStats": {
+      "Disk Usage": "300.5 MB"
+    },
+    "Stages": {
+      "Stages": {
+        "Loaded In": {
+          "ElapsedMilliseconds": 5,
+          "Name": "Loaded In"
+        },
+        "Inserted In": {
+          "ElapsedMilliseconds": 54500,
+          "Name": "Inserted In"
+        },
+        "Merged In": {
+          "ElapsedMilliseconds": 38658,
+          "Name": "Merged In"
+        }
+      },
+      "TotalElapsedMilliseconds": 93163
+    },
+    "MemoryUsageAtBegin": 465504,
+    "MemoryUsageAtEnd": 2328562952
+  },
+  {
+    "Section": "str-str insert",
+    "Name": "Insert",
+    "Options": {
+      "WAL": "None",
+      "Compression": "LZ4",
+      "Count": 100000000
+    },
+    "AdditionalStats": {
+      "Disk Usage": "1.56 GB"
+    },
+    "Stages": {
+      "Stages": {
+        "Loaded In": {
+          "ElapsedMilliseconds": 16,
+          "Name": "Loaded In"
+        },
+        "Inserted In": {
+          "ElapsedMilliseconds": 136992,
+          "Name": "Inserted In"
+        },
+        "Merged In": {
+          "ElapsedMilliseconds": 41595,
+          "Name": "Merged In"
+        }
+      },
+      "TotalElapsedMilliseconds": 178603
+    },
+    "MemoryUsageAtBegin": 483464,
+    "MemoryUsageAtEnd": 16850261824
+  },
+  {
+    "Section": "str-str insert",
+    "Name": "Insert",
+    "Options": {
+      "WAL": "None",
+      "Compression": "Brotli",
+      "Count": 100000000
+    },
+    "AdditionalStats": {
+      "Disk Usage": "508.73 MB"
+    },
+    "Stages": {
+      "Stages": {
+        "Loaded In": {
+          "ElapsedMilliseconds": 6,
+          "Name": "Loaded In"
+        },
+        "Inserted In": {
+          "ElapsedMilliseconds": 119369,
+          "Name": "Inserted In"
+        },
+        "Merged In": {
+          "ElapsedMilliseconds": 42646,
+          "Name": "Merged In"
+        }
+      },
+      "TotalElapsedMilliseconds": 162021
+    },
+    "MemoryUsageAtBegin": 498600,
+    "MemoryUsageAtEnd": 12020563792
+  },
+  {
+    "Section": "str-str insert",
+    "Name": "Insert",
+    "Options": {
+      "WAL": "None",
+      "Compression": "Zstd",
+      "Count": 100000000
+    },
+    "AdditionalStats": {
+      "Disk Usage": "301.77 MB"
+    },
+    "Stages": {
+      "Stages": {
+        "Loaded In": {
+          "ElapsedMilliseconds": 7,
+          "Name": "Loaded In"
+        },
+        "Inserted In": {
+          "ElapsedMilliseconds": 125968,
+          "Name": "Inserted In"
+        },
+        "Merged In": {
+          "ElapsedMilliseconds": 59974,
+          "Name": "Merged In"
+        }
+      },
+      "TotalElapsedMilliseconds": 185949
+    },
+    "MemoryUsageAtBegin": 510008,
+    "MemoryUsageAtEnd": 13061745536
+  },
+  {
+    "Section": "str-str insert",
+    "Name": "Insert",
+    "Options": {
+      "WAL": "None",
+      "Compression": "Gzip",
+      "Count": 100000000
+    },
+    "AdditionalStats": {
+      "Disk Usage": "622.38 MB"
+    },
+    "Stages": {
+      "Stages": {
+        "Loaded In": {
+          "ElapsedMilliseconds": 5,
+          "Name": "Loaded In"
+        },
+        "Inserted In": {
+          "ElapsedMilliseconds": 141428,
+          "Name": "Inserted In"
+        },
+        "Merged In": {
+          "ElapsedMilliseconds": 119064,
+          "Name": "Merged In"
+        }
+      },
+      "TotalElapsedMilliseconds": 260497
+    },
+    "MemoryUsageAtBegin": 516904,
+    "MemoryUsageAtEnd": 13095611992
+  }
+]

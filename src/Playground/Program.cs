@@ -47,13 +47,14 @@ if (testCase == 3)
     var test2 = new ZoneTreeTest2();
     var methods = new CompressionMethod[]
     {
+        CompressionMethod.None,
         CompressionMethod.LZ4,
         CompressionMethod.Brotli,
         CompressionMethod.Zstd,
         CompressionMethod.Gzip
     };
-    test2.Count = test1.Count = 1_000_000;
-    test2.WALMode = test1.WALMode = WriteAheadLogMode.AsyncCompressed;
+    test2.Count = test1.Count = 100_000_000;
+    test2.WALMode = test1.WALMode = WriteAheadLogMode.None;
 
     b.NewSection("int-int insert");
     foreach(var method in methods)
@@ -71,7 +72,7 @@ if (testCase == 3)
         test2.AddDatabaseFileUsage(stats);
     }
 
-    b.NewSection("int-int iterate");
+    /*b.NewSection("int-int iterate");
     foreach (var method in methods)
     {
         test1.CompressionMethod = method;
@@ -83,7 +84,7 @@ if (testCase == 3)
     {
         test2.CompressionMethod = method;
         b.Run(test2.Iterate);
-    }
+    }*/
 
     File.WriteAllText(@"..\..\data\benchmark.json", b.ToJSON());
 }
