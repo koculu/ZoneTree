@@ -365,6 +365,12 @@ public class ZoneTreeFactory<TKey, TValue>
 
     void FillMissingOptionsForKnownTypes()
     {
+        if (Options.RandomAccessDeviceManager == null)
+        {
+            Options.RandomAccessDeviceManager = new RandomAccessDeviceManager(
+                Options.Logger,
+                FileStreamProvider);
+        }
         FillComparer();
         FillKeySerializer();
         FillValueSerializer();
