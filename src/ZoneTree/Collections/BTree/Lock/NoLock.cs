@@ -23,4 +23,9 @@ public class NoLock : ILocker
     public void ReadUnlock()
     {
     }
+
+    public bool TryEnterWriteLock(int millisecondsTimeout)
+    {
+        return true;
+    }
 }

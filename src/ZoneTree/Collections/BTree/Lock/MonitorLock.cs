@@ -21,4 +21,9 @@ public class MonitorLock : ILocker
     {
         Monitor.Exit(this);
     }
+
+    public bool TryEnterWriteLock(int millisecondsTimeout)
+    {
+        return Monitor.TryEnter(this, millisecondsTimeout);
+    }
 }

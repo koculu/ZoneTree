@@ -23,4 +23,9 @@ public class ReadWriteLock : ILocker
     {
         Locker.ExitReadLock();
     }
+
+    public bool TryEnterWriteLock(int millisecondsTimeout)
+    {
+        return Locker.TryEnterWriteLock(millisecondsTimeout);
+    }
 }

@@ -53,7 +53,7 @@ if (testCase == 3)
         CompressionMethod.Zstd,
         CompressionMethod.Gzip
     };
-    test2.Count = test1.Count = 100_000_000;
+    test2.Count = test1.Count = 5_000_000;
     test2.WALMode = test1.WALMode = WriteAheadLogMode.None;
 
     b.NewSection("int-int insert");
@@ -72,7 +72,7 @@ if (testCase == 3)
         test2.AddDatabaseFileUsage(stats);
     }
 
-    /*b.NewSection("int-int iterate");
+    b.NewSection("int-int iterate");
     foreach (var method in methods)
     {
         test1.CompressionMethod = method;
@@ -84,7 +84,7 @@ if (testCase == 3)
     {
         test2.CompressionMethod = method;
         b.Run(test2.Iterate);
-    }*/
+    }
 
     File.WriteAllText(@"..\..\data\benchmark.json", b.ToJSON());
 }

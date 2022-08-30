@@ -4,6 +4,8 @@ namespace Tenray.ZoneTree.Collections.BTree;
 
 public interface ILocker
 {
+    bool TryEnterWriteLock(int millisecondsTimeout);
+
     void WriteLock();
 
     void WriteUnlock();

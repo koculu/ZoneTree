@@ -106,6 +106,11 @@ public partial class BTree<TKey, TValue>
             Locker.WriteLock();
         }
 
+        public bool TryEnterWriteLock(int millisecondsTimeout)
+        {
+            return Locker.TryEnterWriteLock(millisecondsTimeout);
+        }
+
         public void WriteUnlock()
         {
             Locker.WriteUnlock();

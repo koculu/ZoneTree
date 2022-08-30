@@ -162,14 +162,59 @@ public partial class BTree<TKey, TValue>
                 pre.WriteLock();
             }
 
+            // HANDLE DEADLOCK
+            // childLeaf => LOCKED BY US
+            // PRE => LOCKED BY US
+            // NEXT => LOCKED BY ANOTHER SPLIT!!!
+            // DEADLOCK !!!...
+            // SOLUTION:
+            // TRY TO LOCK NEXT WITH TIMEOUT
+            // IF CAN NOT LOCK IN TIME UNLOCK PRE
+            // THEN SLEEP SOME
+            // THEN RELOCK PRE
+            // AND TRY TO LOCK NEXT ONCE AGAIN IN A LOOP.
+            var lockTimeout = 500;
             var next = childLeaf.Next;
-            next?.WriteLock();
+            var isNextLocked = true;
+            while(true)
+            {
+                if (next != null)
+                    isNextLocked = next.TryEnterWriteLock(lockTimeout);
+                if (isNextLocked)
+                    break;
+                pre?.WriteUnlock();
+                Thread.Sleep(100);
+                pre?.WriteLock();
+                while (childLeaf.Previous != pre)
+                {
+                    pre.WriteUnlock();
+                    pre = childLeaf.Previous;
+                    pre.WriteLock();
+                }
+            }
+
             // prevent neighbour split at the same time.
             while (childLeaf.Next != next)
             {
                 next.WriteUnlock();
                 next = childLeaf.Next;
-                next.WriteLock();
+                isNextLocked = true;
+                while (true)
+                {
+                    if (next != null)
+                        isNextLocked = next.TryEnterWriteLock(lockTimeout);
+                    if (isNextLocked)
+                        break;
+                    pre?.WriteUnlock();
+                    Thread.Sleep(100);
+                    pre?.WriteLock();
+                    while (childLeaf.Previous != pre)
+                    {
+                        pre.WriteUnlock();
+                        pre = childLeaf.Previous;
+                        pre.WriteLock();
+                    }
+                }
             }
 
             left.Previous = pre;
