@@ -4,7 +4,7 @@
 /// Available compression methods.
 /// </summary>
 /// <remarks>
-/// See <see cref="CompressionLevels.LZ4Fastest"/> for supported compression levels.
+/// See <see cref="CompressionLevels"/> for supported compression levels.
 /// </remarks>
 public enum CompressionMethod : byte
 {

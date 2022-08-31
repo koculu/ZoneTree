@@ -45,6 +45,7 @@ if (testCase == 3)
     var b = new Benchmark();
     var test1 = new ZoneTreeTest1();
     var test2 = new ZoneTreeTest2();
+    test2.WALMode = test1.WALMode = WriteAheadLogMode.AsyncCompressed;
     var methods = new (CompressionMethod method, int level)[]
     {
         (CompressionMethod.LZ4, CompressionLevels.LZ4Fastest),

@@ -1,3 +1,5 @@
+[![Downloads](https://img.shields.io/nuget/dt/ZoneTree?style=for-the-badge&labelColor=319e12&color=55c212)](https://www.nuget.org/packages/ZoneTree/) [![ZoneTree](https://img.shields.io/github/stars/koculu/ZoneTree?style=for-the-badge&logo=github&label=github&color=f1c400&labelColor=454545&logoColor=ffffff)](https://github.com/koculu/ZoneTree)
+
 ## What is ZoneTree?
 ZoneTree is a persistent, high-performance, transactional, ACID-compliant [ordered key-value database](https://en.wikipedia.org/wiki/Ordered_Key-Value_Store) for NET. It can operate in memory or on local/cloud storage.
 
