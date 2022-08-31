@@ -34,14 +34,14 @@ public class ZoneTreeOptions<TKey, TValue>
     /// Mutable segment maximumum key-value pair count.
     /// When the maximum count is reached 
     /// MoveMutableSegmentForward is called and current mutable segment is enqueued to
-    /// ReadOnlySegments layer.
+    /// the ReadOnlySegments layer.
     /// </summary>
     public int MutableSegmentMaxItemCount { get; set; } = 1_000_000;
 
     /// <summary>
     /// Disk segment maximumum key-value pair count.
     /// When the maximum count is reached
-    /// The disk Segment is enqueued into to the bottom segment layer.
+    /// The disk segment is enqueued into to the bottom segments layer.
     /// </summary>
     public int DiskSegmentMaxItemCount { get; set; } = 20_000_000;
 
@@ -71,22 +71,22 @@ public class ZoneTreeOptions<TKey, TValue>
     public MarkValueDeletedDelegate<TValue> MarkValueDeleted { get; set; } = (ref TValue x) => { x = default; };
 
     /// <summary>
-    /// Write Ahead Log Options. The options is being used
-    /// for creation of new Write Ahead Logs.
+    /// Write Ahead Log Options. The options are used
+    /// to create new Write Ahead Logs.
     /// Existing WALs is being created with their existing options.
     /// </summary>
     public WriteAheadLogOptions WriteAheadLogOptions { get; set; } = new();
 
     /// <summary>
-    /// Disk Segment options. The options is being used 
-    /// for creation of new disk segments.
+    /// Disk Segment options. The options are used 
+    /// to create new disk segments.
     /// Existing disk segments is being created with
     /// their existing options.
     /// </summary>
     public DiskSegmentOptions DiskSegmentOptions { get; set; } = new();
 
     /// <summary>
-    /// Controls lock granularity of in memory BTree that represents
+    /// Controls lock granularity of in-memory BTree that represents the
     /// mutable segment.
     /// </summary>
     public BTreeLockMode BTreeLockMode { get; set; } = BTreeLockMode.NodeLevelMonitor;

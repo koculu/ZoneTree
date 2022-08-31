@@ -11,8 +11,8 @@ namespace Tenray.ZoneTree;
 public interface IZoneTreeMaintenance<TKey, TValue>
 {
     /// <summary>
-    /// Gets current Segment Zero.
-    /// Segment Zero is the writable part of the LSM tree.
+    /// Gets current mutable segment.
+    /// Mutable segment is the only writable part of the LSM tree.
     /// </summary>
     IMutableSegment<TKey, TValue> MutableSegment { get; }
 
@@ -126,7 +126,7 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     void DestroyTree();
 
     /// <summary>
-    /// Event is fired when segment zero is moved forward.
+    /// Event is fired when mutable segment is moved forward.
     /// </summary>
     event MutableSegmentMovedForward<TKey, TValue> OnMutableSegmentMovedForward;
 
@@ -192,7 +192,7 @@ public interface IZoneTreeMaintenance<TKey, TValue>
 }
 
 /// <summary>
-/// Event is fired when segment zero is moved forward.
+/// Event is fired when mutable segment is moved forward.
 /// </summary>
 /// <typeparam name="TKey">The key type</typeparam>
 /// <typeparam name="TValue">The value type</typeparam>

@@ -11,22 +11,22 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     /// <summary>
     /// Moves mutable segment into readonly segment.
     /// This will clear the writable region of the LSM tree.
-    /// This method is thread safe and can be called from many threads.
-    /// The movement only occurs
-    /// if the current segment zero is the given segment zero.
+    /// This method is thread-safe and can be called from many threads.
+    /// The movement only occurs if the current mutable segment
+    /// is the mutable segment passed by argument.
     /// </summary>
-    /// <param name="mutableSegment">The segment zero to move forward.</param>
+    /// <param name="mutableSegment">The mutable segment to move forward.</param>
     void MoveMutableSegmentForward(IMutableSegment<TKey, TValue> mutableSegment)
     {
         lock (AtomicUpdateLock)
         {
             // move segment zero only if
-            // the given segment zero is the current segment zero (not already moved)
+            // the given mutable segment is the current mutable segment (not already moved)
             // and it is not frozen.
             if (mutableSegment.IsFrozen || mutableSegment != MutableSegment)
                 return;
 
-            //Don't move empty segment zero.
+            //Don't move empty mutable segment.
             var c = mutableSegment.Length;
             if (c == 0)
                 return;
