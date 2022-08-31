@@ -25,8 +25,16 @@ public static class CompressionLevels
     public const int BrotliSmallestSize = 3;
 
     public const int LZ4Fastest = 0;
-    public const int LZ4SmallestSize = 1;
-
+    public const int LZ4HighCompression3 = 3;
+    public const int LZ4HighCompression4 = 4;
+    public const int LZ4HighCompression5 = 5;
+    public const int LZ4HighCompression6 = 6;
+    public const int LZ4HighCompression7 = 7;
+    public const int LZ4HighCompression8 = 8;
+    public const int LZ4HighCompression9 = 9;
+    public const int LZ4HighCompression10 = 10;
+    public const int LZ4HighCompression11 = 11;
+    public const int LZ4HighCompression12 = 12;
 
     public const int ZstdMin = -131072;
     public const int Zstd0 = 0;

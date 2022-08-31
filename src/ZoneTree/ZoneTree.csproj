@@ -36,14 +36,6 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Include="..\3rdParty\LZ4\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath>\3rdParty\LZ4</PackagePath>
-    </None>
-    <None Include="..\3rdParty\ZstdSharp\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath>\3rdParty\ZstdSharp</PackagePath>
-    </None>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'ReleaseWithDoc'">
     <PackageReference Include="docfx.console" Version="2.59.3">
@@ -52,13 +44,11 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="K4os.Compression.LZ4" Version="1.2.16" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="ZstdSharp.Port" Version="0.6.3" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Tenray.LZ4\Tenray.LZ4.csproj" />
+    <PackageReference Include="ZstdNet" Version="1.4.5" />
   </ItemGroup>
 </Project>

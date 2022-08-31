@@ -16,6 +16,8 @@ public class ZoneTreeTestBase
 
     public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.LZ4;
 
+    public int CompressionLevel { get; set; } = CompressionLevels.LZ4Fastest;
+
     protected string GetLabel(string label)
     {
         return $"{WALMode} {label}" +

@@ -167,7 +167,7 @@ public class ZoneTreeOptions<TKey, TValue>
                 level <= CompressionLevels.GzipSmallestSize) ?
                 null : exception,
             CompressionMethod.LZ4 => 
-                (level >= 0 && level <= 1) ? null : exception,
+                (level >= 0 && level <= 12 && level != 1 && level != 2) ? null : exception,
             CompressionMethod.Zstd => 
                 (level >= CompressionLevels.ZstdMin &&
                 level <= CompressionLevels.ZstdMax) ?

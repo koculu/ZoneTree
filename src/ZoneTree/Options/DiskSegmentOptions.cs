@@ -31,9 +31,9 @@ public class DiskSegmentOptions
 
     /// <summary>
     /// The compression level of the selected compression method.
-    /// Default is 0.
+    /// Default is <see cref="CompressionLevels.LZ4Fastest"/>.
     /// </summary>
-    public int CompressionLevel { get; set; }
+    public int CompressionLevel { get; set; } = CompressionLevels.LZ4Fastest;
 
     /// <summary>
     /// The disk segment block cache limit.

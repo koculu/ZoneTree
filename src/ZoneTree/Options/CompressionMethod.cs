@@ -3,30 +3,33 @@
 /// <summary>
 /// Available compression methods.
 /// </summary>
+/// <remarks>
+/// See <see cref="CompressionLevels.LZ4Fastest"/> for supported compression levels.
+/// </remarks>
 public enum CompressionMethod : byte
 {
     /// <summary>
-    /// No compression.
-    /// </summary>
-    None = 0,
-
-    /// <summary>
-    /// Gzip algorithm.
-    /// </summary>
-    Gzip = 1,
-
-    /// <summary>
     /// LZ4 algorithm.
     /// </summary>
-    LZ4 = 2,
+    LZ4 = 0,
 
     /// <summary>
     /// ZStd algorithm.
     /// </summary>
-    Zstd = 3,
+    Zstd = 1,
 
     /// <summary>
     /// Brotli algorithm.
     /// </summary>
-    Brotli = 4,
+    Brotli = 2,
+
+    /// <summary>
+    /// Gzip algorithm.
+    /// </summary>
+    Gzip = 3,
+
+    /// <summary>
+    /// No compression.
+    /// </summary>
+    None = 4,
 }

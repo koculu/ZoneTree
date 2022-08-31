@@ -11,7 +11,7 @@ TestConfig.EnableIncrementalBackup = false;
 TestConfig.MutableSegmentMaxItemCount = 1_000_000;
 TestConfig.ThresholdForMergeOperationStart = 2_000_000;
 TestConfig.RecreateDatabases = true;
-TestConfig.EnableParalelInserts = true;
+TestConfig.EnableParalelInserts = false;
 TestConfig.DiskSegmentMaximumCachedBlockCount = 1;
 TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 10;
 TestConfig.WALCompressionBlockSize = 1024 * 32 * 8;
@@ -45,44 +45,49 @@ if (testCase == 3)
     var b = new Benchmark();
     var test1 = new ZoneTreeTest1();
     var test2 = new ZoneTreeTest2();
-    var methods = new CompressionMethod[]
+    var methods = new (CompressionMethod method, int level)[]
     {
-        CompressionMethod.None,
-        CompressionMethod.LZ4,
-        CompressionMethod.Brotli,
-        CompressionMethod.Zstd,
-        CompressionMethod.Gzip
+        (CompressionMethod.LZ4, CompressionLevels.LZ4Fastest),
+        (CompressionMethod.Zstd, CompressionLevels.Zstd0),
+        (CompressionMethod.Brotli, CompressionLevels.BrotliFastest),
+        (CompressionMethod.Gzip, CompressionLevels.GzipFastest),
+        (CompressionMethod.None, 0),
     };
+
     test2.Count = test1.Count = 5_000_000;
     test2.WALMode = test1.WALMode = WriteAheadLogMode.None;
 
     b.NewSection("int-int insert");
-    foreach(var method in methods)
+    foreach(var (method, level) in methods)
     {
         test1.CompressionMethod = method;
+        test1.CompressionLevel = level;
         var stats = b.Run(test1.Insert);
         test1.AddDatabaseFileUsage(stats);
     }
 
     b.NewSection("str-str insert");
-    foreach (var method in methods)
+    foreach (var (method, level) in methods)
     {
         test2.CompressionMethod = method;
+        test2.CompressionLevel = level;
         var stats = b.Run(test2.Insert);
         test2.AddDatabaseFileUsage(stats);
     }
 
     b.NewSection("int-int iterate");
-    foreach (var method in methods)
+    foreach (var (method, level) in methods)
     {
         test1.CompressionMethod = method;
+        test1.CompressionLevel = level;
         b.Run(test1.Iterate);
     }
 
     b.NewSection("str-str iterate");
-    foreach (var method in methods)
+    foreach (var (method, level) in methods)
     {
         test2.CompressionMethod = method;
+        test2.CompressionLevel = level;
         b.Run(test2.Iterate);
     }
 
