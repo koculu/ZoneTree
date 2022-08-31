@@ -73,14 +73,14 @@ public class ZoneTreeOptions<TKey, TValue>
     /// <summary>
     /// Write Ahead Log Options. The options are used
     /// to create new Write Ahead Logs.
-    /// Existing WALs is being created with their existing options.
+    /// Existing WALs are created with their existing options.
     /// </summary>
     public WriteAheadLogOptions WriteAheadLogOptions { get; set; } = new();
 
     /// <summary>
     /// Disk Segment options. The options are used 
     /// to create new disk segments.
-    /// Existing disk segments is being created with
+    /// Existing disk segments are created with
     /// their existing options.
     /// </summary>
     public DiskSegmentOptions DiskSegmentOptions { get; set; } = new();
