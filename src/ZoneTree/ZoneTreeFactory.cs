@@ -384,7 +384,6 @@ public class ZoneTreeFactory<TKey, TValue>
         Options.Comparer = key switch
         {
             byte => new ByteComparerAscending() as IRefComparer<TKey>,
-            byte[] => new ByteArrayComparerAscending() as IRefComparer<TKey>,
             char => new CharComparerAscending() as IRefComparer<TKey>,
             DateTime => new DateTimeComparerAscending() as IRefComparer<TKey>,
             decimal => new DecimalComparerAscending() as IRefComparer<TKey>,
@@ -398,6 +397,10 @@ public class ZoneTreeFactory<TKey, TValue>
         if (typeof(TKey) == typeof(string))
             Options.Comparer =
                 new StringOrdinalComparerAscending() as IRefComparer<TKey>;
+
+        else if (typeof(TKey) == typeof(byte[]))
+            Options.Comparer =
+                new ByteArrayComparerAscending() as IRefComparer<TKey>;
     }
 
     void FillKeySerializer()
@@ -408,7 +411,6 @@ public class ZoneTreeFactory<TKey, TValue>
         Options.KeySerializer = key switch
         {
             byte => new ByteSerializer() as ISerializer<TKey>,
-            byte[] => new ByteArraySerializer() as ISerializer<TKey>,
             char => new CharSerializer() as ISerializer<TKey>,
             DateTime => new DateTimeSerializer() as ISerializer<TKey>,
             decimal => new DecimalSerializer() as ISerializer<TKey>,
@@ -423,6 +425,10 @@ public class ZoneTreeFactory<TKey, TValue>
         if (typeof(TKey) == typeof(string))
             Options.KeySerializer = 
                 new Utf8StringSerializer() as ISerializer<TKey>;
+
+        else if (typeof(TKey) == typeof(byte[]))
+            Options.KeySerializer =
+                new ByteArraySerializer() as ISerializer<TKey>;
     }
 
     void FillValueSerializer()
@@ -433,7 +439,6 @@ public class ZoneTreeFactory<TKey, TValue>
         Options.ValueSerializer = value switch
         {
             byte => new ByteSerializer() as ISerializer<TValue>,
-            byte[] => new ByteArraySerializer() as ISerializer<TValue>,
             bool => new BooleanSerializer() as ISerializer<TValue>,
             char => new CharSerializer() as ISerializer<TValue>,
             DateTime => new DateTimeSerializer() as ISerializer<TValue>,
@@ -449,6 +454,10 @@ public class ZoneTreeFactory<TKey, TValue>
         if (typeof(TValue) == typeof(string))
             Options.ValueSerializer =
                 new Utf8StringSerializer() as ISerializer<TValue>;
+
+        else if (typeof(TValue) == typeof(byte[]))
+            Options.ValueSerializer =
+                new ByteArraySerializer() as ISerializer<TValue>;
     }
 
     /// <summary>
