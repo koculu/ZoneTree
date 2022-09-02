@@ -94,7 +94,12 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             return MergeResult.NOTHING_TO_MERGE;
 
         if (IsCancelBottomSegmentsMergeRequested)
+        {
+            bottomSegments = null;
+            mergingSegments = null;
+            bottomDiskSegment = null;
             return MergeResult.CANCELLED_BY_USER;
+        }
 
         var enableMultiPartDiskSegment =
             Options.DiskSegmentOptions.DiskSegmentMode == DiskSegmentMode.MultiPartDiskSegment;
@@ -164,6 +169,10 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     Logger.LogError(e);
                     OnCanNotDropDiskSegmentCreator?.Invoke(diskSegmentCreator, e);
                 }
+                bottomSegments = null;
+                mergingSegments = null;
+                bottomDiskSegment = null;
+                heap = null;
                 return MergeResult.CANCELLED_BY_USER;
             }
 
@@ -308,6 +317,10 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 TotalBottomSegmentsMergeDropCount,
                 TotalBottomSegmentsMergeSkipCount));
 
+        bottomSegments = null;
+        mergingSegments = null;
+        bottomDiskSegment = null;
+        heap = null;
         OnDiskSegmentActivated?.Invoke(this, newDiskSegment, true);
         return MergeResult.SUCCESS;
     }
