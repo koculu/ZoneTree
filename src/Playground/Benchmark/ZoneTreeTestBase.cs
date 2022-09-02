@@ -29,6 +29,7 @@ public class ZoneTreeTestBase
     {
         return new ZoneTreeFactory<TKey, TValue>()
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
+            .SetDiskSegmentMaxItemCount(TestConfig.DiskSegmentMaxItemCount)
             .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
             .SetDiskSegmentMaximumCachedBlockCount(TestConfig.DiskSegmentMaximumCachedBlockCount)

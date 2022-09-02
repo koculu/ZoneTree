@@ -11,6 +11,8 @@ public static class TestConfig
 
     public static int MutableSegmentMaxItemCount = 1_000_000;
 
+    public static int DiskSegmentMaxItemCount = 20_000_000;
+
     public static bool EnableIncrementalBackup = true;
 
     public static bool EnableDiskSegmentCompression = true;
@@ -35,6 +37,7 @@ public static class TestConfig
     {
         Console.WriteLine($"ThresholdForMergeOperationStart: {ThresholdForMergeOperationStart}");
         Console.WriteLine($"MutableSegmentMaxItemCount: {MutableSegmentMaxItemCount}");
+        Console.WriteLine($"DiskSegmentMaxItemCount: {DiskSegmentMaxItemCount}");
         Console.WriteLine($"EnableIncrementalBackup: {EnableIncrementalBackup}");
         Console.WriteLine($"EnableDiskSegmentCompression: {EnableDiskSegmentCompression}");
         Console.WriteLine($"WALCompressionBlockSize: {WALCompressionBlockSize}");

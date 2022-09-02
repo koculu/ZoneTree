@@ -16,7 +16,7 @@ public interface IStatsCollector
 
     long MemoryUsageAtEnd { get; }
 
-    void AddStage(string name, ConsoleColor color = ConsoleColor.DarkYellow);
+    void AddStage(string name, ConsoleColor color = ConsoleColor.DarkYellow, bool restart = true);
 
     void SetOption(string key, object value);
 

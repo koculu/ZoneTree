@@ -45,7 +45,7 @@ public class StatsCollector : IStatsCollector
         Stopwatch.Stop();
     }
 
-    public void AddStage(string name, ConsoleColor color)
+    public void AddStage(string name, ConsoleColor color = ConsoleColor.DarkYellow, bool restart = true)
     {
         var stage = new Stage
         {
@@ -57,8 +57,8 @@ public class StatsCollector : IStatsCollector
             stage.ElapsedMilliseconds,
             color);
         Stages.Add(name, stage);
-        Stopwatch.Restart();
-
+        if (restart)
+            Stopwatch.Restart();
     }
 
     public void SetOption(string key, object value)

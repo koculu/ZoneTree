@@ -94,3 +94,18 @@ if (testCase == 3)
 
     File.WriteAllText(@"..\..\data\benchmark.json", b.ToJSON());
 }
+
+if (testCase == 4)
+{
+    TestConfig.ThresholdForMergeOperationStart = 20_000_000;
+    TestConfig.DiskSegmentMaxItemCount = 5_000_000;
+    TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 100;
+    var b = new Benchmark();
+    var steve = new StevesChallenge
+    {
+        Count = 1_000_000_000,
+        WALMode = WriteAheadLogMode.None
+    };
+    b.Run(steve.Insert);
+    b.Run(steve.Iterate);
+}
