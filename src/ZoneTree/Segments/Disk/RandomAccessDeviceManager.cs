@@ -35,13 +35,16 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
     public void CloseAllDevices()
     {
-        foreach (var device in ReadOnlyDevices.Values)
+        lock (this)
         {
-            device.Close();
-        }
-        foreach (var device in WritableDevices.Values)
-        {
-            device.Close();
+            foreach (var device in ReadOnlyDevices.Values)
+            {
+                device.Close();
+            }
+            foreach (var device in WritableDevices.Values)
+            {
+                device.Close();
+            }
         }
     }
 
@@ -53,33 +56,36 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         int compressionLevel,
         long blockCacheReplacementWarningDuration)
     {
-        var key = GetDeviceKey(segmentId, category);
-        if (WritableDevices.ContainsKey(key))
+        lock (this)
         {
-            throw new Exception($"Writable device can be created only once. segmentId: {segmentId:X} category: {category}");
+            var key = GetDeviceKey(segmentId, category);
+            if (WritableDevices.ContainsKey(key))
+            {
+                throw new Exception($"Writable device can be created only once. segmentId: {segmentId:X} category: {category}");
+            }
+            var filePath = GetFilePath(segmentId, category);
+            if (deleteIfExists) DeleteFileIfExists(backupIfDelete, filePath);
+            if (isCompressed)
+            {
+                filePath += ".z";
+            }
+            if (deleteIfExists) DeleteFileIfExists(backupIfDelete, filePath);
+            IRandomAccessDevice device = isCompressed ?
+                new CompressedFileRandomAccessDevice(
+                    Logger,
+                    maxCachedBlockCount,
+                    FileStreamProvider,
+                    segmentId, category, this, filePath, true,
+                    compressionBlockSize,
+                    compressionMethod,
+                    compressionLevel,
+                    blockCacheReplacementWarningDuration) :
+                new FileRandomAccessDevice(
+                    FileStreamProvider,
+                    segmentId, category, this, filePath, true);
+            WritableDevices.Add(key, device);
+            return device;
         }
-        var filePath = GetFilePath(segmentId, category);
-        if (deleteIfExists) DeleteFileIfExists(backupIfDelete, filePath);
-        if (isCompressed)
-        {
-            filePath += ".z";
-        }
-        if (deleteIfExists) DeleteFileIfExists(backupIfDelete, filePath);
-        IRandomAccessDevice device = isCompressed ?
-            new CompressedFileRandomAccessDevice(
-                Logger,
-                maxCachedBlockCount,
-                FileStreamProvider,
-                segmentId, category, this, filePath, true, 
-                compressionBlockSize,
-                compressionMethod,
-                compressionLevel,
-                blockCacheReplacementWarningDuration) :
-            new FileRandomAccessDevice(
-                FileStreamProvider,
-                segmentId, category, this, filePath, true);
-        WritableDevices.Add(key, device);
-        return device;
     }
 
     void DeleteFileIfExists(bool backupIfDelete, string filePath)
@@ -118,78 +124,99 @@ public class RandomAccessDeviceManager : IRandomAccessDeviceManager
         int compressionLevel,
         long blockCacheReplacementWarningDuration)
     {
-        var key = GetDeviceKey(segmentId, category);
-        if (ReadOnlyDevices.TryGetValue(key, out var device))
+        lock (this)
+        {
+            var key = GetDeviceKey(segmentId, category);
+            if (ReadOnlyDevices.TryGetValue(key, out var device))
+                return device;
+
+            if (WritableDevices.ContainsKey(key))
+            {
+                throw new Exception($"ReadOnly device can be created after writable device is closed. segmentId: {segmentId} category: {category}");
+            }
+            var filePath = GetFilePath(segmentId, category);
+            if (isCompressed && FileStreamProvider.FileExists(filePath))
+            {
+                isCompressed = false;
+            }
+            var compressedfilePath = filePath + ".z";
+            if (!isCompressed && FileStreamProvider.FileExists(compressedfilePath))
+            {
+                isCompressed = true;
+            }
+
+            if (isCompressed)
+            {
+                filePath = compressedfilePath;
+            }
+
+            device = isCompressed ?
+                new CompressedFileRandomAccessDevice(
+                    Logger,
+                    maxCachedBlockCount,
+                    FileStreamProvider,
+                    segmentId, category, this, filePath, false,
+                    compressionBlockSize,
+                    compressionMethod,
+                    compressionLevel,
+                    blockCacheReplacementWarningDuration) :
+                new FileRandomAccessDevice(
+                    FileStreamProvider,
+                    segmentId, category, this, filePath, false);
+            ReadOnlyDevices.Add(key, device);
             return device;
-
-        if (WritableDevices.ContainsKey(key))
-        {
-            throw new Exception($"ReadOnly device can be created after writable device is closed. segmentId: {segmentId} category: {category}");
         }
-        var filePath = GetFilePath(segmentId, category);
-        if (isCompressed && FileStreamProvider.FileExists(filePath))
-        {
-            isCompressed = false;
-        }
-        var compressedfilePath = filePath + ".z";
-        if (!isCompressed && FileStreamProvider.FileExists(compressedfilePath))
-        {
-            isCompressed = true;
-        }
-
-        if (isCompressed)
-        {
-            filePath = compressedfilePath;
-        }
-
-        device = isCompressed ?
-            new CompressedFileRandomAccessDevice(
-                Logger,
-                maxCachedBlockCount,
-                FileStreamProvider,
-                segmentId, category, this, filePath, false, 
-                compressionBlockSize,
-                compressionMethod,
-                compressionLevel,
-                blockCacheReplacementWarningDuration) :
-            new FileRandomAccessDevice(
-                FileStreamProvider,
-                segmentId, category, this, filePath, false);
-        ReadOnlyDevices.Add(key, device);
-        return device;
     }
 
     public IReadOnlyList<IRandomAccessDevice> GetReadOnlyDevices()
     {
-        return ReadOnlyDevices.Values.ToArray();
+        lock (this)
+        {
+            return ReadOnlyDevices.Values.ToArray();
+        }
     }
 
     public IReadOnlyList<IRandomAccessDevice> GetWritableDevices()
     {
-        return WritableDevices.Values.ToArray();
+        lock (this)
+        {
+            return WritableDevices.Values.ToArray();
+        }
     }
 
     public void RemoveReadOnlyDevice(long segmentId, string category)
     {
-        var key = GetDeviceKey(segmentId, category);
-        ReadOnlyDevices.Remove(key);
+        lock (this)
+        {
+            var key = GetDeviceKey(segmentId, category);
+            ReadOnlyDevices.Remove(key);
+        }
     }
 
     public void RemoveWritableDevice(long segmentId, string category)
     {
-        var key = GetDeviceKey(segmentId, category);
-        WritableDevices.Remove(key);
+        lock (this)
+        {
+            var key = GetDeviceKey(segmentId, category);
+            WritableDevices.Remove(key);
+        }
     }
 
     public bool DeviceExists(long segmentId, string category)
     {
-        var filePath = GetFilePath(segmentId, category);
-        return FileStreamProvider.FileExists(filePath);
+        lock (this)
+        {
+            var filePath = GetFilePath(segmentId, category);
+            return FileStreamProvider.FileExists(filePath);
+        }
     }
 
     public void DropStore()
     {
-        if (FileStreamProvider.DirectoryExists(DataDirectory))
-            FileStreamProvider.DeleteDirectory(DataDirectory, true);
+        lock (this)
+        {
+            if (FileStreamProvider.DirectoryExists(DataDirectory))
+                FileStreamProvider.DeleteDirectory(DataDirectory, true);
+        }
     }
 }
