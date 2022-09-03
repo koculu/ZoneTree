@@ -51,8 +51,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     public IReadOnlyList<IReadOnlySegment<TKey, TValue>> ReadOnlySegments =>
         ReadOnlySegmentQueue.ToArray();
 
-    public IDiskSegment<TKey, TValue> DiskSegment { get; private set; }
-        = new NullDiskSegment<TKey, TValue>();
+    volatile IDiskSegment<TKey, TValue> _diskSegment = new NullDiskSegment<TKey, TValue>();
+
+    public IDiskSegment<TKey, TValue> DiskSegment { get => _diskSegment; private set => _diskSegment = value; }
 
     public IReadOnlyList<IDiskSegment<TKey, TValue>> BottomSegments =>
         BottomSegmentQueue.ToArray();
