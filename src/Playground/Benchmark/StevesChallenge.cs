@@ -1,5 +1,6 @@
 ﻿using Humanizer;
 using System.Diagnostics;
+using Tenray.ZoneTree;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
 
@@ -10,7 +11,7 @@ namespace Playground.Benchmark;
 /// How about a billion variable-length records averaging 8-byte keys and 8-byte values?
 /// That's a little more challenging. 😀
 /// </summary>
-public class StevesChallenge : ZoneTreeTestBase
+public class StevesChallenge : ZoneTreeTestBase<byte[], byte[]>
 {
     const string FolderName = "-byte-byte";
 
@@ -33,7 +34,7 @@ public class StevesChallenge : ZoneTreeTestBase
 
         stats.RestartStopwatch();
 
-        using var zoneTree = OpenOrCreateZoneTree<byte[], byte[]>();
+        using var zoneTree = OpenOrCreateZoneTree();
         using var maintainer = CreateMaintainer(zoneTree);
         stats.AddStage("Loaded In");
         var random = new Random(0);
@@ -82,7 +83,7 @@ public class StevesChallenge : ZoneTreeTestBase
         stats.LogWithColor(GetLabel("Iterate <byte-byte>"), ConsoleColor.Cyan);
         stats.RestartStopwatch();
 
-        using var zoneTree = OpenOrCreateZoneTree<byte[], byte[]>();
+        using var zoneTree = OpenOrCreateZoneTree();
         using var maintainer = CreateMaintainer(zoneTree);
 
         stats.AddStage("Loaded in", ConsoleColor.DarkYellow);
@@ -101,4 +102,5 @@ public class StevesChallenge : ZoneTreeTestBase
             ConsoleColor.Green);
         maintainer.CompleteRunningTasks();
     }
+
 }

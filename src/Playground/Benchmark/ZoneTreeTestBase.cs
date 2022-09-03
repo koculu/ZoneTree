@@ -4,7 +4,7 @@ using Tenray.ZoneTree.Options;
 
 namespace Playground.Benchmark;
 
-public class ZoneTreeTestBase
+public class ZoneTreeTestBase<TKey, TValue>
 {
     public virtual string RootPath { get; set; } = "../../data/";
 
@@ -25,7 +25,11 @@ public class ZoneTreeTestBase
             + CompressionMethod;
     }
 
-    protected ZoneTreeFactory<TKey, TValue> GetFactory<TKey, TValue>()
+    public int MergeFrom { get; set; }
+
+    public int MergeTo { get; set; }
+
+    protected ZoneTreeFactory<TKey, TValue> GetFactory()
     {
         return new ZoneTreeFactory<TKey, TValue>()
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
@@ -34,6 +38,7 @@ public class ZoneTreeTestBase
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
             .SetDiskSegmentMaximumCachedBlockCount(TestConfig.DiskSegmentMaximumCachedBlockCount)
             .SetDataDirectory(DataPath)
+            .SetInitialSparseArrayLength(TestConfig.MinimumSparseArrayLength)
             .ConfigureDiskSegmentOptions(x =>
             {
                 x.DiskSegmentMode = TestConfig.DiskSegmentMode;
@@ -47,21 +52,20 @@ public class ZoneTreeTestBase
                 x.CompressionBlockSize = TestConfig.WALCompressionBlockSize;
                 x.WriteAheadLogMode = WALMode;
                 x.EnableIncrementalBackup = TestConfig.EnableIncrementalBackup;
-            })
-            .SetInitialSparseArrayLength(TestConfig.MinimumSparseArrayLength);
+            });
     }
 
-    protected IZoneTree<TKey, TValue> OpenOrCreateZoneTree<TKey, TValue>()
+    protected IZoneTree<TKey, TValue> OpenOrCreateZoneTree()
     {
-        return GetFactory<TKey, TValue>().OpenOrCreate();
+        return GetFactory().OpenOrCreate();
     }
 
-    protected ITransactionalZoneTree<TKey, TValue> OpenOrCreateTransactionalZoneTree<TKey, TValue>()
+    protected ITransactionalZoneTree<TKey, TValue> OpenOrCreateTransactionalZoneTree()
     {
-        return GetFactory<TKey, TValue>().OpenOrCreateTransactional();
+        return GetFactory().OpenOrCreateTransactional();
     }
 
-    protected IMaintainer CreateMaintainer<TKey, TValue>(IZoneTree<TKey, TValue> zoneTree)
+    protected IMaintainer CreateMaintainer(IZoneTree<TKey, TValue> zoneTree)
     {
         var maintainer = zoneTree.CreateMaintainer();
         maintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
@@ -87,5 +91,50 @@ public class ZoneTreeTestBase
             totalBytes += finfo.Length;
         }
         stats.AddAdditionalStats("Disk Usage", totalBytes.Bytes().Humanize());
+    }
+
+    static void PrintBottomSegments(IZoneTree<TKey, TValue> z)
+    {
+        var ds = z.Maintenance.DiskSegment;
+        Console.WriteLine($"------------------------------");
+        Console.WriteLine($"Length \t\t Segment Id");
+        Console.WriteLine($"------------------------------");
+        Console.WriteLine($"Disk segment:");
+        Console.WriteLine($"------------------------------");
+        Console.WriteLine($"{ds.Length} \t {ds.SegmentId}");
+        Console.WriteLine($"------------------------------");
+        Console.WriteLine("Bottom Segments:");
+        Console.WriteLine($"------------------------------");
+        var bos = z.Maintenance.BottomSegments;
+        foreach (var bs in bos)
+        {
+            Console.WriteLine($"{bs.Length} \t {bs.SegmentId}");
+        }
+        Console.WriteLine($"------------------------------");
+    }
+
+    public void MergeBottomSegments(IStatsCollector stats)
+    {
+        stats.Name = "Merge Bottom Segments";
+        stats.LogWithColor(GetLabel($"Merge Bottom from: {MergeFrom} to: {MergeTo}"), ConsoleColor.Cyan);
+        stats.RestartStopwatch();
+
+        using var zoneTree = OpenOrCreateZoneTree();
+        stats.AddStage("Loaded in", ConsoleColor.DarkYellow);
+        zoneTree.Maintenance.StartBottomSegmentsMergeOperation(MergeFrom, MergeTo).Join();
+        PrintBottomSegments(zoneTree);
+        stats.AddStage("Merged in", ConsoleColor.Green);
+    }
+
+    public void ShowBottomSegments(IStatsCollector stats)
+    {
+        stats.Name = "Show Bottom Segments";
+        stats.LogWithColor(GetLabel("Show Bottom Segments"), ConsoleColor.Cyan);
+        stats.RestartStopwatch();
+
+        using var zoneTree = OpenOrCreateZoneTree();
+        stats.AddStage("Loaded in", ConsoleColor.DarkYellow);
+        PrintBottomSegments(zoneTree);
+        stats.AddStage("Showed in", ConsoleColor.Green);
     }
 }

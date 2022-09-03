@@ -104,8 +104,12 @@ if (testCase == 4)
     var steve = new StevesChallenge
     {
         Count = 1_000_000_000,
-        WALMode = WriteAheadLogMode.None
+        WALMode = WriteAheadLogMode.None,
+        MergeFrom = 0,
+        MergeTo = 100
     };
     b.Run(steve.Insert);
     b.Run(steve.Iterate);
+    b.Run(steve.ShowBottomSegments);
+    b.Run(steve.MergeBottomSegments);
 }

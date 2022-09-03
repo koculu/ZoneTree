@@ -5,7 +5,7 @@ using Tenray.ZoneTree.Options;
 
 namespace Playground.Benchmark;
 
-public class ZoneTreeTest1 : ZoneTreeTestBase
+public class ZoneTreeTest1 : ZoneTreeTestBase<int, int>
 {
     const string FolderName = "-int-int";
 
@@ -26,7 +26,7 @@ public class ZoneTreeTest1 : ZoneTreeTestBase
 
         stats.RestartStopwatch();
 
-        using var zoneTree = OpenOrCreateZoneTree<int, int>();
+        using var zoneTree = OpenOrCreateZoneTree();
         using var maintainer = CreateMaintainer(zoneTree);
         stats.AddStage("Loaded In");
 
@@ -63,7 +63,7 @@ public class ZoneTreeTest1 : ZoneTreeTestBase
         stats.LogWithColor(GetLabel("Iterate <int, int>"), ConsoleColor.Cyan);
         stats.RestartStopwatch();
 
-        using var zoneTree = OpenOrCreateZoneTree<int,int>();
+        using var zoneTree = OpenOrCreateZoneTree();
         using var maintainer = CreateMaintainer(zoneTree);
 
         stats.AddStage("Loaded in", ConsoleColor.DarkYellow);

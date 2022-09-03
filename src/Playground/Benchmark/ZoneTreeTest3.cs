@@ -5,7 +5,7 @@ using Tenray.ZoneTree.Options;
 
 namespace Playground.Benchmark;
 
-public class ZoneTreeTest3 : ZoneTreeTestBase
+public class ZoneTreeTest3 : ZoneTreeTestBase<int, int>
 {
     const string FolderName = "transactional-int-int";
 
@@ -26,7 +26,7 @@ public class ZoneTreeTest3 : ZoneTreeTestBase
 
         stats.RestartStopwatch();
 
-        using var zoneTree = OpenOrCreateTransactionalZoneTree<int, int>();
+        using var zoneTree = OpenOrCreateTransactionalZoneTree();
         using var maintainer = CreateMaintainer(zoneTree.Maintenance.ZoneTree);
         stats.AddStage("Loaded In");
 
@@ -63,7 +63,7 @@ public class ZoneTreeTest3 : ZoneTreeTestBase
         stats.LogWithColor(GetLabel("Iterate Transactional <int, int>"), ConsoleColor.Cyan);
         stats.RestartStopwatch();
 
-        using var zoneTree = OpenOrCreateZoneTree<int,int>();
+        using var zoneTree = OpenOrCreateZoneTree();
         using var maintainer = CreateMaintainer(zoneTree);
 
         stats.AddStage("Loaded in", ConsoleColor.DarkYellow);
