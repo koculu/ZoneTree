@@ -46,7 +46,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     volatile bool IsCancelBottomSegmentsMergeRequested = false;
 
-    public IMutableSegment<TKey, TValue> MutableSegment { get; private set; }
+    volatile IMutableSegment<TKey, TValue> _mutableSegment;
+
+    public IMutableSegment<TKey, TValue> MutableSegment { get => _mutableSegment; private set => _mutableSegment = value; }
 
     public IReadOnlyList<IReadOnlySegment<TKey, TValue>> ReadOnlySegments =>
         ReadOnlySegmentQueue.ToArray();
