@@ -16,7 +16,7 @@ namespace Playground.InMemoryTreeBenchmark;
     HardwareCounter.TotalIssues,
     HardwareCounter.CacheMisses,
     HardwareCounter.Timer)]*/
-public sealed class BTreeLockModeMassiveInsertTest
+public class BTreeLockModeMassiveInsertTest
 {
     readonly int Count = 3_000_000;
     readonly bool Shuffled = true;
