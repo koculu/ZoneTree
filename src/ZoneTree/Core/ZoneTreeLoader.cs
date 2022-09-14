@@ -6,7 +6,7 @@ using Tenray.ZoneTree.Segments.Disk;
 
 namespace Tenray.ZoneTree.Core;
 
-public class ZoneTreeLoader<TKey, TValue>
+public sealed class ZoneTreeLoader<TKey, TValue>
 {
     ZoneTreeOptions<TKey, TValue> Options { get; }
 

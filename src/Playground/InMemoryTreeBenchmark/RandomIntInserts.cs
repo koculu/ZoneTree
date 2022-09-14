@@ -91,7 +91,7 @@ public static class RandomIntInserts
     }
 }
 
-public class IntComparer : IComparer<int>
+public sealed class IntComparer : IComparer<int>
 {
     public int Compare(int x, int y)
     {

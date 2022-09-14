@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Core;
 
-public class LogMergerSuccess : LogObject
+public sealed class LogMergerSuccess : LogObject
 {
     public int DropCount { get; }
 

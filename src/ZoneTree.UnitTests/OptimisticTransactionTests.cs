@@ -6,7 +6,7 @@ using Tenray.ZoneTree.Transactional;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class OptimisticTransactionTests
+public sealed class OptimisticTransactionTests
 {
     [TestCase(0)]
     [TestCase(100000)]

@@ -129,7 +129,7 @@ public static class RandomLongInserts
     }
 }
 
-public class LongComparer : IComparer<long>
+public sealed class LongComparer : IComparer<long>
 {
     public int Compare(long x, long y)
     {

@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Collections.BTree;
 
-public class BTreeSeekableIterator<TKey, TValue>
+public sealed class BTreeSeekableIterator<TKey, TValue>
     : ISeekableIterator<TKey, TValue>
 {
     public TKey CurrentKey =>

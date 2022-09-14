@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Collections.BTree.Lock;
 
-public class ReadWriteLock : ILocker
+public sealed class ReadWriteLock : ILocker
 {
     readonly ReaderWriterLockSlim Locker = new(LockRecursionPolicy.SupportsRecursion);
 

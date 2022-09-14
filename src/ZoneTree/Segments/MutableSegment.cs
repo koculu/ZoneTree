@@ -8,7 +8,7 @@ using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.Segments;
 
-public class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
+public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 {
     readonly ZoneTreeOptions<TKey, TValue> Options;
 

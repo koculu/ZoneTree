@@ -3,7 +3,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
 
-public class NullWriteAheadLogProvider : IWriteAheadLogProvider
+public sealed class NullWriteAheadLogProvider : IWriteAheadLogProvider
 {
     public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(
         long segmentId, 

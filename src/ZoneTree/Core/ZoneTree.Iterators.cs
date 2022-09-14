@@ -51,7 +51,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             }
     }
 
-    public class SegmentCollection
+    public sealed class SegmentCollection
     {
         public IReadOnlyList<ISeekableIterator<TKey, TValue>> SeekableIterators { get; set; }
 

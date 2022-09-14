@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Serializers;
 
-public class StructSerializer<TType> : ISerializer<TType> where TType : unmanaged
+public sealed class StructSerializer<TType> : ISerializer<TType> where TType : unmanaged
 {
     public TType Deserialize(byte[] bytes)
     {

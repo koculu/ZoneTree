@@ -1,6 +1,6 @@
 ﻿namespace Playground.Benchmark;
 
-public class Stage
+public sealed class Stage
 {
     public long ElapsedMilliseconds { get; set; }
     

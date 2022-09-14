@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Playground.Benchmark;
 
-public class Benchmark
+public sealed class Benchmark
 {
     public List<IStatsCollector> StatsCollectors { get; } = new();
     

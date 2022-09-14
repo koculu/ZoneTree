@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Comparers;
 
-public class DoubleComparerAscending : IRefComparer<double>
+public sealed class DoubleComparerAscending : IRefComparer<double>
 {
     public int Compare(in double x, in double y)
     {

@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Exceptions;
 
-public class WriteAheadLogCorruptionException : ZoneTreeException
+public sealed class WriteAheadLogCorruptionException : ZoneTreeException
 {
     public Dictionary<int, Exception> Exceptions { get; }
 

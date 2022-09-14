@@ -4,7 +4,7 @@ using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
 
 namespace Playground.Benchmark;
-public class OldTests
+public sealed class OldTests
 {
     const string DataPath = "../../data/";
     const string FolderName = "-int-int";
@@ -125,7 +125,8 @@ public class OldTests
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
-        if (false)
+        var iterate = false;
+        if (iterate)
         {
             var random = new Random();
             Parallel.For(0, 750000, (i) =>

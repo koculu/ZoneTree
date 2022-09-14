@@ -16,7 +16,7 @@ namespace Tenray.ZoneTree;
 /// </summary>
 /// <typeparam name="TKey">The key type</typeparam>
 /// <typeparam name="TValue">The value type</typeparam>
-public class ZoneTreeFactory<TKey, TValue>
+public sealed class ZoneTreeFactory<TKey, TValue>
 {
     string WalDirectory;
 

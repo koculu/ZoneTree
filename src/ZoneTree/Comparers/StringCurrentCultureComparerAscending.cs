@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Comparers;
 
-public class StringCurrentCultureComparerAscending : IRefComparer<string>
+public sealed class StringCurrentCultureComparerAscending : IRefComparer<string>
 {
     public int Compare(in string x, in string y)
     {

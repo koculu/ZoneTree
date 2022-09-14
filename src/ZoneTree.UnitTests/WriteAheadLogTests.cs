@@ -6,7 +6,7 @@ using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class WriteAheadLogTests
+public sealed class WriteAheadLogTests
 {
     [Test]
     public void WalBasicTest()

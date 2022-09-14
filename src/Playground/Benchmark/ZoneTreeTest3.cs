@@ -5,7 +5,7 @@ using Tenray.ZoneTree.Options;
 
 namespace Playground.Benchmark;
 
-public class ZoneTreeTest3 : ZoneTreeTestBase<int, int>
+public sealed class ZoneTreeTest3 : ZoneTreeTestBase<int, int>
 {
     const string FolderName = "transactional-int-int";
 

@@ -4,7 +4,7 @@ using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
-public class RandomAccessDeviceManager : IRandomAccessDeviceManager
+public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 {
     public ILogger Logger { get; }
 

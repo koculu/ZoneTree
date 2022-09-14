@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Serializers;
 
-public class CombinedSerializer<TValue1, TValue2> : ISerializer<CombinedValue<TValue1, TValue2>>
+public sealed class CombinedSerializer<TValue1, TValue2> : ISerializer<CombinedValue<TValue1, TValue2>>
 {
     readonly ISerializer<TValue1> Serializer1;
 

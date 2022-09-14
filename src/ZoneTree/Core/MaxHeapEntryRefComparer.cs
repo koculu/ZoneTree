@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Core;
 
-public class MaxHeapEntryRefComparer<TKey, TValue> : IRefComparer<HeapEntry<TKey, TValue>>
+public sealed class MaxHeapEntryRefComparer<TKey, TValue> : IRefComparer<HeapEntry<TKey, TValue>>
 {
     public IRefComparer<TKey> KeyComparer { get; }
 

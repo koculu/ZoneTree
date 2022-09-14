@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Serializers;
 
-public class BooleanSerializer : ISerializer<bool>
+public sealed class BooleanSerializer : ISerializer<bool>
 {
     public bool Deserialize(byte[] bytes)
     {

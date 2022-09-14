@@ -3,7 +3,7 @@ using Tenray.ZoneTree.Logger;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
-public class CircularBlockCache
+public sealed class CircularBlockCache
 {
     readonly ILogger Logger;
 
@@ -132,7 +132,7 @@ public class CircularBlockCache
         return Table.Where(x => x != null).ToArray();
     }
 
-    public class BlockCacheTooFrequentReplacementWarning : LogObject
+    public sealed class BlockCacheTooFrequentReplacementWarning : LogObject
     {
         public int BlockIndex { get; set; }
 
@@ -154,7 +154,7 @@ public class CircularBlockCache
         }
     }
 
-    public class BlockCacheCapacityIncreased : LogObject
+    public sealed class BlockCacheCapacityIncreased : LogObject
     {
         public int CurrentCacheCapacity { get; }
 

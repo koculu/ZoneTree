@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Exceptions;
 
-public class DataIsTooBigToLoadAtOnceException : ZoneTreeException
+public sealed class DataIsTooBigToLoadAtOnceException : ZoneTreeException
 {
     public DataIsTooBigToLoadAtOnceException(long dataLength, long maximumAllowedLength)
         : base($"Data is too big to load at once. {dataLength} > {maximumAllowedLength}")

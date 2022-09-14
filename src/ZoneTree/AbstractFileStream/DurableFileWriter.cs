@@ -23,7 +23,7 @@ namespace Tenray.ZoneTree.AbstractFileStream;
 /// Interop.Sys.Rename(sourceFullPath, destFullPath)
 /// internally.
 /// </summary>
-public class DurableFileWriter
+public sealed class DurableFileWriter
 {
     const string TempFileExtension = ".tmp";
 

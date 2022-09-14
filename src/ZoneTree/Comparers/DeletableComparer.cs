@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Comparers;
 
-public class DeletableComparer<TValue> : IRefComparer<Deletable<TValue>>
+public sealed class DeletableComparer<TValue> : IRefComparer<Deletable<TValue>>
 {
     public IRefComparer<TValue> Comparer { get; }
 

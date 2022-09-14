@@ -3,7 +3,7 @@ using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class BottomSegmentMergeTests
+public sealed class BottomSegmentMergeTests
 {
     [Test]
     public void IntIntBottomMerge()

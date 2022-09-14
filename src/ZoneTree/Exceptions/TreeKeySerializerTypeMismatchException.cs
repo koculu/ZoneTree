@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Exceptions;
 
-public class TreeKeySerializerTypeMismatchException : ZoneTreeException
+public sealed class TreeKeySerializerTypeMismatchException : ZoneTreeException
 {
     public TreeKeySerializerTypeMismatchException(string expectedType, string givenType)
         : base($"Tree key serializer type does not match.\r\n expected: {expectedType}\r\n given: {givenType}")

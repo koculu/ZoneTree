@@ -84,7 +84,7 @@ public struct BigKey
     }
 }
 
-public class BigComparer : IComparer<BigKey>
+public sealed class BigComparer : IComparer<BigKey>
 {
     public int Compare(BigKey x, BigKey y)
     {
@@ -95,7 +95,7 @@ public class BigComparer : IComparer<BigKey>
     }
 }
 
-public class BigRefComparer : IRefComparer<BigKey>
+public sealed class BigRefComparer : IRefComparer<BigKey>
 {
     public int Compare(in BigKey x, in BigKey y)
     {

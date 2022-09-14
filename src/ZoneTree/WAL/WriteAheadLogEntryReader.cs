@@ -138,7 +138,7 @@ public static class WriteAheadLogEntryReader
         return result;
     }
 
-    public class LogEntryReaderComparer : IRefComparer<int>
+    public sealed class LogEntryReaderComparer : IRefComparer<int>
     {
         readonly List<long> OpIndexes;
 

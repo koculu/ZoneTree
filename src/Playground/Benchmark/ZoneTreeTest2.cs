@@ -5,7 +5,7 @@ using Tenray.ZoneTree.Options;
 
 namespace Playground.Benchmark;
 
-public class ZoneTreeTest2 : ZoneTreeTestBase<string, string>
+public sealed class ZoneTreeTest2 : ZoneTreeTestBase<string, string>
 {
     const string FolderName = "-str-str";
 

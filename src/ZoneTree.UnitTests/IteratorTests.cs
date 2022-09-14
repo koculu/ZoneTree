@@ -4,7 +4,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class IteratorTests
+public sealed class IteratorTests
 {
     [Test]
     public void IntIntIterator()

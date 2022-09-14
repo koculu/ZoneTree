@@ -4,7 +4,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class AtomicUpdateTests
+public sealed class AtomicUpdateTests
 {
     [TestCase(WriteAheadLogMode.Sync)]
     [TestCase(WriteAheadLogMode.AsyncCompressed)]

@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Comparers;
 
-public class DateTimeComparerAscending : IRefComparer<DateTime>
+public sealed class DateTimeComparerAscending : IRefComparer<DateTime>
 {
     public int Compare(in DateTime x, in DateTime y)
     {

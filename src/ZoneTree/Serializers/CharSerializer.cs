@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Serializers;
 
-public class CharSerializer : ISerializer<char>
+public sealed class CharSerializer : ISerializer<char>
 {
     public char Deserialize(byte[] bytes)
     {

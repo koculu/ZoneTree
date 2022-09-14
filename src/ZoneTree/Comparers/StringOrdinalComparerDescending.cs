@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Comparers;
 
-public class StringOrdinalComparerDescending : IRefComparer<string>
+public sealed class StringOrdinalComparerDescending : IRefComparer<string>
 {
     public int Compare(in string x, in string y)
     {

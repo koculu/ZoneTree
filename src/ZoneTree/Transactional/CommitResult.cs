@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Transactional;
 
-public class CommitResult
+public sealed class CommitResult
 {
     public readonly static CommitResult ReadyToCommit = new(CommitState.ReadyToCommit);
 

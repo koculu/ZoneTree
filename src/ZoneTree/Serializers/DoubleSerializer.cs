@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Serializers;
 
-public class DoubleSerializer : ISerializer<double>
+public sealed class DoubleSerializer : ISerializer<double>
 {
     public double Deserialize(byte[] bytes)
     {

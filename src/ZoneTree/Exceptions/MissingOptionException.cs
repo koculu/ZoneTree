@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Exceptions;
 
-public class MissingOptionException : ZoneTreeException
+public sealed class MissingOptionException : ZoneTreeException
 {
     public MissingOptionException(string missingOption)
         : base($"ZoneTree {missingOption} option is not provided.")

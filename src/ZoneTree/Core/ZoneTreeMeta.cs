@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Core;
 
-public class ZoneTreeMeta
+public sealed class ZoneTreeMeta
 {
     public string Version { get; set; }
 

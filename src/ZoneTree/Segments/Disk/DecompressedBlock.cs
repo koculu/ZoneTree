@@ -3,7 +3,7 @@ using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
-public class DecompressedBlock
+public sealed class DecompressedBlock
 {
     public CompressionMethod CompressionMethod { get; }
 

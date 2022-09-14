@@ -5,7 +5,7 @@ using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.Segments;
 
-public class ReadOnlySegmentLoader<TKey, TValue>
+public sealed class ReadOnlySegmentLoader<TKey, TValue>
 {
     public ZoneTreeOptions<TKey, TValue> Options { get; }
 

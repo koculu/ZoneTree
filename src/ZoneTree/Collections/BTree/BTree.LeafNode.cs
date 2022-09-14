@@ -2,9 +2,9 @@
 
 namespace Tenray.ZoneTree.Collections.BTree;
 
-public partial class BTree<TKey, TValue>
+public sealed partial class BTree<TKey, TValue>
 {
-    public class LeafNode : Node
+    public sealed class LeafNode : Node
     {
         public TValue[] Values;
 

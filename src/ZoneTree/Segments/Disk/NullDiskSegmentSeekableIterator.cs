@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
-public class NullDiskSegmentSeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
+public sealed class NullDiskSegmentSeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 {
     public TKey CurrentKey => throw new IndexOutOfRangeException("NullDiskSegment is always empty.");
 

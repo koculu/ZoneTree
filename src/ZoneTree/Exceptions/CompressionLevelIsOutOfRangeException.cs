@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Exceptions;
 
-public class CompressionLevelIsOutOfRangeException : ZoneTreeException
+public sealed class CompressionLevelIsOutOfRangeException : ZoneTreeException
 {
     public CompressionLevelIsOutOfRangeException(
         string option,

@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Segments.Disk;
 
-public class SparseArrayEntry<TKey, TValue>
+public sealed class SparseArrayEntry<TKey, TValue>
 {
     public readonly TKey Key;
 

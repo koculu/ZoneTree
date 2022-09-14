@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Collections;
 
-public class FixedSizeMinHeap<TKey>
+public sealed class FixedSizeMinHeap<TKey>
 {
     readonly TKey[] keys;
 

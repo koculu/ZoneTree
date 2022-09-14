@@ -6,7 +6,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
 
-public class WriteAheadLogProvider : IWriteAheadLogProvider
+public sealed class WriteAheadLogProvider : IWriteAheadLogProvider
 {
     readonly ILogger Logger;
 

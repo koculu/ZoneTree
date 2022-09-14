@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Exceptions;
 
-public class TransactionAlreadyCommittedException : ZoneTreeException
+public sealed class TransactionAlreadyCommittedException : ZoneTreeException
 {
     public TransactionAlreadyCommittedException(long transactionId)
         : base($"Transaction is already committed. Transaction Id: {transactionId}")

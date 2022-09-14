@@ -9,7 +9,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Playground;
 
-public class Test1
+public sealed class Test1
 {
     public static void SeveralParallelTransactions()
     {

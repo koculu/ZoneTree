@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Serializers;
 
-public class DecimalSerializer : ISerializer<decimal>
+public sealed class DecimalSerializer : ISerializer<decimal>
 {
     public decimal Deserialize(byte[] bytes)
     {

@@ -6,7 +6,7 @@
 /// Hence it is not being used.
 /// LRUBlockCache stays in the codebase for further analysis on topic.
 /// </summary>
-public class LRUBlockCache
+public sealed class LRUBlockCache
 {
     readonly int Capacity;
 

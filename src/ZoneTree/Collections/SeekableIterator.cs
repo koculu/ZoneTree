@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Collections;
 
-public class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
+public sealed class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 {
     readonly IIndexedReader<TKey, TValue> IndexedReader;
 

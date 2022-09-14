@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Exceptions;
 
-public class TreeComparerMismatchException : ZoneTreeException
+public sealed class TreeComparerMismatchException : ZoneTreeException
 {
     public TreeComparerMismatchException(string expectedComparerType, string givenComparerType)
         : base($"Tree comparer does not match.\r\n expected: {expectedComparerType}\r\n given: {givenComparerType}")

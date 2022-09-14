@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.WAL;
 
-public class Crc32Computer
+public sealed class Crc32Computer
 {
     public static uint Compute(uint crc, ulong data)
     {

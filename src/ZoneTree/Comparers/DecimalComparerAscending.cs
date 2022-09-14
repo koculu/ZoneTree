@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Comparers;
 
-public class DecimalComparerAscending : IRefComparer<decimal>
+public sealed class DecimalComparerAscending : IRefComparer<decimal>
 {
     public int Compare(in decimal x, in decimal y)
     {

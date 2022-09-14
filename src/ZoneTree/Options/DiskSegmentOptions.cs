@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents the Disk Segment Options.
 /// </summary>
-public class DiskSegmentOptions
+public sealed class DiskSegmentOptions
 {
     /// <summary>
     /// Configures the disk segment mode.

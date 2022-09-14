@@ -6,7 +6,7 @@ using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.Segments;
 
-public class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIndexedReader<TKey, TValue>
+public sealed class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIndexedReader<TKey, TValue>
 {
     public long SegmentId { get; }
 

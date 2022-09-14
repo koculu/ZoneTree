@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Logger;
 
-public class ConsoleLogger : ILogger
+public sealed class ConsoleLogger : ILogger
 {
 #pragma warning disable CA2211 // Non-constant fields should not be visible
     public static LogLevel DefaultLogLevel = LogLevel.Warning;

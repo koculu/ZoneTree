@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Comparers;
 
-public class Int64ComparerDescending : IRefComparer<long>
+public sealed class Int64ComparerDescending : IRefComparer<long>
 {
     public int Compare(in long x, in long y)
     {

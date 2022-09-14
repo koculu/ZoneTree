@@ -13,7 +13,7 @@ namespace Playground.InMemoryTreeBenchmark;
     HardwareCounter.TotalIssues,
     HardwareCounter.CacheMisses,
     HardwareCounter.Timer)]
-public class IntTreeBenchmark
+public sealed class IntTreeBenchmark
 {
     readonly int Count = 1_000_000;
     readonly bool Shuffled = true;

@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Exceptions;
 
-public class TreeKeyTypeMismatchException : ZoneTreeException
+public sealed class TreeKeyTypeMismatchException : ZoneTreeException
 {
     public TreeKeyTypeMismatchException(string expectedKeyType, string givenKeyType)
         : base($"Tree key type does not match.\r\n expected: {expectedKeyType}\r\n given: {givenKeyType}")

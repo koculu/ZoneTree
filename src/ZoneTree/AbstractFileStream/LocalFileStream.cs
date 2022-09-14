@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.AbstractFileStream;
 
-public class LocalFileStream : Stream, IFileStream
+public sealed class LocalFileStream : Stream, IFileStream
 {
     readonly FileStream FileStream;
 

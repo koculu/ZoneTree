@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Exceptions;
 
-public class TransactionAbortedException : ZoneTreeException
+public sealed class TransactionAbortedException : ZoneTreeException
 {
     public TransactionAbortedException(long transactionId)
         : base($"Transaction is aborted. Transaction Id: {transactionId}")

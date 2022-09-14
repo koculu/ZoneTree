@@ -6,7 +6,7 @@ using Tenray.ZoneTree.Core;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class SafeBTreeTests
+public sealed class SafeBTreeTests
 {
     [TestCase(BTreeLockMode.NoLock)]
     [TestCase(BTreeLockMode.TopLevelReaderWriter)]

@@ -4,7 +4,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class TTLTests
+public sealed class TTLTests
 {
     [Test]
     public void TestTTL()

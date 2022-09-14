@@ -7,7 +7,7 @@ namespace Tenray.ZoneTree.Options;
 /// for creation of new Write Ahead Logs.
 /// Existing WALs will be created with their existing options.
 /// </summary>
-public class WriteAheadLogOptions
+public sealed class WriteAheadLogOptions
 {
     /// <summary>
     /// The default write ahead log mode. New WALs will be created

@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Collections.BTree.Lock;
 
-public class NoLock : ILocker
+public sealed class NoLock : ILocker
 {
     public readonly static NoLock Instance = new();
 

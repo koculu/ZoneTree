@@ -5,7 +5,7 @@ using Tenray.ZoneTree.Comparers;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class BTreeThreadSafetyTests
+public sealed class BTreeThreadSafetyTests
 {
     [TestCase(3_000_000, BTreeLockMode.TopLevelReaderWriter)]
     [TestCase(3_000_000, BTreeLockMode.TopLevelMonitor)]

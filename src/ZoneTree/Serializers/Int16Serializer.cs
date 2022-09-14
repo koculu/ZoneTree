@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Serializers;
 
-public class Int16Serializer : ISerializer<short>
+public sealed class Int16Serializer : ISerializer<short>
 {
     public short Deserialize(byte[] bytes)
     {

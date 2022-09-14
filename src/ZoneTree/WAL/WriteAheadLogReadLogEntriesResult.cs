@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.WAL;
 
-public class WriteAheadLogReadLogEntriesResult<TKey, TValue>
+public sealed class WriteAheadLogReadLogEntriesResult<TKey, TValue>
 {
     public bool Success { get; set; }
 

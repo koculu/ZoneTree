@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Collections.BTree.Lock;
 
-public class MonitorLock : ILocker
+public sealed class MonitorLock : ILocker
 {
     public void WriteLock()
     {

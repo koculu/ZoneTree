@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.WAL;
 
-public class KeyValuePocketRefComparer<TKey, TValue> : IRefComparer<KeyValuePocket<TKey, TValue>>
+public sealed class KeyValuePocketRefComparer<TKey, TValue> : IRefComparer<KeyValuePocket<TKey, TValue>>
 {
     public IRefComparer<TKey> Comparer { get; }
 

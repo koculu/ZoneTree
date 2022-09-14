@@ -1,6 +1,6 @@
 ﻿namespace Playground.Benchmark;
 
-public class StageMap
+public sealed class StageMap
 {
     public IDictionary<string, Stage>
         Stages { get; } = new Dictionary<string, Stage>();

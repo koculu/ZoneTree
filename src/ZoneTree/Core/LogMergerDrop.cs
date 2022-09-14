@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Core;
 
-public class LogMergerDrop : LogObject
+public sealed class LogMergerDrop : LogObject
 {
     public long SegmentId { get; }
 

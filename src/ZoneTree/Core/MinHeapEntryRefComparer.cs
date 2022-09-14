@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Core;
 
-public class MinHeapEntryRefComparer<TKey, TValue> : IRefComparer<HeapEntry<TKey, TValue>>
+public sealed class MinHeapEntryRefComparer<TKey, TValue> : IRefComparer<HeapEntry<TKey, TValue>>
 {
     public IRefComparer<TKey> KeyComparer { get; }
 

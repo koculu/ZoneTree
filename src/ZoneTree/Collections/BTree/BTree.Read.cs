@@ -8,7 +8,7 @@ namespace Tenray.ZoneTree.Collections.BTree;
 /// </summary>
 /// <typeparam name="TKey">Key Type</typeparam>
 /// <typeparam name="TValue">Value Type</typeparam>
-public partial class BTree<TKey, TValue>
+public sealed partial class BTree<TKey, TValue>
 {
     public bool ContainsKey(in TKey key)
     {

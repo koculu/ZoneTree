@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Serializers;
 
-public class DeletableRefSerializer<TValue> : ISerializer<Deletable<TValue>>
+public sealed class DeletableRefSerializer<TValue> : ISerializer<Deletable<TValue>>
 {
     readonly ISerializer<TValue> ValueSerializer;
 

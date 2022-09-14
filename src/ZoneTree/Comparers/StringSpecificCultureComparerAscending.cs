@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Comparers;
 
-public class StringSpecificCultureComparerAscending : IRefComparer<string>
+public sealed class StringSpecificCultureComparerAscending : IRefComparer<string>
 {
     public readonly CultureInfo CultureInfo;
 

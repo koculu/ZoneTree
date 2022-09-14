@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Serializers;
 
-public class UnicodeStringSerializer : ISerializer<string>
+public sealed class UnicodeStringSerializer : ISerializer<string>
 {
     public string Deserialize(byte[] bytes)
     {

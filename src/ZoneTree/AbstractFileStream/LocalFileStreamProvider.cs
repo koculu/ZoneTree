@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.AbstractFileStream;
 
-public class LocalFileStreamProvider : IFileStreamProvider
+public sealed class LocalFileStreamProvider : IFileStreamProvider
 {
     public IFileStream CreateFileStream(
         string path,

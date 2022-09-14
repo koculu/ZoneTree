@@ -3,7 +3,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class FixedSizeKeyAndValueTests
+public sealed class FixedSizeKeyAndValueTests
 {
     [Test]
     public void IntIntTreeTest()

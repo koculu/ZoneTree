@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Core;
 
-public class IncrementalIdProvider : IIncrementalIdProvider
+public sealed class IncrementalIdProvider : IIncrementalIdProvider
 {
     long lastId = 0;
 

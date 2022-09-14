@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Serializers;
 
-public class DateTimeSerializer : ISerializer<DateTime>
+public sealed class DateTimeSerializer : ISerializer<DateTime>
 {
     public DateTime Deserialize(byte[] bytes)
     {

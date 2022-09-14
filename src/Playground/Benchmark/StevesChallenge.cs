@@ -11,7 +11,7 @@ namespace Playground.Benchmark;
 /// How about a billion variable-length records averaging 8-byte keys and 8-byte values?
 /// That's a little more challenging. 😀
 /// </summary>
-public class StevesChallenge : ZoneTreeTestBase<byte[], byte[]>
+public sealed class StevesChallenge : ZoneTreeTestBase<byte[], byte[]>
 {
     const string FolderName = "-byte-byte";
 

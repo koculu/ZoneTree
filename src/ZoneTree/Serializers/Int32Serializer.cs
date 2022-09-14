@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Serializers;
 
-public class Int32Serializer : ISerializer<int>
+public sealed class Int32Serializer : ISerializer<int>
 {
     public int Deserialize(byte[] bytes)
     {

@@ -73,7 +73,7 @@ public struct MidSizeKey
     }
 }
 
-public class MidSizeComparer : IComparer<MidSizeKey>
+public sealed class MidSizeComparer : IComparer<MidSizeKey>
 {
     public int Compare(MidSizeKey x, MidSizeKey y)
     {
@@ -83,7 +83,7 @@ public class MidSizeComparer : IComparer<MidSizeKey>
         return r < 0 ? -1 : 1;
     }
 }
-public class MidSizeRefComparer : IRefComparer<MidSizeKey>
+public sealed class MidSizeRefComparer : IRefComparer<MidSizeKey>
 {
     public int Compare(in MidSizeKey x, in MidSizeKey y)
     {

@@ -28,7 +28,7 @@ public delegate void MarkValueDeletedDelegate<TValue>(ref TValue value);
 /// </summary>
 /// <typeparam name="TKey">The key type</typeparam>
 /// <typeparam name="TValue">The value type</typeparam>
-public class ZoneTreeOptions<TKey, TValue>
+public sealed class ZoneTreeOptions<TKey, TValue>
 {
     /// <summary>
     /// Mutable segment maximumum key-value pair count.

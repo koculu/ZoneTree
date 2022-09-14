@@ -5,7 +5,7 @@ using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.UnitTests;
 
-public class StringTreeTests
+public sealed class StringTreeTests
 {
     [Test]
     public void NullStringKeyTest()

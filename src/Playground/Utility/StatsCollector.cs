@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Playground.Benchmark;
 
-public class StatsCollector : IStatsCollector
+public sealed class StatsCollector : IStatsCollector
 {
     public string Section { get; }
 

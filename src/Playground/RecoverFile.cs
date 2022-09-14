@@ -11,7 +11,7 @@ using Tenray.ZoneTree.WAL;
 
 namespace Playground;
 
-public class RecoverFile
+public sealed class RecoverFile
 {
     public static void Recover1()
     {

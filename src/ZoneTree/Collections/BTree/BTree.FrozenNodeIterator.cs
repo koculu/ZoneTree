@@ -2,9 +2,9 @@
 
 namespace Tenray.ZoneTree.Collections.BTree;
 
-public partial class BTree<TKey, TValue>
+public sealed partial class BTree<TKey, TValue>
 {
-    public class FrozenNodeIterator
+    public sealed class FrozenNodeIterator
     {
         public LeafNode Node { get; }
 

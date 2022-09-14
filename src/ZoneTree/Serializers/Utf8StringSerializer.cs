@@ -2,7 +2,7 @@
 
 namespace Tenray.ZoneTree.Serializers;
 
-public class Utf8StringSerializer : ISerializer<string>
+public sealed class Utf8StringSerializer : ISerializer<string>
 {
     // Single byte 0xC2 is not a valid UTF-8 string.
     // We can use that to serialize the null strings.

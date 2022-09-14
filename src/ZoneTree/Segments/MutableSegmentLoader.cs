@@ -4,7 +4,7 @@ using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.Segments;
 
-public class MutableSegmentLoader<TKey, TValue>
+public sealed class MutableSegmentLoader<TKey, TValue>
 {
     public ZoneTreeOptions<TKey, TValue> Options { get; }
 
