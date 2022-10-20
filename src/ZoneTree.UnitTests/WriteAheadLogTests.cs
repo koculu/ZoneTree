@@ -1,5 +1,6 @@
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Core;
+using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
@@ -36,5 +37,13 @@ public sealed class WriteAheadLogTests
         }
         Assert.That(result.MaximumOpIndex, Is.EqualTo(len-1));
         wal.Drop();
+    }
+
+    [Test]
+    public void TestWriteAheadLogCorruptionException()
+    {
+        Assert.DoesNotThrow(() => { new WriteAheadLogCorruptionException(0, null); });
+        Assert.DoesNotThrow(() => { new WriteAheadLogCorruptionException(0, 
+            new Dictionary<int, Exception> { }); });
     }
 }
