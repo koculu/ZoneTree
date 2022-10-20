@@ -54,4 +54,21 @@ public sealed class StringTreeTests
         }
         zoneTree.Maintenance.DestroyTree();
     }
+
+    [Test]
+    public void TestSingleCharacter()
+    {
+        var dataPath = "data/TestSingleCharacter";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        for (var i = 0; i < 2; ++i)
+        {
+            using var db = new ZoneTreeFactory<string, int>()
+                .SetDataDirectory(dataPath)
+                .OpenOrCreate();
+            db.Upsert("0", 123);
+
+        }
+    }
 }
