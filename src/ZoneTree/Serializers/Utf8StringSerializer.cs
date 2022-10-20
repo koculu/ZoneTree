@@ -10,7 +10,7 @@ public sealed class Utf8StringSerializer : ISerializer<string>
 
     public string Deserialize(byte[] bytes)
     {
-        if (bytes.Length == 1 && bytes[1] == 0xC2)
+        if (bytes.Length == 1 && bytes[0] == 0xC2)
             return null;
         return Encoding.UTF8.GetString(bytes);
     }

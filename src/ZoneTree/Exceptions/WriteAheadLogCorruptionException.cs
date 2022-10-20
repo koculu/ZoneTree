@@ -6,7 +6,8 @@ public sealed class WriteAheadLogCorruptionException : ZoneTreeException
 
     public WriteAheadLogCorruptionException(long segmentId,
         Dictionary<int, Exception> exceptions)
-        : base($"Write ahead log with segment id = {segmentId} is corrupted.")
+        : base($"Write ahead log with segment id = {segmentId} is corrupted.", 
+            new AggregateException(exceptions.Values))
     {
         Exceptions = exceptions;
     }
