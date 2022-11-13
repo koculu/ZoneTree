@@ -5,8 +5,8 @@
     <Authors>Ahmed Yasin Koculu</Authors>
     <PackageId>ZoneTree</PackageId>
     <Title>ZoneTree</Title>
-    <ProductVersion>1.5.5.0</ProductVersion>
-    <Version>1.5.5.0</Version>
+    <ProductVersion>1.5.6.0</ProductVersion>
+    <Version>1.5.6.0</Version>
     <Authors>Ahmed Yasin Koculu</Authors>
     <AssemblyTitle>ZoneTree</AssemblyTitle>
     <Description>ZoneTree is a persistent, high-performance, transactional, ACID-compliant ordered key-value database for NET. It can operate in memory or on local/cloud storage.</Description>
@@ -16,7 +16,7 @@
     <PackageTags>high-performance, database, consistency, persistence, iterator, binary-tree, durability, isolation, key-value-database, atomicity, lsm-tree, key-value-store</PackageTags>
     <ReleaseNotes></ReleaseNotes>
     <Company>koculu</Company>
-    
+
     <PackageProjectUrl>https://tenray.io</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
