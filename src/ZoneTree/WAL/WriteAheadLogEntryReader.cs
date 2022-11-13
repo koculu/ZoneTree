@@ -101,7 +101,7 @@ public static class WriteAheadLogEntryReader
             }
             catch (Exception e)
             {
-                var ex = new InvalidDataException($"Deserilization of log entry failed. Index={i}", e);
+                var ex = new InvalidDataException($"Deserialization of log entry failed. Index={i}", e);
                 logger.LogError(ex);
                 if (!result.Exceptions.ContainsKey(i))
                     result.Exceptions.Add(i, ex);
