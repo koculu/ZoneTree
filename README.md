@@ -313,7 +313,6 @@ The following sample shows traditional way of doing transactions with ZoneTree.
 | Use your custom comparer.                                                                     |
 | MultipleDiskSegments Mode to enable dividing data files into configurable sized chunks.       |
 | Snapshot iterators.                                                                           |
-| ARM support with few restrictions (see ARM section)                                           |
 
 ## I want to contribute. What can I do?
 I appreciate any contribution to the project.
