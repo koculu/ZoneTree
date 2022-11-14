@@ -315,9 +315,6 @@ The following sample shows traditional way of doing transactions with ZoneTree.
 | Snapshot iterators.                                                                           |
 | ARM support with few restrictions (see ARM section)                                           |
 
-## ARM support
-In this time ZoneTree does not support zstd compression on ARM.
-
 ## I want to contribute. What can I do?
 I appreciate any contribution to the project.
 These are the things I do think we need at the moment:
