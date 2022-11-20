@@ -180,37 +180,8 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
         {
             if (isWriterCancelled)
                 return;
-            var entry = new LogEntry
-            {
-                OpIndex = opIndex,
-                KeyLength = keyBytes.Length,
-                ValueLength = valueBytes.Length,
-                Key = keyBytes,
-                Value = valueBytes
-            };
-            entry.Checksum = entry.CreateChecksum();
-
-            var binaryWriter = BinaryWriter;
-            binaryWriter.Write(entry.OpIndex);
-            binaryWriter.Write(entry.KeyLength);
-            binaryWriter.Write(entry.ValueLength);
-            if (entry.Key != null)
-                binaryWriter.Write(entry.Key);
-            if (entry.Value != null)
-                binaryWriter.Write(entry.Value);
-            binaryWriter.Write(entry.Checksum);
-            binaryWriter.Flush();
+            LogEntry.AppendLogEntry(BinaryWriter, keyBytes, valueBytes, opIndex);
         }
-    }
-
-    static void ReadLogEntry(BinaryReader reader, ref LogEntry entry)
-    {
-        entry.OpIndex = reader.ReadInt64();
-        entry.KeyLength = reader.ReadInt32();
-        entry.ValueLength = reader.ReadInt32();
-        entry.Key = reader.ReadBytes(entry.KeyLength);
-        entry.Value = reader.ReadBytes(entry.ValueLength);
-        entry.Checksum = reader.ReadUInt32();
     }
 
     public WriteAheadLogReadLogEntriesResult<TKey, TValue> ReadLogEntries(
@@ -223,7 +194,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
             FileStream,
             stopReadOnException,
             stopReadOnChecksumFailure,
-            ReadLogEntry,
+            LogEntry.ReadLogEntry,
             DeserializeLogEntry,
             sortByOpIndexes);
     }

@@ -4,6 +4,7 @@ using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Exceptions.WAL;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Serializers;
+using System;
 
 namespace Tenray.ZoneTree.WAL;
 
@@ -63,7 +64,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         var valueBytes = ValueSerializer.Serialize(value);
         lock (this)
         {
-            AppendLogEntry(BinaryWriter, keyBytes, valueBytes, opIndex);
+            LogEntry.AppendLogEntry(BinaryWriter, keyBytes, valueBytes, opIndex);
         }
     }
 
@@ -80,38 +81,6 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         }
     }
 
-    void AppendLogEntry(BinaryWriter binaryWriter, byte[] keyBytes, byte[] valueBytes, long opIndex)
-    {
-        var entry = new LogEntry
-        {
-            OpIndex = opIndex,
-            KeyLength = keyBytes.Length,
-            ValueLength = valueBytes.Length,
-            Key = keyBytes,
-            Value = valueBytes
-        };
-        entry.Checksum = entry.CreateChecksum();
-        binaryWriter.Write(entry.OpIndex);
-        binaryWriter.Write(entry.KeyLength);
-        binaryWriter.Write(entry.ValueLength);
-        if (entry.Key != null)
-            binaryWriter.Write(entry.Key);
-        if (entry.Value != null)
-            binaryWriter.Write(entry.Value);
-        binaryWriter.Write(entry.Checksum);
-        Flush();
-    }
-
-    static void ReadLogEntry(BinaryReader reader, ref LogEntry entry)
-    {
-        entry.OpIndex = reader.ReadInt64();
-        entry.KeyLength = reader.ReadInt32();
-        entry.ValueLength = reader.ReadInt32();
-        entry.Key = reader.ReadBytes(entry.KeyLength);
-        entry.Value = reader.ReadBytes(entry.ValueLength);
-        entry.Checksum = reader.ReadUInt32();
-    }
-
     public WriteAheadLogReadLogEntriesResult<TKey, TValue> ReadLogEntries(
         bool stopReadOnException,
         bool stopReadOnChecksumFailure,
@@ -122,7 +91,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
             FileStream.ToStream(),
             stopReadOnException,
             stopReadOnChecksumFailure,
-            ReadLogEntry,
+            LogEntry.ReadLogEntry,
             DeserializeLogEntry,
             sortByOpIndexes);
     }
@@ -194,7 +163,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 {
                     var keyBytes = KeySerializer.Serialize(keys[i]);
                     var valueBytes = ValueSerializer.Serialize(values[i]);
-                    AppendLogEntry(BinaryWriter, keyBytes, valueBytes, i);
+                    LogEntry.AppendLogEntry(binaryWriter, keyBytes, valueBytes, i);
                 }
 
                 FileStream.Dispose();
