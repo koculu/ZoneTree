@@ -23,17 +23,17 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
     readonly ISerializer<TValue> ValueSerializer;
 
     public string FilePath { get; }
-    
+
     public int CompressionBlockSize { get; }
 
     public CompressionMethod CompressionMethod { get; }
-    
+
     public int CompressionLevel { get; }
 
     public bool EnableTailWriterJob { get; }
-    
+
     public int TailWriterJobInterval { get; }
-    
+
     public bool EnableIncrementalBackup { get; set; }
 
     public SyncCompressedFileSystemWriteAheadLog(
@@ -77,7 +77,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
         var valueBytes = ValueSerializer.Serialize(value);
         lock (this)
         {
-            AppendLogEntry(keyBytes, valueBytes, opIndex);
+            LogEntry.AppendLogEntry(BinaryWriter, keyBytes, valueBytes, opIndex);
         }
     }
 
@@ -91,66 +91,6 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
             FileStreamProvider.DeleteFile(tailPath);
     }
 
-    struct LogEntry
-    {
-        public long OpIndex;
-        public int KeyLength;
-        public int ValueLength;
-        public byte[] Key;
-        public byte[] Value;
-        public uint Checksum;
-
-        public uint CreateChecksum()
-        {
-            uint crc32 = 0;
-            crc32 = Crc32Computer.Compute(crc32, (ulong)OpIndex);
-            crc32 = Crc32Computer.Compute(crc32, KeyLength);
-            crc32 = Crc32Computer.Compute(crc32, ValueLength);
-            crc32 = Crc32Computer.Compute(crc32, Key);
-            crc32 = Crc32Computer.Compute(crc32, Value);
-            return crc32;
-        }
-
-        public bool ValidateChecksum()
-        {
-            return CreateChecksum() == Checksum;
-        }
-    }
-
-    void AppendLogEntry(byte[] keyBytes, byte[] valueBytes, long opIndex)
-    {
-        var entry = new LogEntry
-        {
-            OpIndex = opIndex,
-            KeyLength = keyBytes.Length,
-            ValueLength = valueBytes.Length,
-            Key = keyBytes,
-            Value = valueBytes
-        };
-        entry.Checksum = entry.CreateChecksum();
-
-        var binaryWriter = BinaryWriter;
-        binaryWriter.Write(entry.OpIndex);
-        binaryWriter.Write(entry.KeyLength);
-        binaryWriter.Write(entry.ValueLength);
-        if (entry.Key != null)
-            binaryWriter.Write(entry.Key);
-        if (entry.Value != null)
-            binaryWriter.Write(entry.Value);
-        binaryWriter.Write(entry.Checksum);
-        binaryWriter.Flush();
-    }
-
-    static void ReadLogEntry(BinaryReader reader, ref LogEntry entry)
-    {
-        entry.OpIndex = reader.ReadInt64();
-        entry.KeyLength = reader.ReadInt32();
-        entry.ValueLength = reader.ReadInt32();
-        entry.Key = reader.ReadBytes(entry.KeyLength);
-        entry.Value = reader.ReadBytes(entry.ValueLength);
-        entry.Checksum = reader.ReadUInt32();
-    }
-
     public WriteAheadLogReadLogEntriesResult<TKey, TValue> ReadLogEntries(
         bool stopReadOnException,
         bool stopReadOnChecksumFailure,
@@ -161,7 +101,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
             FileStream,
             stopReadOnException,
             stopReadOnChecksumFailure,
-            ReadLogEntry,
+            LogEntry.ReadLogEntry,
             DeserializeLogEntry,
             sortByOpIndexes);
     }
@@ -249,7 +189,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
             {
                 if (FileStream == null)
                     CreateFileStream();
-                else if(FileStream.FilePath != FilePath)
+                else if (FileStream.FilePath != FilePath)
                 {
                     FileStream?.Dispose();
                     CreateFileStream();
@@ -267,7 +207,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
             {
                 FileStream.Dispose();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Logger.LogError(e);
             }
