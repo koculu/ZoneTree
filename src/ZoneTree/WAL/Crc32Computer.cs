@@ -1,6 +1,6 @@
-﻿using X86 = System.Runtime.Intrinsics.X86;
-using Arm = System.Runtime.Intrinsics.Arm;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics.X86;
+using System.Runtime.Intrinsics.Arm;
 
 namespace Tenray.ZoneTree.WAL;
 
@@ -25,20 +25,32 @@ public sealed class Crc32Computer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint Compute(uint crc, byte[] array)
+    public static uint Compute(uint crc, byte[] data)
+    {
+        if (Sse42.X64.IsSupported)
+            return ComputeX64(crc, data);
+
+        if (Crc32.Arm64.IsSupported)
+            return ComputeARM(crc, data);
+
+        throw new PlatformNotSupportedException();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static uint ComputeX64(uint crc, byte[] data)
     {
         var off = 0;
-        var len = array.Length;
+        var len = data.Length;
         while (len >= 8)
         {
-            crc = ComputeCrc32(crc, BitConverter.ToUInt64(array, off));
+            crc = (uint)Sse42.X64.Crc32(crc, BitConverter.ToUInt64(data, off));
             off += 8;
             len -= 8;
         }
 
         while (len > 0)
         {
-            crc = ComputeCrc32(crc, array[off]);
+            crc = Sse42.Crc32(crc, data[off]);
             off++;
             len--;
         }
@@ -46,48 +58,53 @@ public sealed class Crc32Computer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static uint ComputeCrc32(uint crc, ulong data)
+    static uint ComputeARM(uint crc, byte[] data)
     {
-        if (X86.Sse42.X64.IsSupported)
+        var off = 0;
+        var len = data.Length;
+        while (len >= 8)
         {
-            return (uint)X86.Sse42.X64.Crc32(crc, data);
+            crc = Crc32.Arm64.ComputeCrc32(crc, BitConverter.ToUInt64(data, off));
+            off += 8;
+            len -= 8;
         }
 
-        if (Arm.Crc32.Arm64.IsSupported)
+        while (len > 0)
         {
-            return Arm.Crc32.Arm64.ComputeCrc32C(crc, data);
+            crc = Crc32.Arm64.ComputeCrc32(crc, data[off]);
+            off++;
+            len--;
+        }
+        return crc;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static uint ComputeCrc32(uint crc, ulong data)
+    {
+        if (Sse42.X64.IsSupported)
+        {
+            return (uint)Sse42.X64.Crc32(crc, data);
+        }
+
+        if (Crc32.Arm64.IsSupported)
+        {
+            return Crc32.Arm64.ComputeCrc32C(crc, data);
         }
 
         throw new PlatformNotSupportedException();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static uint ComputeCrc32(uint crc, uint data)
+    static uint ComputeCrc32(uint crc, uint data)
     {
-        if (X86.Sse42.IsSupported)
+        if (Sse42.IsSupported)
         {
-            return X86.Sse42.Crc32(crc, data);
+            return Sse42.Crc32(crc, data);
         }
 
-        if (Arm.Crc32.IsSupported)
+        if (Crc32.IsSupported)
         {
-            return Arm.Crc32.ComputeCrc32C(crc, data);
-        }
-
-        throw new PlatformNotSupportedException();
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static uint ComputeCrc32(uint crc, byte data)
-    {
-        if (X86.Sse42.IsSupported)
-        {
-            return X86.Sse42.Crc32(crc, data);
-        }
-
-        if (Arm.Crc32.IsSupported)
-        {
-            return Arm.Crc32.ComputeCrc32C(crc, data);
+            return Crc32.ComputeCrc32C(crc, data);
         }
 
         throw new PlatformNotSupportedException();
