@@ -21,7 +21,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
     readonly ISerializer<TKey> KeySerializer;
 
     readonly ISerializer<TValue> ValueSerializer;
-    
+
     readonly int EmptyQueuePollInterval;
 
     readonly ConcurrentQueue<QueueItem> Queue = new();
@@ -143,7 +143,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
                 {
                     FileStream.WriteTail();
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Logger.LogError(e);
                 }
@@ -186,12 +186,26 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
         public uint CreateChecksum()
         {
             uint crc32 = 0;
-            crc32 = Crc32Computer.Compute(crc32, (ulong)OpIndex);
-            crc32 = Crc32Computer.Compute(crc32, KeyLength);
-            crc32 = Crc32Computer.Compute(crc32, ValueLength);
-            crc32 = Crc32Computer.Compute(crc32, Key);
-            crc32 = Crc32Computer.Compute(crc32, Value);
-            return crc32;
+            if (Crc32Computer_SSE42_X64.IsSupported)
+            {
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, (ulong)OpIndex);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, KeyLength);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, ValueLength);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, Key);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, Value);
+                return crc32;
+            }
+
+            if (Crc32Computer_ARM64.IsSupported)
+            {
+                crc32 = Crc32Computer_ARM64.Compute(crc32, (ulong)OpIndex);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, KeyLength);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, ValueLength);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, Key);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, Value);
+                return crc32;
+            }
+            throw new PlatformNotSupportedException();
         }
 
         public bool ValidateChecksum()
@@ -241,7 +255,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
 
     public WriteAheadLogReadLogEntriesResult<TKey, TValue> ReadLogEntries(
         bool stopReadOnException,
-        bool stopReadOnChecksumFailure, 
+        bool stopReadOnChecksumFailure,
         bool sortByOpIndexes)
     {
         return WriteAheadLogEntryReader.ReadLogEntries<TKey, TValue, LogEntry>(

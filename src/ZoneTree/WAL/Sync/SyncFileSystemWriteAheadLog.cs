@@ -19,14 +19,14 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     IFileStream FileStream;
 
     BinaryWriter BinaryWriter;
-    
+
     readonly ISerializer<TKey> KeySerializer;
 
     readonly ISerializer<TValue> ValueSerializer;
-    
+
     readonly int FileStreamBufferSize;
 
-    public string FilePath { get; }    
+    public string FilePath { get; }
 
     public bool EnableIncrementalBackup { get; set; }
 
@@ -40,7 +40,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
     {
         Logger = logger;
         FilePath = filePath;
-        FileStreamBufferSize = fileStreamBufferSize;        
+        FileStreamBufferSize = fileStreamBufferSize;
         FileStreamProvider = fileStreamProvider;
         KeySerializer = keySerializer;
         ValueSerializer = valueSerializer;
@@ -92,12 +92,27 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         public uint CreateChecksum()
         {
             uint crc32 = 0;
-            crc32 = Crc32Computer.Compute(crc32, (ulong)OpIndex);
-            crc32 = Crc32Computer.Compute(crc32, KeyLength);
-            crc32 = Crc32Computer.Compute(crc32, ValueLength);
-            crc32 = Crc32Computer.Compute(crc32, Key);
-            crc32 = Crc32Computer.Compute(crc32, Value);
-            return crc32;
+            if (Crc32Computer_SSE42_X64.IsSupported)
+            {
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, (ulong)OpIndex);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, KeyLength);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, ValueLength);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, Key);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, Value);
+                return crc32;
+            }
+
+            if (Crc32Computer_ARM64.IsSupported)
+            {
+                crc32 = Crc32Computer_ARM64.Compute(crc32, (ulong)OpIndex);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, KeyLength);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, ValueLength);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, Key);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, Value);
+                return crc32;
+            }
+
+            throw new PlatformNotSupportedException();
         }
 
         public bool ValidateChecksum()

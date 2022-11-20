@@ -23,17 +23,17 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
     readonly ISerializer<TValue> ValueSerializer;
 
     public string FilePath { get; }
-    
+
     public int CompressionBlockSize { get; }
 
     public CompressionMethod CompressionMethod { get; }
-    
+
     public int CompressionLevel { get; }
 
     public bool EnableTailWriterJob { get; }
-    
+
     public int TailWriterJobInterval { get; }
-    
+
     public bool EnableIncrementalBackup { get; set; }
 
     public SyncCompressedFileSystemWriteAheadLog(
@@ -103,12 +103,26 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
         public uint CreateChecksum()
         {
             uint crc32 = 0;
-            crc32 = Crc32Computer.Compute(crc32, (ulong)OpIndex);
-            crc32 = Crc32Computer.Compute(crc32, KeyLength);
-            crc32 = Crc32Computer.Compute(crc32, ValueLength);
-            crc32 = Crc32Computer.Compute(crc32, Key);
-            crc32 = Crc32Computer.Compute(crc32, Value);
-            return crc32;
+            if (Crc32Computer_SSE42_X64.IsSupported)
+            {
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, (ulong)OpIndex);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, KeyLength);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, ValueLength);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, Key);
+                crc32 = Crc32Computer_SSE42_X64.Compute(crc32, Value);
+                return crc32;
+            }
+
+            if (Crc32Computer_ARM64.IsSupported)
+            {
+                crc32 = Crc32Computer_ARM64.Compute(crc32, (ulong)OpIndex);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, KeyLength);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, ValueLength);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, Key);
+                crc32 = Crc32Computer_ARM64.Compute(crc32, Value);
+                return crc32;
+            }
+            throw new PlatformNotSupportedException();
         }
 
         public bool ValidateChecksum()
@@ -249,7 +263,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
             {
                 if (FileStream == null)
                     CreateFileStream();
-                else if(FileStream.FilePath != FilePath)
+                else if (FileStream.FilePath != FilePath)
                 {
                     FileStream?.Dispose();
                     CreateFileStream();
@@ -267,7 +281,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
             {
                 FileStream.Dispose();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Logger.LogError(e);
             }
