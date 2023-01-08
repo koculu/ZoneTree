@@ -311,7 +311,7 @@ public sealed class IteratorTests
         Parallel.For(0, iteratorCount, (x) =>
         {
             var initialCount = zoneTree.Maintenance.MutableSegmentRecordCount;
-            using var iterator = 
+            using var iterator =
                 reverse ?
                 zoneTree.CreateReverseIterator(IteratorType.NoRefresh) :
                 zoneTree.CreateIterator(IteratorType.NoRefresh);
@@ -384,6 +384,88 @@ public sealed class IteratorTests
         });
 
         task.Wait();
+        zoneTree.Maintenance.DestroyTree();
+    }
+
+    [Test]
+    public void ReversePrefixSearch()
+    {
+        var dataPath = "data/ReversePrefixSearch";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var zoneTree = new ZoneTreeFactory<string, int>()
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .OpenOrCreate();
+        var a = 250;
+        var b = 500;
+        for (var i = a; i <= b; ++i)
+        {
+            var prefix = (i / 10).ToString() + "-";
+            var key = prefix + i;
+            zoneTree.Upsert(key, i);
+        }
+
+        using var reverseIterator = zoneTree.CreateReverseIterator();
+
+        reverseIterator.Seek("41-");
+
+        for (var i = 409; i >= 250; --i)
+        {
+            var prefix = (i / 10).ToString() + "-";
+            var key = prefix + i;
+            Assert.That(reverseIterator.Next(), Is.True);
+            Assert.That(reverseIterator.CurrentKey, Is.EqualTo(key));
+            Assert.That(reverseIterator.CurrentValue, Is.EqualTo(i));
+        }
+
+        Assert.That(reverseIterator.CurrentKey, Is.EqualTo("25-250"));
+        Assert.That(reverseIterator.CurrentValue, Is.EqualTo(250));
+
+        Assert.That(reverseIterator.Next(), Is.False);
+        Assert.That(zoneTree.Count(), Is.EqualTo(b - a + 1));
+        zoneTree.Maintenance.DestroyTree();
+    }
+
+    [Test]
+    public void PrefixSearch()
+    {
+        var dataPath = "data/PrefixSearch";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var zoneTree = new ZoneTreeFactory<string, int>()
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .OpenOrCreate();
+        var a = 250;
+        var b = 500;
+        for (var i = a; i <= b; ++i)
+        {
+            var prefix = (i / 10).ToString() + "-";
+            var key = prefix + i;
+            zoneTree.Upsert(key, i);
+        }
+
+        using var iterator = zoneTree.CreateIterator();
+
+        iterator.Seek("41-");
+
+        for (var i = 410; i <= 500; ++i)
+        {
+            var prefix = (i / 10).ToString() + "-";
+            var key = prefix + i;
+            Assert.That(iterator.Next(), Is.True);
+            Assert.That(iterator.CurrentKey, Is.EqualTo(key));
+            Assert.That(iterator.CurrentValue, Is.EqualTo(i));
+        }
+
+        Assert.That(iterator.CurrentKey, Is.EqualTo("50-500"));
+        Assert.That(iterator.CurrentValue, Is.EqualTo(500));
+
+        Assert.That(iterator.Next(), Is.False);
+        Assert.That(zoneTree.Count(), Is.EqualTo(b - a + 1));
         zoneTree.Maintenance.DestroyTree();
     }
 }
