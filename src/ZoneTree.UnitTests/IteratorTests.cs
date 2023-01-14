@@ -468,4 +468,118 @@ public sealed class IteratorTests
         Assert.That(zoneTree.Count(), Is.EqualTo(b - a + 1));
         zoneTree.Maintenance.DestroyTree();
     }
+
+    [Test]
+    public void SeekIteratorsAfterMerge()
+    {
+        var dataPath = "data/SeekIteratorsAfterMerge";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var zoneTree = new ZoneTreeFactory<string, int>()
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetComparer(new StringCurrentCultureComparerAscending())
+            .SetKeySerializer(new Utf8StringSerializer())
+            .SetValueSerializer(new Int32Serializer())
+            .ConfigureDiskSegmentOptions(x =>
+            {
+                x.DiskSegmentMode = Options.DiskSegmentMode.MultiPartDiskSegment;
+                x.MinimumRecordCount = 3;
+                x.MaximumRecordCount = 7;
+            })
+            .OpenOrCreate();
+        var n = 500;
+        var list = new List<Tuple<string, int>>();
+        for (var i = 0; i < n; ++i)
+        {
+            var key = $"myprefix1|string{i}";
+            zoneTree.Upsert(key, i);
+            list.Add(Tuple.Create(key, i));
+
+        }
+        for (var i = 0; i < n; ++i)
+        {
+            var key = $"myprefix2|string{i}";
+            zoneTree.Upsert(key, i);
+            list.Add(Tuple.Create(key, i));
+        }
+        for (var i = 0; i < n; ++i)
+        {
+            var key = $"myprefix3|string{i}";
+            zoneTree.Upsert(key, i);
+            list.Add(Tuple.Create(key, i));
+        }
+        for (var i = 0; i < n; ++i)
+        {
+            var key = $"myprefix4|string{i}";
+            zoneTree.Upsert(key, i);
+            list.Add(Tuple.Create(key, i));
+        }
+        list.Sort((a, b) => string.Compare(a.Item1, b.Item1, StringComparison.CurrentCulture));
+
+        zoneTree.Maintenance.MoveMutableSegmentForward();
+        zoneTree.Maintenance.StartMergeOperation()?.Join();
+
+        {
+            using var iterator = zoneTree.CreateIterator();
+            var prefix = "myprefix2";
+            var listIndex = list.FindIndex(x => x.Item1.StartsWith(prefix));
+            iterator.Seek(prefix);
+            while (iterator.Next())
+            {
+                var key = iterator.CurrentKey;
+                var value = iterator.CurrentValue;
+                (var expectedKey, var expectedValue) = list[listIndex++];
+                Assert.That(key, Is.EqualTo(expectedKey));
+                Assert.That(value, Is.EqualTo(expectedValue));
+            }
+            Assert.That(listIndex, Is.EqualTo(list.Count));
+
+            using var revIterator = zoneTree.CreateReverseIterator();
+            listIndex = list.FindIndex(x => x.Item1.StartsWith(prefix)) - 1;
+            revIterator.Seek(prefix);
+            while (revIterator.Next())
+            {
+                var key = revIterator.CurrentKey;
+                var value = revIterator.CurrentValue;
+                (var expectedKey, var expectedValue) = list[listIndex--];
+                Assert.That(key, Is.EqualTo(expectedKey));
+                Assert.That(value, Is.EqualTo(expectedValue));
+            }
+            Assert.That(listIndex, Is.EqualTo(-1));
+        }
+        {
+            using var iterator = zoneTree.CreateIterator();
+            var prefix = "myprefix";
+            var listIndex = list.FindIndex(x => x.Item1.StartsWith(prefix));
+            iterator.Seek(prefix);
+            while (iterator.Next())
+            {
+                var key = iterator.CurrentKey;
+                var value = iterator.CurrentValue;
+                (var expectedKey, var expectedValue) = list[listIndex++];
+                Assert.That(key, Is.EqualTo(expectedKey));
+                Assert.That(value, Is.EqualTo(expectedValue));
+            }
+            Assert.That(listIndex, Is.EqualTo(list.Count));
+
+            using var iterator2 = zoneTree.CreateIterator();
+            prefix = "myprefix1";
+            listIndex = list.FindIndex(x => x.Item1.StartsWith(prefix));
+            iterator2.Seek(prefix);
+            while (iterator2.Next())
+            {
+                var key = iterator2.CurrentKey;
+                var value = iterator2.CurrentValue;
+                (var expectedKey, var expectedValue) = list[listIndex++];
+                Assert.That(key, Is.EqualTo(expectedKey));
+                Assert.That(value, Is.EqualTo(expectedValue));
+            }
+            Assert.That(listIndex, Is.EqualTo(list.Count));
+
+            zoneTree.Maintenance.DestroyTree();
+
+        }
+    }
 }
