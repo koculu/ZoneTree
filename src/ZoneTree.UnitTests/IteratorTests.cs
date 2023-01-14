@@ -1,5 +1,6 @@
 ﻿using Tenray.ZoneTree.Collections.BTree.Lock;
 using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.UnitTests;
@@ -469,8 +470,15 @@ public sealed class IteratorTests
         zoneTree.Maintenance.DestroyTree();
     }
 
-    [Test]
-    public void SeekIteratorsAfterMerge()
+    [TestCase(true, DiskSegmentMode.SingleDiskSegment, 0, 0)]
+    [TestCase(false, DiskSegmentMode.SingleDiskSegment, 0, 0)]
+    [TestCase(true, DiskSegmentMode.MultiPartDiskSegment, 0, 0)]
+    [TestCase(true, DiskSegmentMode.MultiPartDiskSegment, 3, 7)]
+    public void SeekIteratorsAfterMerge(
+        bool merge,
+        DiskSegmentMode diskSegmentMode,
+        int minimumRecordCount,
+        int maximumRecordCount)
     {
         var dataPath = "data/SeekIteratorsAfterMerge";
         if (Directory.Exists(dataPath))
@@ -484,9 +492,11 @@ public sealed class IteratorTests
             .SetValueSerializer(new Int32Serializer())
             .ConfigureDiskSegmentOptions(x =>
             {
-                x.DiskSegmentMode = Options.DiskSegmentMode.MultiPartDiskSegment;
-                x.MinimumRecordCount = 3;
-                x.MaximumRecordCount = 7;
+                x.DiskSegmentMode = diskSegmentMode;
+                if (minimumRecordCount > 0)
+                    x.MinimumRecordCount = minimumRecordCount;
+                if (maximumRecordCount > 0)
+                    x.MaximumRecordCount = maximumRecordCount;
             })
             .OpenOrCreate();
         var n = 500;
@@ -519,7 +529,8 @@ public sealed class IteratorTests
         list.Sort((a, b) => string.Compare(a.Item1, b.Item1, StringComparison.CurrentCulture));
 
         zoneTree.Maintenance.MoveMutableSegmentForward();
-        zoneTree.Maintenance.StartMergeOperation()?.Join();
+        if (merge)
+            zoneTree.Maintenance.StartMergeOperation()?.Join();
 
         {
             using var iterator = zoneTree.CreateIterator();
