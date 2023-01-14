@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.Collections.BTree.Lock;
+﻿using System;
+using Tenray.ZoneTree.Collections.BTree.Lock;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Serializers;
@@ -480,7 +481,7 @@ public sealed class IteratorTests
         int minimumRecordCount,
         int maximumRecordCount)
     {
-        var dataPath = "data/SeekIteratorsAfterMerge";
+        var dataPath = "data/SeekIteratorsAfterMerge" + merge + diskSegmentMode + minimumRecordCount + maximumRecordCount; ;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
@@ -499,7 +500,21 @@ public sealed class IteratorTests
                     x.MaximumRecordCount = maximumRecordCount;
             })
             .OpenOrCreate();
-        var n = 500;
+        var list = PrepareData1(zoneTree, 500);
+
+        zoneTree.Maintenance.MoveMutableSegmentForward();
+        if (merge)
+            zoneTree.Maintenance.StartMergeOperation()?.Join();
+
+        var random = new Random();
+        DoPrefixSearch(zoneTree, list, random);
+        zoneTree.Maintenance.DiskSegment.InitSparseArray(100);
+        DoPrefixSearch(zoneTree, list, random);
+        zoneTree.Maintenance.DestroyTree();
+    }
+
+    static List<Tuple<string, int>> PrepareData1(IZoneTree<string, int> zoneTree, int n)
+    {
         var list = new List<Tuple<string, int>>();
         for (var i = 0; i < n; ++i)
         {
@@ -527,70 +542,126 @@ public sealed class IteratorTests
             list.Add(Tuple.Create(key, i));
         }
         list.Sort((a, b) => string.Compare(a.Item1, b.Item1, StringComparison.CurrentCulture));
+        return list;
+    }
 
+    [TestCase(true, DiskSegmentMode.SingleDiskSegment, 0, 0)]
+    [TestCase(false, DiskSegmentMode.SingleDiskSegment, 0, 0)]
+    [TestCase(true, DiskSegmentMode.MultiPartDiskSegment, 0, 0)]
+    [TestCase(true, DiskSegmentMode.MultiPartDiskSegment, 3, 7)]
+    public void SeekIteratorsAfterMergeReload(
+        bool merge,
+        DiskSegmentMode diskSegmentMode,
+        int minimumRecordCount,
+        int maximumRecordCount)
+    {
+        var dataPath = "data/SeekIteratorsAfterMergeReload" + merge + diskSegmentMode + minimumRecordCount + maximumRecordCount;
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        var zoneTree = new ZoneTreeFactory<string, int>()
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetComparer(new StringCurrentCultureComparerAscending())
+            .SetKeySerializer(new Utf8StringSerializer())
+            .SetValueSerializer(new Int32Serializer())
+            .ConfigureDiskSegmentOptions(x =>
+            {
+                x.DiskSegmentMode = diskSegmentMode;
+                if (minimumRecordCount > 0)
+                    x.MinimumRecordCount = minimumRecordCount;
+                if (maximumRecordCount > 0)
+                    x.MaximumRecordCount = maximumRecordCount;
+            })
+            .OpenOrCreate();
+
+        var list = PrepareData1(zoneTree, 500);
         zoneTree.Maintenance.MoveMutableSegmentForward();
         if (merge)
             zoneTree.Maintenance.StartMergeOperation()?.Join();
 
+        zoneTree.Dispose();
+        zoneTree = new ZoneTreeFactory<string, int>()
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetComparer(new StringCurrentCultureComparerAscending())
+            .SetKeySerializer(new Utf8StringSerializer())
+            .SetValueSerializer(new Int32Serializer())
+            .ConfigureDiskSegmentOptions(x =>
+            {
+                x.DiskSegmentMode = diskSegmentMode;
+                if (minimumRecordCount > 0)
+                    x.MinimumRecordCount = minimumRecordCount;
+                if (maximumRecordCount > 0)
+                    x.MaximumRecordCount = maximumRecordCount;
+            })
+            .Open();
+        var random = new Random();
+        DoPrefixSearch(zoneTree, list, random);
+        zoneTree.Maintenance.DiskSegment.InitSparseArray(100);
+        DoPrefixSearch(zoneTree, list, random);
+    }
+
+    private static void DoPrefixSearch(IZoneTree<string, int> zoneTree, List<Tuple<string, int>> list, Random random)
+    {
+        for (var i = 0; i <= 5; ++i)
         {
-            using var iterator = zoneTree.CreateIterator();
-            var prefix = "myprefix2";
-            var listIndex = list.FindIndex(x => x.Item1.StartsWith(prefix));
-            iterator.Seek(prefix);
-            while (iterator.Next())
-            {
-                var key = iterator.CurrentKey;
-                var value = iterator.CurrentValue;
-                (var expectedKey, var expectedValue) = list[listIndex++];
-                Assert.That(key, Is.EqualTo(expectedKey));
-                Assert.That(value, Is.EqualTo(expectedValue));
-            }
-            Assert.That(listIndex, Is.EqualTo(list.Count));
-
-            using var revIterator = zoneTree.CreateReverseIterator();
-            listIndex = list.FindIndex(x => x.Item1.StartsWith(prefix)) - 1;
-            revIterator.Seek(prefix);
-            while (revIterator.Next())
-            {
-                var key = revIterator.CurrentKey;
-                var value = revIterator.CurrentValue;
-                (var expectedKey, var expectedValue) = list[listIndex--];
-                Assert.That(key, Is.EqualTo(expectedKey));
-                Assert.That(value, Is.EqualTo(expectedValue));
-            }
-            Assert.That(listIndex, Is.EqualTo(-1));
+            TestForward(zoneTree, list, "myprefix" + i);
+            TestBackward(zoneTree, list, "myprefix" + i);
         }
+        for (var i = 0; i < 100; ++i)
         {
-            using var iterator = zoneTree.CreateIterator();
-            var prefix = "myprefix";
-            var listIndex = list.FindIndex(x => x.Item1.StartsWith(prefix));
-            iterator.Seek(prefix);
-            while (iterator.Next())
-            {
-                var key = iterator.CurrentKey;
-                var value = iterator.CurrentValue;
-                (var expectedKey, var expectedValue) = list[listIndex++];
-                Assert.That(key, Is.EqualTo(expectedKey));
-                Assert.That(value, Is.EqualTo(expectedValue));
-            }
-            Assert.That(listIndex, Is.EqualTo(list.Count));
-
-            using var iterator2 = zoneTree.CreateIterator();
-            prefix = "myprefix1";
-            listIndex = list.FindIndex(x => x.Item1.StartsWith(prefix));
-            iterator2.Seek(prefix);
-            while (iterator2.Next())
-            {
-                var key = iterator2.CurrentKey;
-                var value = iterator2.CurrentValue;
-                (var expectedKey, var expectedValue) = list[listIndex++];
-                Assert.That(key, Is.EqualTo(expectedKey));
-                Assert.That(value, Is.EqualTo(expectedValue));
-            }
-            Assert.That(listIndex, Is.EqualTo(list.Count));
-
-            zoneTree.Maintenance.DestroyTree();
-
+            var prefix = list[random.Next(0, list.Count - 1)].Item1;
+            TestForward(zoneTree, list, prefix);
+            TestBackward(zoneTree, list, prefix);
         }
+    }
+
+    static void TestBackward(IZoneTree<string, int> zoneTree, List<Tuple<string, int>> list, string prefix)
+    {
+        using var revIterator = zoneTree.CreateReverseIterator();
+        var listIndex = list.FindIndex(x => x.Item1.StartsWith(prefix));
+        var comparer = new StringCurrentCultureComparerAscending();
+        if (listIndex == -1)
+        {
+            listIndex = comparer.Compare(prefix, list[0].Item1) < 0 ? -1 : list.Count - 1;
+        }
+        else
+        {
+            if (comparer.Compare(prefix, list[listIndex].Item1) != 0)
+                --listIndex;
+        }
+        revIterator.Seek(prefix);
+        while (revIterator.Next())
+        {
+            var key = revIterator.CurrentKey;
+            var value = revIterator.CurrentValue;
+            (var expectedKey, var expectedValue) = list[listIndex--];
+            Assert.That(key, Is.EqualTo(expectedKey));
+            Assert.That(value, Is.EqualTo(expectedValue));
+        }
+        Assert.That(listIndex, Is.EqualTo(-1));
+    }
+
+    static void TestForward(IZoneTree<string, int> zoneTree, List<Tuple<string, int>> list, string prefix)
+    {
+        using var iterator = zoneTree.CreateIterator();
+
+        var listIndex = list.FindIndex(x => x.Item1.StartsWith(prefix));
+        if (listIndex < 0)
+        {
+            var comparer = new StringCurrentCultureComparerAscending();
+            listIndex = comparer.Compare(prefix, list[0].Item1) < 0 ? 0 : list.Count;
+        }
+        iterator.Seek(prefix);
+        while (iterator.Next())
+        {
+            var key = iterator.CurrentKey;
+            var value = iterator.CurrentValue;
+            (var expectedKey, var expectedValue) = list[listIndex++];
+            Assert.That(key, Is.EqualTo(expectedKey));
+            Assert.That(value, Is.EqualTo(expectedValue));
+        }
+        Assert.That(listIndex, Is.EqualTo(list.Count));
     }
 }

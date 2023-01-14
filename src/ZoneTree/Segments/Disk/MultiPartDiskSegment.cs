@@ -338,21 +338,21 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         var sparseArrayLength = PartKeys.Length;
         (var right, var found) = SearchFirstGreaterOrEqualPositionInSparseArray(in key);
         var partIndex = right / 2;
-        var isStartOfPart = right % 2 == 0 ? 1 : 0;
+        var diff = right % 2 == 0 ? 0 : 1;
         if (found)
         {
             long off2 = 0;
-            var len = partIndex + isStartOfPart;
+            var len = partIndex + diff;
             for (var i = 0; i < len; ++i)
                 off2 += Parts[i].Length;
-            return off2 - isStartOfPart;
+            return off2 - diff;
         }
         if (right == sparseArrayLength)
             return Length;
         if (right == -1)
             return Length;
 
-        if (isStartOfPart == 1)
+        if (diff == 0)
         {
             long off2 = 0;
             var len = partIndex;
@@ -423,19 +423,19 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
     {
         (var left, var found) = SearchLastSmallerOrEqualPositionInSparseArray(in key);
         var partIndex = left / 2;
-        var isStartOfPart = left % 2 == 0 ? 1 : 0;
+        var diff = left % 2 == 0 ? 0 : 1;
         if (found)
         {
             long off2 = 0;
-            var len = partIndex + isStartOfPart;
+            var len = partIndex + diff;
             for (var i = 0; i < len; ++i)
                 off2 += Parts[i].Length;
-            return off2 - isStartOfPart;
+            return off2 - diff;
         }
         if (left == -1)
             return -1;
 
-        if (isStartOfPart == 0)
+        if (diff == 1)
         {
             long off2 = 0;
             var len = partIndex;
