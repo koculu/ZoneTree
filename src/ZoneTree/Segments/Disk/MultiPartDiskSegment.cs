@@ -9,7 +9,7 @@ namespace Tenray.ZoneTree.Segments.Disk;
 
 public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
-    public const CompressionMethod MultiPartHeaderCompressionMethod 
+    public const CompressionMethod MultiPartHeaderCompressionMethod
         = CompressionMethod.LZ4;
 
     public const int MultiPartHeaderCompressionLevel
@@ -34,7 +34,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
     readonly IReadOnlyList<IDiskSegment<TKey, TValue>> Parts;
 
     readonly TKey[] PartKeys;
-    
+
     readonly TValue[] PartValues;
 
     readonly ZoneTreeOptions<TKey, TValue> Options;
@@ -352,12 +352,13 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         if (right == -1)
             return Length;
 
-        if (isStartOfPart == 1) {
+        if (isStartOfPart == 1)
+        {
             long off2 = 0;
             var len = partIndex;
             for (var i = 0; i < len; ++i)
                 off2 += Parts[i].Length;
-            return off2 - isStartOfPart;
+            return off2;
         }
 
         var position = Parts[partIndex].GetFirstGreaterOrEqualPosition(in key);
@@ -389,7 +390,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         var localIndex = index - off;
 
         if (localIndex == 0)
-            return PartKeys[partIndex*2];
+            return PartKeys[partIndex * 2];
         if (localIndex == len - 1)
             return PartKeys[partIndex * 2 + 1];
 
@@ -434,13 +435,13 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         if (left == -1)
             return -1;
 
-        if (isStartOfPart == 1)
+        if (isStartOfPart == 0)
         {
             long off2 = 0;
-            var len = partIndex + 1;
-            for (var i = 0; i < len; ++i)
+            var len = partIndex;
+            for (var i = 0; i <= len; ++i)
                 off2 += Parts[i].Length;
-            return off2 - isStartOfPart;
+            return off2 - 1;
         }
 
         var position = Parts[partIndex].GetLastSmallerOrEqualPosition(in key);
