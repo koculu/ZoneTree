@@ -15,37 +15,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 return !IsValueDeleted(value);
         }
 
-        foreach (var segment in ReadOnlySegmentQueue.Reverse())
-        {
-            if (segment.TryGet(key, out value))
-            {
-                return !IsValueDeleted(value);
-            }
-        }
-
-        while (true)
-        {
-            try
-            {
-                if (DiskSegment.TryGet(key, out value))
-                {
-                    return !IsValueDeleted(value);
-                }
-
-                foreach (var segment in BottomSegmentQueue.Reverse())
-                {
-                    if (segment.TryGet(key, out value))
-                    {
-                        return !IsValueDeleted(value);
-                    }
-                }
-                return false;
-            }
-            catch (DiskSegmentIsDroppingException)
-            {
-                continue;
-            }
-        }
+        return TryGetFromReadonlySegments(key, out value);
     }
 
     bool TryGetFromReadonlySegments(in TKey key, out TValue value)
