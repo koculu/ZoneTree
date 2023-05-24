@@ -5,6 +5,7 @@ ZoneTree is a persistent, high-performance, transactional, and ACID-compliant [o
 It can operate in memory or on local/cloud storage.
 
 [![Downloads](https://img.shields.io/nuget/dt/ZoneTree)](https://www.nuget.org/packages/ZoneTree/)
+[![](https://dcbadge.vercel.app/api/server/862UzKH9?logoColor=f1c400&theme=discord&style=flat)](https://discord.gg/862UzKH9)
 
 ZoneTree is a lightweight, transactional and high-performance LSM Tree for .NET.
 
@@ -13,6 +14,7 @@ It is several times faster than Facebook's RocksDB and hundreds of times faster 
 For example, with async-compressed WAL mode, you can insert 100M integer key-value pairs in 28 seconds. Background merge operation that might take a bit longer is excluded from the insert duration because your inserted data is immediately queryable.
 Loading 100M integer key-value pair database is in 812 ms. The iteration on 100M key-value pairs takes 24 seconds.
 There are so many tuning options wait you to discover.
+
 
 ## [INTRODUCTION](https://tenray.io/docs/ZoneTree/guide/introduction.html)
 ## [QUICK START GUIDE](https://tenray.io/docs/ZoneTree/guide/quick-start.html)
