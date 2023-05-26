@@ -82,7 +82,7 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     IDiskSegment<TKey, TValue> GetPart(int partIndex);
 
     /// <summary>
-    /// Drops all sectos excluding given exclusion list.
+    /// Drops all sectors excluding given exclusion list.
     /// </summary>
     /// <param name="excludedPartIds"></param>
     void Drop(HashSet<long> excludedPartIds);

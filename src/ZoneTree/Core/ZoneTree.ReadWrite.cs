@@ -15,12 +15,12 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 return !IsValueDeleted(value);
         }
 
-        return TryGetFromReadonlySegments(key, out value);
+        return TryGetFromReadonlySegments(in key, out _);
     }
 
     bool TryGetFromReadonlySegments(in TKey key, out TValue value)
     {
-        foreach (var segment in ReadOnlySegmentQueue.Reverse())
+        foreach (var segment in ReadOnlySegmentQueue)
         {
             if (segment.TryGet(key, out value))
             {
@@ -37,7 +37,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     return !IsValueDeleted(value);
                 }
 
-                foreach (var segment in BottomSegmentQueue.Reverse())
+                foreach (var segment in BottomSegmentQueue)
                 {
                     if (segment.TryGet(key, out value))
                     {
@@ -106,7 +106,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 // no update happened, but the value is found.
                 return true;
             }
-            
+
             Upsert(in key, in value);
             return true;
         }
@@ -237,15 +237,12 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             switch (status)
             {
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
-                    ForceDelete(key);
                     continue;
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
                     MoveMutableSegmentForward(mutableSegment);
-                    ForceDelete(key);
                     continue;
                 default: return;
             }
-
         }
     }
 }

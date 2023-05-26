@@ -58,7 +58,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             OnMergeOperationEnded?.Invoke(this, MergeResult.ANOTHER_MERGE_IS_RUNNING);
             return null;
         }
-            
+
         OnMergeOperationStarted?.Invoke(this);
         var thread = new Thread(StartMergeOperationInternal);
         thread.Start();
@@ -114,11 +114,11 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         Logger.LogTrace("Merge starting.");
 
         var oldDiskSegment = DiskSegment;
-        var roSegments = ReadOnlySegmentQueue.ToArray();
+        var roSegments = ReadOnlySegmentQueue.ToLastInFirstArray();
 
         if (roSegments.Any(x => !x.IsFullyFrozen))
         {
-            SpinWait.SpinUntil(() => !roSegments.Any(x => !x.IsFullyFrozen), 
+            SpinWait.SpinUntil(() => !roSegments.Any(x => !x.IsFullyFrozen),
                 ReadOnlySegmentFullyFrozenSpinTimeout);
             if (roSegments.Any(x => !x.IsFullyFrozen))
                 return MergeResult.RETRY_READONLY_SEGMENTS_ARE_NOT_READY;
@@ -132,7 +132,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             return MergeResult.NOTHING_TO_MERGE;
 
         var mergingSegments = new List<ISeekableIterator<TKey, TValue>>();
-        mergingSegments.AddRange(readOnlySegmentsArray.Reverse());
+        mergingSegments.AddRange(readOnlySegmentsArray);
         if (oldDiskSegment is not NullDiskSegment<TKey, TValue>)
             mergingSegments.Add(oldDiskSegment.GetSeekableIterator());
 
@@ -151,14 +151,14 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         var len = mergingSegments.Count;
         var diskSegmentIndex = len - 1;
 
-        using IDiskSegmentCreator<TKey, TValue> diskSegmentCreator = 
-            enableMultiPartDiskSegment ? 
+        using IDiskSegmentCreator<TKey, TValue> diskSegmentCreator =
+            enableMultiPartDiskSegment ?
             new MultiPartDiskSegmentCreator<TKey, TValue>(Options, IncrementalIdProvider) :
             new DiskSegmentCreator<TKey, TValue>(Options, IncrementalIdProvider);
 
         var heap = new FixedSizeMinHeap<HeapEntry<TKey, TValue>>(len + 1, MinHeapEntryComparer);
 
-        var fillHeap = () =>
+        void fillHeap()
         {
             for (int i = 0; i < len; i++)
             {
@@ -170,11 +170,11 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 var entry = new HeapEntry<TKey, TValue>(key, value, i);
                 heap.Insert(entry);
             }
-        };
+        }
 
         int minSegmentIndex = 0;
 
-        var skipElement = () =>
+        void skipElement()
         {
             var minSegment = mergingSegments[minSegmentIndex];
             if (minSegment.Next())
@@ -187,7 +187,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             {
                 heap.RemoveMin();
             }
-        };
+        }
+
         fillHeap();
         var comparer = Options.Comparer;
         var hasPrev = false;
@@ -213,6 +214,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     Logger.LogError(e);
                     OnCanNotDropDiskSegmentCreator?.Invoke(diskSegmentCreator, e);
                 }
+                // Do not remove null assignments because of GC issue!
                 readOnlySegmentsArray = null;
                 mergingSegments = null;
                 roSegments = null;
@@ -285,10 +287,10 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     if (islastKeySmallerThanAllOtherKeys)
                     {
                         diskSegmentCreator.Append(
-                            part, 
-                            minEntry.Key, 
+                            part,
+                            minEntry.Key,
                             lastKey,
-                            minEntry.Value, 
+                            minEntry.Value,
                             lastValuesOfEveryPart[currentPartIndex]);
                         mergingSegments[diskSegmentIndex].Skip(part.Length - 2);
                         prevKey = lastKey;
@@ -301,7 +303,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 Logger.LogTrace(new LogMergerDrop(part.SegmentId, dropCount, skipCount));
 
             }
-            
+
             diskSegmentCreator.Append(minEntry.Key, minEntry.Value, iteratorPosition);
             skipElement();
         }
@@ -316,7 +318,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 BottomSegmentQueue.Enqueue(newDiskSegment);
                 MetaWal.EnqueueBottomSegment(newDiskSegment.SegmentId);
                 MetaWal.NewDiskSegment(0);
-                DiskSegment = new NullDiskSegment<TKey,TValue>();
+                DiskSegment = new NullDiskSegment<TKey, TValue>();
             }
             else
             {
@@ -360,6 +362,10 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 stopwatch.ElapsedMilliseconds,
                 TotalDropCount,
                 TotalSkipCount));
+
+        // Do not remove null assignments below and anywhere in this function!
+        // GC does not collect local variables,
+        // when this method is called by another thread.
 
         readOnlySegmentsArray = null;
         mergingSegments = null;
