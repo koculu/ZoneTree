@@ -214,6 +214,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     Logger.LogError(e);
                     OnCanNotDropDiskSegmentCreator?.Invoke(diskSegmentCreator, e);
                 }
+                // Do not remove null assignments because of GC issue!
                 readOnlySegmentsArray = null;
                 mergingSegments = null;
                 roSegments = null;
@@ -361,6 +362,10 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 stopwatch.ElapsedMilliseconds,
                 TotalDropCount,
                 TotalSkipCount));
+
+        // Do not remove null assignments below and anywhere in this function!
+        // GC does not collect local variables,
+        // when this method is called by another thread.
 
         readOnlySegmentsArray = null;
         mergingSegments = null;

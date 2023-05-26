@@ -21,8 +21,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         }
 
         OnBottomSegmentsMergeOperationStarted?.Invoke(this);
-        var thread = new Thread(() =>
-            StartBottomSegmentsMergeOperationInternal(from, to));
+        var thread = new Thread(() => StartBottomSegmentsMergeOperationInternal(from, to));
         thread.Start();
         return thread;
     }
@@ -93,6 +92,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
         if (IsCancelBottomSegmentsMergeRequested)
         {
+            // Do not remove null assignments because of GC issue!
             bottomSegments = null;
             mergingSegments = null;
             bottomDiskSegment = null;
@@ -167,6 +167,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     Logger.LogError(e);
                     OnCanNotDropDiskSegmentCreator?.Invoke(diskSegmentCreator, e);
                 }
+                // Do not remove null assignments because of GC issue!
                 bottomSegments = null;
                 mergingSegments = null;
                 bottomDiskSegment = null;
@@ -315,6 +316,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 TotalBottomSegmentsMergeDropCount,
                 TotalBottomSegmentsMergeSkipCount));
 
+        // Do not remove null assignments below and anywhere in this function!
+        // GC does not collect local variables,
+        // when this method is called by another thread.
         bottomSegments = null;
         mergingSegments = null;
         bottomDiskSegment = null;

@@ -255,10 +255,8 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
     bool PrevInternal()
     {
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-        int minSegmentIndex = 0;
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
-        var skipElement = () =>
+        int minSegmentIndex;
+        void skipElement()
         {
             var minSegment = SeekableIterators[minSegmentIndex];
             if (minSegment.Prev())
@@ -271,7 +269,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
             {
                 Heap.RemoveMin();
             }
-        };
+        }
 
         while (Heap.Count > 0)
         {
@@ -307,10 +305,8 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
     bool NextInternal()
     {
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-        int minSegmentIndex = 0;
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
-        var skipElement = () =>
+        int minSegmentIndex;
+        void skipElement()
         {
             var minSegment = SeekableIterators[minSegmentIndex];
             if (minSegment.Next())
