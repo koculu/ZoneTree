@@ -70,7 +70,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
     public IDiskSegment<TKey, TValue> DiskSegment { get; private set; }
 
-    public IDiskSegment<TKey, TValue>[] BottomSegments { get; private set; }
+    public IReadOnlyList<IDiskSegment<TKey, TValue>> BottomSegments { get; private set; }
 
     public ZoneTreeIterator(
         ZoneTreeOptions<TKey, TValue> options,
@@ -214,7 +214,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
             if (BottomSegments == null)
                 return;
             var bos = BottomSegments;
-            var len = bos.Length;
+            var len = bos.Count;
             for (var i = 0; i < len; ++i)
             {
                 bos[i]?.DetachIterator();
@@ -243,7 +243,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
                 IncludeDiskSegment,
                 IncludeBottomSegments);
         DiskSegment = segments.DiskSegment;
-        BottomSegments =segments.BottomSegments;
+        BottomSegments = segments.BottomSegments;
         SeekableIterators = segments.SeekableIterators;
         Length = SeekableIterators.Count;
         Heap = new FixedSizeMinHeap<HeapEntry<TKey, TValue>>(Length + 1, HeapEntryComparer);

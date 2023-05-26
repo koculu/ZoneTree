@@ -37,10 +37,13 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
 
         public bool IsEmpty => Start == End;
 
-        public int Count()
+        public int ItemsCount
         {
-            var size = Items.Length;
-            return (End + size - Start) % size;
+            get
+            {
+                var size = Items.Length;
+                return (End + size - Start) % size;
+            }
         }
 
         public IReadOnlyList<TQueueItem> ToFirstInFirstArray()
@@ -49,7 +52,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
             var size = items.Length;
             var end = End;
             var start = Start;
-            var list = new List<TQueueItem>(Count());
+            var list = new List<TQueueItem>(ItemsCount);
 
             while (start != end)
             {
@@ -68,7 +71,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
             var size = items.Length;
             var end = (size + End - 1) % size;
             var start = (size + Start - 1) % size;
-            var list = new List<TQueueItem>(Count());
+            var list = new List<TQueueItem>(ItemsCount);
 
             while (start != end)
             {
@@ -82,7 +85,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
         }
     }
 
-    public int Count => Chunk.Count();
+    public int Length => Chunk.ItemsCount;
 
     public bool IsEmpty => Chunk.IsEmpty;
 

@@ -39,10 +39,10 @@ public sealed class BottomSegmentMergeTests
             }
         }
 
-        var expected1 = new long[] { 11, 13, 15, 17, 19, 21 };
-        var expected2 = new long[] { 11, 13, 51, 21 };
+        var expected1 = new long[] { 21, 19, 17, 15, 13, 11 };
+        var expected2 = new long[] { 21, 51, 13, 11 };
 
-        var sum = 
+        var sum =
             m.BottomSegments.Sum(x => x.Length) +
             m.InMemoryRecordCount +
             m.DiskSegment.Length;

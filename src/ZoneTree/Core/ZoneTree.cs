@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments;
@@ -24,9 +25,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     readonly IsValueDeletedDelegate<TValue> IsValueDeleted;
 
-    readonly ConcurrentQueue<IReadOnlySegment<TKey, TValue>> ReadOnlySegmentQueue = new();
+    readonly SingleProducerSingleConsumerQueue<IReadOnlySegment<TKey, TValue>> ReadOnlySegmentQueue = new();
 
-    volatile ConcurrentQueue<IDiskSegment<TKey, TValue>> BottomSegmentQueue = new();
+    volatile SingleProducerSingleConsumerQueue<IDiskSegment<TKey, TValue>> BottomSegmentQueue = new();
 
     readonly IIncrementalIdProvider IncrementalIdProvider = new IncrementalIdProvider();
 
@@ -51,20 +52,20 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     public IMutableSegment<TKey, TValue> MutableSegment { get => _mutableSegment; private set => _mutableSegment = value; }
 
     public IReadOnlyList<IReadOnlySegment<TKey, TValue>> ReadOnlySegments =>
-        ReadOnlySegmentQueue.ToArray();
+        ReadOnlySegmentQueue.ToLastInFirstArray();
 
     volatile IDiskSegment<TKey, TValue> _diskSegment = new NullDiskSegment<TKey, TValue>();
 
     public IDiskSegment<TKey, TValue> DiskSegment { get => _diskSegment; private set => _diskSegment = value; }
 
     public IReadOnlyList<IDiskSegment<TKey, TValue>> BottomSegments =>
-        BottomSegmentQueue.ToArray();
+        BottomSegmentQueue.ToLastInFirstArray();
 
     public bool IsMerging { get => IsMergingFlag; private set => IsMergingFlag = value; }
 
     public bool IsBottomSegmentsMerging { get => IsBottomSegmentsMergingFlag; private set => IsBottomSegmentsMergingFlag = value; }
 
-    public int ReadOnlySegmentsCount => ReadOnlySegmentQueue.Count;
+    public int ReadOnlySegmentsCount => ReadOnlySegmentQueue.Length;
 
     public long ReadOnlySegmentsRecordCount => ReadOnlySegmentQueue.Sum(x => x.Length);
 
@@ -181,8 +182,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         ZoneTreeMeta.KeySerializerType = Options.KeySerializer.GetType().FullName;
         ZoneTreeMeta.ValueSerializerType = Options.ValueSerializer.GetType().FullName;
         ZoneTreeMeta.DiskSegment = DiskSegment.SegmentId;
-        ZoneTreeMeta.ReadOnlySegments = ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray();
-        ZoneTreeMeta.BottomSegments = BottomSegmentQueue.Select(x => x.SegmentId).Reverse().ToArray();
+        ZoneTreeMeta.ReadOnlySegments = ReadOnlySegmentQueue.Select(x => x.SegmentId).ToArray();
+        ZoneTreeMeta.BottomSegments = BottomSegmentQueue.Select(x => x.SegmentId).ToArray();
         ZoneTreeMeta.MutableSegmentMaxItemCount = Options.MutableSegmentMaxItemCount;
         ZoneTreeMeta.DiskSegmentMaxItemCount = Options.DiskSegmentMaxItemCount;
         ZoneTreeMeta.WriteAheadLogOptions = Options.WriteAheadLogOptions;
@@ -203,8 +204,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     ZoneTreeMeta,
                     MutableSegment.SegmentId,
                     DiskSegment.SegmentId,
-                    ReadOnlySegmentQueue.Select(x => x.SegmentId).Reverse().ToArray(),
-                    BottomSegmentQueue.Select(x => x.SegmentId).Reverse().ToArray());
+                    ReadOnlySegmentQueue.Select(x => x.SegmentId).ToArray(),
+                    BottomSegmentQueue.Select(x => x.SegmentId).ToArray());
             }
     }
 
@@ -226,10 +227,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         MutableSegment.Drop();
         DiskSegment.Drop();
         DiskSegment.Dispose();
-        var readOnlySegments = ReadOnlySegmentQueue.ToArray();
-        foreach (var ros in readOnlySegments)
+        foreach (var ros in ReadOnlySegmentQueue)
             ros.Drop();
-        foreach (var bs in BottomSegmentQueue.ToArray())
+        foreach (var bs in BottomSegmentQueue)
             bs.Drop();
         Options.WriteAheadLogProvider.DropStore();
         Options.RandomAccessDeviceManager.DropStore();

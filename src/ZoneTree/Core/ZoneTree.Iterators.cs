@@ -13,13 +13,13 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         lock (ShortMergerLock)
             lock (AtomicUpdateLock)
             {
-                var roSegments = ReadOnlySegmentQueue.ToArray();
+                var roSegments = ReadOnlySegmentQueue.ToLastInFirstArray();
                 var seekableIterators = new List<ISeekableIterator<TKey, TValue>>();
                 if (includeMutableSegment)
                     seekableIterators.Add(MutableSegment.GetSeekableIterator());
 
                 var readOnlySegmentsArray = roSegments.Select(x => x.GetSeekableIterator()).ToArray();
-                seekableIterators.AddRange(readOnlySegmentsArray.Reverse());
+                seekableIterators.AddRange(readOnlySegmentsArray);
 
                 var result = new SegmentCollection
                 {
@@ -39,7 +39,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
                 if (includeBottomSegments)
                 {
-                    var bottomSegments = BottomSegmentQueue.Reverse().ToArray();
+                    var bottomSegments = BottomSegmentQueue.ToLastInFirstArray();
                     foreach (var bottom in bottomSegments)
                     {
                         bottom.AttachIterator();
@@ -56,8 +56,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         public IReadOnlyList<ISeekableIterator<TKey, TValue>> SeekableIterators { get; set; }
 
         public IDiskSegment<TKey, TValue> DiskSegment { get; set; }
-        
-        public IDiskSegment<TKey, TValue>[] BottomSegments { get; set; }
+
+        public IReadOnlyList<IDiskSegment<TKey, TValue>> BottomSegments { get; set; }
     }
 
     public IZoneTreeIterator<TKey, TValue> CreateIterator(
