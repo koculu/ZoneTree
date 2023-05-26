@@ -33,7 +33,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
         /// </summary>
         public volatile int End = 0;
 
-        public volatile TQueueItem[] Items = new TQueueItem[ChunkSize];
+        public volatile TQueueItem[] Items;
 
         public bool IsEmpty => Start == End;
 
@@ -44,6 +44,18 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
                 var size = Items.Length;
                 return (End + size - Start) % size;
             }
+        }
+
+        public QueueItemsChunk()
+        {
+            Items = new TQueueItem[ChunkSize];
+        }
+
+        public QueueItemsChunk(TQueueItem[] items, int start, int end)
+        {
+            Items = items;
+            Start = start;
+            End = end;
         }
 
         public IReadOnlyList<TQueueItem> ToFirstInFirstArray()
@@ -126,12 +138,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
                     Array.Fill(newItems, null, 0, end);
                     end = size + chunk.End;
                 }
-                chunk = Chunk = new QueueItemsChunk
-                {
-                    Items = newItems,
-                    Start = chunk.Start,
-                    End = end
-                };
+                chunk = Chunk = new QueueItemsChunk(newItems, chunk.Start, end);
                 items = newItems;
             }
             size *= 2;
