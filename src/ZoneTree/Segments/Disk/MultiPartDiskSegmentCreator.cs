@@ -17,7 +17,11 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
 
     readonly IIncrementalIdProvider IncrementalIdProvider;
 
+#pragma warning disable CA2213 // Dispose is required in case of drop and handled by parts drops.
+
     DiskSegmentCreator<TKey, TValue> NextCreator;
+
+#pragma warning restore CA2213
 
     readonly int DiskSegmentMaximumRecordCount;
 

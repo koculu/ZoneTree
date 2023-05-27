@@ -15,8 +15,7 @@ using System.Runtime.Intrinsics.X86;
 [assembly: SuppressMessage(
     "Design",
     "CA1031: Do not catch general exception types",
-    Justification = "Exceptions are logged.")]
-
+    Justification = "Exceptions are logged and handled by events.")]
 
 [assembly: SuppressMessage(
     "Design",
@@ -84,3 +83,13 @@ using System.Runtime.Intrinsics.X86;
     "Design",
     "CA1034: Nested types should not be visible",
     Justification = "Disabled for now.")]
+
+[assembly: SuppressMessage(
+    "Naming",
+    "CA1716: Identifiers should not match keywords",
+    Justification = "Who reserved Next() keyword?")]
+
+[assembly: SuppressMessage(
+    "Naming",
+    "CA1724: Type names should not match namespaces",
+    Justification = "Generic types and namespaces has no collision.")]

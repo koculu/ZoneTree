@@ -1,5 +1,7 @@
 ﻿namespace Tenray.ZoneTree.Collections.BTree.Lock;
 
+#pragma warning disable CA1001
+
 public sealed class ReadWriteLock : ILocker
 {
     readonly ReaderWriterLockSlim Locker = new(LockRecursionPolicy.SupportsRecursion);
@@ -28,4 +30,8 @@ public sealed class ReadWriteLock : ILocker
     {
         return Locker.TryEnterWriteLock(millisecondsTimeout);
     }
+
+    ~ReadWriteLock() => Locker.Dispose();
 }
+
+#pragma warning restore CA1001
