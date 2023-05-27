@@ -9,6 +9,9 @@ namespace Tenray.ZoneTree.Segments.DiskSegmentVariations;
 
 public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<TKey, TValue>
 {
+    public override int ReadBufferCount =>
+        (DataDevice?.ReadBufferCount ?? 0);
+
     public unsafe FixedSizeKeyAndValueDiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options) : base(segmentId, options)
@@ -31,8 +34,7 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
 
     public unsafe FixedSizeKeyAndValueDiskSegment(long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
-        IRandomAccessDevice dataHeaderDevice,
-        IRandomAccessDevice dataDevice) : base(segmentId, options, dataHeaderDevice, dataDevice)
+        IRandomAccessDevice dataDevice) : base(segmentId, options, dataDevice)
     {
         EnsureKeyAndValueTypesAreSupported();
         InitKeyAndValueSizeAndDataLength();
@@ -91,5 +93,20 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
         {
             Interlocked.Decrement(ref ReadCount);
         }
+    }
+
+    protected override void DeleteDevices()
+    {
+        DataDevice?.Delete();
+    }
+
+    public override void ReleaseResources()
+    {
+        DataDevice?.Dispose();
+    }
+
+    public override int ReleaseReadBuffers(long ticks)
+    {
+        return DataDevice?.ReleaseReadBuffers(ticks) ?? 0;
     }
 }

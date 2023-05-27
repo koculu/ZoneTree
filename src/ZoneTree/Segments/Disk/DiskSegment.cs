@@ -18,8 +18,6 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     protected readonly ISerializer<TValue> ValueSerializer;
 
-    protected IRandomAccessDevice DataHeaderDevice;
-
     protected IRandomAccessDevice DataDevice;
 
     protected int KeySize;
@@ -48,9 +46,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public bool IsIterativeIndexReader => false;
 
-    public int ReadBufferCount =>
-                    (DataDevice?.ReadBufferCount ?? 0) +
-                    (DataHeaderDevice?.ReadBufferCount ?? 0);
+    public abstract int ReadBufferCount { get; }
 
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
@@ -66,11 +62,9 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     protected unsafe DiskSegment(long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
-        IRandomAccessDevice dataHeaderDevice,
         IRandomAccessDevice dataDevice)
     {
         SegmentId = segmentId;
-        DataHeaderDevice = dataHeaderDevice;
         DataDevice = dataDevice;
 
         Comparer = options.Comparer;
@@ -351,11 +345,12 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
             // No active reads remaining.
             // Safe to drop.
 
-            DataHeaderDevice?.Delete();
-            DataDevice.Delete();
+            DeleteDevices();
             IsDropped = true;
         }
     }
+
+    protected abstract void DeleteDevices();
 
     public IIndexedReader<TKey, TValue> GetIndexedReader()
     {
@@ -465,18 +460,12 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return GetFirstGreaterOrEqualPosition(in key, lower, upper);
     }
 
-    public void ReleaseResources()
+    public virtual void ReleaseResources()
     {
-        DataHeaderDevice?.Dispose();
-        DataDevice.Dispose();
+        DataDevice?.Dispose();
     }
 
-    public int ReleaseReadBuffers(long ticks)
-    {
-        var a = DataHeaderDevice?.ReleaseReadBuffers(ticks) ?? 0;
-        var b = DataDevice?.ReleaseReadBuffers(ticks) ?? 0;
-        return a + b;
-    }
+    public abstract int ReleaseReadBuffers(long ticks);
 
     public void Drop(HashSet<long> excludedPartIds)
     {

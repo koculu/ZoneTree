@@ -35,7 +35,7 @@ public static class DiskSegmentFactory
         var hasFixedSizeKey = !RuntimeHelpers.IsReferenceOrContainsReferences<TKey>();
         var hasFixedSizeValue = !RuntimeHelpers.IsReferenceOrContainsReferences<TValue>();
         if (hasFixedSizeKey && hasFixedSizeValue)
-            return new FixedSizeKeyAndValueDiskSegment<TKey, TValue>(segmentId, options, dataHeaderDevice, dataDevice);
+            return new FixedSizeKeyAndValueDiskSegment<TKey, TValue>(segmentId, options, dataDevice);
         if (hasFixedSizeKey)
             return new FixedSizeKeyDiskSegment<TKey, TValue>(segmentId, options, dataHeaderDevice, dataDevice);
         if (hasFixedSizeValue)

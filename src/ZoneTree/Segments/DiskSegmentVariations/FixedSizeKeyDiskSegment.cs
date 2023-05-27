@@ -12,6 +12,11 @@ namespace Tenray.ZoneTree.Segments.DiskSegmentVariations;
 
 public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TValue>
 {
+    readonly IRandomAccessDevice DataHeaderDevice;
+
+    public override int ReadBufferCount =>
+        (DataDevice?.ReadBufferCount ?? 0) + (DataHeaderDevice?.ReadBufferCount ?? 0);
+
     public unsafe FixedSizeKeyDiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options) : base(segmentId, options)
@@ -46,8 +51,9 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
     public unsafe FixedSizeKeyDiskSegment(long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IRandomAccessDevice dataHeaderDevice,
-        IRandomAccessDevice dataDevice) : base(segmentId, options, dataHeaderDevice, dataDevice)
+        IRandomAccessDevice dataDevice) : base(segmentId, options, dataDevice)
     {
+        DataHeaderDevice = dataHeaderDevice;
         EnsureKeyAndValueTypesAreSupported();
         InitKeySizeAndDataLength();
     }
@@ -108,5 +114,24 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
         {
             Interlocked.Decrement(ref ReadCount);
         }
+    }
+
+    protected override void DeleteDevices()
+    {
+        DataHeaderDevice?.Delete();
+        DataDevice?.Delete();
+    }
+
+    public override void ReleaseResources()
+    {
+        DataHeaderDevice?.Dispose();
+        DataDevice?.Dispose();
+    }
+
+    public override int ReleaseReadBuffers(long ticks)
+    {
+        var a = DataHeaderDevice?.ReleaseReadBuffers(ticks) ?? 0;
+        var b = DataDevice?.ReleaseReadBuffers(ticks) ?? 0;
+        return a + b;
     }
 }
