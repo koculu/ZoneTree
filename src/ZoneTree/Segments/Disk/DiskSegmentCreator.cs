@@ -131,7 +131,7 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         DataDevice?.SealDevice();
         DataHeaderDevice?.ReleaseReadBuffers(0);
         DataDevice?.ReleaseReadBuffers(0);
-        var diskSegment = new DiskSegment<TKey, TValue>(
+        var diskSegment = DiskSegmentFactory.CreateDiskSegment<TKey, TValue>(
             SegmentId, Options,
             DataHeaderDevice, DataDevice);
         DataHeaderDevice = null;

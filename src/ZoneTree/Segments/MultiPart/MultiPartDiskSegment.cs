@@ -168,7 +168,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         for (var i = 0; i < partCount; ++i)
         {
             var partSegmentId = br.ReadInt64();
-            var part = new DiskSegment<TKey, TValue>(partSegmentId, options);
+            var part = DiskSegmentFactory.CreateDiskSegment(partSegmentId, options);
             parts[i] = part;
         }
         return parts;

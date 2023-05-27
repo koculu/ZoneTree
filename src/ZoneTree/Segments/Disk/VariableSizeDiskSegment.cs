@@ -91,7 +91,6 @@ public sealed class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
             {
                 throw new DiskSegmentIsDroppingException();
             }
-
             var headBytes = DataHeaderDevice.GetBytes((long)index * sizeof(EntryHead) + sizeof(KeyHead), sizeof(ValueHead));
             var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
             var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);

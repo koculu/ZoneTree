@@ -7,7 +7,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
-public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
+public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
     public long SegmentId { get; }
 
@@ -16,12 +16,6 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     protected readonly ISerializer<TKey> KeySerializer;
 
     protected readonly ISerializer<TValue> ValueSerializer;
-
-    readonly bool HasFixedSizeKey;
-
-    readonly bool HasFixedSizeValue;
-
-    readonly bool HasFixedSizeKeyAndValue;
 
     protected IRandomAccessDevice DataHeaderDevice;
 
@@ -59,7 +53,7 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
-    public unsafe DiskSegment(
+    protected unsafe DiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options)
     {
@@ -67,57 +61,9 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         Comparer = options.Comparer;
         KeySerializer = options.KeySerializer;
         ValueSerializer = options.ValueSerializer;
-
-        HasFixedSizeKey = !RuntimeHelpers.IsReferenceOrContainsReferences<TKey>();
-        HasFixedSizeValue = !RuntimeHelpers.IsReferenceOrContainsReferences<TValue>();
-        HasFixedSizeKeyAndValue = HasFixedSizeKey && HasFixedSizeValue;
-
-        var randomDeviceManager = options.RandomAccessDeviceManager;
-        var diskOptions = options.DiskSegmentOptions;
-        if (!HasFixedSizeKeyAndValue)
-            DataHeaderDevice = randomDeviceManager
-                .GetReadOnlyDevice(
-                    SegmentId,
-                    DiskSegmentConstants.DataHeaderCategory,
-                    diskOptions.EnableCompression,
-                    diskOptions.CompressionBlockSize,
-                    diskOptions.BlockCacheLimit,
-                    diskOptions.CompressionMethod,
-                    diskOptions.CompressionLevel,
-                    diskOptions.BlockCacheReplacementWarningDuration
-                    );
-        DataDevice = randomDeviceManager
-            .GetReadOnlyDevice(
-                SegmentId,
-                DiskSegmentConstants.DataCategory,
-                diskOptions.EnableCompression,
-                diskOptions.CompressionBlockSize,
-                diskOptions.BlockCacheLimit,
-                diskOptions.CompressionMethod,
-                diskOptions.CompressionLevel,
-                diskOptions.BlockCacheReplacementWarningDuration);
-
-        KeySize = Unsafe.SizeOf<TKey>();
-        ValueSize = Unsafe.SizeOf<TValue>();
-        if (HasFixedSizeKeyAndValue)
-        {
-            Length = DataDevice.Length / (KeySize + ValueSize);
-        }
-        else if (HasFixedSizeKey)
-        {
-            Length = DataHeaderDevice.Length / (KeySize + sizeof(ValueHead));
-        }
-        else if (HasFixedSizeValue)
-        {
-            Length = DataHeaderDevice.Length / (ValueSize + sizeof(KeyHead));
-        }
-        else
-        {
-            Length = DataHeaderDevice.Length / sizeof(EntryHead);
-        }
     }
 
-    public unsafe DiskSegment(long segmentId,
+    protected unsafe DiskSegment(long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IRandomAccessDevice dataHeaderDevice,
         IRandomAccessDevice dataDevice)
@@ -129,29 +75,6 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         Comparer = options.Comparer;
         KeySerializer = options.KeySerializer;
         ValueSerializer = options.ValueSerializer;
-
-        HasFixedSizeKey = !RuntimeHelpers.IsReferenceOrContainsReferences<TKey>();
-        HasFixedSizeValue = !RuntimeHelpers.IsReferenceOrContainsReferences<TValue>();
-        HasFixedSizeKeyAndValue = HasFixedSizeKey && HasFixedSizeValue;
-        KeySize = Unsafe.SizeOf<TKey>();
-        ValueSize = Unsafe.SizeOf<TValue>();
-
-        if (HasFixedSizeKeyAndValue)
-        {
-            Length = DataDevice.Length / (KeySize + ValueSize);
-        }
-        else if (HasFixedSizeKey)
-        {
-            Length = DataHeaderDevice.Length / (KeySize + sizeof(ValueHead));
-        }
-        else if (HasFixedSizeValue)
-        {
-            Length = DataHeaderDevice.Length / (ValueSize + sizeof(KeyHead));
-        }
-        else
-        {
-            Length = DataHeaderDevice.Length / sizeof(EntryHead);
-        }
     }
 
     public bool ContainsKey(in TKey key)
@@ -258,93 +181,9 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return sparseArrayEntry;
     }
 
-    protected virtual unsafe TKey ReadKey(long index)
-    {
-        try
-        {
-            Interlocked.Increment(ref ReadCount);
-            if (IsDroppping)
-            {
-                throw new DiskSegmentIsDroppingException();
-            }
-            if (HasFixedSizeKeyAndValue)
-            {
-                var itemSize = KeySize + ValueSize;
-                var keyBytes = DataDevice.GetBytes(itemSize * index, KeySize);
-                return KeySerializer.Deserialize(keyBytes);
-            }
-            else if (HasFixedSizeKey)
-            {
-                var headSize = sizeof(ValueHead) + KeySize;
-                var keyBytes = DataHeaderDevice.GetBytes(index * headSize, KeySize);
-                return KeySerializer.Deserialize(keyBytes);
-            }
-            else if (HasFixedSizeValue)
-            {
-                var headSize = sizeof(KeyHead) + ValueSize;
-                var headBytes = DataHeaderDevice.GetBytes(index * headSize, sizeof(KeyHead));
-                var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
-                var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
-                return KeySerializer.Deserialize(keyBytes);
-            }
-            else
-            {
-                var headBytes = DataHeaderDevice.GetBytes(index * sizeof(EntryHead), sizeof(KeyHead));
-                var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
-                var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
-                return KeySerializer.Deserialize(keyBytes);
-            }
-        }
-        finally
-        {
-            Interlocked.Decrement(ref ReadCount);
-        }
-    }
+    protected abstract unsafe TKey ReadKey(long index);
 
-    protected virtual unsafe TValue ReadValue(long index)
-    {
-        try
-        {
-            Interlocked.Increment(ref ReadCount);
-            if (IsDroppping)
-            {
-                throw new DiskSegmentIsDroppingException();
-            }
-            if (HasFixedSizeKeyAndValue)
-            {
-                var itemSize = KeySize + ValueSize;
-                var valueBytes = DataDevice.GetBytes(itemSize * index + KeySize, ValueSize);
-                return ValueSerializer.Deserialize(valueBytes);
-            }
-            else if (HasFixedSizeKey)
-            {
-                var headSize = sizeof(ValueHead) + KeySize;
-                var headBytes = DataHeaderDevice
-                    .GetBytes((long)index * headSize + KeySize, sizeof(ValueHead));
-                var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
-                var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
-                return ValueSerializer.Deserialize(valueBytes);
-            }
-            else if (HasFixedSizeValue)
-            {
-                var headSize = sizeof(KeyHead) + ValueSize;
-                var valueBytes = DataHeaderDevice
-                    .GetBytes((long)index * headSize + sizeof(KeyHead), ValueSize);
-                return ValueSerializer.Deserialize(valueBytes);
-            }
-            else
-            {
-                var headBytes = DataHeaderDevice.GetBytes((long)index * sizeof(EntryHead) + sizeof(KeyHead), sizeof(ValueHead));
-                var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
-                var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
-                return ValueSerializer.Deserialize(valueBytes);
-            }
-        }
-        finally
-        {
-            Interlocked.Decrement(ref ReadCount);
-        }
-    }
+    protected abstract unsafe TValue ReadValue(long index);
 
     /// <summary>
     /// Finds the position of element that is greater or equal than key.
@@ -469,6 +308,12 @@ public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public void Dispose()
     {
         ReleaseResources();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
     }
 
     public void Drop()

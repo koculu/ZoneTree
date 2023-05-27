@@ -183,7 +183,7 @@ public sealed class ZoneTreeLoader<TKey, TValue>
             DiskSegment = new MultiPartDiskSegment<TKey, TValue>(segmentId, Options);
             return;
         }
-        DiskSegment = new DiskSegment<TKey, TValue>(segmentId, Options);
+        DiskSegment = DiskSegmentFactory.CreateDiskSegment(segmentId, Options);
     }
 
     void LoadBottomSegments()
@@ -202,7 +202,7 @@ public sealed class ZoneTreeLoader<TKey, TValue>
             }
             else
             {
-                var ds = new DiskSegment<TKey, TValue>(segmentId, Options);
+                var ds = DiskSegmentFactory.CreateDiskSegment(segmentId, Options);
                 map.AddOrUpdate(segmentId, ds, (_, _) => ds);
             }
         });

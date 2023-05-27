@@ -38,7 +38,7 @@ public sealed class RecoverFile
             = WriteAheadLogMode.AsyncCompressed;
 
         var stopWatch = new Stopwatch();
-        var disk = new DiskSegment<string, string>(54, options);
+        var disk = DiskSegmentFactory.CreateDiskSegment(54, options);
         disk.InitSparseArray(100);
 
         Console.WriteLine("Elapsed: " + stopWatch.ElapsedMilliseconds);
@@ -57,7 +57,7 @@ public sealed class RecoverFile
             WriteAheadLogProvider = new WriteAheadLogProvider(
                 new ConsoleLogger(), fileStreamProvider, path),
             WriteAheadLogOptions = meta.WriteAheadLogOptions,
-            RandomAccessDeviceManager = deviceManager,            
+            RandomAccessDeviceManager = deviceManager,
             DiskSegmentOptions = new()
             {
                 CompressionBlockSize = meta.DiskSegmentOptions.CompressionBlockSize,
