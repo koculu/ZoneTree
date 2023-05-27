@@ -7,15 +7,15 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
-public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
+public class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
     public long SegmentId { get; }
 
     readonly IRefComparer<TKey> Comparer;
 
-    readonly ISerializer<TKey> KeySerializer;
+    protected readonly ISerializer<TKey> KeySerializer;
 
-    readonly ISerializer<TValue> ValueSerializer;
+    protected readonly ISerializer<TValue> ValueSerializer;
 
     readonly bool HasFixedSizeKey;
 
@@ -23,29 +23,29 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     readonly bool HasFixedSizeKeyAndValue;
 
-    readonly IRandomAccessDevice DataHeaderDevice;
+    protected IRandomAccessDevice DataHeaderDevice;
 
-    readonly IRandomAccessDevice DataDevice;
+    protected IRandomAccessDevice DataDevice;
 
-    readonly int KeySize;
+    protected int KeySize;
 
-    readonly int ValueSize;
+    protected int ValueSize;
 
     IReadOnlyList<SparseArrayEntry<TKey, TValue>> SparseArray = Array.Empty<SparseArrayEntry<TKey, TValue>>();
 
     int IteratorReaderCount;
 
-    volatile int ReadCount;
+    protected volatile int ReadCount;
 
     volatile bool IsDropRequested;
 
-    volatile bool IsDroppping;
+    protected volatile bool IsDroppping;
 
     bool IsDropped;
 
     readonly object DropLock = new();
 
-    public long Length { get; }
+    public long Length { get; protected set; }
 
     public long MaximumOpIndex => 0;
 
@@ -258,7 +258,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return sparseArrayEntry;
     }
 
-    unsafe TKey ReadKey(long index)
+    protected virtual unsafe TKey ReadKey(long index)
     {
         try
         {
@@ -301,7 +301,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         }
     }
 
-    unsafe TValue ReadValue(long index)
+    protected virtual unsafe TValue ReadValue(long index)
     {
         try
         {
@@ -503,8 +503,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
             // No active reads remaining.
             // Safe to drop.
 
-            if (!HasFixedSizeKeyAndValue)
-                DataHeaderDevice.Delete();
+            DataHeaderDevice?.Delete();
             DataDevice.Delete();
             IsDropped = true;
         }
@@ -620,8 +619,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public void ReleaseResources()
     {
-        if (!HasFixedSizeKeyAndValue)
-            DataHeaderDevice.Dispose();
+        DataHeaderDevice?.Dispose();
         DataDevice.Dispose();
     }
 
