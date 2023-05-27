@@ -49,7 +49,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             Device = Options
                 .RandomAccessDeviceManager
                 .CreateWritableDevice(
-                    ZoneTreeMetaId, 
+                    ZoneTreeMetaId,
                     MetaWalCategory,
                     isCompressed: false,
                     compressionBlockSize: 0,
@@ -281,7 +281,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
                 maxCachedBlockCount: 0,
                 MetaWALCompressionMethod,
                 MetaWALCompressionLevel,
-                blockCacheReplacementWarningDuration: 0); 
+                blockCacheReplacementWarningDuration: 0);
 
         if (device.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(device.Length, int.MaxValue);
@@ -311,6 +311,6 @@ public struct MetaWalRecord
     public MetaWalOperation Operation;
 
     public long SegmentId;
-    
+
     public int Index;
 }

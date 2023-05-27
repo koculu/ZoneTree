@@ -15,7 +15,7 @@ public sealed partial class BTree<TKey, TValue>
 
         public Node[] Children;
 
-        public int Length = 0;
+        public int Length;
 
         public bool IsFull => Keys.Length == Length;
 
@@ -127,8 +127,8 @@ public sealed partial class BTree<TKey, TValue>
             right.Length = len2;
             Array.Copy(Keys, 0, left.Keys, 0, len1);
             Array.Copy(Children, 0, left.Children, 0, len1 + 1);
-            Array.Copy(Keys, middle+1, right.Keys, 0, len2);
-            Array.Copy(Children, middle+1, right.Children, 0, len2+1);
+            Array.Copy(Keys, middle + 1, right.Keys, 0, len2);
+            Array.Copy(Children, middle + 1, right.Children, 0, len2 + 1);
             return (left, right);
         }
 
@@ -136,11 +136,11 @@ public sealed partial class BTree<TKey, TValue>
         {
             if (Children == null)
                 return;
-            for(var i = 0; i < Length; ++i)
+            for (var i = 0; i < Length; ++i)
             {
                 var key = Keys[i];
                 Children[i].EnsureKeysAreSmallerThan(comparer, key);
-                Children[i+1].EnsureKeysAreGreaterOrEqualThan(comparer, key);
+                Children[i + 1].EnsureKeysAreGreaterOrEqualThan(comparer, key);
             }
             for (var i = 0; i <= Length; ++i)
             {
@@ -171,8 +171,8 @@ public sealed partial class BTree<TKey, TValue>
         public virtual Node CloneWithNoLock()
         {
             var len = Length;
-            var node = new Node(NoLock.Instance, len, Keys, new Node[len+1]);
-            for(var i = 0; i <= len; ++i)
+            var node = new Node(NoLock.Instance, len, Keys, new Node[len + 1]);
+            for (var i = 0; i <= len; ++i)
             {
                 node.Children[i] = Children[i].CloneWithNoLock();
             }

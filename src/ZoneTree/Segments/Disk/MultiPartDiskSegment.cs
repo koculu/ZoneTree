@@ -25,9 +25,9 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
     int IteratorReaderCount;
 
-    bool IsDropRequested = false;
+    bool IsDropRequested;
 
-    bool IsDropped = false;
+    bool IsDropped;
 
     readonly object DropLock = new();
 

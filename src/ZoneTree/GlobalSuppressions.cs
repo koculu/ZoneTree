@@ -23,3 +23,29 @@ using System.Runtime.Intrinsics.X86;
     Justification = "Several string comparison types are supported by comparers.",
     Scope = "namespaceanddescendants",
     Target = "Tenray.ZoneTree.Comparers")]
+
+[assembly: SuppressMessage(
+    "Naming",
+    "CA1711: Identifiers should not have incorrect suffix",
+    Justification = "A custom queue ends with a Queue...")]
+
+[assembly: SuppressMessage(
+    "Naming",
+    "CA1707: Identifiers should not contain underscores",
+    Justification = "Underscores are good for SSE2, X64 like abbrevations.")]
+
+[assembly: SuppressMessage(
+    "Security",
+    "CA5394: Do not use insecure randomness",
+    Justification = "Randoms are not used for security.")]
+
+[assembly: SuppressMessage(
+    "Performance",
+    "CA1819: Properties should not return arrays",
+    Justification = "This is not a business application and returned arrays are not cloned.")]
+
+[assembly: SuppressMessage(
+    "Design",
+    "CA1000: Do not declare static members on generic types",
+    Justification = "Not critical.")]
+

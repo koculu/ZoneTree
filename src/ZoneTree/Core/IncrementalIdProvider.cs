@@ -2,7 +2,7 @@
 
 public sealed class IncrementalIdProvider : IIncrementalIdProvider
 {
-    long lastId = 0;
+    long lastId;
 
     public long LastId => Volatile.Read(ref lastId);
 

@@ -34,7 +34,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
     bool HasPrev;
 
-    TKey PrevKey = default;
+    TKey PrevKey;
 
     TKey currentKey;
 

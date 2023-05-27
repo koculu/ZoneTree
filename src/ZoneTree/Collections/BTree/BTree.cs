@@ -35,7 +35,7 @@ public sealed partial class BTree<TKey, TValue>
     public IIncrementalIdProvider OpIndexProvider { get; }
 
     volatile bool _isReadOnly;
-    
+
     public bool IsReadOnly { get => _isReadOnly; set => _isReadOnly = value; }
 
     public BTree(
@@ -115,13 +115,13 @@ public sealed partial class BTree<TKey, TValue>
 
     public FrozenNodeIterator GetFrozenIteratorWithLastKeySmallerOrEqual(in TKey key)
     {
-        var iterator = GetFrozenLeafNode(key).GetFrozenIterator();
+        var iterator = GetFrozenLeafNode(key).CreateFrozenIterator();
         return iterator.SeekLastKeySmallerOrEqual(Comparer, in key);
     }
 
     public FrozenNodeIterator GetFrozenIteratorWithFirstKeyGreaterOrEqual(in TKey key)
     {
-        var iterator = GetFrozenLeafNode(key).GetFrozenIterator();
+        var iterator = GetFrozenLeafNode(key).CreateFrozenIterator();
         return iterator.SeekFirstKeyGreaterOrEqual(Comparer, in key);
     }
 
@@ -141,7 +141,7 @@ public sealed partial class BTree<TKey, TValue>
 
     public FrozenNodeIterator GetFrozenFirstIterator()
     {
-        return FirstLeafNode.GetFrozenIterator();
+        return FirstLeafNode.CreateFrozenIterator();
     }
 
     public NodeIterator GetLastIterator()
@@ -160,12 +160,11 @@ public sealed partial class BTree<TKey, TValue>
 
     public FrozenNodeIterator GetFrozenLastIterator()
     {
-        return LastLeafNode.GetFrozenIterator();
+        return LastLeafNode.CreateFrozenIterator();
     }
 
     public void SetNextOpIndex(long nextId)
         => OpIndexProvider.SetNextId(nextId);
 
-    public long GetLastOpIndex()
-        => OpIndexProvider.LastId;
+    public long LastOpIndex => OpIndexProvider.LastId;
 }

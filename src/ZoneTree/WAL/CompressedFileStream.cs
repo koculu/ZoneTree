@@ -14,7 +14,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
     readonly int BlockSize;
 
     readonly CompressionMethod CompressionMethod;
-    
+
     readonly int CompressionLevel;
 
     readonly IFileStream FileStream;
@@ -32,7 +32,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
     readonly BinaryWriter BinaryWriter;
 
     readonly BinaryReader BinaryTailReader;
-    
+
     readonly BinaryWriter BinaryTailWriter;
 
     long _length;
@@ -43,9 +43,9 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
     volatile int LastWrittenTailIndex = -1;
 
-    volatile int LastWrittenTailLength = 0;
+    volatile int LastWrittenTailLength;
 
-    volatile bool IsClosed = false;
+    volatile bool IsClosed;
 
     public string FilePath { get; }
 
@@ -154,13 +154,13 @@ public sealed class CompressedFileStream : Stream, IDisposable
     void TailWriteLoop()
     {
         IsTailWriterRunning = true;
-        while(IsTailWriterRunning)
+        while (IsTailWriterRunning)
         {
             try
             {
                 WriteTail();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Logger.LogError(e);
             }
@@ -263,9 +263,9 @@ public sealed class CompressedFileStream : Stream, IDisposable
         var bytes = BinaryReader.ReadBytes(3 * sizeof(int));
         var blockIndex =
             BinarySerializerHelper.FromByteArray<int>(bytes, 0);
-        var compressedBlockSize = 
+        var compressedBlockSize =
             BinarySerializerHelper.FromByteArray<int>(bytes, sizeof(int));
-        var blockSize = 
+        var blockSize =
             BinarySerializerHelper.FromByteArray<int>(bytes, 2 * sizeof(int));
 
         bytes = BinaryReader.ReadBytes(compressedBlockSize);
@@ -370,7 +370,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         var b = CurrentBlockPosition + offset;
         while (b > CurrentBlock.Length)
         {
-            if(!CurrentBlock.IsFull)
+            if (!CurrentBlock.IsFull)
                 break;
             if (!LoadNextBlock())
                 break;
@@ -508,7 +508,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
             var totalCount = count;
             while (true)
             {
-                var writeLen = TailBlock.Append(buffer.AsSpan(offset, count));                
+                var writeLen = TailBlock.Append(buffer.AsSpan(offset, count));
                 totalWriteLen += writeLen;
                 _length += writeLen;
                 Position += writeLen;

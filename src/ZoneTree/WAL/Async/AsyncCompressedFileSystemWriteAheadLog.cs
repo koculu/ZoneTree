@@ -44,9 +44,9 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
 
     readonly object AppendLock = new();
 
-    volatile bool isRunning = false;
+    volatile bool isRunning;
 
-    volatile bool isWriterCancelled = false;
+    volatile bool isWriterCancelled;
 
     volatile Task WriteTask;
 

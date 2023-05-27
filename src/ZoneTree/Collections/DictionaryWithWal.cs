@@ -36,7 +36,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 
     public int Length => Dictionary.Count;
 
-    volatile int _logLength = 0;
+    volatile int _logLength;
 
     public int LogLength => _logLength;
 
@@ -49,7 +49,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
     public DictionaryWithWAL(
         long segmentId,
         string category,
-        IWriteAheadLogProvider writeAheadLogProvider, 
+        IWriteAheadLogProvider writeAheadLogProvider,
         WriteAheadLogOptions options,
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,

@@ -12,9 +12,9 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 {
     readonly ZoneTreeOptions<TKey, TValue> Options;
 
-    volatile bool IsFrozenFlag = false;
+    volatile bool IsFrozenFlag;
 
-    volatile int WritesInProgress = 0;
+    volatile int WritesInProgress;
 
     readonly MarkValueDeletedDelegate<TValue> MarkValueDeleted;
 
@@ -34,7 +34,7 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
     public long Length => BTree.Length;
 
-    public long MaximumOpIndex => BTree.GetLastOpIndex();
+    public long MaximumOpIndex => BTree.LastOpIndex;
 
     public IIncrementalIdProvider OpIndexProvider => BTree.OpIndexProvider;
 
@@ -181,7 +181,7 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             BTree.SetTreeReadOnlyAndLockFree();
 
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             Options.Logger.LogError(e);
         }

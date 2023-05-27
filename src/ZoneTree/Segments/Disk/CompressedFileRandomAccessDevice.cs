@@ -14,7 +14,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     readonly int BlockSize;
 
     readonly CompressionMethod CompressionMethod;
-    
+
     readonly int CompressionLevel;
 
     readonly string Category;
@@ -36,18 +36,18 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     readonly CircularBlockCache CircularBlockCache;
 
     readonly List<long> CompressedBlockPositions = new();
-    
+
     readonly List<int> CompressedBlockLengths = new();
 
     readonly List<int> DecompressedBlockLengths = new();
 
     readonly object[] BlockReadLocks = new object[33];
 
-    int NextBlockIndex = 0;
+    int NextBlockIndex;
 
     DecompressedBlock NextBlock;
 
-    int LastBlockLength = 0;
+    int LastBlockLength;
 
     public string FilePath { get; }
 
@@ -121,7 +121,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             CompressionMethod = meta.CompressionMethod;
 
             (CompressedBlockPositions,
-             CompressedBlockLengths, 
+             CompressedBlockLengths,
              DecompressedBlockLengths) =
                 ReadCompressedBlockPositionsAndLengths();
             NextBlockIndex = CompressedBlockPositions.Count - 1;
@@ -166,7 +166,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         var pos = GetLength();
         var len = bytes.Length;
         var copyLen = 0;
-        while(copyLen < len)
+        while (copyLen < len)
         {
             copyLen += AppendBytesInternal(bytes.AsSpan(copyLen));
         }
@@ -287,7 +287,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             .FromCompressed(
                 blockIndex, compressedBytes,
                 CompressionMethod, CompressionLevel, decompressedLength);
-        decompressedBlock.LastAccessTicks = Environment.TickCount64; 
+        decompressedBlock.LastAccessTicks = Environment.TickCount64;
         return decompressedBlock;
     }
 
@@ -379,7 +379,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
      List<int> compressedLengths,
      List<int> decompressedLengths) ReadCompressedBlockPositionsAndLengths()
     {
-        FileStream.Seek(- sizeof(int) - sizeof(long), SeekOrigin.End);
+        FileStream.Seek(-sizeof(int) - sizeof(long), SeekOrigin.End);
         var br = BinaryReader;
         var len = br.ReadInt32();
         var offset = br.ReadInt64();
@@ -398,7 +398,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public int ReleaseReadBuffers(long ticks)
     {
-        if (NextBlock != null && 
+        if (NextBlock != null &&
             NextBlock.LastAccessTicks <= ticks)
         {
             NextBlock = null;

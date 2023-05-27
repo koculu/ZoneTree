@@ -26,12 +26,12 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
         /// <summary>
         /// Start of the queue inclusive.
         /// </summary>
-        public volatile int Start = 0;
+        public volatile int Start;
 
         /// <summary>
         /// End of the queue exclusive.
         /// </summary>
-        public volatile int End = 0;
+        public volatile int End;
 
         public volatile TQueueItem[] Items;
 

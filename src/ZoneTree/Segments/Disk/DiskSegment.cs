@@ -37,11 +37,11 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     volatile int ReadCount;
 
-    volatile bool IsDropRequested = false;
+    volatile bool IsDropRequested;
 
-    volatile bool IsDroppping = false;
+    volatile bool IsDroppping;
 
-    bool IsDropped = false;
+    bool IsDropped;
 
     readonly object DropLock = new();
 
@@ -53,7 +53,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public bool IsIterativeIndexReader => false;
 
-    public int ReadBufferCount => 
+    public int ReadBufferCount =>
                     (DataDevice?.ReadBufferCount ?? 0) +
                     (DataHeaderDevice?.ReadBufferCount ?? 0);
 
@@ -117,7 +117,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         }
     }
 
-    public unsafe DiskSegment(long segmentId, 
+    public unsafe DiskSegment(long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IRandomAccessDevice dataHeaderDevice,
         IRandomAccessDevice dataDevice)
@@ -445,7 +445,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         // not present
         return -1;
     }
-    
+
     public TKey[] GetFirstKeysOfEveryPart()
     {
         return Array.Empty<TKey>();
@@ -485,7 +485,7 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
                 IsDropRequested = true;
                 return;
             }
-            
+
             // reads will increase ReadCount when they begin,
             // and decrease ReadCount when they end.
             IsDroppping = true;
