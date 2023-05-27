@@ -19,7 +19,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
     : IEnumerable<TQueueItem>
     where TQueueItem : class
 {
-    class QueueItemsChunk
+    sealed class QueueItemsChunk
     {
         const int ChunkSize = 16;
 
@@ -178,7 +178,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
 
     public IReadOnlyList<TQueueItem> ToFirstInFirstArray() => Chunk.ToFirstInFirstArray();
 
-    class LastInFirstEnumerator : IEnumerator<TQueueItem>
+    sealed class LastInFirstEnumerator : IEnumerator<TQueueItem>
     {
         TQueueItem current;
 
