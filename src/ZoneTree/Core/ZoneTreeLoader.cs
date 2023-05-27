@@ -32,7 +32,7 @@ public sealed class ZoneTreeLoader<TKey, TValue>
     void LoadZoneTreeMeta()
     {
         ZoneTreeMeta = ZoneTreeMetaWAL<TKey, TValue>
-            .LoadZoneTreeMetaWithoutWALRecords(Options.RandomAccessDeviceManager);        
+            .LoadZoneTreeMetaWithoutWALRecords(Options.RandomAccessDeviceManager);
         ValidateZoneTreeMeta();
     }
 
@@ -50,27 +50,27 @@ public sealed class ZoneTreeLoader<TKey, TValue>
                 Version.Parse(version),
                 ZoneTreeInfo.ProductVersion);
 
-        if (!string.Equals(ZoneTreeMeta.KeyType, typeof(TKey).FullName))
+        if (!string.Equals(ZoneTreeMeta.KeyType, typeof(TKey).FullName, StringComparison.Ordinal))
             throw new TreeKeyTypeMismatchException(
                 ZoneTreeMeta.KeyType,
                 typeof(TKey).FullName);
 
-        if (!string.Equals(ZoneTreeMeta.ValueType, typeof(TValue).FullName))
-            throw new TreeValueTypeMismatchException(                
+        if (!string.Equals(ZoneTreeMeta.ValueType, typeof(TValue).FullName, StringComparison.Ordinal))
+            throw new TreeValueTypeMismatchException(
                 ZoneTreeMeta.ValueType,
                 typeof(TValue).FullName);
 
-        if (!string.Equals(ZoneTreeMeta.ComparerType, Options.Comparer.GetType().FullName))
+        if (!string.Equals(ZoneTreeMeta.ComparerType, Options.Comparer.GetType().FullName, StringComparison.Ordinal))
             throw new TreeComparerMismatchException(
                 ZoneTreeMeta.ComparerType,
                 Options.Comparer.GetType().FullName);
 
-        if (!string.Equals(ZoneTreeMeta.KeySerializerType, Options.KeySerializer.GetType().FullName))
-            throw new TreeKeySerializerTypeMismatchException(                
+        if (!string.Equals(ZoneTreeMeta.KeySerializerType, Options.KeySerializer.GetType().FullName, StringComparison.Ordinal))
+            throw new TreeKeySerializerTypeMismatchException(
                 ZoneTreeMeta.KeySerializerType,
                 Options.KeySerializer.GetType().FullName);
 
-        if (!string.Equals(ZoneTreeMeta.ValueSerializerType, Options.ValueSerializer.GetType().FullName))
+        if (!string.Equals(ZoneTreeMeta.ValueSerializerType, Options.ValueSerializer.GetType().FullName, StringComparison.Ordinal))
             throw new TreeValueSerializerTypeMismatchException(
                 ZoneTreeMeta.KeySerializerType,
                 Options.KeySerializer.GetType().FullName);
@@ -155,10 +155,10 @@ public sealed class ZoneTreeLoader<TKey, TValue>
         var segments = ZoneTreeMeta.ReadOnlySegments;
         var map = new ConcurrentDictionary<long, IReadOnlySegment<TKey, TValue>>();
 
-        var loader = new ReadOnlySegmentLoader<TKey, TValue>(Options); 
+        var loader = new ReadOnlySegmentLoader<TKey, TValue>(Options);
         Parallel.ForEach(segments, (segment) =>
         {
-            var ros = loader.LoadReadOnlySegment(segment);            
+            var ros = loader.LoadReadOnlySegment(segment);
             map.TryAdd(segment, ros);
         });
         foreach (var ros in map.Values)

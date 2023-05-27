@@ -19,6 +19,8 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <RootNamespace>Tenray.ZoneTree</RootNamespace>
     <Configurations>Debug;Release;ReleaseWithDoc</Configurations>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseWithDoc'">

@@ -6,5 +6,6 @@ namespace Tenray.ZoneTree.Segments.Disk;
 public struct ValueHead
 {
     public int ValueLength;
+
     public long ValueOffset;
 }

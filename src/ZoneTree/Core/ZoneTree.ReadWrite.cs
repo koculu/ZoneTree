@@ -8,10 +8,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 {
     public bool ContainsKey(in TKey key)
     {
-        TValue value;
         if (MutableSegment.ContainsKey(key))
         {
-            if (MutableSegment.TryGet(key, out value))
+            if (MutableSegment.TryGet(key, out TValue value))
                 return !IsValueDeleted(value);
         }
 

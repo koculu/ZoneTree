@@ -1,6 +1,6 @@
 ﻿namespace Tenray.ZoneTree.Transactional;
 
-public struct TransactionResult : ITransactionResult
+public readonly struct TransactionResult : ITransactionResult
 {
     public bool IsAborted { get; }
 
@@ -22,12 +22,12 @@ public struct TransactionResult : ITransactionResult
     }
 }
 
-public struct TransactionResult<TType> : ITransactionResult
+public readonly struct TransactionResult<TType> : ITransactionResult
 {
     public TType Result { get; }
 
     public bool IsAborted { get; }
-    
+
     public bool Succeeded => !IsAborted;
 
     public TransactionResult()

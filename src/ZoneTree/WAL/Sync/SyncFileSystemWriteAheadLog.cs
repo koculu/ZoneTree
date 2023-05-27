@@ -200,7 +200,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                     CreateFileStream();
                 else if (FileStream.FilePath != FilePath)
                 {
-                    FileStream?.Dispose();
+                    FileStream.Dispose();
                     CreateFileStream();
                 }
             }

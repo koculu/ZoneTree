@@ -191,7 +191,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
                     CreateFileStream();
                 else if (FileStream.FilePath != FilePath)
                 {
-                    FileStream?.Dispose();
+                    FileStream.Dispose();
                     CreateFileStream();
                 }
             }
