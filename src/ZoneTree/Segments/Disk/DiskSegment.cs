@@ -307,13 +307,15 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public void Dispose()
     {
-        ReleaseResources();
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
     protected virtual void Dispose(bool disposing)
     {
+        if (!disposing)
+            return;
+        ReleaseResources();
     }
 
     public void Drop()
