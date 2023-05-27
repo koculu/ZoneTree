@@ -28,7 +28,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
 
     readonly ConcurrentQueue<QueueItem> Queue = new();
 
-    public struct QueueItem
+    public struct QueueItem : IEquatable<QueueItem>
     {
         public TKey Key;
 
@@ -41,6 +41,33 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
             Key = key;
             Value = value;
             OpIndex = opIndex;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is QueueItem item && Equals(item);
+        }
+
+        public bool Equals(QueueItem other)
+        {
+            return EqualityComparer<TKey>.Default.Equals(Key, other.Key) &&
+                   EqualityComparer<TValue>.Default.Equals(Value, other.Value) &&
+                   OpIndex == other.OpIndex;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Key, Value, OpIndex);
+        }
+
+        public static bool operator ==(QueueItem left, QueueItem right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(QueueItem left, QueueItem right)
+        {
+            return !(left == right);
         }
     }
 

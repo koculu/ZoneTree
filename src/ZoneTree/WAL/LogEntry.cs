@@ -2,13 +2,18 @@
 
 namespace Tenray.ZoneTree.WAL;
 
-public struct LogEntry
+public struct LogEntry : IEquatable<LogEntry>
 {
     public long OpIndex;
+
     public int KeyLength;
+
     public int ValueLength;
+
     public byte[] Key;
+
     public byte[] Value;
+
     public uint Checksum;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -80,5 +85,35 @@ public struct LogEntry
         entry.Key = reader.ReadBytes(entry.KeyLength);
         entry.Value = reader.ReadBytes(entry.ValueLength);
         entry.Checksum = reader.ReadUInt32();
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is LogEntry entry && Equals(entry);
+    }
+
+    public bool Equals(LogEntry other)
+    {
+        return OpIndex == other.OpIndex &&
+               KeyLength == other.KeyLength &&
+               ValueLength == other.ValueLength &&
+               EqualityComparer<byte[]>.Default.Equals(Key, other.Key) &&
+               EqualityComparer<byte[]>.Default.Equals(Value, other.Value) &&
+               Checksum == other.Checksum;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(OpIndex, KeyLength, ValueLength, Key, Value, Checksum);
+    }
+
+    public static bool operator ==(LogEntry left, LogEntry right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(LogEntry left, LogEntry right)
+    {
+        return !(left == right);
     }
 }

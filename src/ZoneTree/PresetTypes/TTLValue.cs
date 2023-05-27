@@ -3,7 +3,7 @@
 namespace Tenray.ZoneTree.PresetTypes;
 
 [StructLayout(LayoutKind.Sequential)]
-public struct TTLValue<TValue>
+public struct TTLValue<TValue> : IEquatable<TTLValue<TValue>>
 {
     public TValue Value;
 
@@ -17,9 +17,26 @@ public struct TTLValue<TValue>
 
     public bool IsExpired => DateTime.UtcNow >= Expiration;
 
+    public override bool Equals(object obj)
+    {
+        return obj is TTLValue<TValue> value && Equals(value);
+    }
+
+    public bool Equals(TTLValue<TValue> other)
+    {
+        return EqualityComparer<TValue>.Default.Equals(Value, other.Value) &&
+               Expiration == other.Expiration &&
+               IsExpired == other.IsExpired;
+    }
+
     public void Expire()
     {
         Expiration = new DateTime();
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Value, Expiration, IsExpired);
     }
 
     public bool SlideExpiration(TimeSpan timeSpan)
@@ -29,5 +46,15 @@ public struct TTLValue<TValue>
             return false;
         Expiration = newExpiration;
         return true;
+    }
+
+    public static bool operator ==(TTLValue<TValue> left, TTLValue<TValue> right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(TTLValue<TValue> left, TTLValue<TValue> right)
+    {
+        return !(left == right);
     }
 }

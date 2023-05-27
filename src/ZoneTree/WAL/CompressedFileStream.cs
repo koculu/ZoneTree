@@ -63,13 +63,38 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
     public override long Position { get; set; }
 
-    public struct CompressedFileMeta
+    public struct CompressedFileMeta : IEquatable<CompressedFileMeta>
     {
         public CompressionMethod CompressionMethod;
 
         public CompressedFileMeta(CompressionMethod compressionMethod) : this()
         {
             CompressionMethod = compressionMethod;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is CompressedFileMeta meta && Equals(meta);
+        }
+
+        public bool Equals(CompressedFileMeta other)
+        {
+            return CompressionMethod == other.CompressionMethod;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(CompressionMethod);
+        }
+
+        public static bool operator ==(CompressedFileMeta left, CompressedFileMeta right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(CompressedFileMeta left, CompressedFileMeta right)
+        {
+            return !(left == right);
         }
     }
 

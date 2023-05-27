@@ -93,3 +93,13 @@ using System.Runtime.Intrinsics.X86;
     "Naming",
     "CA1724: Type names should not match namespaces",
     Justification = "Generic types and namespaces has no collision.")]
+
+[assembly: SuppressMessage(
+    "Reliability",
+    "CA2002: Do not lock on objects with weak identity",
+    Justification = "Not a big issue for now.")]
+
+[assembly: SuppressMessage(
+    "Usage",
+    "CA2201: Do not raise reserved exception types",
+    Justification = "Temporarily silenced.")]

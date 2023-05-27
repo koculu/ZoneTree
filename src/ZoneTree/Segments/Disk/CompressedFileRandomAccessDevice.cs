@@ -61,7 +61,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public int ReadBufferCount => CircularBlockCache.Count;
 
-    public struct CompressedFileMeta
+    public struct CompressedFileMeta : IEquatable<CompressedFileMeta>
     {
         public int BlockSize;
 
@@ -72,6 +72,32 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         {
             BlockSize = blockSize;
             CompressionMethod = compressionMethod;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is CompressedFileMeta meta && Equals(meta);
+        }
+
+        public bool Equals(CompressedFileMeta other)
+        {
+            return BlockSize == other.BlockSize &&
+                   CompressionMethod == other.CompressionMethod;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(BlockSize, CompressionMethod);
+        }
+
+        public static bool operator ==(CompressedFileMeta left, CompressedFileMeta right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(CompressedFileMeta left, CompressedFileMeta right)
+        {
+            return !(left == right);
         }
     }
 
