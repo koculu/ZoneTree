@@ -3,9 +3,11 @@ using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Compression;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.MultiPart;
 
 public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {

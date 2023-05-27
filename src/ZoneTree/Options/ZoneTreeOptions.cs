@@ -1,10 +1,10 @@
 ﻿using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.WAL;
 using Tenray.ZoneTree.Collections.BTree.Lock;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Segments.RandomAccess;
 
 namespace Tenray.ZoneTree.Options;
 

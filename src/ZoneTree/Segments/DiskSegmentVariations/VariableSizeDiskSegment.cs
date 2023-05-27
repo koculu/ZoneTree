@@ -1,9 +1,12 @@
 ﻿using System.Runtime.CompilerServices;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Segments.Model;
+using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.DiskSegmentVariations;
 
 public sealed class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<TKey, TValue>
 {
@@ -91,7 +94,7 @@ public sealed class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
             {
                 throw new DiskSegmentIsDroppingException();
             }
-            var headBytes = DataHeaderDevice.GetBytes((long)index * sizeof(EntryHead) + sizeof(KeyHead), sizeof(ValueHead));
+            var headBytes = DataHeaderDevice.GetBytes(index * sizeof(EntryHead) + sizeof(KeyHead), sizeof(ValueHead));
             var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
             var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
             return ValueSerializer.Deserialize(valueBytes);

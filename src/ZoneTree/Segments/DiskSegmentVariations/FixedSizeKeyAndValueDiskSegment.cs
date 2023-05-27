@@ -1,9 +1,11 @@
 ﻿using System.Runtime.CompilerServices;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.DiskSegmentVariations;
 
 public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<TKey, TValue>
 {

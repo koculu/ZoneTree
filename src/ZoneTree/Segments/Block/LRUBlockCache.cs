@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Segments.Disk;
+﻿#if DEBUG
+
+namespace Tenray.ZoneTree.Segments.Block;
 
 /// <summary>
 /// Thread-safe LRU Block Cache.
@@ -14,7 +16,7 @@ public sealed class LRUBlockCache
         LinkedListNode<DecompressedBlock>> Cache;
 
     readonly LinkedList<DecompressedBlock> List;
-    
+
     volatile int _count;
     public int Count { get => _count; private set => _count = value; }
 
@@ -100,3 +102,5 @@ public sealed class LRUBlockCache
         }
     }
 }
+
+#endif

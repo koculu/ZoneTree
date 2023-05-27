@@ -1,21 +1,21 @@
 ﻿using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Options;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.RandomAccess;
 
 public interface IRandomAccessDeviceManager
 {
     IFileStreamProvider FileStreamProvider { get; }
 
     IRandomAccessDevice GetReadOnlyDevice(
-        long segmentId, string category, bool isCompressed, 
+        long segmentId, string category, bool isCompressed,
         int compressionBlockSize, int maxCachedBlockCount,
         CompressionMethod compressionMethod,
         int compressionLevel,
         long blockCacheReplacementWarningDuration);
 
     IRandomAccessDevice CreateWritableDevice(
-        long segmentId, string category, bool isCompressed, 
+        long segmentId, string category, bool isCompressed,
         int compressionBlockSize, int maxCachedBlockCount,
         bool deleteIfExists, bool backupIfDelete,
         CompressionMethod compressionMethod,

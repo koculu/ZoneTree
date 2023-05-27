@@ -6,6 +6,7 @@ using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
 

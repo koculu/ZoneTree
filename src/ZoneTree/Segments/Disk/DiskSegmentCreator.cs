@@ -1,6 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Model;
+using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;

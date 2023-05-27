@@ -3,9 +3,12 @@ using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Segments.Model;
+using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.DiskSegmentVariations;
 
 public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TValue>
 {
@@ -96,7 +99,7 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
 
             var headSize = sizeof(ValueHead) + KeySize;
             var headBytes = DataHeaderDevice
-                .GetBytes((long)index * headSize + KeySize, sizeof(ValueHead));
+                .GetBytes(index * headSize + KeySize, sizeof(ValueHead));
             var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
             var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
             return ValueSerializer.Deserialize(valueBytes);

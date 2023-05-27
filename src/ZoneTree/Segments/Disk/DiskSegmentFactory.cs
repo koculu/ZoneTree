@@ -5,6 +5,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.DiskSegmentVariations;
+using Tenray.ZoneTree.Segments.RandomAccess;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 

@@ -4,7 +4,7 @@ using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.WAL;
 
-namespace Tenray.ZoneTree.Segments;
+namespace Tenray.ZoneTree.Segments.InMemory;
 
 public sealed class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIndexedReader<TKey, TValue>
 {

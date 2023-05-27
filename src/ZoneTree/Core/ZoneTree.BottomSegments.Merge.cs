@@ -2,7 +2,9 @@
 using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments;
 using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Segments.MultiPart;
 
 namespace Tenray.ZoneTree.Core;
 

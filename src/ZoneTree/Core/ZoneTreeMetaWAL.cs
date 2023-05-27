@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Core;

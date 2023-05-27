@@ -3,6 +3,7 @@ using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;
