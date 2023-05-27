@@ -324,6 +324,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         bottomDiskSegment = null;
         heap = null;
         OnDiskSegmentActivated?.Invoke(this, newDiskSegment, true);
+        newDiskSegment = null;
         return MergeResult.SUCCESS;
     }
 
