@@ -1,5 +1,7 @@
 ﻿namespace Tenray.ZoneTree.AbstractFileStream;
 
+#pragma warning disable CA2215
+
 public sealed class LocalFileStream : Stream, IFileStream
 {
     readonly FileStream FileStream;
@@ -25,10 +27,10 @@ public sealed class LocalFileStream : Stream, IFileStream
 
     public override long Length => FileStream.Length;
 
-    public override long Position 
+    public override long Position
     {
         get => FileStream.Position;
-        set => FileStream.Position = value; 
+        set => FileStream.Position = value;
     }
 
     public override void Flush()
@@ -70,7 +72,7 @@ public sealed class LocalFileStream : Stream, IFileStream
     {
         FileStream.Write(buffer, offset, count);
     }
-    
+
     public override void Close()
     {
         FileStream.Close();
@@ -164,14 +166,14 @@ public sealed class LocalFileStream : Stream, IFileStream
         FileStream.WriteByte(value);
     }
 
-    public override int ReadTimeout 
-    { 
-        get => FileStream.ReadTimeout; 
-        set => FileStream.ReadTimeout = value; 
+    public override int ReadTimeout
+    {
+        get => FileStream.ReadTimeout;
+        set => FileStream.ReadTimeout = value;
     }
 
     public override int WriteTimeout
-    { 
+    {
         get => FileStream.WriteTimeout;
         set => FileStream.WriteTimeout = value;
     }
@@ -181,3 +183,5 @@ public sealed class LocalFileStream : Stream, IFileStream
         FileStream.Dispose();
     }
 }
+
+#pragma warning restore CA2215

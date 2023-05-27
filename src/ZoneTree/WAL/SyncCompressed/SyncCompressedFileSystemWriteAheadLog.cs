@@ -7,6 +7,8 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
 
+#pragma warning disable CA2213
+
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
 public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
@@ -191,7 +193,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
                     CreateFileStream();
                 else if (FileStream.FilePath != FilePath)
                 {
-                    FileStream?.Dispose();
+                    FileStream.Dispose();
                     CreateFileStream();
                 }
             }
@@ -222,3 +224,5 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
         }
     }
 }
+
+#pragma warning restore CA2213

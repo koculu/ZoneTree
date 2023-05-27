@@ -270,7 +270,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 {
                     var lastKey = lastKeysOfEveryPart[currentPartIndex];
                     var islastKeySmallerThanAllOtherKeys = true;
-                    var heapKeys = heap.GetKeys();
+                    var heapKeys = heap.Keys;
                     var heapKeysLen = heapKeys.Length;
                     for (int i = 0; i < heapKeysLen; i++)
                     {

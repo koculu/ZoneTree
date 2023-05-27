@@ -36,7 +36,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     public IZoneTreeMaintenance<TKey, TValue> Maintenance { get; }
 
     /// <inheritdoc/>
-    public int MinimumSparseArrayLength { get; set; } = 0;
+    public int MinimumSparseArrayLength { get; set; }
 
     /// <inheritdoc/>
     public int SparseArrayStepLength { get; set; } = 1_000;
@@ -48,9 +48,11 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     public int MaximumReadOnlySegmentCount { get; set; } = 64;
 
     /// <inheritdoc/>
-    public bool EnablePeriodicTimer { 
+    public bool EnablePeriodicTimer
+    {
         get => isPeriodicTimerRunning;
-        set {
+        set
+        {
             if (value && !isPeriodicTimerRunning)
                 Task.Run(StartPeriodicTimer);
             else
@@ -70,7 +72,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     /// <param name="zoneTree">The ZoneTree</param>
     /// <param name="startPeriodicTimer">Starts periodic timer if true.</param>
     /// <param name="logger">The logger</param>
-    public ZoneTreeMaintainer(IZoneTree<TKey, TValue> zoneTree, 
+    public ZoneTreeMaintainer(IZoneTree<TKey, TValue> zoneTree,
         bool startPeriodicTimer = true,
         ILogger logger = null)
     {
@@ -224,7 +226,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         using var timer = new PeriodicTimer(PeriodicTimerInterval);
         while (await timer.WaitForNextTickAsync(cts.Token))
         {
-            if (cts.IsCancellationRequested) 
+            if (cts.IsCancellationRequested)
                 break;
             var ticks = Environment.TickCount64 - DiskSegmentBufferLifeTime;
             var releasedCount = ZoneTree.Maintenance.DiskSegment.ReleaseReadBuffers(ticks);
@@ -243,6 +245,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     public void Dispose()
     {
         PeriodicTimerCancellationTokenSource.Cancel();
+        PeriodicTimerCancellationTokenSource.Dispose();
         Maintenance.OnMutableSegmentMovedForward -= OnMutableSegmentMovedForward;
         Maintenance.OnDiskSegmentCreated -= OnDiskSegmentCreated;
         Maintenance.OnMergeOperationEnded -= OnMergeOperationEnded;

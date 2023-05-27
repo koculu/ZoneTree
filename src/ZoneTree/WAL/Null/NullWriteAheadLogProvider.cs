@@ -6,11 +6,11 @@ namespace Tenray.ZoneTree.WAL;
 public sealed class NullWriteAheadLogProvider : IWriteAheadLogProvider
 {
     public IWriteAheadLog<TKey, TValue> GetOrCreateWAL<TKey, TValue>(
-        long segmentId, 
+        long segmentId,
         string category,
         WriteAheadLogOptions options,
         ISerializer<TKey> keySerializer,
-        ISerializer<TValue> valueSerialize)
+        ISerializer<TValue> valueSerializer)
     {
         return new NullWriteAheadLog<TKey, TValue>();
     }

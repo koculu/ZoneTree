@@ -5,6 +5,8 @@ using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
+#pragma warning disable CA2213
+
 public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 {
     const int MetaDataSize = 5;
@@ -14,7 +16,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     readonly int BlockSize;
 
     readonly CompressionMethod CompressionMethod;
-    
+
     readonly int CompressionLevel;
 
     readonly string Category;
@@ -36,18 +38,18 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     readonly CircularBlockCache CircularBlockCache;
 
     readonly List<long> CompressedBlockPositions = new();
-    
+
     readonly List<int> CompressedBlockLengths = new();
 
     readonly List<int> DecompressedBlockLengths = new();
 
     readonly object[] BlockReadLocks = new object[33];
 
-    int NextBlockIndex = 0;
+    int NextBlockIndex;
 
     DecompressedBlock NextBlock;
 
-    int LastBlockLength = 0;
+    int LastBlockLength;
 
     public string FilePath { get; }
 
@@ -59,7 +61,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public int ReadBufferCount => CircularBlockCache.Count;
 
-    public struct CompressedFileMeta
+    public struct CompressedFileMeta : IEquatable<CompressedFileMeta>
     {
         public int BlockSize;
 
@@ -70,6 +72,32 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         {
             BlockSize = blockSize;
             CompressionMethod = compressionMethod;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is CompressedFileMeta meta && Equals(meta);
+        }
+
+        public bool Equals(CompressedFileMeta other)
+        {
+            return BlockSize == other.BlockSize &&
+                   CompressionMethod == other.CompressionMethod;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(BlockSize, CompressionMethod);
+        }
+
+        public static bool operator ==(CompressedFileMeta left, CompressedFileMeta right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(CompressedFileMeta left, CompressedFileMeta right)
+        {
+            return !(left == right);
         }
     }
 
@@ -121,7 +149,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             CompressionMethod = meta.CompressionMethod;
 
             (CompressedBlockPositions,
-             CompressedBlockLengths, 
+             CompressedBlockLengths,
              DecompressedBlockLengths) =
                 ReadCompressedBlockPositionsAndLengths();
             NextBlockIndex = CompressedBlockPositions.Count - 1;
@@ -166,7 +194,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         var pos = GetLength();
         var len = bytes.Length;
         var copyLen = 0;
-        while(copyLen < len)
+        while (copyLen < len)
         {
             copyLen += AppendBytesInternal(bytes.AsSpan(copyLen));
         }
@@ -287,7 +315,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             .FromCompressed(
                 blockIndex, compressedBytes,
                 CompressionMethod, CompressionLevel, decompressedLength);
-        decompressedBlock.LastAccessTicks = Environment.TickCount64; 
+        decompressedBlock.LastAccessTicks = Environment.TickCount64;
         return decompressedBlock;
     }
 
@@ -379,7 +407,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
      List<int> compressedLengths,
      List<int> decompressedLengths) ReadCompressedBlockPositionsAndLengths()
     {
-        FileStream.Seek(- sizeof(int) - sizeof(long), SeekOrigin.End);
+        FileStream.Seek(-sizeof(int) - sizeof(long), SeekOrigin.End);
         var br = BinaryReader;
         var len = br.ReadInt32();
         var offset = br.ReadInt64();
@@ -398,7 +426,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public int ReleaseReadBuffers(long ticks)
     {
-        if (NextBlock != null && 
+        if (NextBlock != null &&
             NextBlock.LastAccessTicks <= ticks)
         {
             NextBlock = null;
@@ -417,3 +445,5 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         return removed;
     }
 }
+
+#pragma warning restore CA2213

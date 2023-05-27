@@ -3,7 +3,7 @@
 /// <summary>
 /// Internal exception to synchronize reads with disk segment drop operation.
 /// </summary>
-internal class DiskSegmentIsDroppingException : ZoneTreeException
+internal sealed class DiskSegmentIsDroppingException : ZoneTreeException
 {
     public DiskSegmentIsDroppingException()
     {

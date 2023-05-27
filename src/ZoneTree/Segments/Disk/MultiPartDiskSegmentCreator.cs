@@ -17,7 +17,11 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
 
     readonly IIncrementalIdProvider IncrementalIdProvider;
 
+#pragma warning disable CA2213 // Dispose is required in case of drop and handled by parts drops.
+
     DiskSegmentCreator<TKey, TValue> NextCreator;
+
+#pragma warning restore CA2213
 
     readonly int DiskSegmentMaximumRecordCount;
 
@@ -32,7 +36,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
     readonly Random Random = new();
 
     TKey LastAppendedKey;
-    
+
     TValue LastAppendedValue;
 
     public HashSet<long> AppendedPartSegmentIds { get; } = new();
@@ -40,11 +44,11 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
     public int CurrentPartLength => NextCreator.Length;
 
     public bool CanSkipCurrentPart =>
-        NextCreator.Length == 0 || 
+        NextCreator.Length == 0 ||
         NextCreator.Length >= DiskSegmentMinimumRecordCount;
 
     public int NextMaximumRecordCount;
-    
+
     public MultiPartDiskSegmentCreator(
         ZoneTreeOptions<TKey, TValue> options,
         IIncrementalIdProvider incrementalIdProvider
@@ -67,11 +71,12 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
             Options.DiskSegmentOptions.MinimumRecordCount,
             Options.DiskSegmentOptions.MaximumRecordCount);
     }
-    
+
     public void Append(TKey key, TValue value, IteratorPosition iteratorPosition)
     {
-        var len = NextCreator.Length; 
-        if (len == 0) {
+        var len = NextCreator.Length;
+        if (len == 0)
+        {
             PartKeys.Add(key);
             PartValues.Add(value);
         }
@@ -139,7 +144,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
         WriteMultiDiskSegment();
 
         var diskSegment = new MultiPartDiskSegment<TKey, TValue>(
-            SegmentId, 
+            SegmentId,
             Options,
             Parts,
             PartKeys.ToArray(),
@@ -183,7 +188,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
         var len = Parts.Count;
         bw.Write(len);
         for (var i = 0; i < len; ++i)
-            bw.Write(Parts[i].SegmentId);        
+            bw.Write(Parts[i].SegmentId);
     }
 
     void WriteKeys(BinaryWriter bw)
@@ -228,7 +233,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
 
     public void DropDiskSegment()
     {
-        foreach(var part in Parts)
+        foreach (var part in Parts)
         {
             if (AppendedPartSegmentIds.Contains(part.SegmentId))
                 continue;
@@ -236,7 +241,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
         }
         using var multiDevice = Options.RandomAccessDeviceManager
             .GetReadOnlyDevice(
-                SegmentId, 
+                SegmentId,
                 DiskSegmentConstants.MultiPartDiskSegmentCategory,
                 isCompressed: false,
                 compressionBlockSize: 0,

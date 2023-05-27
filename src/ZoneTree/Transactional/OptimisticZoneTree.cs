@@ -389,7 +389,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
         }
     }
 
-    public void UpsertAutoCommit(in TKey key, in TValue oldVal)
+    public void UpsertAutoCommit(in TKey key, in TValue value)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
@@ -410,7 +410,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
                 TransactionLog.AddHistoryRecord(transactionId, key, combinedValue);
             }
             TransactionLog.AddOrUpdateReadWriteStamp(key, in readWriteStamp);
-            ZoneTree.Upsert(in key, in oldVal);
+            ZoneTree.Upsert(in key, in value);
             transaction.IsReadyToCommit = true;
             DoCommit(transaction);
         }
@@ -446,7 +446,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
     public int RollbackAllUncommitted()
     {
         var count = 0;
-        var uncommitted = TransactionLog.UncommittedTransactionIds;        
+        var uncommitted = TransactionLog.UncommittedTransactionIds;
         foreach (var u in uncommitted)
         {
             Rollback(u);

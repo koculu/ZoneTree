@@ -5,7 +5,7 @@ namespace Tenray.ZoneTree.Core;
 
 public static class ZoneTreeInfo
 {
-    static Version Version = null;
+    static Version Version;
 
     /// <summary>
     /// Gets ZoneTree Product Version
@@ -17,10 +17,7 @@ public static class ZoneTreeInfo
         {
             if (Version != null)
                 return Version;
-            var str = FileVersionInfo
-                .GetVersionInfo(Assembly.GetExecutingAssembly().Location)
-                .FileVersion;
-            Version = Version.Parse(str);
+            Version = Assembly.GetExecutingAssembly().GetName().Version;
             return Version;
         }
     }

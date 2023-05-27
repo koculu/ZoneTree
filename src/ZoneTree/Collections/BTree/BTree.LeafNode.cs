@@ -18,7 +18,7 @@ public sealed partial class BTree<TKey, TValue>
             Values = new TValue[leafSize];
         }
 
-        public LeafNode(ILocker locker, int length, TKey[] keys, TValue[] values) 
+        public LeafNode(ILocker locker, int length, TKey[] keys, TValue[] values)
             : base(locker)
         {
             Length = length;
@@ -62,7 +62,7 @@ public sealed partial class BTree<TKey, TValue>
             }
         }
 
-        public FrozenNodeIterator GetFrozenIterator()
+        public FrozenNodeIterator CreateFrozenIterator()
         {
             return new FrozenNodeIterator(this);
         }

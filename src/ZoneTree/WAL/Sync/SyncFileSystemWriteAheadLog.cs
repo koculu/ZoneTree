@@ -8,6 +8,8 @@ using System;
 
 namespace Tenray.ZoneTree.WAL;
 
+#pragma warning disable CA2213
+
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
 public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
@@ -157,7 +159,9 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 var existingFileStream = FileStream;
                 var capacity = keys.Length * (Unsafe.SizeOf<TKey>() + Unsafe.SizeOf<TValue>());
                 using var memoryStream = new MemoryStream(capacity);
+#pragma warning disable CA2000
                 var binaryWriter = new BinaryWriter(memoryStream, Encoding.UTF8, true);
+#pragma warning restore CA2000
                 var len = keys.Length;
                 for (var i = 0; i < len; ++i)
                 {
@@ -200,7 +204,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                     CreateFileStream();
                 else if (FileStream.FilePath != FilePath)
                 {
-                    FileStream?.Dispose();
+                    FileStream.Dispose();
                     CreateFileStream();
                 }
             }
@@ -231,3 +235,5 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         }
     }
 }
+
+#pragma warning restore CA2213

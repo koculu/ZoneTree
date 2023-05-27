@@ -23,12 +23,12 @@ public sealed partial class BTree<TKey, TValue>
 
         public FrozenNodeIterator GetPreviousNodeIterator()
         {
-            return Node.Previous?.GetFrozenIterator();
+            return Node.Previous?.CreateFrozenIterator();
         }
 
         public FrozenNodeIterator GetNextNodeIterator()
         {
-            return Node.Next?.GetFrozenIterator();
+            return Node.Next?.CreateFrozenIterator();
         }
 
         public bool HasNext()

@@ -43,9 +43,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     volatile bool IsBottomSegmentsMergingFlag;
 
-    volatile bool IsCancelMergeRequested = false;
+    volatile bool IsCancelMergeRequested;
 
-    volatile bool IsCancelBottomSegmentsMergeRequested = false;
+    volatile bool IsCancelBottomSegmentsMergeRequested;
 
     volatile IMutableSegment<TKey, TValue> _mutableSegment;
 
@@ -213,7 +213,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     {
         OnZoneTreeIsDisposing?.Invoke(this);
         MutableSegment.ReleaseResources();
-        DiskSegment.Dispose();
+        _diskSegment.Dispose();
         MetaWal.Dispose();
         foreach (var ros in ReadOnlySegments)
             ros.ReleaseResources();

@@ -19,19 +19,19 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
     : IEnumerable<TQueueItem>
     where TQueueItem : class
 {
-    class QueueItemsChunk
+    sealed class QueueItemsChunk
     {
         const int ChunkSize = 16;
 
         /// <summary>
         /// Start of the queue inclusive.
         /// </summary>
-        public volatile int Start = 0;
+        public volatile int Start;
 
         /// <summary>
         /// End of the queue exclusive.
         /// </summary>
-        public volatile int End = 0;
+        public volatile int End;
 
         public volatile TQueueItem[] Items;
 
@@ -178,7 +178,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
 
     public IReadOnlyList<TQueueItem> ToFirstInFirstArray() => Chunk.ToFirstInFirstArray();
 
-    class LastInFirstEnumerator : IEnumerator<TQueueItem>
+    sealed class LastInFirstEnumerator : IEnumerator<TQueueItem>
     {
         TQueueItem current;
 

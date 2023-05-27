@@ -25,9 +25,9 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
     int IteratorReaderCount;
 
-    bool IsDropRequested = false;
+    bool IsDropRequested;
 
-    bool IsDropped = false;
+    bool IsDropped;
 
     readonly object DropLock = new();
 
@@ -283,7 +283,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         }
     }
 
-    public void Drop(HashSet<long> excudedPartIds)
+    public void Drop(HashSet<long> excludedPartIds)
     {
         lock (DropLock)
         {
@@ -303,7 +303,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
             {
                 var part = Parts[i];
 
-                if (excudedPartIds.Contains(part.SegmentId))
+                if (excludedPartIds.Contains(part.SegmentId))
                     continue;
                 part.Drop();
             }

@@ -26,7 +26,9 @@ public static class WriteAheadLogEntryReader
             Success = true
         };
         stream.Seek(0, SeekOrigin.Begin);
-        var binaryReader = new BinaryReader(stream);
+#pragma warning disable CA2000
+        var binaryReader = new BinaryReader(stream, System.Text.Encoding.UTF8, true);
+#pragma warning restore CA2000
         TLogEntry entry = default;
 
         var keyList = new List<TKey>();
@@ -86,7 +88,7 @@ public static class WriteAheadLogEntryReader
             long opIndex = default;
             try
             {
-                (var isValid, key, value, opIndex) = logEntryDeserializer(in entry);                
+                (var isValid, key, value, opIndex) = logEntryDeserializer(in entry);
                 if (!isValid)
                 {
                     if (!result.Exceptions.ContainsKey(i))
@@ -134,15 +136,15 @@ public static class WriteAheadLogEntryReader
             return result;
         }
         result.Keys = keyList;
-        result.Values = valuesList;        
+        result.Values = valuesList;
         return result;
     }
 
     public sealed class LogEntryReaderComparer : IRefComparer<int>
     {
-        readonly List<long> OpIndexes;
+        readonly IList<long> OpIndexes;
 
-        public LogEntryReaderComparer(List<long> opIndexes)
+        public LogEntryReaderComparer(IList<long> opIndexes)
         {
             OpIndexes = opIndexes;
         }

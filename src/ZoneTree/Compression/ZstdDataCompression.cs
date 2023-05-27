@@ -6,7 +6,8 @@ public static class ZstdDataCompression
 {
     public static byte[] Compress(Span<byte> span, int level)
     {
-        using var compressor = new Compressor(new CompressionOptions(level));
+        using var options = new CompressionOptions(level);
+        using var compressor = new Compressor(options);
         return compressor.Wrap(span).ToArray();
     }
 

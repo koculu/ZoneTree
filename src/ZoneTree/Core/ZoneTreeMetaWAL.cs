@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
@@ -49,7 +50,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             Device = Options
                 .RandomAccessDeviceManager
                 .CreateWritableDevice(
-                    ZoneTreeMetaId, 
+                    ZoneTreeMetaId,
                     MetaWalCategory,
                     isCompressed: false,
                     compressionBlockSize: 0,
@@ -281,7 +282,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
                 maxCachedBlockCount: 0,
                 MetaWALCompressionMethod,
                 MetaWALCompressionLevel,
-                blockCacheReplacementWarningDuration: 0); 
+                blockCacheReplacementWarningDuration: 0);
 
         if (device.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(device.Length, int.MaxValue);
@@ -306,11 +307,38 @@ public enum MetaWalOperation
 }
 
 [StructLayout(LayoutKind.Sequential)]
-public struct MetaWalRecord
+public struct MetaWalRecord : IEquatable<MetaWalRecord>
 {
     public MetaWalOperation Operation;
 
     public long SegmentId;
-    
+
     public int Index;
+
+    public override bool Equals(object obj)
+    {
+        return obj is MetaWalRecord record && Equals(record);
+    }
+
+    public bool Equals(MetaWalRecord other)
+    {
+        return Operation == other.Operation &&
+               SegmentId == other.SegmentId &&
+               Index == other.Index;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Operation, SegmentId, Index);
+    }
+
+    public static bool operator ==(MetaWalRecord left, MetaWalRecord right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(MetaWalRecord left, MetaWalRecord right)
+    {
+        return !(left == right);
+    }
 }

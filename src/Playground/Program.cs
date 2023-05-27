@@ -32,7 +32,8 @@ if (testCase == 1)
     //OldTests.Iterate(WriteAheadLogMode.None, c);
 }
 
-if (testCase == 2) {
+if (testCase == 2)
+{
     // multiple iterator tests.
     var c = 1_000_000;
     var ic = 1000;
@@ -59,7 +60,7 @@ if (testCase == 3)
     test2.WALMode = test1.WALMode = WriteAheadLogMode.None;
 
     b.NewSection("int-int insert");
-    foreach(var (method, level) in methods)
+    foreach (var (method, level) in methods)
     {
         test1.CompressionMethod = method;
         test1.CompressionLevel = level;

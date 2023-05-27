@@ -91,10 +91,10 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     /// <summary>
     /// Merges selected bottom segments into a single bottom disk segment.
     /// </summary>
-    /// <param name="from">The lower bound</param>
-    /// <param name="to">The upper bound</param>
+    /// <param name="fromIndex">The lower bound</param>
+    /// <param name="toIndex">The upper bound</param>
     /// <returns></returns>
-    Thread StartBottomSegmentsMergeOperation(int from, int to);
+    Thread StartBottomSegmentsMergeOperation(int fromIndex, int toIndex);
 
     /// <summary>
     /// Attempts to cancel merge operation.
