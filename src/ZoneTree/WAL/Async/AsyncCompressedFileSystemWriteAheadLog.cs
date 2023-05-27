@@ -8,6 +8,8 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
 
+#pragma warning disable CA2213
+
 public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
     readonly ILogger Logger;
@@ -86,7 +88,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
     {
         StopWriter(false);
         isRunning = true;
-        WriteTask = Task.Factory.StartNew(() => DoWrite(), TaskCreationOptions.LongRunning);
+        WriteTask = new TaskFactory(TaskScheduler.Default).StartNew(() => DoWrite(), TaskCreationOptions.LongRunning);
     }
 
     void StopWriter(bool consumeAll)
@@ -276,3 +278,5 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
         }
     }
 }
+
+#pragma warning restore CA2213

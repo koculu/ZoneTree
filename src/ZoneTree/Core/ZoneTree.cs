@@ -213,7 +213,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     {
         OnZoneTreeIsDisposing?.Invoke(this);
         MutableSegment.ReleaseResources();
-        DiskSegment.Dispose();
+        _diskSegment.Dispose();
         MetaWal.Dispose();
         foreach (var ros in ReadOnlySegments)
             ros.ReleaseResources();

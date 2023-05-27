@@ -49,3 +49,23 @@ using System.Runtime.Intrinsics.X86;
     "CA1000: Do not declare static members on generic types",
     Justification = "Not critical.")]
 
+[assembly: SuppressMessage(
+    "Design",
+    "CA1051: Do not declare visible instance fields",
+    Justification = "This is low-level library, better debug performance is preferred.")]
+
+[assembly: SuppressMessage(
+    "Design",
+    "CA1028: Enum storage should be Int32",
+    Justification = "Bytes are important in a database.")]
+
+[assembly: SuppressMessage(
+    "Design",
+    "CA1003: Use generic event handler instances",
+    Justification = "Simple event delegate with no unused argument is better.")]
+
+[assembly: SuppressMessage(
+    "Design",
+    "CA1062: Validate arguments of public methods",
+    Justification = "Validation comes with a cost. Performance is more important.")]
+

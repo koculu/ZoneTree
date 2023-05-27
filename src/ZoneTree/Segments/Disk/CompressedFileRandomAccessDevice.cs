@@ -5,6 +5,8 @@ using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
+#pragma warning disable CA2213
+
 public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 {
     const int MetaDataSize = 5;
@@ -417,3 +419,5 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         return removed;
     }
 }
+
+#pragma warning restore CA2213

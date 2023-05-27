@@ -7,6 +7,9 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
 
+#pragma warning disable CA2213
+#pragma warning disable CA2215
+
 public sealed class CompressedFileStream : Stream, IDisposable
 {
     readonly ILogger Logger;
@@ -131,7 +134,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         TailWriterJobInterval = tailWriterJobInterval;
         if (enableTailWriterJob)
         {
-            Task.Factory.StartNew(() => TailWriteLoop(),
+            new TaskFactory(TaskScheduler.Default).StartNew(() => TailWriteLoop(),
                 TaskCreationOptions.LongRunning);
         }
     }
@@ -609,3 +612,6 @@ public sealed class CompressedFileStream : Stream, IDisposable
         Dispose();
     }
 }
+
+#pragma warning restore CA2213
+#pragma warning restore CA2215

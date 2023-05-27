@@ -8,6 +8,8 @@ using System;
 
 namespace Tenray.ZoneTree.WAL;
 
+#pragma warning disable CA2213
+
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
 public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
@@ -231,3 +233,5 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         }
     }
 }
+
+#pragma warning restore CA2213
