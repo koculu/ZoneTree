@@ -12,7 +12,7 @@ public interface IWriteAheadLogProvider
         string category,
         WriteAheadLogOptions options,
         ISerializer<TKey> keySerializer,
-        ISerializer<TValue> valueSerialize);
+        ISerializer<TValue> valueSerializer);
 
     IWriteAheadLog<TKey, TValue> GetWAL<TKey, TValue>(long segmentId, string category);
 

@@ -159,7 +159,9 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                 var existingFileStream = FileStream;
                 var capacity = keys.Length * (Unsafe.SizeOf<TKey>() + Unsafe.SizeOf<TValue>());
                 using var memoryStream = new MemoryStream(capacity);
+#pragma warning disable CA2000
                 var binaryWriter = new BinaryWriter(memoryStream, Encoding.UTF8, true);
+#pragma warning restore CA2000
                 var len = keys.Length;
                 for (var i = 0; i < len; ++i)
                 {

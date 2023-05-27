@@ -4,6 +4,7 @@
 // a specific target and scoped to a namespace, type, member, etc.
 
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.Intrinsics.X86;
 
 [assembly: SuppressMessage(
@@ -69,3 +70,17 @@ using System.Runtime.Intrinsics.X86;
     "CA1062: Validate arguments of public methods",
     Justification = "Validation comes with a cost. Performance is more important.")]
 
+[assembly: SuppressMessage(
+    "Reliability",
+    "CA2007: Do not directly await a Task",
+    Justification = "UI threads shall not call ZoneTree directly.")]
+
+[assembly: SuppressMessage(
+    "Design",
+    "CA1065: Do not raise exceptions in unexpected locations",
+    Justification = "Iterator properties throw exceptions for years.")]
+
+[assembly: SuppressMessage(
+    "Design",
+    "CA1034: Nested types should not be visible",
+    Justification = "Disabled for now.")]

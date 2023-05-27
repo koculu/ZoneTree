@@ -8,11 +8,11 @@ namespace Tenray.ZoneTree.Core;
 
 public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeMaintenance<TKey, TValue>
 {
-    public Thread StartBottomSegmentsMergeOperation(int from, int to)
+    public Thread StartBottomSegmentsMergeOperation(int fromIndex, int toIndex)
     {
-        if (from >= to)
+        if (fromIndex >= toIndex)
         {
-            throw new InvalidMergeRangeException(from, to);
+            throw new InvalidMergeRangeException(fromIndex, toIndex);
         }
         if (IsBottomSegmentsMerging)
         {
@@ -21,7 +21,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         }
 
         OnBottomSegmentsMergeOperationStarted?.Invoke(this);
-        var thread = new Thread(() => StartBottomSegmentsMergeOperationInternal(from, to));
+        var thread = new Thread(() => StartBottomSegmentsMergeOperationInternal(fromIndex, toIndex));
         thread.Start();
         return thread;
     }
@@ -222,7 +222,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 {
                     var lastKey = lastKeysOfEveryPart[currentPartIndex];
                     var islastKeySmallerThanAllOtherKeys = true;
-                    var heapKeys = heap.GetKeys();
+                    var heapKeys = heap.Keys;
                     var heapKeysLen = heapKeys.Length;
                     for (int i = 0; i < heapKeysLen; i++)
                     {

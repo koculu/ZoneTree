@@ -245,6 +245,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     public void Dispose()
     {
         PeriodicTimerCancellationTokenSource.Cancel();
+        PeriodicTimerCancellationTokenSource.Dispose();
         Maintenance.OnMutableSegmentMovedForward -= OnMutableSegmentMovedForward;
         Maintenance.OnDiskSegmentCreated -= OnDiskSegmentCreated;
         Maintenance.OnMergeOperationEnded -= OnMergeOperationEnded;

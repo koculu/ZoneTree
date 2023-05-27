@@ -7,6 +7,7 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.WAL;
 
+#pragma warning disable CA1063
 #pragma warning disable CA2213
 #pragma warning disable CA2215
 
@@ -134,8 +135,11 @@ public sealed class CompressedFileStream : Stream, IDisposable
         TailWriterJobInterval = tailWriterJobInterval;
         if (enableTailWriterJob)
         {
-            new TaskFactory(TaskScheduler.Default).StartNew(() => TailWriteLoop(),
-                TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(
+                () => TailWriteLoop(),
+                CancellationToken.None,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
         }
     }
 
@@ -407,20 +411,20 @@ public sealed class CompressedFileStream : Stream, IDisposable
         return Position;
     }
 
-    public override void SetLength(long length)
+    public override void SetLength(long value)
     {
-        if (length < 0)
+        if (value < 0)
             throw new Exception("File truncatedLength cannot be negative number!");
 
-        if (length > _length)
+        if (value > _length)
             throw new Exception("Compressed file cannot be expanded with empty bytes.");
 
-        if (length != 0)
+        if (value != 0)
         {
             // Sync with tail writer
             lock (this)
             {
-                TruncateFile(length);
+                TruncateFile(value);
             }
             return;
         }
@@ -613,5 +617,6 @@ public sealed class CompressedFileStream : Stream, IDisposable
     }
 }
 
+#pragma warning restore CA1063
 #pragma warning restore CA2213
 #pragma warning restore CA2215

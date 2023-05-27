@@ -88,7 +88,11 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
     {
         StopWriter(false);
         isRunning = true;
-        WriteTask = new TaskFactory(TaskScheduler.Default).StartNew(() => DoWrite(), TaskCreationOptions.LongRunning);
+        WriteTask = Task.Factory.StartNew(
+            () => DoWrite(),
+            CancellationToken.None,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
     }
 
     void StopWriter(bool consumeAll)
