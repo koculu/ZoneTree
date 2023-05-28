@@ -131,10 +131,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
                     .AppendLogToTheBackupFile(
                         FileStreamProvider,
                         FilePath + ".full",
-                        () =>
-                        {
-                            return FileStream.GetFileContentIncludingTail();
-                        });
+                        FileStream.GetFileContentIncludingTail);
             }
 
             var existingLength = FileStream.Length;

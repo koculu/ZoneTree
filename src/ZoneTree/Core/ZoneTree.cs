@@ -165,7 +165,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         MaxHeapEntryComparer = new MaxHeapEntryRefComparer<TKey, TValue>(options.Comparer);
         MutableSegment = mutableSegment;
         DiskSegment = diskSegment;
-        DiskSegment.DropFailureReporter = (ds, e) => ReportDropFailure(ds, e);
+        DiskSegment.DropFailureReporter = ReportDropFailure;
         foreach (var ros in readOnlySegments.Reverse())
             ReadOnlySegmentQueue.Enqueue(ros);
         foreach (var bs in bottomSegments.Reverse())

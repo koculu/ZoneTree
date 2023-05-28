@@ -30,6 +30,10 @@ public delegate void MarkValueDeletedDelegate<TValue>(ref TValue value);
 /// <typeparam name="TValue">The value type</typeparam>
 public sealed class ZoneTreeOptions<TKey, TValue>
 {
+    static bool DefaultIsValueDeleted(in TValue _) => false;
+
+    static void DefaultMarkValueDeleted(ref TValue value) { value = default; }
+
     /// <summary>
     /// Mutable segment maximumum key-value pair count.
     /// When the maximum count is reached 
@@ -63,12 +67,12 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     /// <summary>
     /// Delegate to query value deletion state.
     /// </summary>
-    public IsValueDeletedDelegate<TValue> IsValueDeleted { get; set; } = (in TValue x) => false;
+    public IsValueDeletedDelegate<TValue> IsValueDeleted { get; set; } = DefaultIsValueDeleted;
 
     /// <summary>
     /// Delegate to mark value deleted.
     /// </summary>
-    public MarkValueDeletedDelegate<TValue> MarkValueDeleted { get; set; } = (ref TValue x) => { x = default; };
+    public MarkValueDeletedDelegate<TValue> MarkValueDeleted { get; set; } = DefaultMarkValueDeleted;
 
     /// <summary>
     /// Write Ahead Log Options. The options are used
@@ -133,10 +137,10 @@ public sealed class ZoneTreeOptions<TKey, TValue>
         }
 
         exception = ValidateCompressionLevel(
-            "disk segment", 
-            DiskSegmentOptions.CompressionMethod, 
+            "disk segment",
+            DiskSegmentOptions.CompressionMethod,
             DiskSegmentOptions.CompressionLevel);
-        
+
         if (exception != null)
             return false;
 
@@ -153,8 +157,8 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     }
 
     static Exception ValidateCompressionLevel(
-        string option, 
-        CompressionMethod method, 
+        string option,
+        CompressionMethod method,
         int level)
     {
         var exception = new CompressionLevelIsOutOfRangeException
@@ -162,13 +166,13 @@ public sealed class ZoneTreeOptions<TKey, TValue>
         return method switch
         {
             CompressionMethod.None => null,
-            CompressionMethod.Gzip => 
+            CompressionMethod.Gzip =>
                 (level >= CompressionLevels.GzipOptimal &&
                 level <= CompressionLevels.GzipSmallestSize) ?
                 null : exception,
-            CompressionMethod.LZ4 => 
+            CompressionMethod.LZ4 =>
                 (level >= 0 && level <= 12 && level != 1 && level != 2) ? null : exception,
-            CompressionMethod.Zstd => 
+            CompressionMethod.Zstd =>
                 (level >= CompressionLevels.ZstdMin &&
                 level <= CompressionLevels.ZstdMax) ?
                 null : exception,

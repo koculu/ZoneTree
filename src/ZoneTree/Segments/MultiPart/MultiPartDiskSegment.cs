@@ -351,8 +351,6 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         }
         if (right == sparseArrayLength)
             return Length;
-        if (right == -1)
-            return Length;
 
         if (diff == 0)
         {
@@ -530,44 +528,6 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
     #region Binary search
 
-    /// <summary>
-    /// Finds the position of element that is greater or equal than key.
-    /// </summary>
-    /// <param name="key">The key</param>
-    /// <returns>The length of the sparse array or a valid position</returns>
-    int FindFirstGreaterOrEqualPositionInSparseArray(in TKey key)
-    {
-        var list = PartKeys;
-        int l = 0, h = list.Length;
-        var comp = Comparer;
-        while (l < h)
-        {
-            int mid = l + (h - l) / 2;
-            if (comp.Compare(in key, in list[mid]) <= 0)
-                h = mid;
-            else
-                l = mid + 1;
-        }
-        return l;
-    }
-
-    /// <summary>
-    /// Finds the position of element that is smaller or equal than key.
-    /// </summary>
-    /// <param name="key">The key</param>
-    /// <returns>-1 or a valid position</returns>
-    int FindLastSmallerOrEqualPositionInSparseArray(in TKey key)
-    {
-        var x = FindFirstGreaterOrEqualPositionInSparseArray(in key);
-        if (x == -1)
-            return -1;
-        if (x == PartKeys.Length)
-            return x - 1;
-        if (Comparer.Compare(in key, in PartKeys[x]) == 0)
-            return x;
-        return x - 1;
-    }
-
     (int index, bool found) SearchLastSmallerOrEqualPositionInSparseArray(in TKey key)
     {
         var list = PartKeys;
@@ -575,10 +535,11 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         if (len == 0)
             return (-1, false);
 
-        var position = FindLastSmallerOrEqualPositionInSparseArray(in key);
+        var position = BinarySearchAlgorithms
+            .LastSmallerOrEqualPosition(PartKeys, 0, PartKeys.Length - 1, Comparer, in key);
         if (position == -1)
             return (-1, false);
-        var exactMatch = Comparer.Compare(PartKeys[position], key) == 0;
+        var exactMatch = Comparer.Compare(PartKeys[position], in key) == 0;
         return (position, exactMatch);
     }
 
@@ -589,10 +550,11 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         if (len == 0)
             return (0, false);
 
-        var position = FindFirstGreaterOrEqualPositionInSparseArray(in key);
+        var position = BinarySearchAlgorithms
+            .FirstGreaterOrEqualPosition(PartKeys, 0, PartKeys.Length - 1, Comparer, in key);
         if (position == len)
             return (len, false);
-        var exactMatch = Comparer.Compare(PartKeys[position], key) == 0;
+        var exactMatch = Comparer.Compare(PartKeys[position], in key) == 0;
         return (position, exactMatch);
     }
     #endregion
