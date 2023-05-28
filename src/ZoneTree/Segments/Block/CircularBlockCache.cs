@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Tenray.ZoneTree.Logger;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.Block;
 
 public sealed class CircularBlockCache
 {
@@ -123,7 +123,7 @@ public sealed class CircularBlockCache
 
     public void Clear()
     {
-        Array.Fill(Table, null); 
+        Array.Fill(Table, null);
         LastReplacementTicks.Clear();
     }
 

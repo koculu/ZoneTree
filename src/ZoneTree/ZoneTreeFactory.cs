@@ -8,6 +8,7 @@ using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Logger;
+using Tenray.ZoneTree.Segments.RandomAccess;
 
 namespace Tenray.ZoneTree;
 

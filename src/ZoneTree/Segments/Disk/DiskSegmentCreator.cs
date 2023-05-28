@@ -1,6 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Model;
+using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;
@@ -131,7 +133,7 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         DataDevice?.SealDevice();
         DataHeaderDevice?.ReleaseReadBuffers(0);
         DataDevice?.ReleaseReadBuffers(0);
-        var diskSegment = new DiskSegment<TKey, TValue>(
+        var diskSegment = DiskSegmentFactory.CreateDiskSegment<TKey, TValue>(
             SegmentId, Options,
             DataHeaderDevice, DataDevice);
         DataHeaderDevice = null;

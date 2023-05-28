@@ -2,7 +2,7 @@
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
 
-namespace Tenray.ZoneTree.Segments;
+namespace Tenray.ZoneTree.Segments.InMemory;
 
 public sealed class MutableSegmentLoader<TKey, TValue>
 {
@@ -19,7 +19,7 @@ public sealed class MutableSegmentLoader<TKey, TValue>
         var wal = Options.WriteAheadLogProvider
             .GetOrCreateWAL(
                 segmentId,
-                ZoneTree<TKey,TValue>.SegmentWalCategory,
+                ZoneTree<TKey, TValue>.SegmentWalCategory,
                 Options.WriteAheadLogOptions,
                 Options.KeySerializer, Options.ValueSerializer);
         var result = wal.ReadLogEntries(false, false, true);

@@ -3,7 +3,8 @@ using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments;
-using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Segments.InMemory;
+using Tenray.ZoneTree.Segments.NullDisk;
 
 namespace Tenray.ZoneTree.Core;
 

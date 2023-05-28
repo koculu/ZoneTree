@@ -25,6 +25,22 @@ using System.Runtime.Intrinsics.X86;
     Target = "Tenray.ZoneTree.Comparers")]
 
 [assembly: SuppressMessage(
+    "\tUsage",
+    "CA2213: Disposable fields should be disposed",
+    Justification = "False warning: Device is disposed on ReleaseResources method.",
+    Scope = "namespaceanddescendants",
+    Target = "Tenray.ZoneTree.Segments.DiskSegmentVariations")]
+
+[assembly: SuppressMessage(
+    "\tUsage",
+    "CA2213: Disposable fields should be disposed",
+    Justification = "False warning: Device is disposed on ReleaseResources method.",
+    Scope = "member",
+    Target = "Tenray.ZoneTree.Segments.Disk.DiskSegment.DataDevice")]
+
+#pragma warning disable CA2213 // False warning: Device is disposed on ReleaseResources.
+
+[assembly: SuppressMessage(
     "Naming",
     "CA1711: Identifiers should not have incorrect suffix",
     Justification = "A custom queue ends with a Queue...")]

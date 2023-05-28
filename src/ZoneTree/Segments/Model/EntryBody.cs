@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Segments.Disk;
+﻿namespace Tenray.ZoneTree.Segments.Model;
 
 public struct EntryBody : IEquatable<EntryBody>
 {

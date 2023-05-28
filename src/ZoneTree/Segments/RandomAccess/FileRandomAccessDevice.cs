@@ -1,6 +1,6 @@
 ﻿using Tenray.ZoneTree.AbstractFileStream;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.RandomAccess;
 
 public sealed class FileRandomAccessDevice : IRandomAccessDevice
 {

@@ -1,9 +1,10 @@
 ﻿using Tenray.ZoneTree.Compression;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.MultiPart;
 
 public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey, TValue>
 {

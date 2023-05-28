@@ -2,8 +2,9 @@
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Block;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.RandomAccess;
 
 #pragma warning disable CA2213
 

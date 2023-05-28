@@ -1,7 +1,7 @@
 ﻿using Tenray.ZoneTree.Compression;
 using Tenray.ZoneTree.Options;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.Block;
 
 public sealed class DecompressedBlock
 {
@@ -20,13 +20,14 @@ public sealed class DecompressedBlock
     }
 
     volatile byte[] Bytes;
-    
+
     public bool IsFull => Length == Bytes.Length;
 
     long _lastAccessTicks;
 
-    public long LastAccessTicks {
-        get => Volatile.Read(ref _lastAccessTicks); 
+    public long LastAccessTicks
+    {
+        get => Volatile.Read(ref _lastAccessTicks);
         set => Volatile.Write(ref _lastAccessTicks, value);
     }
 

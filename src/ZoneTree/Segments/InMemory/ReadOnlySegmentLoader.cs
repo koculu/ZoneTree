@@ -3,7 +3,7 @@ using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.WAL;
 
-namespace Tenray.ZoneTree.Segments;
+namespace Tenray.ZoneTree.Segments.InMemory;
 
 public sealed class ReadOnlySegmentLoader<TKey, TValue>
 {

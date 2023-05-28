@@ -1,6 +1,6 @@
 ﻿using Tenray.ZoneTree.Collections;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.NullDisk;
 
 public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {

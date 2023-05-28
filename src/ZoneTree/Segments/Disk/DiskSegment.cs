@@ -3,49 +3,42 @@ using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.Disk;
 
-public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
+public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
     public long SegmentId { get; }
 
     readonly IRefComparer<TKey> Comparer;
 
-    readonly ISerializer<TKey> KeySerializer;
+    protected readonly ISerializer<TKey> KeySerializer;
 
-    readonly ISerializer<TValue> ValueSerializer;
+    protected readonly ISerializer<TValue> ValueSerializer;
 
-    readonly bool HasFixedSizeKey;
+    protected IRandomAccessDevice DataDevice;
 
-    readonly bool HasFixedSizeValue;
+    protected int KeySize;
 
-    readonly bool HasFixedSizeKeyAndValue;
-
-    readonly IRandomAccessDevice DataHeaderDevice;
-
-    readonly IRandomAccessDevice DataDevice;
-
-    readonly int KeySize;
-
-    readonly int ValueSize;
+    protected int ValueSize;
 
     IReadOnlyList<SparseArrayEntry<TKey, TValue>> SparseArray = Array.Empty<SparseArrayEntry<TKey, TValue>>();
 
     int IteratorReaderCount;
 
-    volatile int ReadCount;
+    protected volatile int ReadCount;
 
     volatile bool IsDropRequested;
 
-    volatile bool IsDroppping;
+    protected volatile bool IsDroppping;
 
     bool IsDropped;
 
     readonly object DropLock = new();
 
-    public long Length { get; }
+    public long Length { get; protected set; }
 
     public long MaximumOpIndex => 0;
 
@@ -53,13 +46,11 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public bool IsIterativeIndexReader => false;
 
-    public int ReadBufferCount =>
-                    (DataDevice?.ReadBufferCount ?? 0) +
-                    (DataHeaderDevice?.ReadBufferCount ?? 0);
+    public abstract int ReadBufferCount { get; }
 
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
-    public unsafe DiskSegment(
+    protected unsafe DiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options)
     {
@@ -67,91 +58,18 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         Comparer = options.Comparer;
         KeySerializer = options.KeySerializer;
         ValueSerializer = options.ValueSerializer;
-
-        HasFixedSizeKey = !RuntimeHelpers.IsReferenceOrContainsReferences<TKey>();
-        HasFixedSizeValue = !RuntimeHelpers.IsReferenceOrContainsReferences<TValue>();
-        HasFixedSizeKeyAndValue = HasFixedSizeKey && HasFixedSizeValue;
-
-        var randomDeviceManager = options.RandomAccessDeviceManager;
-        var diskOptions = options.DiskSegmentOptions;
-        if (!HasFixedSizeKeyAndValue)
-            DataHeaderDevice = randomDeviceManager
-                .GetReadOnlyDevice(
-                    SegmentId,
-                    DiskSegmentConstants.DataHeaderCategory,
-                    diskOptions.EnableCompression,
-                    diskOptions.CompressionBlockSize,
-                    diskOptions.BlockCacheLimit,
-                    diskOptions.CompressionMethod,
-                    diskOptions.CompressionLevel,
-                    diskOptions.BlockCacheReplacementWarningDuration
-                    );
-        DataDevice = randomDeviceManager
-            .GetReadOnlyDevice(
-                SegmentId,
-                DiskSegmentConstants.DataCategory,
-                diskOptions.EnableCompression,
-                diskOptions.CompressionBlockSize,
-                diskOptions.BlockCacheLimit,
-                diskOptions.CompressionMethod,
-                diskOptions.CompressionLevel,
-                diskOptions.BlockCacheReplacementWarningDuration);
-
-        KeySize = Unsafe.SizeOf<TKey>();
-        ValueSize = Unsafe.SizeOf<TValue>();
-        if (HasFixedSizeKeyAndValue)
-        {
-            Length = DataDevice.Length / (KeySize + ValueSize);
-        }
-        else if (HasFixedSizeKey)
-        {
-            Length = DataHeaderDevice.Length / (KeySize + sizeof(ValueHead));
-        }
-        else if (HasFixedSizeValue)
-        {
-            Length = DataHeaderDevice.Length / (ValueSize + sizeof(KeyHead));
-        }
-        else
-        {
-            Length = DataHeaderDevice.Length / sizeof(EntryHead);
-        }
     }
 
-    public unsafe DiskSegment(long segmentId,
+    protected unsafe DiskSegment(long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
-        IRandomAccessDevice dataHeaderDevice,
         IRandomAccessDevice dataDevice)
     {
         SegmentId = segmentId;
-        DataHeaderDevice = dataHeaderDevice;
         DataDevice = dataDevice;
 
         Comparer = options.Comparer;
         KeySerializer = options.KeySerializer;
         ValueSerializer = options.ValueSerializer;
-
-        HasFixedSizeKey = !RuntimeHelpers.IsReferenceOrContainsReferences<TKey>();
-        HasFixedSizeValue = !RuntimeHelpers.IsReferenceOrContainsReferences<TValue>();
-        HasFixedSizeKeyAndValue = HasFixedSizeKey && HasFixedSizeValue;
-        KeySize = Unsafe.SizeOf<TKey>();
-        ValueSize = Unsafe.SizeOf<TValue>();
-
-        if (HasFixedSizeKeyAndValue)
-        {
-            Length = DataDevice.Length / (KeySize + ValueSize);
-        }
-        else if (HasFixedSizeKey)
-        {
-            Length = DataHeaderDevice.Length / (KeySize + sizeof(ValueHead));
-        }
-        else if (HasFixedSizeValue)
-        {
-            Length = DataHeaderDevice.Length / (ValueSize + sizeof(KeyHead));
-        }
-        else
-        {
-            Length = DataHeaderDevice.Length / sizeof(EntryHead);
-        }
     }
 
     public bool ContainsKey(in TKey key)
@@ -258,93 +176,9 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return sparseArrayEntry;
     }
 
-    unsafe TKey ReadKey(long index)
-    {
-        try
-        {
-            Interlocked.Increment(ref ReadCount);
-            if (IsDroppping)
-            {
-                throw new DiskSegmentIsDroppingException();
-            }
-            if (HasFixedSizeKeyAndValue)
-            {
-                var itemSize = KeySize + ValueSize;
-                var keyBytes = DataDevice.GetBytes(itemSize * index, KeySize);
-                return KeySerializer.Deserialize(keyBytes);
-            }
-            else if (HasFixedSizeKey)
-            {
-                var headSize = sizeof(ValueHead) + KeySize;
-                var keyBytes = DataHeaderDevice.GetBytes(index * headSize, KeySize);
-                return KeySerializer.Deserialize(keyBytes);
-            }
-            else if (HasFixedSizeValue)
-            {
-                var headSize = sizeof(KeyHead) + ValueSize;
-                var headBytes = DataHeaderDevice.GetBytes(index * headSize, sizeof(KeyHead));
-                var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
-                var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
-                return KeySerializer.Deserialize(keyBytes);
-            }
-            else
-            {
-                var headBytes = DataHeaderDevice.GetBytes(index * sizeof(EntryHead), sizeof(KeyHead));
-                var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
-                var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
-                return KeySerializer.Deserialize(keyBytes);
-            }
-        }
-        finally
-        {
-            Interlocked.Decrement(ref ReadCount);
-        }
-    }
+    protected abstract unsafe TKey ReadKey(long index);
 
-    unsafe TValue ReadValue(long index)
-    {
-        try
-        {
-            Interlocked.Increment(ref ReadCount);
-            if (IsDroppping)
-            {
-                throw new DiskSegmentIsDroppingException();
-            }
-            if (HasFixedSizeKeyAndValue)
-            {
-                var itemSize = KeySize + ValueSize;
-                var valueBytes = DataDevice.GetBytes(itemSize * index + KeySize, ValueSize);
-                return ValueSerializer.Deserialize(valueBytes);
-            }
-            else if (HasFixedSizeKey)
-            {
-                var headSize = sizeof(ValueHead) + KeySize;
-                var headBytes = DataHeaderDevice
-                    .GetBytes((long)index * headSize + KeySize, sizeof(ValueHead));
-                var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
-                var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
-                return ValueSerializer.Deserialize(valueBytes);
-            }
-            else if (HasFixedSizeValue)
-            {
-                var headSize = sizeof(KeyHead) + ValueSize;
-                var valueBytes = DataHeaderDevice
-                    .GetBytes((long)index * headSize + sizeof(KeyHead), ValueSize);
-                return ValueSerializer.Deserialize(valueBytes);
-            }
-            else
-            {
-                var headBytes = DataHeaderDevice.GetBytes((long)index * sizeof(EntryHead) + sizeof(KeyHead), sizeof(ValueHead));
-                var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
-                var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
-                return ValueSerializer.Deserialize(valueBytes);
-            }
-        }
-        finally
-        {
-            Interlocked.Decrement(ref ReadCount);
-        }
-    }
+    protected abstract unsafe TValue ReadValue(long index);
 
     /// <summary>
     /// Finds the position of element that is greater or equal than key.
@@ -468,6 +302,14 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public void Dispose()
     {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposing)
+            return;
         ReleaseResources();
     }
 
@@ -503,12 +345,12 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
             // No active reads remaining.
             // Safe to drop.
 
-            if (!HasFixedSizeKeyAndValue)
-                DataHeaderDevice.Delete();
-            DataDevice.Delete();
+            DeleteDevices();
             IsDropped = true;
         }
     }
+
+    protected abstract void DeleteDevices();
 
     public IIndexedReader<TKey, TValue> GetIndexedReader()
     {
@@ -618,19 +460,12 @@ public sealed class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return GetFirstGreaterOrEqualPosition(in key, lower, upper);
     }
 
-    public void ReleaseResources()
+    public virtual void ReleaseResources()
     {
-        if (!HasFixedSizeKeyAndValue)
-            DataHeaderDevice.Dispose();
-        DataDevice.Dispose();
+        DataDevice?.Dispose();
     }
 
-    public int ReleaseReadBuffers(long ticks)
-    {
-        var a = DataHeaderDevice?.ReleaseReadBuffers(ticks) ?? 0;
-        var b = DataDevice?.ReleaseReadBuffers(ticks) ?? 0;
-        return a + b;
-    }
+    public abstract int ReleaseReadBuffers(long ticks);
 
     public void Drop(HashSet<long> excludedPartIds)
     {

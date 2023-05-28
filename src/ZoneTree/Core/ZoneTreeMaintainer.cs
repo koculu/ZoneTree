@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Segments.Disk;
+using Tenray.ZoneTree.Segments;
 
 namespace Tenray.ZoneTree.Core;
 

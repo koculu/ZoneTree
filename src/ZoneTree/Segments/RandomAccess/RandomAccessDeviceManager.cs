@@ -2,7 +2,7 @@
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Options;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace Tenray.ZoneTree.Segments.RandomAccess;
 
 public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 {
@@ -23,7 +23,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
     public int WritableDeviceCount => WritableDevices.Count;
 
     public RandomAccessDeviceManager(
-        ILogger logger, 
+        ILogger logger,
         IFileStreamProvider fileStreamProvider,
         string dataDirectory = "data")
     {
@@ -49,7 +49,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
     }
 
     public IRandomAccessDevice CreateWritableDevice(
-        long segmentId, string category, 
+        long segmentId, string category,
         bool isCompressed, int compressionBlockSize, int maxCachedBlockCount,
         bool deleteIfExists, bool backupIfDelete,
         CompressionMethod compressionMethod,
@@ -117,9 +117,9 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
     }
 
     public IRandomAccessDevice GetReadOnlyDevice(
-        long segmentId, string category, 
-        bool isCompressed, int compressionBlockSize, 
-        int maxCachedBlockCount, 
+        long segmentId, string category,
+        bool isCompressed, int compressionBlockSize,
+        int maxCachedBlockCount,
         CompressionMethod compressionMethod,
         int compressionLevel,
         long blockCacheReplacementWarningDuration)
