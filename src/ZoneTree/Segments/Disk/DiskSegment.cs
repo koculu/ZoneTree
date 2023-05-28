@@ -50,7 +50,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
-    protected unsafe DiskSegment(
+    protected DiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options)
     {
@@ -60,7 +60,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         ValueSerializer = options.ValueSerializer;
     }
 
-    protected unsafe DiskSegment(long segmentId,
+    protected DiskSegment(long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IRandomAccessDevice dataDevice)
     {
@@ -136,7 +136,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return true;
     }
 
-    public unsafe void InitSparseArray(int size)
+    public void InitSparseArray(int size)
     {
         var len = Length;
         size = (int)Math.Min(size, len);
@@ -167,7 +167,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         InitSparseArray((int)Math.Min(Length, int.MaxValue));
     }
 
-    unsafe SparseArrayEntry<TKey, TValue> CreateSparseArrayEntry(long index)
+    SparseArrayEntry<TKey, TValue> CreateSparseArrayEntry(long index)
     {
         // Optimisation possibility? read key and value together to reduce IO calls.
         var key = ReadKey(index);
@@ -176,9 +176,9 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return sparseArrayEntry;
     }
 
-    protected abstract unsafe TKey ReadKey(long index);
+    protected abstract TKey ReadKey(long index);
 
-    protected abstract unsafe TValue ReadValue(long index);
+    protected abstract TValue ReadValue(long index);
 
     /// <summary>
     /// Finds the position of element that is greater or equal than key.
