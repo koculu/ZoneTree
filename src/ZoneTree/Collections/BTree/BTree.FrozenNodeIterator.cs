@@ -112,16 +112,8 @@ public sealed partial class BTree<TKey, TValue>
         /// <returns>-1 or a valid position</returns>
         public int GetLastSmallerOrEqualPosition(
             IRefComparer<TKey> comparer, in TKey key)
-        {
-            var x = GetFirstGreaterOrEqualPosition(comparer, in key);
-            if (x == -1)
-                return -1;
-            if (x == Node.Length)
-                return x - 1;
-            if (comparer.Compare(in key, Node.Keys[x]) == 0)
-                return x;
-            return x - 1;
-        }
+            => BinarySearchAlgorithms
+                .LastSmallerOrEqualPosition(Node.Keys, 0, Node.Length - 1, comparer, in key);
 
         /// <summary>
         /// Finds the position of element that is greater or equal than key.
@@ -130,20 +122,7 @@ public sealed partial class BTree<TKey, TValue>
         /// <returns>The length of the segment or a valid position</returns>
         public int GetFirstGreaterOrEqualPosition(
             IRefComparer<TKey> comparer, in TKey key)
-        {
-            // This is the lower bound algorithm.
-            var list = Node.Keys;
-            int l = 0, h = Node.Length;
-            var comp = comparer;
-            while (l < h)
-            {
-                int mid = l + (h - l) / 2;
-                if (comp.Compare(in key, list[mid]) <= 0)
-                    h = mid;
-                else
-                    l = mid + 1;
-            }
-            return l;
-        }
+            => BinarySearchAlgorithms
+                .FirstGreaterOrEqualPosition(Node.Keys, 0, Node.Length - 1, comparer, in key);
     }
 }

@@ -50,7 +50,8 @@ public sealed class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValu
 
     public bool TryGet(in TKey key, out TValue value)
     {
-        int index = BinarySearch(in key);
+        int index = BinarySearchAlgorithms
+            .BinarySearch(SortedKeys, 0, SortedKeys.Count - 1, Comparer, in key);
         if (index < 0)
         {
             value = default;
@@ -62,36 +63,9 @@ public sealed class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValu
 
     public bool ContainsKey(in TKey key)
     {
-        int index = BinarySearch(in key);
+        int index = BinarySearchAlgorithms
+            .BinarySearch(SortedKeys, 0, SortedKeys.Count - 1, Comparer, in key);
         return index >= 0;
-    }
-
-    int BinarySearch(in TKey key)
-    {
-        var list = SortedKeys;
-        var comp = Comparer;
-        int l = 0, r = list.Count - 1;
-        while (l <= r)
-        {
-            int m = l + (r - l) / 2;
-
-            // Check if key is present at mid
-            var rec = list[m];
-            var res = comp.Compare(in rec, in key);
-            if (res == 0)
-                return m;
-
-            // If key greater, ignore left half
-            if (res < 0)
-                l = m + 1;
-
-            // If x is smaller, ignore right half
-            else
-                r = m - 1;
-        }
-        // if we reach here, then element was
-        // not present
-        return -1;
     }
 
     public TKey GetKey(long index)
@@ -125,39 +99,18 @@ public sealed class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValu
     /// </summary>
     /// <param name="key">The key</param>
     /// <returns>-1 or a valid position</returns>
-    public long GetLastSmallerOrEqualPosition(in TKey key)
-    {
-        var x = GetFirstGreaterOrEqualPosition(in key);
-        if (x == -1)
-            return -1;
-        if (x == SortedKeys.Count)
-            return x - 1;
-        if (Comparer.Compare(in key, SortedKeys[(int)x]) == 0)
-            return x;
-        return x - 1;
-    }
+    public long GetLastSmallerOrEqualPosition(in TKey key) =>
+        BinarySearchAlgorithms
+            .LastSmallerOrEqualPosition(SortedKeys, 0, SortedKeys.Count - 1, Comparer, in key);
 
     /// <summary>
     /// Finds the position of element that is greater or equal than key.
     /// </summary>
     /// <param name="key">The key</param>
     /// <returns>The length of the segment or a valid position</returns>
-    public long GetFirstGreaterOrEqualPosition(in TKey key)
-    {
-        // This is the lower bound algorithm.
-        var list = SortedKeys;
-        int l = 0, h = list.Count;
-        var comp = Comparer;
-        while (l < h)
-        {
-            int mid = l + (h - l) / 2;
-            if (comp.Compare(in key, list[mid]) <= 0)
-                h = mid;
-            else
-                l = mid + 1;
-        }
-        return l;
-    }
+    public long GetFirstGreaterOrEqualPosition(in TKey key) =>
+        BinarySearchAlgorithms
+            .FirstGreaterOrEqualPosition(SortedKeys, 0, SortedKeys.Count - 1, Comparer, in key);
 
     public void ReleaseResources()
     {

@@ -86,10 +86,9 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
             if (index == -1 || index == sparseArrayLength - 1)
                 return false;
             lower = SparseArray[index].Index;
-            upper = SparseArray[index + 1].Index;
+            upper = SparseArray[index + 1].Index - 1;
         }
-
-        var res = BinarySearch(in key, lower, upper);
+        var res = BinarySearchAlgorithms.BinarySearch(ReadKey, lower, upper, Comparer, in key);
         return res >= 0;
     }
 
@@ -125,8 +124,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
             lower = SparseArray[index].Index;
             upper = SparseArray[index + 1].Index - 1;
         }
-
-        var result = BinarySearch(in key, lower, upper);
+        var result = BinarySearchAlgorithms.BinarySearch(ReadKey, lower, upper, Comparer, in key);
         if (result < 0)
         {
             value = default;
@@ -185,20 +183,16 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     /// </summary>
     /// <param name="key">The key</param>
     /// <returns>The length of the sparse array or a valid position</returns>
-    int FindFirstGreaterOrEqualPositionInSparseArray(in TKey key)
+    int FindFirstGreaterOrEqualPositionInSparseArray(TKey key)
     {
         var list = SparseArray;
-        int l = 0, h = list.Count;
         var comp = Comparer;
-        while (l < h)
+
+        int compareKeyByIndex(int index)
         {
-            int mid = l + (h - l) / 2;
-            if (comp.Compare(in key, in list[mid].Key) <= 0)
-                h = mid;
-            else
-                l = mid + 1;
+            return comp.Compare(in list[index].Key, in key);
         }
-        return l;
+        return BinarySearchAlgorithms.FirstGreaterOrEqualPosition(compareKeyByIndex, 0, list.Count - 1);
     }
 
     /// <summary>
@@ -206,16 +200,16 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     /// </summary>
     /// <param name="key">The key</param>
     /// <returns>-1 or a valid position</returns>
-    int FindLastSmallerOrEqualPositionInSparseArray(in TKey key)
+    int FindLastSmallerOrEqualPositionInSparseArray(TKey key)
     {
-        var x = FindFirstGreaterOrEqualPositionInSparseArray(in key);
-        if (x == -1)
-            return -1;
-        if (x == SparseArray.Count)
-            return x - 1;
-        if (Comparer.Compare(in key, in SparseArray[x].Key) == 0)
-            return x;
-        return x - 1;
+        var list = SparseArray;
+        var comp = Comparer;
+
+        int compareKeyByIndex(int index)
+        {
+            return comp.Compare(in list[index].Key, in key);
+        }
+        return BinarySearchAlgorithms.LastSmallerOrEqualPosition(compareKeyByIndex, 0, list.Count - 1);
     }
 
     (int index, bool found) SearchLastSmallerOrEqualPositionInSparseArray(in TKey key)
@@ -225,7 +219,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         if (len == 0)
             return (-1, false);
 
-        var position = FindLastSmallerOrEqualPositionInSparseArray(in key);
+        var position = FindLastSmallerOrEqualPositionInSparseArray(key);
         if (position == -1)
             return (-1, false);
         var exactMatch = Comparer.Compare(SparseArray[position].Key, key) == 0;
@@ -239,45 +233,11 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         if (len == 0)
             return (0, false);
 
-        var position = FindFirstGreaterOrEqualPositionInSparseArray(in key);
+        var position = FindFirstGreaterOrEqualPositionInSparseArray(key);
         if (position == len)
             return (len, false);
         var exactMatch = Comparer.Compare(SparseArray[position].Key, key) == 0;
         return (position, exactMatch);
-    }
-
-    /// <summary>
-    /// Search the key and returns its position or -1 if not found.
-    /// </summary>
-    /// <param name="key">Key to search</param>
-    /// <param name="lower">Lower inclusive</param>
-    /// <param name="upper">Upper inclusive</param>
-    /// <returns>-1 or the position of the key.</returns>
-    long BinarySearch(in TKey key, long lower, long upper)
-    {
-        var comp = Comparer;
-        long l = lower, r = upper;
-        while (l <= r)
-        {
-            var m = l + (r - l) / 2;
-
-            // Check if key is present at mid
-            var rec = ReadKey(m);
-            var res = comp.Compare(in rec, in key);
-            if (res == 0)
-                return m;
-
-            // If key greater, ignore left half
-            if (res < 0)
-                l = m + 1;
-
-            // If x is smaller, ignore right half
-            else
-                r = m - 1;
-        }
-        // if we reach here, then element was
-        // not present
-        return -1;
     }
 
     public TKey[] GetFirstKeysOfEveryPart()
@@ -389,40 +349,11 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return new SeekableIterator<TKey, TValue>(this);
     }
 
-    long GetLastSmallerOrEqualPosition(in TKey key, long l, long h)
-    {
-        var x = GetFirstGreaterOrEqualPosition(in key, l, h);
-        if (x == -1)
-            return -1;
-        if (x == Length)
-            return x - 1;
-        var rec = ReadKey(x);
-        if (Comparer.Compare(in key, in rec) == 0)
-            return x;
-        return x - 1;
-    }
-
-    long GetFirstGreaterOrEqualPosition(in TKey key, long l, long h)
-    {
-        // This is the lower bound algorithm.
-        var comp = Comparer;
-        while (l < h)
-        {
-            var mid = l + (h - l) / 2;
-            var rec = ReadKey(mid);
-            if (comp.Compare(in key, in rec) <= 0)
-                h = mid;
-            else
-                l = mid + 1;
-        }
-        return l;
-    }
-
     public long GetLastSmallerOrEqualPosition(in TKey key)
     {
         var sparseArrayLength = SparseArray.Count;
         long lower = 0;
-        long upper = Length;
+        long upper = Length - 1;
         if (sparseArrayLength != 0)
         {
             (var index, var found) = SearchLastSmallerOrEqualPositionInSparseArray(in key);
@@ -433,31 +364,31 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
             if (index == sparseArrayLength - 1)
                 return SparseArray[index].Index;
             lower = SparseArray[index].Index;
-            upper = SparseArray[index + 1].Index;
+            upper = SparseArray[index + 1].Index - 1;
         }
-        return GetLastSmallerOrEqualPosition(in key, lower, upper);
+        return BinarySearchAlgorithms.LastSmallerOrEqualPosition(ReadKey, lower, upper, Comparer, in key);
     }
 
     public long GetFirstGreaterOrEqualPosition(in TKey key)
     {
         var sparseArrayLength = SparseArray.Count;
         long lower = 0;
-        long upper = Length;
+        long upper = Length - 1;
         if (sparseArrayLength != 0)
         {
             (var index, var found) = SearchFirstGreaterOrEqualPositionInSparseArray(in key);
             if (found)
                 return SparseArray[index].Index;
             if (index == sparseArrayLength)
-                return upper;
+                return Length;
             if (index == 0)
                 return SparseArray[index].Index;
             if (index > 0)
                 --index;
             lower = SparseArray[index].Index;
-            upper = SparseArray[index + 1].Index;
+            upper = SparseArray[index + 1].Index - 1;
         }
-        return GetFirstGreaterOrEqualPosition(in key, lower, upper);
+        return BinarySearchAlgorithms.FirstGreaterOrEqualPosition(ReadKey, lower, upper, Comparer, in key);
     }
 
     public virtual void ReleaseResources()
