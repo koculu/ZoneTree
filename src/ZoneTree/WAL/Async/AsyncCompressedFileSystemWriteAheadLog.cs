@@ -116,7 +116,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
         StopWriter(false);
         isRunning = true;
         WriteTask = Task.Factory.StartNew(
-            () => DoWrite(),
+            DoWrite,
             CancellationToken.None,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
@@ -257,10 +257,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
                     .AppendLogToTheBackupFile(
                         FileStreamProvider,
                         FilePath + ".full",
-                        () =>
-                        {
-                            return FileStream.GetFileContentIncludingTail();
-                        });
+                        FileStream.GetFileContentIncludingTail);
             }
             else
             {

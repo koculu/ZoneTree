@@ -161,7 +161,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         if (enableTailWriterJob)
         {
             Task.Factory.StartNew(
-                () => TailWriteLoop(),
+                TailWriteLoop,
                 CancellationToken.None,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);

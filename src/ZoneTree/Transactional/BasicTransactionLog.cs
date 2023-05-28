@@ -65,6 +65,14 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
         }
     }
 
+    static bool IsTransactionMetaDeleted(in TransactionMeta value) => value.StartedAt == 0;
+
+    static void MarkTransactionMetaDeleted(ref TransactionMeta value) { value.StartedAt = 0; }
+
+    static bool IsReadWriteStampDeleted(in ReadWriteStamp value) => value.IsDeleted;
+
+    static void MarkReadWriteStampDeleted(ref ReadWriteStamp value) { value = default; }
+
     public BasicTransactionLog(ZoneTreeOptions<TKey, TValue> options)
     {
         var writeAheadLogProvider = options.WriteAheadLogProvider;
@@ -79,8 +87,8 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             new Int64Serializer(),
             new StructSerializer<TransactionMeta>(),
             new Int64ComparerAscending(),
-            (in TransactionMeta x) => x.StartedAt == 0,
-            (ref TransactionMeta x) => x.StartedAt = 0);
+            IsTransactionMetaDeleted,
+            MarkTransactionMetaDeleted);
 
         var combinedSerializer = new CombinedSerializer<TValue, long>(options.ValueSerializer, new Int64Serializer());
         HistoryTable = new(
@@ -111,8 +119,8 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             options.KeySerializer,
             new StructSerializer<ReadWriteStamp>(),
             options.Comparer,
-            (in ReadWriteStamp x) => x.IsDeleted,
-            (ref ReadWriteStamp x) => x = default);
+            IsReadWriteStampDeleted,
+            MarkReadWriteStampDeleted);
 
         var keys = Transactions.Keys;
         if (keys.Length > 0)

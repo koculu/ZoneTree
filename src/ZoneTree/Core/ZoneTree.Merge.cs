@@ -312,7 +312,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         }
 
         var newDiskSegment = diskSegmentCreator.CreateReadOnlyDiskSegment();
-        newDiskSegment.DropFailureReporter = (ds, e) => ReportDropFailure(ds, e);
+        newDiskSegment.DropFailureReporter = ReportDropFailure;
         OnDiskSegmentCreated?.Invoke(this, newDiskSegment, false);
         lock (ShortMergerLock)
         {
