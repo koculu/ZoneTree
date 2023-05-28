@@ -15,7 +15,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
     public override int ReadBufferCount =>
         (DataDevice?.ReadBufferCount ?? 0) + (DataHeaderDevice?.ReadBufferCount ?? 0);
 
-    public unsafe FixedSizeValueDiskSegment(
+    public FixedSizeValueDiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options) : base(segmentId, options)
     {
@@ -46,7 +46,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
         InitKeySizeAndDataLength();
     }
 
-    public unsafe FixedSizeValueDiskSegment(long segmentId,
+    public FixedSizeValueDiskSegment(long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IRandomAccessDevice dataHeaderDevice,
         IRandomAccessDevice dataDevice) : base(segmentId, options, dataDevice)
@@ -56,7 +56,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
         InitKeySizeAndDataLength();
     }
 
-    static unsafe void EnsureKeyAndValueTypesAreSupported()
+    static void EnsureKeyAndValueTypesAreSupported()
     {
         var hasFixedSizeKey = !RuntimeHelpers.IsReferenceOrContainsReferences<TKey>();
         var hasFixedSizeValue = !RuntimeHelpers.IsReferenceOrContainsReferences<TValue>();
@@ -72,7 +72,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
         Length = DataHeaderDevice.Length / (ValueSize + sizeof(KeyHead));
     }
 
-    protected override unsafe TKey ReadKey(long index)
+    protected unsafe override TKey ReadKey(long index)
     {
         try
         {
@@ -93,7 +93,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
         }
     }
 
-    protected override unsafe TValue ReadValue(long index)
+    protected unsafe override TValue ReadValue(long index)
     {
         try
         {
