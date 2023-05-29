@@ -1,4 +1,6 @@
-﻿using Tenray.ZoneTree.Exceptions;
+﻿#undef LOG_DEADLOCK_PREVENTION
+
+using Tenray.ZoneTree.Exceptions;
 
 namespace Tenray.ZoneTree.Collections.BTree;
 
@@ -34,7 +36,7 @@ public sealed partial class BTree<TKey, TValue>
                 var newRoot = new Node(GetNodeLocker(), NodeSize);
                 newRoot.Children[0] = root;
                 newRoot.WriteLock();
-                SplitChild(newRoot, 0, root);
+                TrySplitChild(newRoot, 0, root);
                 var result = UpsertNonFull(newRoot, in key, in value, out opIndex);
                 Root = newRoot;
                 root.WriteUnlock();
@@ -75,14 +77,14 @@ public sealed partial class BTree<TKey, TValue>
                 var newRoot = new Node(GetNodeLocker(), NodeSize);
                 newRoot.Children[0] = root;
                 newRoot.WriteLock();
-                SplitChild(newRoot, 0, root);
+                TrySplitChild(newRoot, 0, root);
                 var result = TryInsertNonFull(newRoot, in key, in value, out opIndex);
                 Root = newRoot;
                 root.WriteUnlock();
                 return result;
             }
         }
-        catch(Exception)
+        catch (Exception)
         {
             Root.WriteUnlock();
             throw;
@@ -124,7 +126,7 @@ public sealed partial class BTree<TKey, TValue>
                 var newRoot = new Node(GetNodeLocker(), NodeSize);
                 newRoot.Children[0] = root;
                 newRoot.WriteLock();
-                SplitChild(newRoot, 0, root);
+                TrySplitChild(newRoot, 0, root);
                 AddOrUpdateResult result =
                     TryAddOrUpdateNonFull(newRoot, in key, adder, updater, out opIndex);
                 Root = newRoot;
@@ -143,7 +145,7 @@ public sealed partial class BTree<TKey, TValue>
         }
     }
 
-    void SplitChild(Node parent, int parentInsertPosition, Node child)
+    bool TrySplitChild(Node parent, int parentInsertPosition, Node child)
     {
         var pivotPosition = (child.Length + 1) / 2;
         ref var pivotKey = ref child.Keys[pivotPosition];
@@ -170,56 +172,43 @@ public sealed partial class BTree<TKey, TValue>
             // SOLUTION:
             // TRY TO LOCK NEXT WITH TIMEOUT
             // IF CAN NOT LOCK IN TIME UNLOCK PRE
-            // THEN SLEEP SOME
-            // THEN RELOCK PRE
-            // AND TRY TO LOCK NEXT ONCE AGAIN IN A LOOP.
+            // THEN RETURN FALSE AND CALLER WILL TRY AGAIN
             var lockTimeout = 500;
             var next = childLeaf.Next;
             var isNextLocked = true;
-            while(true)
+
+            if (next != null)
+                isNextLocked = next.TryEnterWriteLock(lockTimeout);
+            if (!isNextLocked)
             {
-                if (next != null)
-                    isNextLocked = next.TryEnterWriteLock(lockTimeout);
-                if (isNextLocked)
-                    break;
+#if LOG_DEADLOCK_PREVENTION
+                Console.WriteLine("Avoiding deadlock scenario 1!");
+#endif
                 pre?.WriteUnlock();
-                Thread.Sleep(100);
-                pre?.WriteLock();
-                while (childLeaf.Previous != pre)
-                {
-                    pre.WriteUnlock();
-                    pre = childLeaf.Previous;
-                    pre.WriteLock();
-                }
+                return false;
             }
 
             // prevent neighbour split at the same time.
             while (childLeaf.Next != next)
             {
-                next.WriteUnlock();
+                next?.WriteUnlock();
                 next = childLeaf.Next;
                 isNextLocked = true;
-                while (true)
+                if (next != null)
+                    isNextLocked = next.TryEnterWriteLock(lockTimeout);
+                if (!isNextLocked)
                 {
-                    if (next != null)
-                        isNextLocked = next.TryEnterWriteLock(lockTimeout);
-                    if (isNextLocked)
-                        break;
+#if LOG_DEADLOCK_PREVENTION
+                    Console.WriteLine("Avoiding deadlock scenario 2!");
+#endif
                     pre?.WriteUnlock();
-                    Thread.Sleep(100);
-                    pre?.WriteLock();
-                    while (childLeaf.Previous != pre)
-                    {
-                        pre.WriteUnlock();
-                        pre = childLeaf.Previous;
-                        pre.WriteLock();
-                    }
+                    return false;
                 }
             }
 
             left.Previous = pre;
             right.Next = next;
-            
+
             if (pre == null)
                 FirstLeafNode = left;
             else
@@ -241,6 +230,7 @@ public sealed partial class BTree<TKey, TValue>
                 .Split(pivotPosition, NodeSize, GetNodeLocker(), GetNodeLocker());
             parent.InsertKeyAndChild(parentInsertPosition, in pivotKey, left, right);
         }
+        return true;
     }
 
     bool UpsertNonFull(Node node, in TKey key, in TValue value, out long opIndex)
@@ -268,8 +258,12 @@ public sealed partial class BTree<TKey, TValue>
             child.WriteLock();
             if (child.IsFull)
             {
-                SplitChild(node, position, child);
+                var splitted = TrySplitChild(node, position, child);
                 child.WriteUnlock();
+                if (!splitted)
+                {
+                    continue;
+                }
 
                 if (Comparer.Compare(in key, in node.Keys[position]) >= 0)
                     ++position;
@@ -310,8 +304,12 @@ public sealed partial class BTree<TKey, TValue>
             child.WriteLock();
             if (child.IsFull)
             {
-                SplitChild(node, position, child);
+                var splitted = TrySplitChild(node, position, child);
                 child.WriteUnlock();
+                if (!splitted)
+                {
+                    continue;
+                }
 
                 if (Comparer.Compare(in key, in node.Keys[position]) >= 0)
                     ++position;
@@ -325,7 +323,7 @@ public sealed partial class BTree<TKey, TValue>
     }
 
     AddOrUpdateResult TryAddOrUpdateNonFull(
-        Node node, in TKey key, AddDelegate adder, UpdateDelegate updater, 
+        Node node, in TKey key, AddDelegate adder, UpdateDelegate updater,
         out long opIndex)
     {
         while (true)
@@ -355,8 +353,12 @@ public sealed partial class BTree<TKey, TValue>
             child.WriteLock();
             if (child.IsFull)
             {
-                SplitChild(node, position, child);
+                var splitted = TrySplitChild(node, position, child);
                 child.WriteUnlock();
+                if (!splitted)
+                {
+                    continue;
+                }
 
                 if (Comparer.Compare(in key, in node.Keys[position]) >= 0)
                     ++position;
