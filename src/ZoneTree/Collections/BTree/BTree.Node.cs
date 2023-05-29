@@ -21,7 +21,7 @@ public sealed partial class BTree<TKey, TValue>
 
 #if USE_NODE_IDS
         static int IncrementalId = 0;
-      
+
         public int Id;
 #endif
 

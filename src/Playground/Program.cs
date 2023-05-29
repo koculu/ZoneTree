@@ -1,11 +1,6 @@
-﻿using BenchmarkDotNet.Running;
-using Playground;
-using Playground.Benchmark;
-using Playground.InMemoryTreeBenchmark;
-using Tenray.ZoneTree.Core;
+﻿using Playground.Benchmark;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.WAL;
 
 TestConfig.EnableIncrementalBackup = false;
 TestConfig.MutableSegmentMaxItemCount = 1_000_000;
@@ -113,4 +108,10 @@ if (testCase == 4)
     b.Run(steve.Iterate);
     b.Run(steve.ShowBottomSegments);
     b.Run(steve.MergeBottomSegments);
+}
+
+if (testCase == 5)
+{
+    // Enable LOG_DEADLOCK_PREVENTION preprocessor on BTree.Write to see deadlock logs.
+    new DeadlockFinder().RunDeadLockFinder();
 }
