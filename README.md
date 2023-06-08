@@ -5,7 +5,7 @@ ZoneTree is a persistent, high-performance, transactional, and ACID-compliant [o
 It can operate in memory or on local/cloud storage.
 
 [![Downloads](https://img.shields.io/nuget/dt/ZoneTree)](https://www.nuget.org/packages/ZoneTree/)
-[![](https://dcbadge.vercel.app/api/server/862UzKH9?logoColor=f1c400&theme=discord&style=flat)](https://discord.gg/862UzKH9)
+[![](https://dcbadge.vercel.app/api/server/d9aDtzVNNv?logoColor=f1c400&theme=discord&style=flat)](https://discord.gg/d9aDtzVNNv)
 
 ZoneTree is a lightweight, transactional and high-performance LSM Tree for .NET.
 
