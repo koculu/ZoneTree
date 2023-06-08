@@ -38,8 +38,6 @@ using System.Runtime.Intrinsics.X86;
     Scope = "member",
     Target = "Tenray.ZoneTree.Segments.Disk.DiskSegment.DataDevice")]
 
-#pragma warning disable CA2213 // False warning: Device is disposed on ReleaseResources.
-
 [assembly: SuppressMessage(
     "Naming",
     "CA1711: Identifiers should not have incorrect suffix",
