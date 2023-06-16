@@ -32,6 +32,7 @@ public class ZoneTreeTestBase<TKey, TValue>
     protected ZoneTreeFactory<TKey, TValue> GetFactory()
     {
         return new ZoneTreeFactory<TKey, TValue>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
             .SetDiskSegmentMaxItemCount(TestConfig.DiskSegmentMaxItemCount)
             .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
@@ -87,7 +88,7 @@ public class ZoneTreeTestBase<TKey, TValue>
         long totalBytes = 0;
         foreach (var file in files)
         {
-            var finfo = new FileInfo(file);            
+            var finfo = new FileInfo(file);
             totalBytes += finfo.Length;
         }
         stats.AddAdditionalStats("Disk Usage", totalBytes.Bytes().Humanize());

@@ -13,6 +13,7 @@ public sealed class BottomSegmentMergeTests
             Directory.Delete(dataPath, true);
 
         var zoneTree = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetDiskSegmentMaxItemCount(10)
             .SetDataDirectory(dataPath)
             .ConfigureDiskSegmentOptions(
@@ -56,6 +57,7 @@ public sealed class BottomSegmentMergeTests
         zoneTree.Dispose();
 
         zoneTree = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetDiskSegmentMaxItemCount(10)
             .SetDataDirectory(dataPath)
             .OpenOrCreate();

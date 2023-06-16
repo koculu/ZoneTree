@@ -17,6 +17,7 @@ public sealed class OptimisticTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .OpenOrCreateTransactional();
@@ -64,6 +65,7 @@ public sealed class OptimisticTransactionTests
 
         int n = 10000;
         using var zoneTree = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogOptions(x => x.WriteAheadLogMode = walMode)
@@ -91,6 +93,7 @@ public sealed class OptimisticTransactionTests
 
         int n = 10000;
         using var zoneTree = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogOptions(x => x.WriteAheadLogMode = walMode)
@@ -165,7 +168,7 @@ public sealed class OptimisticTransactionTests
         var dataPath = "data/TransactionLogCompactionTest" + compactionThreshold;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
-        
+
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -269,7 +272,7 @@ public sealed class OptimisticTransactionTests
         Assert.IsTrue(zoneTree.TryGetNoThrow(tx1, 5, out var v5).IsAborted);
         Assert.IsTrue(zoneTree.TryGetNoThrow(tx2, 5, out v5).Succeeded);
         Assert.That(v5, Is.EqualTo(12));
-        
+
         // tx2 depends on tx1 bcs of read of key 9. tx1 aborted and so tx2.
         Assert.That(zoneTree.PrepareAndCommitNoThrow(tx2).IsAborted, Is.True);
 

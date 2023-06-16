@@ -34,6 +34,10 @@ public sealed class ZoneTreeOptions<TKey, TValue>
 
     static void DefaultMarkValueDeleted(ref TValue value) { value = default; }
 
+    static bool ReferenceTypeIsValueDeleted(in TValue value) => object.ReferenceEquals(value, default(TValue));
+
+    static void ReferenceTypeMarkValueDeleted(ref TValue value) { value = default; }
+
     /// <summary>
     /// Mutable segment maximumum key-value pair count.
     /// When the maximum count is reached 
@@ -109,31 +113,64 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     {
         if (KeySerializer == null)
         {
-            exception = new MissingOptionException("KeySerializer");
+            exception = new MissingOptionException(nameof(KeySerializer));
             return false;
         }
         if (ValueSerializer == null)
         {
-            exception = new MissingOptionException("ValueSerializer");
+            exception = new MissingOptionException(nameof(ValueSerializer));
             return false;
         }
 
         if (Comparer == null)
         {
-            exception = new MissingOptionException("Comparer");
+            exception = new MissingOptionException(nameof(Comparer));
             return false;
         }
 
         if (RandomAccessDeviceManager == null)
         {
-            exception = new MissingOptionException("RandomAccessDeviceManager");
+            exception = new MissingOptionException(nameof(RandomAccessDeviceManager));
             return false;
         }
 
         if (WriteAheadLogProvider == null)
         {
-            exception = new MissingOptionException("WriteAheadLogProvider");
+            exception = new MissingOptionException(nameof(WriteAheadLogProvider));
             return false;
+        }
+
+        switch (DeleteValueConfigurationValidation)
+        {
+            case DeleteValueConfigurationValidation.Required:
+                {
+                    if (IsValueDeleted == DefaultIsValueDeleted)
+                    {
+                        exception = new MissingOptionException(nameof(IsValueDeleted));
+                        return false;
+                    }
+
+                    if (MarkValueDeleted == DefaultMarkValueDeleted)
+                    {
+                        exception = new MissingOptionException(nameof(MarkValueDeleted));
+                        return false;
+                    }
+                }
+                break;
+            case DeleteValueConfigurationValidation.Warning:
+                {
+                    if (IsValueDeleted == DefaultIsValueDeleted)
+                    {
+                        Logger.LogWarning(new MissingOptionException(nameof(IsValueDeleted)));
+                    }
+
+                    if (MarkValueDeleted == DefaultMarkValueDeleted)
+                    {
+                        Logger.LogWarning(new MissingOptionException(nameof(MarkValueDeleted)));
+                    }
+                }
+                break;
+            default: break;
         }
 
         exception = ValidateCompressionLevel(
@@ -202,4 +239,39 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     /// Configures the random access device manager.
     /// </summary>
     public IRandomAccessDeviceManager RandomAccessDeviceManager { get; set; }
+
+    /// <summary>
+    /// Defines the validation behavior 
+    /// of not providing the delete value delegates.
+    /// </summary>
+    public DeleteValueConfigurationValidation DeleteValueConfigurationValidation { get; set; }
+
+    /// <summary>
+    /// Creates default delete delegates for nullable types.
+    /// </summary>
+    public void CreateDefaultDeleteDelegates()
+    {
+        if (!IsAssignableToNull(typeof(TValue)))
+            return;
+
+        if (MarkValueDeleted == DefaultMarkValueDeleted)
+        {
+            MarkValueDeleted = ReferenceTypeMarkValueDeleted;
+        }
+
+        if (IsValueDeleted == DefaultIsValueDeleted)
+        {
+            IsValueDeleted = ReferenceTypeIsValueDeleted;
+        }
+    }
+
+    static bool IsAssignableToNull(Type type)
+    {
+        if (!type.IsValueType || Nullable.GetUnderlyingType(type) != null)
+        {
+            return true;
+        }
+
+        return false;
+    }
 }

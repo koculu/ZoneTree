@@ -16,6 +16,7 @@ public sealed class AtomicUpdateTests
             Directory.Delete(dataPath, true);
         var counterKey = -3999;
         using var data = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetComparer(new Int32ComparerDescending())
             .SetMutableSegmentMaxItemCount(500)
             .SetDataDirectory(dataPath)
@@ -42,7 +43,7 @@ public sealed class AtomicUpdateTests
                 len = random.Next(1501);
                 for (var i = 0; i < len; ++i)
                 {
-                    data.TryAtomicAddOrUpdate(counterKey, 0, 
+                    data.TryAtomicAddOrUpdate(counterKey, 0,
                         bool (ref int y) =>
                         {
                             ++y;
@@ -86,6 +87,7 @@ public sealed class AtomicUpdateTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -109,8 +111,9 @@ public sealed class AtomicUpdateTests
                 len = random.Next(1501);
                 for (var i = 0; i < len; ++i)
                 {
-                    data.TryAtomicAddOrUpdate(3999, 0, 
-                        bool (ref int y) => {
+                    data.TryAtomicAddOrUpdate(3999, 0,
+                        bool (ref int y) =>
+                        {
                             ++y;
                             return true;
                         });
@@ -150,6 +153,7 @@ public sealed class AtomicUpdateTests
             Directory.Delete(dataPath, true);
         var counterKey = -3999;
         using var data = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -174,7 +178,8 @@ public sealed class AtomicUpdateTests
                 for (var i = 0; i < len; ++i)
                 {
                     data.TryAtomicAddOrUpdate(counterKey, 0,
-                        bool (ref int y) => {
+                        bool (ref int y) =>
+                        {
                             ++y;
                             return true;
                         });
@@ -213,6 +218,7 @@ public sealed class AtomicUpdateTests
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         using var data = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
