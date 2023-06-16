@@ -34,6 +34,10 @@ public sealed class ZoneTreeOptions<TKey, TValue>
 
     static void DefaultMarkValueDeleted(ref TValue value) { value = default; }
 
+    static bool ReferenceTypeIsValueDeleted(in TValue value) => object.ReferenceEquals(value, default(TValue));
+
+    static void ReferenceTypeMarkValueDeleted(ref TValue value) { value = default; }
+
     /// <summary>
     /// Mutable segment maximumum key-value pair count.
     /// When the maximum count is reached 
@@ -241,4 +245,33 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     /// of not providing the delete value delegates.
     /// </summary>
     public DeleteValueConfigurationValidation DeleteValueConfigurationValidation { get; set; }
+
+    /// <summary>
+    /// Creates default delete delegates for nullable types.
+    /// </summary>
+    public void CreateDefaultDeleteDelegates()
+    {
+        if (!IsAssignableToNull(typeof(TValue)))
+            return;
+
+        if (MarkValueDeleted == DefaultMarkValueDeleted)
+        {
+            MarkValueDeleted = ReferenceTypeMarkValueDeleted;
+        }
+
+        if (IsValueDeleted == DefaultIsValueDeleted)
+        {
+            IsValueDeleted = ReferenceTypeIsValueDeleted;
+        }
+    }
+
+    static bool IsAssignableToNull(Type type)
+    {
+        if (!type.IsValueType || Nullable.GetUnderlyingType(type) != null)
+        {
+            return true;
+        }
+
+        return false;
+    }
 }

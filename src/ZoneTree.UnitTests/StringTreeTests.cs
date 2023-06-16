@@ -15,7 +15,6 @@ public sealed class StringTreeTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<string, string>()
-            .DisableDeleteValueConfigurationValidation(false)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .OpenOrCreate();

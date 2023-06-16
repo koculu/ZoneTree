@@ -42,7 +42,6 @@ public sealed class FixedSizeKeyAndValueTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<int, string>()
-            .DisableDeleteValueConfigurationValidation(false)
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -64,6 +63,45 @@ public sealed class FixedSizeKeyAndValueTests
         }
         Assert.That(data.TryGet(n + 1, out var _), Is.False);
         data.Maintenance.DestroyTree();
+    }
+
+    [Test]
+    public void IntStringDeleteTest()
+    {
+        var dataPath = "data/IntStringDeleteTest";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var data = new ZoneTreeFactory<int, string>()
+            .SetDataDirectory(dataPath)
+            .OpenOrCreate();
+        data.TryAtomicAdd(1, "1");
+        data.TryAtomicAdd(2, "2");
+        data.TryAtomicAdd(3, "3");
+        data.TryDelete(2);
+        Assert.That(data.ContainsKey(1), Is.True);
+        Assert.That(data.ContainsKey(2), Is.False);
+        Assert.That(data.ContainsKey(3), Is.True);
+    }
+
+    [Test]
+    public void IntNullableIntDeleteTest()
+    {
+        var dataPath = "data/IntStringDeleteTest";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var data = new ZoneTreeFactory<int, int?>()
+            .SetDataDirectory(dataPath)
+            .SetValueSerializer(new NullableInt32Serializer())
+            .OpenOrCreate();
+        data.TryAtomicAdd(1, 1);
+        data.TryAtomicAdd(2, 2);
+        data.TryAtomicAdd(3, 3);
+        data.TryDelete(2);
+        Assert.That(data.ContainsKey(1), Is.True);
+        Assert.That(data.ContainsKey(2), Is.False);
+        Assert.That(data.ContainsKey(3), Is.True);
     }
 
     [TestCase(true)]
@@ -110,7 +148,6 @@ public sealed class FixedSizeKeyAndValueTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<string, string>()
-            .DisableDeleteValueConfigurationValidation(false)
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)

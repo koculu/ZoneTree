@@ -385,6 +385,7 @@ public sealed class ZoneTreeFactory<TKey, TValue>
                 Options.Logger,
                 FileStreamProvider);
         }
+        Options.CreateDefaultDeleteDelegates();
         FillComparer();
         FillKeySerializer();
         FillValueSerializer();
