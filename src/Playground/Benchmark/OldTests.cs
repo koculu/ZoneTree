@@ -18,7 +18,7 @@ public sealed class OldTests
     {
         var recCount = count / 1000000.0 + "M";
         Console.WriteLine("\r\n--------------------------");
-        new StatsCollector().LogWithColor($"\r\n{mode} Insert <int,int> {recCount}\r\n", ConsoleColor.Cyan); 
+        new StatsCollector().LogWithColor($"\r\n{mode} Insert <int,int> {recCount}\r\n", ConsoleColor.Cyan);
         string dataPath = GetDataPath(mode, count);
         if (TestConfig.RecreateDatabases && Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
@@ -51,7 +51,7 @@ public sealed class OldTests
 
         new StatsCollector().LogWithColor(
             "Completed in:",
-            stopWatch.ElapsedMilliseconds, 
+            stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
         stopWatch.Restart();
 
@@ -179,7 +179,8 @@ public sealed class OldTests
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.DarkYellow);
 
-        for (var i = 0; i < amount; ++i) {
+        for (var i = 0; i < amount; ++i)
+        {
             zoneTree.Upsert(key, key + key);
             ++key;
         }
@@ -271,6 +272,7 @@ public sealed class OldTests
     private static IZoneTree<int, int> OpenOrCreateZoneTree(WriteAheadLogMode mode, string dataPath)
     {
         return new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
             .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)

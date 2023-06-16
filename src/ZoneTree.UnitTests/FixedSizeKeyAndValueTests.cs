@@ -12,6 +12,7 @@ public sealed class FixedSizeKeyAndValueTests
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         using var data = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -41,6 +42,7 @@ public sealed class FixedSizeKeyAndValueTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<int, string>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -73,6 +75,7 @@ public sealed class FixedSizeKeyAndValueTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<string, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -107,6 +110,7 @@ public sealed class FixedSizeKeyAndValueTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<string, string>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -139,7 +143,7 @@ public sealed class FixedSizeKeyAndValueTests
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .ConfigureWriteAheadLogOptions(x => 
+            .ConfigureWriteAheadLogOptions(x =>
                 x.WriteAheadLogMode = WriteAheadLogMode.Sync)
             .SetIsValueDeletedDelegate((in int x) => x == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)

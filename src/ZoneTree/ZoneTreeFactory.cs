@@ -48,7 +48,7 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         FileStreamProvider = fileStreamProvider;
 
         GetWriteAheadLogProvider = (options) =>
-            WalDirectory == null ? 
+            WalDirectory == null ?
             new WriteAheadLogProvider(options.Logger, fileStreamProvider) :
             new WriteAheadLogProvider(options.Logger, fileStreamProvider, WalDirectory);
     }
@@ -162,6 +162,19 @@ public sealed class ZoneTreeFactory<TKey, TValue>
     public ZoneTreeFactory<TKey, TValue> SetOptions(ZoneTreeOptions<TKey, TValue> options)
     {
         Options = options;
+        return this;
+    }
+
+    /// <summary>
+    /// Disables the delete value configuration validation.
+    /// </summary>
+    /// <param name="keepWarning">If true, validation logs a warning when value deletion is not configured.</param>
+    /// <returns>ZoneTree Factory</returns>
+    public ZoneTreeFactory<TKey, TValue> DisableDeleteValueConfigurationValidation(bool keepWarning = true)
+    {
+        Options.DeleteValueConfigurationValidation = keepWarning ?
+            DeleteValueConfigurationValidation.Warning :
+            DeleteValueConfigurationValidation.NotRequired;
         return this;
     }
 
@@ -424,7 +437,7 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         };
 
         if (typeof(TKey) == typeof(string))
-            Options.KeySerializer = 
+            Options.KeySerializer =
                 new Utf8StringSerializer() as ISerializer<TKey>;
 
         else if (typeof(TKey) == typeof(byte[]))
@@ -521,7 +534,7 @@ public sealed class ZoneTreeFactory<TKey, TValue>
     /// <returns>ZoneTree Factory</returns>
     public ITransactionalZoneTree<TKey, TValue> OpenOrCreateTransactional()
     {
-        var zoneTree = OpenOrCreate(); 
+        var zoneTree = OpenOrCreate();
         InitTransactionLog();
         return new OptimisticZoneTree<TKey, TValue>(Options, TransactionLog, zoneTree);
     }
@@ -533,7 +546,7 @@ public sealed class ZoneTreeFactory<TKey, TValue>
     /// <exception cref="DatabaseAlreadyExistsException">Thrown when the database exists in the location.</exception>
     public ITransactionalZoneTree<TKey, TValue> CreateTransactional()
     {
-        var zoneTree = Create(); 
+        var zoneTree = Create();
         InitTransactionLog();
         return new OptimisticZoneTree<TKey, TValue>(Options, TransactionLog, zoneTree);
     }

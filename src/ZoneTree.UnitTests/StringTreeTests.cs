@@ -15,6 +15,7 @@ public sealed class StringTreeTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<string, string>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .OpenOrCreate();
@@ -27,7 +28,7 @@ public sealed class StringTreeTests
         {
             "Zbc", "DDD", "Abc", "Cbc", "Dbc", null
         };
-        for(var i = 0; i < keys.Length; i++)
+        for (var i = 0; i < keys.Length; i++)
         {
             zoneTree.Upsert(keys[i], values[i]);
         }
@@ -65,6 +66,7 @@ public sealed class StringTreeTests
         for (var i = 0; i < 2; ++i)
         {
             using var db = new ZoneTreeFactory<string, int>()
+                .DisableDeleteValueConfigurationValidation(false)
                 .SetDataDirectory(dataPath)
                 .OpenOrCreate();
             db.Upsert("0", 123);

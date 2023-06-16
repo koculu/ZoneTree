@@ -17,6 +17,7 @@ public sealed class ExceptionlessTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .OpenOrCreateTransactional();
@@ -63,6 +64,7 @@ public sealed class ExceptionlessTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
+            .DisableDeleteValueConfigurationValidation(false)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogOptions(x =>
@@ -103,7 +105,7 @@ public sealed class ExceptionlessTransactionTests
             if (transaction.TotalPendingTransactionsRetried > 0)
                 Console.WriteLine("pending:" + transaction.TotalPendingTransactionsRetried);
         });
-        
+
         zoneTree.Maintenance.DestroyTree();
     }
 }
