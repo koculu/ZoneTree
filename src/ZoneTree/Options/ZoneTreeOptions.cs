@@ -100,6 +100,16 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     public BTreeLockMode BTreeLockMode { get; set; } = BTreeLockMode.NodeLevelMonitor;
 
     /// <summary>
+    /// The B+Tree node size.
+    /// </summary>
+    public int BTreeNodeSize { get; set; } = 128;
+
+    /// <summary>
+    /// The B+Tree leaf size.
+    /// </summary>
+    public int BTreeLeafSize { get; set; } = 128;
+
+    /// <summary>
     /// ZoneTree Logger.
     /// </summary>
     public ILogger Logger { get; set; } = new ConsoleLogger();
