@@ -54,7 +54,9 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
         BTree = new(Comparer,
             Options.BTreeLockMode,
-            indexOpProvider);
+            indexOpProvider,
+            Options.BTreeNodeSize,
+            Options.BTreeLeafSize);
 
         MarkValueDeleted = options.MarkValueDeleted;
         MutableSegmentMaxItemCount = options.MutableSegmentMaxItemCount;
@@ -73,7 +75,12 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         Options = options;
         Comparer = options.Comparer;
 
-        BTree = new(Comparer, Options.BTreeLockMode);
+        BTree = new(
+            Comparer,
+            Options.BTreeLockMode,
+            null,
+            Options.BTreeNodeSize,
+            Options.BTreeLeafSize);
         BTree.SetNextOpIndex(nextOpIndex);
 
         MarkValueDeleted = options.MarkValueDeleted;
