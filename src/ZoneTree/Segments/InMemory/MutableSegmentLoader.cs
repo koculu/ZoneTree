@@ -14,7 +14,10 @@ public sealed class MutableSegmentLoader<TKey, TValue>
         Options = options;
     }
 
-    public IMutableSegment<TKey, TValue> LoadMutableSegment(long segmentId, long maximumOpIndex)
+    public IMutableSegment<TKey, TValue> LoadMutableSegment(
+        long segmentId,
+        long maximumOpIndex,
+        bool collectGarbage)
     {
         var wal = Options.WriteAheadLogProvider
             .GetOrCreateWAL(
@@ -40,8 +43,13 @@ public sealed class MutableSegmentLoader<TKey, TValue>
             }
         }
         maximumOpIndex = Math.Max(result.MaximumOpIndex, maximumOpIndex);
-        return new MutableSegment<TKey, TValue>
-            (segmentId, wal, Options, result.Keys,
-            result.Values, maximumOpIndex + 1);
+        return new MutableSegment<TKey, TValue>(
+            segmentId,
+            wal,
+            Options,
+            result.Keys,
+            result.Values,
+            maximumOpIndex + 1,
+            collectGarbage);
     }
 }

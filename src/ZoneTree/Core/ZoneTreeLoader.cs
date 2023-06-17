@@ -145,11 +145,15 @@ public sealed class ZoneTreeLoader<TKey, TValue>
         }
     }
 
-    void LoadMutableSegment(long maximumOpIndex)
+    void LoadMutableSegment(long maximumOpIndex,
+        bool collectGarbage)
     {
         var loader = new MutableSegmentLoader<TKey, TValue>(Options);
         MutableSegment = loader
-            .LoadMutableSegment(ZoneTreeMeta.MutableSegment, maximumOpIndex);
+            .LoadMutableSegment(
+                ZoneTreeMeta.MutableSegment,
+                maximumOpIndex,
+                collectGarbage);
     }
 
     long LoadReadOnlySegments()
@@ -225,13 +229,15 @@ public sealed class ZoneTreeLoader<TKey, TValue>
         maximumId = bs.Count > 0 ? bs.Max() : 0;
         SetMaximumSegmentId(maximumId);
     }
+
     public ZoneTree<TKey, TValue> LoadZoneTree()
     {
         LoadZoneTreeMeta();
         LoadZoneTreeMetaWAL();
         SetMaximumId();
         var maximumOpIndex = LoadReadOnlySegments();
-        LoadMutableSegment(maximumOpIndex);
+        bool collectGarbage = Options.EnableSingleSegmentGarbageCollection && !ZoneTreeMeta.HasDiskSegment && ReadOnlySegments.Count == 0;
+        LoadMutableSegment(maximumOpIndex, collectGarbage);
         LoadDiskSegment();
         LoadBottomSegments();
         var zoneTree = new ZoneTree<TKey, TValue>(Options, ZoneTreeMeta,

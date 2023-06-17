@@ -104,6 +104,41 @@ public sealed class FixedSizeKeyAndValueTests
         Assert.That(data.ContainsKey(3), Is.True);
     }
 
+    [Test]
+    public void IntStringGarbageCollectionTest()
+    {
+        var dataPath = "data/IntStringGarbageCollectionTest";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        // load and populate tree
+        {
+            using var data = new ZoneTreeFactory<int, string>()
+                .SetDataDirectory(dataPath)
+                .OpenOrCreate();
+            data.TryAtomicAdd(1, "1");
+            data.TryAtomicAdd(2, "2");
+            data.TryAtomicAdd(3, "3");
+            data.TryDelete(2);
+            Assert.That(data.ContainsKey(1), Is.True);
+            Assert.That(data.ContainsKey(2), Is.False);
+            Assert.That(data.ContainsKey(3), Is.True);
+            Assert.That(data.Maintenance.MutableSegment.Length, Is.EqualTo(3));
+        }
+
+        // reload tree and check the length
+        {
+            using var data = new ZoneTreeFactory<int, string>()
+                .Configure(options => options.EnableSingleSegmentGarbageCollection = true)
+                .SetDataDirectory(dataPath)
+                .Open();
+            Assert.That(data.ContainsKey(1), Is.True);
+            Assert.That(data.ContainsKey(2), Is.False);
+            Assert.That(data.ContainsKey(3), Is.True);
+            Assert.That(data.Maintenance.MutableSegment.Length, Is.EqualTo(2));
+        }
+    }
+
     [TestCase(true)]
     [TestCase(false)]
     public void StringIntTreeTest(bool useSparseArray)
