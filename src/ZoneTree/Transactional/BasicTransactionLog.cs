@@ -306,19 +306,19 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
             // the uncommitted transaction that depends on the aborted one.
             DeleteAbortedTransactions(aborted, uncommitted);
 
-            /// 3. We can delete the entire history of
-            /// the aborted and committed transactions.
-            /// Because we require the history just 
-            /// for the rollback operation of uncommitted transactions.
-            /// Committed and aborted transactions can not be rollbacked at all.
+            // 3. We can delete the entire history of
+            // the aborted and committed transactions.
+            // Because we require the history just 
+            // for the rollback operation of uncommitted transactions.
+            // Committed and aborted transactions can not be rollbacked at all.
             DeleteHistoryOfAbortedAndCommittedTransactions();
 
-            /// 4. We can delete all aborted transactions read-write stamps.
-            /// we can delete committed transaction read-write stamps
-            /// up to the first uncommitted transaction id to not to break the skip write rule.            
-            /// Because the Rollback operation depends
-            /// on equality of uncommitted transaction write stamps.
-            /// rollback cancel condition: readWriteStamp.WriteStamp != uncommittedTransactionId
+            // 4. We can delete all aborted transactions read-write stamps.
+            // we can delete committed transaction read-write stamps
+            // up to the first uncommitted transaction id to not to break the skip write rule.            
+            // Because the Rollback operation depends
+            // on equality of uncommitted transaction write stamps.
+            // rollback cancel condition: readWriteStamp.WriteStamp != uncommittedTransactionId
             var minimumUncommittedTransactionId = uncommitted.Count == 0 ? long.MaxValue : uncommitted.Min();
             DeleteReadWriteStampsOfAbortedAndCommitted(minimumUncommittedTransactionId);
 

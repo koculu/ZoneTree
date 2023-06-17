@@ -147,6 +147,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     /// Creates an iterator that enables scanning of the in-memory segments.
     /// This includes read-only segments and mutable segment.
     /// </summary>
+    /// <param name="autoRefresh">if true, auto refresh is enabled.</param>
     /// <param name="includeDeletedRecords">if true the deleted records are included in iteration.</param>
     /// <returns>ZoneTree Iterator</returns>
     public IZoneTreeIterator<TKey, TValue>

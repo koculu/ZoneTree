@@ -167,6 +167,7 @@ internal sealed class TimSort<T>
     /// <summary>
     /// Creates a TimSort instance to maintain the state of an ongoing sort.
     /// </summary>
+    /// <param name="comparer">The key comparer</param>
     /// <param name="a">The array to be sorted.</param>
     /// <param name="work">An optional workspace array.</param>
     private TimSort(T[] a, T[] work, IRefComparer<T> comparer)
@@ -703,6 +704,7 @@ internal sealed class TimSort<T>
     /// <param name="lo">The index of the first element in the range to be sorted.</param>
     /// <param name="hi">the index after the last element in the range to be sorted.</param>
     /// <param name="start">he index of the first element in the range that is not already known to be sorted.</param>
+    /// <param name="comparer">The key comparer</param>
     private static void BinarySort(T[] arr, int lo, int hi, int start, IRefComparer<T> comparer)
     {
         Debug.Assert(lo <= start && start <= hi);
@@ -779,7 +781,8 @@ internal sealed class TimSort<T>
     /// <param name="a">The array in which a run is to be counted and possibly reversed.</param>
     /// <param name="lo">Index of the first element in the run.</param>
     /// <param name="hi">index after the last element that may be contained in the run. It is required that <code>lo &lt; hi</code>.</param>
-    /// <returns>The length of the run beginning at the specified position in the specified array.</returns>
+    /// <param name="comparer">The key comparer</param>
+    /// /// <returns>The length of the run beginning at the specified position in the specified array.</returns>
     private static int CountRunAndMakeAscending(T[] a, int lo, int hi, IRefComparer<T> comparer)
     {
         Debug.Assert(lo < hi);
@@ -836,6 +839,7 @@ internal sealed class TimSort<T>
     /// Sorts the given array.
     /// </summary>
     /// <param name="arr">The array to be sorted.</param>
+    /// <param name="comparer">The key comparer</param>
     internal static void Sort(T[] arr, IRefComparer<T> comparer)
     {
         Sort(arr, 0, arr.Length, null, comparer);
@@ -847,6 +851,7 @@ internal sealed class TimSort<T>
     /// <param name="arr">The array to be sorted.</param>
     /// <param name="index">The starting index of the range to sort.</param>
     /// <param name="length">The number of elements in the range to sort.</param>
+    /// <param name="comparer">The key comparer</param>
     internal static void Sort(T[] arr, int index, int length, IRefComparer<T> comparer)
     {
         Sort(arr, index, length, null, comparer);
@@ -860,6 +865,7 @@ internal sealed class TimSort<T>
     /// <param name="index">The starting index of the range to sort.</param>
     /// <param name="length">The number of elements in the range to sort.</param>
     /// <param name="work">An optional workspace array.</param>
+    /// <param name="comparer">The key comparer</param>
     internal static void Sort(T[] arr, int index, int length, T[] work, IRefComparer<T> comparer)
     {
         Debug.Assert(arr is not null && index >= 0 && length >= 0 && index + length <= arr.Length);

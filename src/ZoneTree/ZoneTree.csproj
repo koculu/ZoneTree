@@ -25,7 +25,6 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseWithDoc'">
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <LogFile>bin\docfx.log.txt</LogFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,12 +38,6 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'ReleaseWithDoc'">
-    <PackageReference Include="docfx.console" Version="2.59.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="K4os.Compression.LZ4" Version="1.3.5" />

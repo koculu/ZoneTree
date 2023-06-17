@@ -143,6 +143,7 @@ public sealed partial class BTree<TKey, TValue>
         /// <summary>
         /// Finds the position of element that is smaller or equal than key.
         /// </summary>
+        /// <param name="comparer">The key comparer</param>
         /// <param name="key">The key</param>
         /// <returns>-1 or a valid position</returns>
         public int GetLastSmallerOrEqualPosition(
@@ -153,6 +154,7 @@ public sealed partial class BTree<TKey, TValue>
         /// <summary>
         /// Finds the position of element that is greater or equal than key.
         /// </summary>
+        /// <param name="comparer">The key comparer</param>
         /// <param name="key">The key</param>
         /// <returns>The length of the segment or a valid position</returns>
         public int GetFirstGreaterOrEqualPosition(

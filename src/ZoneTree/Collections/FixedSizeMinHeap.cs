@@ -41,7 +41,7 @@ public sealed class FixedSizeMinHeap<TKey>
     /// Inserts the new element, maintaining the heap property.
     /// 
     /// If the element is greater than the current min element, this function returns
-    //     false without modifying the heap. Otherwise, it returns true.
+    ///     false without modifying the heap. Otherwise, it returns true.
     /// </summary>
     /// <param name="key"></param>
     /// <returns>true if inserted</returns>

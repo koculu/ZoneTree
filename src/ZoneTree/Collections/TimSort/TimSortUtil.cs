@@ -51,6 +51,7 @@ internal static class TimSortUtils
     /// <param name="len">The length of the range; must be &gt; 0</param>
     /// <param name="hint">Hint the index at which to begin the search, 0 &lt;= hint &lt; n.
     /// The closer hint is to the result, the faster this method will run.</param>
+    /// <param name="comparer">The key comparer</param>
     internal static int GallopLeft<K>(K key, K[] a, int baseIdx, int len, int hint, IRefComparer<K> comparer)
     {
         Debug.Assert(len > 0 && hint >= 0 && hint < len);
@@ -132,6 +133,7 @@ internal static class TimSortUtils
     /// <param name="len">The length of the range; must be &gt; 0.</param>
     /// <param name="hint">The index at which to begin the search, 0 &lt;= hint &lt; n.
     /// The closer hint is to the result, the faster this method will run.</param>
+    /// <param name="comparer">The key comparer</param>
     /// <returns>The int k,  0 &lt;= k &lt;= n such that a[b + k - 1] &lt;= key &lt; a[b + k]</returns>
     internal static int GallopRight<K>(K key, K[] a, int baseIdx, int len, int hint, IRefComparer<K> comparer)
     {
