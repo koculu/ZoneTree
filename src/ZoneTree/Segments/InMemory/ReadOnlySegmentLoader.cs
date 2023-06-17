@@ -46,11 +46,10 @@ public sealed class ReadOnlySegmentLoader<TKey, TValue>
             ZoneTree<TKey, TValue>.SegmentWalCategory);
 
         (var newKeys, var newValues) = WriteAheadLogUtility
-            .StableSortAndCleanUpDeletedKeys(
+            .StableSortAndCleanUpDuplicatedKeys(
             result.Keys,
             result.Values,
-            Options.Comparer,
-            Options.IsValueDeleted);
+            Options.Comparer);
 
         var ros = new ReadOnlySegment<TKey, TValue>(
             segmentId,

@@ -244,16 +244,19 @@ public sealed class ZoneTreeLoader<TKey, TValue>
         if (collectGarbage)
         {
             var len = MutableSegment.Length;
-            var keys = new TKey[len];
-            var values = new TValue[len];
-            var iterator = MutableSegment.GetSeekableIterator();
-            var i = 0;
-            while (iterator.Next())
+            if (mutableSegmentWal.InitialLength != MutableSegment.Length)
             {
-                keys[i] = iterator.CurrentKey;
-                values[i++] = iterator.CurrentValue;
+                var keys = new TKey[len];
+                var values = new TValue[len];
+                var iterator = MutableSegment.GetSeekableIterator();
+                var i = 0;
+                while (iterator.Next())
+                {
+                    keys[i] = iterator.CurrentKey;
+                    values[i++] = iterator.CurrentValue;
+                }
+                mutableSegmentWal.ReplaceWriteAheadLog(keys, values, true);
             }
-            mutableSegmentWal.ReplaceWriteAheadLog(keys, values, true);
         }
         LoadDiskSegment();
         LoadBottomSegments();

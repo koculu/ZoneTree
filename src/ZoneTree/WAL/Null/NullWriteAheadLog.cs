@@ -8,6 +8,8 @@ public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValu
 
     public bool EnableIncrementalBackup { get; set; }
 
+    public int InitialLength { get; private set; }
+
     public void Append(in TKey key, in TValue value, long opIndex)
     {
     }

@@ -8,6 +8,12 @@ public interface IWriteAheadLog<TKey, TValue> : IDisposable
 
     bool EnableIncrementalBackup { get; set; }
 
+    /// <summary>
+    /// The initial record count of the log.
+    /// It is available after the ReadLogEntries call.
+    /// </summary>
+    int InitialLength { get; }
+
     void Append(in TKey key, in TValue value, long opIndex);
 
     void Drop();
@@ -27,13 +33,13 @@ public interface IWriteAheadLog<TKey, TValue> : IDisposable
     /// <param name="disableBackup">disable backup regardless of wal flag.</param>
     /// <returns>the difference: old file length - new file length.</returns>
     long ReplaceWriteAheadLog(TKey[] keys, TValue[] values, bool disableBackup);
-    
+
     /// <summary>
     /// Informs the write ahead log that no further writes will be sent.
     /// to let WAL optimize itself.
     /// </summary>
     void MarkFrozen();
-    
+
     /// <summary>
     /// Truncates incomplete tail record.
     /// </summary>
