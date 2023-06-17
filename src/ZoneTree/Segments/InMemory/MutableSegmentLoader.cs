@@ -1,6 +1,7 @@
 ﻿using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.Segments.InMemory;
 
@@ -14,9 +15,13 @@ public sealed class MutableSegmentLoader<TKey, TValue>
         Options = options;
     }
 
-    public IMutableSegment<TKey, TValue> LoadMutableSegment(long segmentId, long maximumOpIndex)
+    public IMutableSegment<TKey, TValue> LoadMutableSegment(
+        long segmentId,
+        long maximumOpIndex,
+        bool collectGarbage,
+        out IWriteAheadLog<TKey, TValue> wal)
     {
-        var wal = Options.WriteAheadLogProvider
+        wal = Options.WriteAheadLogProvider
             .GetOrCreateWAL(
                 segmentId,
                 ZoneTree<TKey, TValue>.SegmentWalCategory,
@@ -40,8 +45,13 @@ public sealed class MutableSegmentLoader<TKey, TValue>
             }
         }
         maximumOpIndex = Math.Max(result.MaximumOpIndex, maximumOpIndex);
-        return new MutableSegment<TKey, TValue>
-            (segmentId, wal, Options, result.Keys,
-            result.Values, maximumOpIndex + 1);
+        return new MutableSegment<TKey, TValue>(
+            segmentId,
+            wal,
+            Options,
+            result.Keys,
+            result.Values,
+            maximumOpIndex + 1,
+            collectGarbage);
     }
 }

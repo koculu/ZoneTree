@@ -21,7 +21,7 @@ public sealed class ZoneTreeMeta
     public int DiskSegmentMaxItemCount { get; set; } = 20_000_000;
 
     public WriteAheadLogOptions WriteAheadLogOptions { get; set; }
-    
+
     public DiskSegmentOptions DiskSegmentOptions { get; set; }
 
     public long MutableSegment { get; set; }
@@ -31,4 +31,6 @@ public sealed class ZoneTreeMeta
     public long DiskSegment { get; set; }
 
     public IReadOnlyList<long> BottomSegments { get; set; }
+
+    public bool HasDiskSegment => DiskSegment != 0 && BottomSegments?.Count > 0;
 }

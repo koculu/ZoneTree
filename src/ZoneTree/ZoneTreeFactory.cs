@@ -475,6 +475,20 @@ public sealed class ZoneTreeFactory<TKey, TValue>
                 new ByteArraySerializer() as ISerializer<TValue>;
     }
 
+    void LoadInitialSparseArrays(ZoneTree<TKey, TValue> zoneTree)
+    {
+        if (InitialSparseArrayLength <= 1)
+            return;
+
+        var t1 = Task.Run(() =>
+            zoneTree.Maintenance.DiskSegment.InitSparseArray(InitialSparseArrayLength));
+        Parallel.ForEach(zoneTree.Maintenance.BottomSegments, (bs) =>
+        {
+            bs.InitSparseArray(InitialSparseArrayLength);
+        });
+        t1.Wait();
+    }
+
     /// <summary>
     /// Opens or creates a ZoneTree.
     /// </summary>
@@ -487,13 +501,7 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         if (loader.ZoneTreeMetaExists)
         {
             var zoneTree = loader.LoadZoneTree();
-            var t1 = Task.Run(() =>
-                zoneTree.Maintenance.DiskSegment.InitSparseArray(InitialSparseArrayLength));
-            Parallel.ForEach(zoneTree.Maintenance.BottomSegments, (bs) =>
-            {
-                bs.InitSparseArray(InitialSparseArrayLength);
-            });
-            t1.Wait();
+            LoadInitialSparseArrays(zoneTree);
             return zoneTree;
         }
         return new ZoneTree<TKey, TValue>(Options);
@@ -526,7 +534,9 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         var loader = new ZoneTreeLoader<TKey, TValue>(Options);
         if (!loader.ZoneTreeMetaExists)
             throw new DatabaseNotFoundException();
-        return loader.LoadZoneTree();
+        var zoneTree = loader.LoadZoneTree();
+        LoadInitialSparseArrays(zoneTree);
+        return zoneTree;
     }
 
     /// <summary>

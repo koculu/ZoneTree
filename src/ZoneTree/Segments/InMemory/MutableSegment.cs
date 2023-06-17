@@ -68,7 +68,8 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         ZoneTreeOptions<TKey, TValue> options,
         IReadOnlyList<TKey> keys,
         IReadOnlyList<TValue> values,
-        long nextOpIndex)
+        long nextOpIndex,
+        bool collectGarbage)
     {
         SegmentId = segmentId;
         WriteAheadLog = wal;
@@ -85,7 +86,16 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
         MarkValueDeleted = options.MarkValueDeleted;
         MutableSegmentMaxItemCount = options.MutableSegmentMaxItemCount;
-        LoadLogEntries(keys, values);
+        if (collectGarbage)
+        {
+            // If there isn't any disk segment and readonly segment,
+            // it is safe to hard delete the soft deleted values.
+            LoadLogEntriesWithGarbageCollection(keys, values);
+        }
+        else
+        {
+            LoadLogEntries(keys, values);
+        }
     }
 
     void LoadLogEntries(IReadOnlyList<TKey> keys, IReadOnlyList<TValue> values)
@@ -97,6 +107,29 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             var value = values[i];
             // TODO: Search if we can create faster construction
             // of mutable segment from log entries.
+            BTree.Upsert(in key, in value, out var _);
+        }
+    }
+
+    void LoadLogEntriesWithGarbageCollection(
+        IReadOnlyList<TKey> keys,
+        IReadOnlyList<TValue> values)
+    {
+        var distinctKeys =
+            new BTree<TKey, byte>(Options.Comparer, Collections.BTree.Lock.BTreeLockMode.NoLock);
+
+        var isValueDeleted = Options.IsValueDeleted;
+        for (var i = keys.Count - 1; i >= 0; --i)
+        {
+            var key = keys[i];
+            if (distinctKeys.ContainsKey(in key))
+                continue;
+            var value = values[i];
+            distinctKeys.Upsert(in key, 1, out _);
+            if (isValueDeleted(in value))
+            {
+                continue;
+            }
             BTree.Upsert(in key, in value, out var _);
         }
     }

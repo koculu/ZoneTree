@@ -257,6 +257,13 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     public DeleteValueConfigurationValidation DeleteValueConfigurationValidation { get; set; }
 
     /// <summary>
+    /// If the ZoneTree contains only a single segment (which is the mutable segment),
+    /// there is an opportunity to perform a hard delete of the soft deleted values.
+    /// If enabled, the tree performs garbage collection on load if it is applicable.
+    /// </summary>
+    public bool EnableSingleSegmentGarbageCollection { get; set; }
+
+    /// <summary>
     /// Creates default delete delegates for nullable types.
     /// </summary>
     public void CreateDefaultDeleteDelegates()
