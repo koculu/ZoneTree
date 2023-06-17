@@ -120,10 +120,16 @@ public sealed class FixedSizeKeyAndValueTests
             data.TryAtomicAdd(2, "2");
             data.TryAtomicAdd(3, "3");
             data.TryDelete(2);
+            data.TryAtomicAdd(4, "4");
+            data.TryAtomicUpdate(3, "33");
+            data.TryDelete(2);
             Assert.That(data.ContainsKey(1), Is.True);
             Assert.That(data.ContainsKey(2), Is.False);
             Assert.That(data.ContainsKey(3), Is.True);
-            Assert.That(data.Maintenance.MutableSegment.Length, Is.EqualTo(3));
+            Assert.That(data.ContainsKey(4), Is.True);
+            data.TryGet(3, out var value3);
+            Assert.That(value3, Is.EqualTo("33"));
+            Assert.That(data.Maintenance.MutableSegment.Length, Is.EqualTo(4));
         }
 
         // reload tree and check the length
@@ -136,7 +142,95 @@ public sealed class FixedSizeKeyAndValueTests
             Assert.That(data.ContainsKey(1), Is.True);
             Assert.That(data.ContainsKey(2), Is.False);
             Assert.That(data.ContainsKey(3), Is.True);
-            Assert.That(data.Maintenance.MutableSegment.Length, Is.EqualTo(2));
+            Assert.That(data.ContainsKey(4), Is.True);
+            data.TryGet(3, out var value3);
+            Assert.That(value3, Is.EqualTo("33"));
+            Assert.That(data.Maintenance.MutableSegment.Length, Is.EqualTo(3));
+        }
+    }
+
+    [Test]
+    public void IntStringReadOnlySegmentLoadingTest()
+    {
+        var dataPath = "data/IntStringGarbageCollectionTest";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        // load and populate tree
+        {
+            using var data = new ZoneTreeFactory<int, string>()
+                .SetDataDirectory(dataPath)
+                .OpenOrCreate();
+            data.TryAtomicAdd(1, "1");
+            data.TryAtomicAdd(2, "2");
+            data.TryAtomicAdd(3, "3");
+            data.TryDelete(2);
+            data.TryAtomicAdd(4, "4");
+            data.TryAtomicUpdate(3, "33");
+            data.TryDelete(2);
+            Assert.That(data.ContainsKey(1), Is.True);
+            Assert.That(data.ContainsKey(2), Is.False);
+            Assert.That(data.ContainsKey(3), Is.True);
+            Assert.That(data.ContainsKey(4), Is.True);
+            data.TryGet(3, out var value3);
+            Assert.That(value3, Is.EqualTo("33"));
+            Assert.That(data.Maintenance.MutableSegment.Length, Is.EqualTo(4));
+            data.Maintenance.MoveMutableSegmentForward();
+            Assert.That(data.Maintenance.ReadOnlySegments[0].Length, Is.EqualTo(4));
+        }
+
+        // reload tree and check the length
+        for (var i = 0; i < 3; ++i)
+        {
+            using var data = new ZoneTreeFactory<int, string>()
+                .SetDataDirectory(dataPath)
+                .Open();
+            Assert.That(data.ContainsKey(1), Is.True);
+            Assert.That(data.ContainsKey(2), Is.False);
+            Assert.That(data.ContainsKey(3), Is.True);
+            Assert.That(data.ContainsKey(4), Is.True);
+            data.TryGet(3, out var value3);
+            Assert.That(value3, Is.EqualTo("33"));
+            Assert.That(data.Maintenance.ReadOnlySegments[0].Length, Is.EqualTo(4));
+        }
+    }
+
+    [Test]
+    public void IntStringDiskSegmentLoadingTest()
+    {
+        var dataPath = "data/IntStringGarbageCollectionTest";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        // load and populate tree
+        {
+            using var data = new ZoneTreeFactory<int, string>()
+                .SetDataDirectory(dataPath)
+                .OpenOrCreate();
+            data.TryAtomicAdd(1, "1");
+            data.TryAtomicAdd(2, "2");
+            data.TryAtomicAdd(3, "3");
+            data.TryDelete(2);
+            Assert.That(data.ContainsKey(1), Is.True);
+            Assert.That(data.ContainsKey(2), Is.False);
+            Assert.That(data.ContainsKey(3), Is.True);
+            Assert.That(data.Maintenance.MutableSegment.Length, Is.EqualTo(3));
+            data.Maintenance.MoveMutableSegmentForward();
+            Assert.That(data.Maintenance.ReadOnlySegments[0].Length, Is.EqualTo(3));
+            data.Maintenance.StartMergeOperation().Join();
+            Assert.That(data.Maintenance.DiskSegment.Length, Is.EqualTo(2));
+        }
+
+        // reload tree and check the length
+        for (var i = 0; i < 3; ++i)
+        {
+            using var data = new ZoneTreeFactory<int, string>()
+                .SetDataDirectory(dataPath)
+                .Open();
+            Assert.That(data.ContainsKey(1), Is.True);
+            Assert.That(data.ContainsKey(2), Is.False);
+            Assert.That(data.ContainsKey(3), Is.True);
+            Assert.That(data.Maintenance.DiskSegment.Length, Is.EqualTo(2));
         }
     }
 

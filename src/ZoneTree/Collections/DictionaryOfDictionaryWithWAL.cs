@@ -73,7 +73,7 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
         var len = keys.Count;
         for (var i = 0; i < len; ++i)
         {
-            Upsert(keys[i], values[i].Value1, values[i].Value2);
+            UpsertWithoutWal(keys[i], values[i].Value1, values[i].Value2);
         }
     }
 
@@ -110,6 +110,22 @@ public sealed class DictionaryOfDictionaryWithWAL<TKey1, TKey2, TValue> : IDispo
         };
         Dictionary[key1] = dic;
         WriteAheadLog.Append(key1, new CombinedValue<TKey2, TValue>(key2, value), NextOpIndex());
+        return false;
+    }
+
+    bool UpsertWithoutWal(in TKey1 key1, in TKey2 key2, in TValue value)
+    {
+        if (Dictionary.TryGetValue(key1, out var dic))
+        {
+            dic.Remove(key2);
+            dic.Add(key2, value);
+            return true;
+        }
+        dic = new Dictionary<TKey2, TValue>
+        {
+            { key2, value }
+        };
+        Dictionary[key1] = dic;
         return false;
     }
 

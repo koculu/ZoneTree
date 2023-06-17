@@ -33,6 +33,8 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
     public bool EnableIncrementalBackup { get; set; }
 
+    public int InitialLength { get; private set; }
+
     public SyncFileSystemWriteAheadLog(
         ILogger logger,
         IFileStreamProvider fileStreamProvider,
@@ -88,7 +90,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
         bool stopReadOnChecksumFailure,
         bool sortByOpIndexes)
     {
-        return WriteAheadLogEntryReader.ReadLogEntries<TKey, TValue, LogEntry>(
+        var result = WriteAheadLogEntryReader.ReadLogEntries<TKey, TValue, LogEntry>(
             Logger,
             FileStream.ToStream(),
             stopReadOnException,
@@ -96,6 +98,8 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
             LogEntry.ReadLogEntry,
             DeserializeLogEntry,
             sortByOpIndexes);
+        InitialLength = result.Keys.Count;
+        return result;
     }
 
     (bool isValid, TKey key, TValue value, long opIndex) DeserializeLogEntry(in LogEntry logEntry)

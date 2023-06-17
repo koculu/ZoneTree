@@ -70,7 +70,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 
     void LoadFromWriteAheadLog()
     {
-        var result = WriteAheadLog.ReadLogEntries(false, false, false);
+        var result = WriteAheadLog.ReadLogEntries(false, false, true);
         if (!result.Success)
         {
             if (result.HasFoundIncompleteTailRecord)
@@ -87,7 +87,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         }
 
         (var newKeys, var newValues) = WriteAheadLogUtility
-            .StableSortAndCleanUpDeletedKeys(
+            .StableSortAndCleanUpDeletedAndDuplicatedKeys(
             result.Keys,
             result.Values,
             Comparer,
