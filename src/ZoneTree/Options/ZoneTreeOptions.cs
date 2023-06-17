@@ -257,12 +257,6 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     public DeleteValueConfigurationValidation DeleteValueConfigurationValidation { get; set; }
 
     /// <summary>
-    /// If ZoneTree contains single segment (which is the mutable segment),
-    /// there is the opportunity to hard delete the soft deleted values.
-    /// If enabled, tree performs a garbage collection on load if applicable.
-    /// </summary>
-    /// 
-    /// <summary>
     /// If the ZoneTree contains only a single segment (which is the mutable segment),
     /// there is an opportunity to perform a hard delete of the soft deleted values.
     /// If enabled, the tree performs garbage collection on load if it is applicable.

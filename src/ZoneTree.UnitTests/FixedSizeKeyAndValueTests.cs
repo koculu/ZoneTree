@@ -127,6 +127,7 @@ public sealed class FixedSizeKeyAndValueTests
         }
 
         // reload tree and check the length
+        for (var i = 0; i < 3; ++i)
         {
             using var data = new ZoneTreeFactory<int, string>()
                 .Configure(options => options.EnableSingleSegmentGarbageCollection = true)

@@ -6,6 +6,7 @@ using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Segments.InMemory;
 using Tenray.ZoneTree.Segments.MultiPart;
 using Tenray.ZoneTree.Segments.NullDisk;
+using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.Core;
 
@@ -145,7 +146,7 @@ public sealed class ZoneTreeLoader<TKey, TValue>
         }
     }
 
-    void LoadMutableSegment(long maximumOpIndex,
+    IWriteAheadLog<TKey, TValue> LoadMutableSegment(long maximumOpIndex,
         bool collectGarbage)
     {
         var loader = new MutableSegmentLoader<TKey, TValue>(Options);
@@ -153,7 +154,9 @@ public sealed class ZoneTreeLoader<TKey, TValue>
             .LoadMutableSegment(
                 ZoneTreeMeta.MutableSegment,
                 maximumOpIndex,
-                collectGarbage);
+                collectGarbage,
+                out var wal);
+        return wal;
     }
 
     long LoadReadOnlySegments()
@@ -237,7 +240,21 @@ public sealed class ZoneTreeLoader<TKey, TValue>
         SetMaximumId();
         var maximumOpIndex = LoadReadOnlySegments();
         bool collectGarbage = Options.EnableSingleSegmentGarbageCollection && !ZoneTreeMeta.HasDiskSegment && ReadOnlySegments.Count == 0;
-        LoadMutableSegment(maximumOpIndex, collectGarbage);
+        var mutableSegmentWal = LoadMutableSegment(maximumOpIndex, collectGarbage);
+        if (collectGarbage)
+        {
+            var len = MutableSegment.Length;
+            var keys = new TKey[len];
+            var values = new TValue[len];
+            var iterator = MutableSegment.GetSeekableIterator();
+            var i = 0;
+            while (iterator.Next())
+            {
+                keys[i] = iterator.CurrentKey;
+                values[i++] = iterator.CurrentValue;
+            }
+            mutableSegmentWal.ReplaceWriteAheadLog(keys, values, true);
+        }
         LoadDiskSegment();
         LoadBottomSegments();
         var zoneTree = new ZoneTree<TKey, TValue>(Options, ZoneTreeMeta,
