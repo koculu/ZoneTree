@@ -76,8 +76,8 @@ public sealed class ZoneTreeLoader<TKey, TValue>
 
         if (!string.Equals(ZoneTreeMeta.ValueSerializerType, Options.ValueSerializer.GetType().FullName, StringComparison.Ordinal))
             throw new TreeValueSerializerTypeMismatchException(
-                ZoneTreeMeta.KeySerializerType,
-                Options.KeySerializer.GetType().FullName);
+                ZoneTreeMeta.ValueSerializerType,
+                Options.ValueSerializer.GetType().FullName);
     }
 
     void LoadZoneTreeMetaWAL()
