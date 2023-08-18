@@ -15,13 +15,13 @@ public interface IFileStreamProvider
         FileOptions options = FileOptions.None);
 
     bool FileExists(string path);
-    
+
     bool DirectoryExists(string path);
 
     void CreateDirectory(string path);
-    
+
     void DeleteFile(string path);
-   
+
     void DeleteDirectory(string path, bool recursive);
 
     string ReadAllText(string path);
@@ -34,4 +34,8 @@ public interface IFileStreamProvider
         string destinationBackupFileName);
 
     DurableFileWriter GetDurableFileWriter();
+
+    IReadOnlyList<string> GetDirectories(string path);
+
+    string CombinePaths(string path1, string path2);
 }

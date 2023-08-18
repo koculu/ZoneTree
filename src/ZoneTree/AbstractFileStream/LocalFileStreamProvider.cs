@@ -4,9 +4,9 @@ public sealed class LocalFileStreamProvider : IFileStreamProvider
 {
     public IFileStream CreateFileStream(
         string path,
-        FileMode mode, 
-        FileAccess access, 
-        FileShare share, 
+        FileMode mode,
+        FileAccess access,
+        FileShare share,
         int bufferSize = 4096,
         FileOptions options = FileOptions.None)
     {
@@ -49,7 +49,7 @@ public sealed class LocalFileStreamProvider : IFileStreamProvider
     }
 
     public void Replace(
-        string sourceFileName, 
+        string sourceFileName,
         string destinationFileName,
         string destinationBackupFileName)
     {
@@ -61,5 +61,15 @@ public sealed class LocalFileStreamProvider : IFileStreamProvider
     public DurableFileWriter GetDurableFileWriter()
     {
         return new DurableFileWriter(this);
+    }
+
+    public IReadOnlyList<string> GetDirectories(string path)
+    {
+        return Directory.GetDirectories(path);
+    }
+
+    public string CombinePaths(string path1, string path2)
+    {
+        return Path.Combine(path1, path2);
     }
 }
