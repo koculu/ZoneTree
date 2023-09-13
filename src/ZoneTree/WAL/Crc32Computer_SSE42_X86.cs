@@ -33,7 +33,7 @@ public sealed class Crc32Computer_SSE42_X86
         var len = data.Length;
         while (len >= 4)
         {
-            crc = (uint)Sse42.X64.Crc32(crc, BitConverter.ToUInt32(data, off));
+            crc = (uint)Sse42.Crc32(crc, BitConverter.ToUInt32(data, off));
             off += 4;
             len -= 4;
         }
