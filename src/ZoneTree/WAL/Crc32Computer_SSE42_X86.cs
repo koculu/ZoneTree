@@ -10,7 +10,7 @@ public sealed class Crc32Computer_SSE42_X86
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint Compute(uint crc, ulong data)
     {
-        var result = (uint)Sse42.Crc32(crc, (uint)data);
+        crc = (uint)Sse42.Crc32(crc, (uint)data);
         return Sse42.Crc32(crc, (uint)(data >> 32));
     }
 
