@@ -30,6 +30,16 @@ public struct LogEntry : IEquatable<LogEntry>
             return crc32;
         }
 
+        if (Crc32Computer_SSE42_X86.IsSupported)
+        {
+            crc32 = Crc32Computer_SSE42_X86.Compute(crc32, (ulong)OpIndex);
+            crc32 = Crc32Computer_SSE42_X86.Compute(crc32, KeyLength);
+            crc32 = Crc32Computer_SSE42_X86.Compute(crc32, ValueLength);
+            crc32 = Crc32Computer_SSE42_X86.Compute(crc32, Key);
+            crc32 = Crc32Computer_SSE42_X86.Compute(crc32, Value);
+            return crc32;
+        }
+
         if (Crc32Computer_ARM64.IsSupported)
         {
             crc32 = Crc32Computer_ARM64.Compute(crc32, (ulong)OpIndex);
