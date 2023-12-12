@@ -27,7 +27,7 @@ public sealed class DeletableRefSerializer<TValue> : ISerializer<Deletable<TValu
         var len = b1.Length;
         var b2 = new byte[len + 1];
         Array.Copy(b1, b2, len);
-        b2[len - 1] = entry.IsDeleted ? (byte)1 : (byte)0;
+        b2[len] = entry.IsDeleted ? (byte)1 : (byte)0;
         return b2;
     }
 }
