@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments.RandomAccess;
@@ -235,12 +236,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             BottomSegments = bottomSegments,
         };
 
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(
-            newZoneTreeMeta,
-            new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
+        var bytes = JsonSerializeToUtf8Bytes(newZoneTreeMeta);
         var deviceManager = Options.RandomAccessDeviceManager;
         var metaFilePath = deviceManager.GetFilePath(0, MetaFileCategory);
 
@@ -289,10 +285,43 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         var bytes = device.GetBytes(0, (int)device.Length);
         device.Close();
         deviceManager.RemoveReadOnlyDevice(device.SegmentId, MetaFileCategory);
-        var meta = JsonSerializer.Deserialize<ZoneTreeMeta>(bytes);
+        var meta = JsonDeserialize(bytes);
         return meta;
     }
+
+    private static byte[] JsonSerializeToUtf8Bytes(ZoneTreeMeta meta)
+    {
+#if NET8_0_OR_GREATER
+        return JsonSerializer.SerializeToUtf8Bytes(
+            meta,
+            ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);
+#else
+        return JsonSerializer.SerializeToUtf8Bytes(
+                    meta,
+                    new JsonSerializerOptions()
+                    {
+                        WriteIndented = true
+                    });
+#endif
+    }
+
+    private static ZoneTreeMeta JsonDeserialize(byte[] bytes)
+    {
+#if NET8_0_OR_GREATER
+        return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes, ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);
+#else
+        return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes);
+#endif
+    }
 }
+
+#if NET8_0_OR_GREATER
+[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSerializable(typeof(ZoneTreeMeta))]
+internal partial class ZoneTreeMetaSourceGenerationContext : JsonSerializerContext
+{
+}
+#endif
 
 public enum MetaWalOperation
 {
