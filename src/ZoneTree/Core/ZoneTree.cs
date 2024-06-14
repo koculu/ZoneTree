@@ -1,10 +1,12 @@
 ﻿using System.Collections.Concurrent;
 using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments;
 using Tenray.ZoneTree.Segments.InMemory;
 using Tenray.ZoneTree.Segments.NullDisk;
+using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Core;
 
@@ -123,6 +125,12 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     volatile bool _isReadOnly;
 
     public bool IsReadOnly { get => _isReadOnly; set => _isReadOnly = value; }
+
+    public IRefComparer<TKey> Comparer => Options.Comparer;
+
+    public ISerializer<TKey> KeySerializer => Options.KeySerializer;
+
+    public ISerializer<TValue> ValueSerializer => Options.ValueSerializer;
 
     public ZoneTree(ZoneTreeOptions<TKey, TValue> options)
     {

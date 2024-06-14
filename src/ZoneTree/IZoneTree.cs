@@ -1,4 +1,6 @@
-﻿using Tenray.ZoneTree.Logger;
+﻿using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Logger;
+using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree;
 
@@ -9,6 +11,21 @@ namespace Tenray.ZoneTree;
 /// <typeparam name="TValue">The value type</typeparam>
 public interface IZoneTree<TKey, TValue> : IDisposable
 {
+    /// <summary>
+    /// The key comparer.
+    /// </summary>
+    public IRefComparer<TKey> Comparer { get; }
+
+    /// <summary>
+    /// The key serializer.
+    /// </summary>
+    public ISerializer<TKey> KeySerializer { get; }
+
+    /// <summary>
+    /// The value serializer.
+    /// </summary>
+    public ISerializer<TValue> ValueSerializer { get; }
+
     /// <summary>
     /// Checks the existence of the key in the tree.
     /// </summary>
