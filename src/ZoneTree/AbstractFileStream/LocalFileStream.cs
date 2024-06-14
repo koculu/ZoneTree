@@ -35,17 +35,12 @@ public sealed class LocalFileStream : Stream, IFileStream
 
     public override void Flush()
     {
-        // All flush operations are synced to the disk.
-        // (no OS Kernel intermediate buffers remain after flush)
-        // It is the best option.
-        // Because it prevents unexpected file corruptions with little overhead.
-        FileStream.Flush(true);
+        FileStream.Flush();
     }
 
     public void Flush(bool flushToDisk)
     {
-        // All flush operations are synced to the disk.
-        FileStream.Flush(true);
+        FileStream.Flush(flushToDisk);
     }
 
     public override int Read(byte[] buffer, int offset, int count)
