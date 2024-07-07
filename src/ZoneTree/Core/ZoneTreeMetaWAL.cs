@@ -291,7 +291,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
     private static byte[] JsonSerializeToUtf8Bytes(ZoneTreeMeta meta)
     {
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
         return JsonSerializer.SerializeToUtf8Bytes(
             meta,
             ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);
@@ -307,7 +307,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
     private static ZoneTreeMeta JsonDeserialize(byte[] bytes)
     {
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
         return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes, ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);
 #else
         return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes);
@@ -315,7 +315,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
     }
 }
 
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(ZoneTreeMeta))]
 internal partial class ZoneTreeMetaSourceGenerationContext : JsonSerializerContext
