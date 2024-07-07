@@ -15,6 +15,8 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
     public override int ReadBufferCount =>
         (DataDevice?.ReadBufferCount ?? 0) + (DataHeaderDevice?.ReadBufferCount ?? 0);
 
+    CircularCache<TKey> CircularCache { get; }
+
     public FixedSizeValueDiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options) : base(segmentId, options)
@@ -44,6 +46,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
                 diskOptions.CompressionLevel,
                 diskOptions.BlockCacheReplacementWarningDuration);
         InitKeySizeAndDataLength();
+        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
     }
 
     public FixedSizeValueDiskSegment(long segmentId,
@@ -54,6 +57,8 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
         DataHeaderDevice = dataHeaderDevice;
         EnsureKeyAndValueTypesAreSupported();
         InitKeySizeAndDataLength();
+        var diskOptions = options.DiskSegmentOptions;
+        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
     }
 
     static void EnsureKeyAndValueTypesAreSupported()
@@ -76,6 +81,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
     {
         try
         {
+            if (CircularCache.TryGetFromCache(index, out var key)) return key;
             Interlocked.Increment(ref ReadCount);
             if (IsDroppping)
             {
@@ -85,7 +91,9 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
             var headBytes = DataHeaderDevice.GetBytes(index * headSize, sizeof(KeyHead));
             var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
             var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
-            return KeySerializer.Deserialize(keyBytes);
+            key = KeySerializer.Deserialize(keyBytes);
+            CircularCache.TryAddToTheCache(index, ref key);
+            return key;
         }
         finally
         {

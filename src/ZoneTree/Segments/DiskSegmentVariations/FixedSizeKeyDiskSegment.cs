@@ -17,6 +17,8 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
     public override int ReadBufferCount =>
         (DataDevice?.ReadBufferCount ?? 0) + (DataHeaderDevice?.ReadBufferCount ?? 0);
 
+    CircularCache<TKey> CircularCache { get; }
+
     public FixedSizeKeyDiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options) : base(segmentId, options)
@@ -46,6 +48,7 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
                 diskOptions.CompressionLevel,
                 diskOptions.BlockCacheReplacementWarningDuration);
         InitKeySizeAndDataLength();
+        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
     }
 
     public FixedSizeKeyDiskSegment(long segmentId,
@@ -56,6 +59,8 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
         DataHeaderDevice = dataHeaderDevice;
         EnsureKeyAndValueTypesAreSupported();
         InitKeySizeAndDataLength();
+        var diskOptions = options.DiskSegmentOptions;
+        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
     }
 
     static void EnsureKeyAndValueTypesAreSupported()
@@ -78,6 +83,7 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
     {
         try
         {
+            if (CircularCache.TryGetFromCache(index, out var key)) return key;
             Interlocked.Increment(ref ReadCount);
             if (IsDroppping)
             {
@@ -85,7 +91,9 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
             }
             var headSize = sizeof(ValueHead) + KeySize;
             var keyBytes = DataHeaderDevice.GetBytes(index * headSize, KeySize);
-            return KeySerializer.Deserialize(keyBytes);
+            key = KeySerializer.Deserialize(keyBytes);
+            CircularCache.TryAddToTheCache(index, ref key);
+            return key;
         }
         finally
         {

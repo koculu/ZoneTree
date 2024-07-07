@@ -12,6 +12,8 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
     public override int ReadBufferCount =>
         (DataDevice?.ReadBufferCount ?? 0);
 
+    CircularCache<TKey> CircularCache { get; }
+
     public FixedSizeKeyAndValueDiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options) : base(segmentId, options)
@@ -30,6 +32,7 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
                 diskOptions.CompressionLevel,
                 diskOptions.BlockCacheReplacementWarningDuration);
         InitKeyAndValueSizeAndDataLength();
+        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
     }
 
     public FixedSizeKeyAndValueDiskSegment(long segmentId,
@@ -38,6 +41,8 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
     {
         EnsureKeyAndValueTypesAreSupported();
         InitKeyAndValueSizeAndDataLength();
+        var diskOptions = options.DiskSegmentOptions;
+        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
     }
 
     static void EnsureKeyAndValueTypesAreSupported()
@@ -61,6 +66,7 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
     {
         try
         {
+            if (CircularCache.TryGetFromCache(index, out var key)) return key;
             Interlocked.Increment(ref ReadCount);
             if (IsDroppping)
             {
@@ -68,7 +74,9 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
             }
             var itemSize = KeySize + ValueSize;
             var keyBytes = DataDevice.GetBytes(itemSize * index, KeySize);
-            return KeySerializer.Deserialize(keyBytes);
+            key = KeySerializer.Deserialize(keyBytes);
+            CircularCache.TryAddToTheCache(index, ref key);
+            return key;
         }
         finally
         {

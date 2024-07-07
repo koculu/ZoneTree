@@ -1,4 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments.Disk;
@@ -8,9 +11,11 @@ using Tenray.ZoneTree.Serializers;
 
 namespace Tenray.ZoneTree.Segments.DiskSegmentVariations;
 
-public sealed class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<TKey, TValue>
+public sealed partial class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<TKey, TValue>
 {
     readonly IRandomAccessDevice DataHeaderDevice;
+
+    CircularCache<TKey> CircularCache { get; }
 
     public override int ReadBufferCount =>
         (DataDevice?.ReadBufferCount ?? 0) + (DataHeaderDevice?.ReadBufferCount ?? 0);
@@ -44,6 +49,8 @@ public sealed class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
                 diskOptions.CompressionLevel,
                 diskOptions.BlockCacheReplacementWarningDuration);
         InitDataLength();
+
+        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
     }
 
     public VariableSizeDiskSegment(long segmentId,
@@ -54,6 +61,8 @@ public sealed class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
         DataHeaderDevice = dataHeaderDevice;
         EnsureKeyAndValueTypesAreSupported();
         InitDataLength();
+        var diskOptions = options.DiskSegmentOptions;
+        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
     }
 
     static void EnsureKeyAndValueTypesAreSupported()
@@ -75,6 +84,7 @@ public sealed class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
     {
         try
         {
+            if (CircularCache.TryGetFromCache(index, out var key)) return key;
             Interlocked.Increment(ref ReadCount);
             if (IsDroppping)
             {
@@ -83,7 +93,9 @@ public sealed class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
             var headBytes = DataHeaderDevice.GetBytes(index * sizeof(EntryHead), sizeof(KeyHead));
             var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
             var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
-            return KeySerializer.Deserialize(keyBytes);
+            key = KeySerializer.Deserialize(keyBytes);
+            CircularCache.TryAddToTheCache(index, ref key);
+            return key;
         }
         finally
         {

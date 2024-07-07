@@ -67,4 +67,19 @@ public sealed class DiskSegmentOptions
     /// Default value is 1_000 ms;
     /// </summary>
     public long BlockCacheReplacementWarningDuration { get; set; } = 1_000;
+
+    /// <summary>
+    /// Gets or sets the size of the circular buffer cache for keys.
+    /// Lookups and searches first access this cache before performing any I/O operations.
+    /// Default value is 102400;
+    /// </summary>
+    public int KeyCacheSize { get; set; } = 102_400;
+
+    /// <summary>
+    /// Gets or sets the maximum lifetime of a record in the key cache, in milliseconds.
+    /// Default value is 10_000 milliseconds (10 seconds).
+    /// </summary>
+    public int KeyCacheRecordLifeTimeInMillisecond { get; set; } = 10_000;
+
+
 }
