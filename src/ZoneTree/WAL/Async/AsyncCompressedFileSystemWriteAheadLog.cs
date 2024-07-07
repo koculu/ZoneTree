@@ -209,7 +209,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
             FileStreamProvider.DeleteFile(tailPath);
     }
 
-    void AppendLogEntry(byte[] keyBytes, byte[] valueBytes, long opIndex)
+    void AppendLogEntry(Memory<byte> keyBytes, Memory<byte> valueBytes, long opIndex)
     {
         lock (AppendLock)
         {

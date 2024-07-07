@@ -20,11 +20,11 @@ public interface IRandomAccessDevice : IDisposable
     /// </summary>
     /// <param name="bytes">Bytes</param>
     /// <returns>Position of the bytes.</returns>
-    long AppendBytesReturnPosition(byte[] bytes);
+    long AppendBytesReturnPosition(Memory<byte> bytes);
 
-    byte[] GetBytes(long offset, int length);
+    Memory<byte> GetBytes(long offset, int length);
 
-    int GetBytes(long offset, byte[] buffer);
+    int GetBytes(long offset, Memory<byte> buffer);
 
     void Close();
 

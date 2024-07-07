@@ -285,7 +285,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
         var bytes = device.GetBytes(0, (int)device.Length);
         device.Close();
         deviceManager.RemoveReadOnlyDevice(device.SegmentId, MetaFileCategory);
-        var meta = JsonDeserialize(bytes);
+        var meta = JsonDeserialize(bytes.Span);
         return meta;
     }
 
@@ -306,6 +306,15 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
     }
 
     private static ZoneTreeMeta JsonDeserialize(byte[] bytes)
+    {
+#if NET6_0_OR_GREATER
+        return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes, ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);
+#else
+        return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes);
+#endif
+    }
+
+    private static ZoneTreeMeta JsonDeserialize(Span<byte> bytes)
     {
 #if NET6_0_OR_GREATER
         return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes, ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);

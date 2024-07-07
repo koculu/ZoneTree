@@ -1,13 +1,14 @@
-﻿namespace Tenray.ZoneTree.Serializers;
+﻿
+namespace Tenray.ZoneTree.Serializers;
 
 public sealed class DecimalSerializer : ISerializer<decimal>
 {
-    public decimal Deserialize(byte[] bytes)
+    public decimal Deserialize(Memory<byte> bytes)
     {
         return BinarySerializerHelper.FromByteArray<decimal>(bytes);
     }
 
-    public byte[] Serialize(in decimal entry)
+    public Memory<byte> Serialize(in decimal entry)
     {
         return BinarySerializerHelper.ToByteArray(entry);
     }

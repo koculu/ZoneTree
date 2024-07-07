@@ -2,12 +2,12 @@
 
 public sealed class DoubleSerializer : ISerializer<double>
 {
-    public double Deserialize(byte[] bytes)
+    public double Deserialize(Memory<byte> bytes)
     {
-        return BitConverter.ToDouble(bytes);
+        return BitConverter.ToDouble(bytes.Span);
     }
 
-    public byte[] Serialize(in double entry)
+    public Memory<byte> Serialize(in double entry)
     {
         return BitConverter.GetBytes(entry);
     }

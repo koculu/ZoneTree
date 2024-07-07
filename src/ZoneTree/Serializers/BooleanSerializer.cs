@@ -2,12 +2,12 @@
 
 public sealed class BooleanSerializer : ISerializer<bool>
 {
-    public bool Deserialize(byte[] bytes)
+    public bool Deserialize(Memory<byte> bytes)
     {
-        return BitConverter.ToBoolean(bytes);
+        return BitConverter.ToBoolean(bytes.Span);
     }
 
-    public byte[] Serialize(in bool entry)
+    public Memory<byte> Serialize(in bool entry)
     {
         return BitConverter.GetBytes(entry);
     }

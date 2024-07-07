@@ -190,14 +190,14 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         return length;
     }
 
-    public long AppendBytesReturnPosition(byte[] bytes)
+    public long AppendBytesReturnPosition(Memory<byte> bytes)
     {
         var pos = GetLength();
         var len = bytes.Length;
         var copyLen = 0;
         while (copyLen < len)
         {
-            copyLen += AppendBytesInternal(bytes.AsSpan(copyLen));
+            copyLen += AppendBytesInternal(bytes.Span.Slice(copyLen));
         }
         return pos;
     }
@@ -241,7 +241,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         CompressedBlockPositions.Add(offset);
         CompressedBlockLengths.Add(compressedBytes.Length);
         DecompressedBlockLengths.Add(nextBlock.Length);
-        FileStream.Write(compressedBytes);
+        FileStream.Write(compressedBytes.Span);
         FileStream.Flush(true);
         CircularBlockCache.RemoveBlock(nextBlock.BlockIndex);
         ++NextBlockIndex;
@@ -249,7 +249,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         NextBlock = null;
     }
 
-    public byte[] GetBytes(long offset, int length)
+    public Memory<byte> GetBytes(long offset, int length)
     {
         var blockIndex = (int)(offset / BlockSize);
         var offsetInBlock = (int)(offset % BlockSize);
@@ -261,9 +261,9 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             if (chunk1.Length < chunk1Len)
                 return chunk1;
             var chunk2 = GetBytes(offset + chunk1Len, chunk2Len);
-            var bytes = new byte[chunk1.Length + chunk2.Length];
-            Array.Copy(chunk1, bytes, chunk1.Length);
-            Array.Copy(chunk2, 0, bytes, chunk1.Length, chunk2.Length);
+            var bytes = new Memory<byte>(new byte[chunk1.Length + chunk2.Length]);
+            chunk1.CopyTo(bytes);
+            chunk2.CopyTo(bytes.Slice(chunk1.Length));
             return bytes;
         }
         var block = NextBlock;
@@ -279,7 +279,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         return block.GetBytes(offsetInBlock, length);
     }
 
-    byte[] ReadBlockAndAddToCache(
+    Memory<byte> ReadBlockAndAddToCache(
         int blockIndex,
         int offsetInBlock,
         int length)
@@ -304,7 +304,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     DecompressedBlock ReadBlock(int blockIndex)
     {
         var blockPositionInFile = CompressedBlockPositions[blockIndex];
-        byte[] compressedBytes = null;
+        Memory<byte> compressedBytes = null;
         lock (this)
         {
             FileStream.Position = blockPositionInFile;
@@ -320,10 +320,10 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         return decompressedBlock;
     }
 
-    public int GetBytes(long offset, byte[] buffer)
+    public int GetBytes(long offset, Memory<byte> buffer)
     {
         var bytes = GetBytes(offset, buffer.Length);
-        Array.Copy(bytes, 0, buffer, 0, bytes.Length);
+        bytes.CopyTo(buffer);
         return bytes.Length;
     }
 

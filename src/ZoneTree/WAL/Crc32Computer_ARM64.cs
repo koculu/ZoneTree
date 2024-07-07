@@ -26,13 +26,13 @@ public sealed class Crc32Computer_ARM64
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint Compute(uint crc, byte[] data)
+    public static uint Compute(uint crc, Span<byte> data)
     {
         var off = 0;
         var len = data.Length;
         while (len >= 8)
         {
-            crc = Crc32.Arm64.ComputeCrc32(crc, BitConverter.ToUInt64(data, off));
+            crc = Crc32.Arm64.ComputeCrc32(crc, Unsafe.ReadUnaligned<ulong>(ref data[off]));
             off += 8;
             len -= 8;
         }

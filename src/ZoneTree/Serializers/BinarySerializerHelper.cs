@@ -16,4 +16,11 @@ public static class BinarySerializerHelper
 
     public static T FromByteArray<T>(byte[] data, int off) where T : unmanaged
         => Unsafe.As<byte, T>(ref data[off]);
+
+    public static T FromByteArray<T>(Memory<byte> data) where T : unmanaged
+        => Unsafe.As<byte, T>(ref data.Span[0]);
+
+    public static T FromByteArray<T>(Memory<byte> data, int off) where T : unmanaged
+        => Unsafe.As<byte, T>(ref data.Span[off]);
+
 }

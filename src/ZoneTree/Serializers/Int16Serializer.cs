@@ -2,12 +2,12 @@
 
 public sealed class Int16Serializer : ISerializer<short>
 {
-    public short Deserialize(byte[] bytes)
+    public short Deserialize(Memory<byte> bytes)
     {
-        return BitConverter.ToInt16(bytes);
+        return BitConverter.ToInt16(bytes.Span);
     }
 
-    public byte[] Serialize(in short entry)
+    public Memory<byte> Serialize(in short entry)
     {
         return BitConverter.GetBytes(entry);
     }

@@ -440,10 +440,15 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         if (typeof(TKey) == typeof(string))
             Options.KeySerializer =
                 new Utf8StringSerializer() as ISerializer<TKey>;
-
-        else if (typeof(TKey) == typeof(byte[]))
+        else if (typeof(TKey) == typeof(Memory<byte>))
+        {
             Options.KeySerializer =
                 new ByteArraySerializer() as ISerializer<TKey>;
+        }
+        else if (typeof(TKey) == typeof(byte[]))
+        {
+            throw new ZoneTreeException("ZoneTree<byte[], ...> is not supported. Use ZoneTree<Memory<byte>, ...> instead.");
+        }
     }
 
     void FillValueSerializer()
@@ -470,9 +475,16 @@ public sealed class ZoneTreeFactory<TKey, TValue>
             Options.ValueSerializer =
                 new Utf8StringSerializer() as ISerializer<TValue>;
 
-        else if (typeof(TValue) == typeof(byte[]))
+        else if (typeof(TValue) == typeof(Memory<byte>))
+        {
             Options.ValueSerializer =
                 new ByteArraySerializer() as ISerializer<TValue>;
+        }
+        else if (typeof(TValue) == typeof(byte[]))
+        {
+            throw new ZoneTreeException("ZoneTree<..., byte[]> is not supported. Use ZoneTree<..., Memory<byte>> instead.");
+        }
+
     }
 
     void LoadInitialSparseArrays(ZoneTree<TKey, TValue> zoneTree)

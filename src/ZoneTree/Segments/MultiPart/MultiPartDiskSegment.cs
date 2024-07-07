@@ -1,4 +1,7 @@
-﻿using Tenray.ZoneTree.Collections;
+﻿using System;
+using System.Buffers;
+using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Compression;
 using Tenray.ZoneTree.Exceptions;
@@ -83,8 +86,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         var compressedBytes = diskSegmentListDevice.GetBytes(0, len);
         var bytes = DataCompression
             .Decompress(MultiPartHeaderCompressionMethod, compressedBytes);
-
-        using var ms = new MemoryStream(bytes);
+        using var pin = bytes.Pin();
+        using var ms = bytes.ToReadOnlyStream(pin);
         using var br = new BinaryReader(ms);
         Parts = ReadParts(options, br);
         PartKeys = ReadKeys(br);
@@ -118,7 +121,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         var compressedBytes = diskSegmentListDevice.GetBytes(0, len);
         var bytes = DataCompression.Decompress(MultiPartHeaderCompressionMethod, compressedBytes);
 
-        using var ms = new MemoryStream(bytes);
+        using var pin = bytes.Pin();
+        using var ms = bytes.ToReadOnlyStream(pin);
         using var br = new BinaryReader(ms);
 
         var partCount = br.ReadInt32();

@@ -1,13 +1,16 @@
-﻿namespace Tenray.ZoneTree.Serializers;
+﻿
+using System;
+
+namespace Tenray.ZoneTree.Serializers;
 
 public sealed class StructSerializer<TType> : ISerializer<TType> where TType : unmanaged
 {
-    public TType Deserialize(byte[] bytes)
+    public TType Deserialize(Memory<byte> bytes)
     {
         return BinarySerializerHelper.FromByteArray<TType>(bytes);
     }
 
-    public byte[] Serialize(in TType entry)
+    public Memory<byte> Serialize(in TType entry)
     {
         return BinarySerializerHelper.ToByteArray(entry);
     }

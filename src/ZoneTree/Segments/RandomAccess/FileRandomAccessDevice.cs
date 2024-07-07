@@ -48,15 +48,15 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
         }
     }
 
-    public long AppendBytesReturnPosition(byte[] bytes)
+    public long AppendBytesReturnPosition(Memory<byte> bytes)
     {
         var pos = FileStream.Position;
-        FileStream.Write(bytes);
+        FileStream.Write(bytes.Span);
         FileStream.Flush(true);
         return pos;
     }
 
-    public byte[] GetBytes(long offset, int length)
+    public Memory<byte> GetBytes(long offset, int length)
     {
         lock (this)
         {
@@ -67,12 +67,12 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
         }
     }
 
-    public int GetBytes(long offset, byte[] buffer)
+    public int GetBytes(long offset, Memory<byte> buffer)
     {
         lock (this)
         {
             FileStream.Seek(offset, SeekOrigin.Begin);
-            return FileStream.Read(buffer);
+            return FileStream.Read(buffer.Span);
         }
     }
 

@@ -27,20 +27,20 @@ public sealed class Crc32Computer_SSE42_X86
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint Compute(uint crc, byte[] data)
+    public static uint Compute(uint crc, Memory<byte> data)
     {
         var off = 0;
         var len = data.Length;
         while (len >= 4)
         {
-            crc = (uint)Sse42.Crc32(crc, BitConverter.ToUInt32(data, off));
+            crc = (uint)Sse42.Crc32(crc, Unsafe.ReadUnaligned<uint>(ref data.Span[off]));
             off += 4;
             len -= 4;
         }
 
         while (len > 0)
         {
-            crc = Sse42.Crc32(crc, data[off]);
+            crc = Sse42.Crc32(crc, data.Span[off]);
             off++;
             len--;
         }
