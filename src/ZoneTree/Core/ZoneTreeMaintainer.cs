@@ -48,14 +48,14 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     public int MaximumReadOnlySegmentCount { get; set; } = 64;
 
     /// <inheritdoc/>
-    public bool EnablePeriodicTimer
+    public bool EnableJobForCleaningInactiveBlockCaches
     {
         get => isPeriodicTimerRunning;
         set
         {
             if (value && !isPeriodicTimerRunning)
                 Task.Run(StartPeriodicTimer);
-            else
+            else if (!value)
                 StopPeriodicTimer();
         }
     }
@@ -64,23 +64,23 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     public long DiskSegmentBufferLifeTime { get; set; } = 10_000;
 
     /// <inheritdoc/>
-    public TimeSpan PeriodicTimerInterval { get; set; } = TimeSpan.FromSeconds(5);
+    public TimeSpan InactiveBlockCacheCleanupInterval { get; set; } = TimeSpan.FromSeconds(5);
 
     /// <summary>
     /// Creates a ZoneTreeMaintainer.
     /// </summary>
     /// <param name="zoneTree">The ZoneTree</param>
-    /// <param name="startPeriodicTimer">Starts periodic timer if true.</param>
+    /// <param name="startJobForCleaningInactiveBlockCaches">Starts periodic timer if true.</param>
     /// <param name="logger">The logger</param>
     public ZoneTreeMaintainer(IZoneTree<TKey, TValue> zoneTree,
-        bool startPeriodicTimer = true,
+        bool startJobForCleaningInactiveBlockCaches = true,
         ILogger logger = null)
     {
         Logger = logger ?? zoneTree.Logger;
         ZoneTree = zoneTree;
         Maintenance = zoneTree.Maintenance;
         AttachEvents();
-        if (startPeriodicTimer)
+        if (startJobForCleaningInactiveBlockCaches)
             Task.Run(StartPeriodicTimer);
     }
 
@@ -223,7 +223,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
             StopPeriodicTimer();
         isPeriodicTimerRunning = true;
         var cts = PeriodicTimerCancellationTokenSource;
-        using var timer = new PeriodicTimer(PeriodicTimerInterval);
+        using var timer = new PeriodicTimer(InactiveBlockCacheCleanupInterval);
         while (await timer.WaitForNextTickAsync(cts.Token))
         {
             if (cts.IsCancellationRequested)
