@@ -410,4 +410,6 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public bool IsEndOfAPart(long index) => false;
 
     public int GetPartIndex(long index) => -1;
+
+    public int GetPartCount() => 0;
 }

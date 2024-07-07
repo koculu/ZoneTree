@@ -604,4 +604,6 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         }
         return partIndex;
     }
+
+    public int GetPartCount() => Parts.Count;
 }

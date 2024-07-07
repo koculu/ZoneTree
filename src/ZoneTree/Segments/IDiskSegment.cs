@@ -10,19 +10,19 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     new long Length { get; }
 
     /// <summary>
-    /// Returns read buffer count.
+    /// Gets the count of read buffers.
     /// </summary>
     int ReadBufferCount { get; }
 
     /// <summary>
-    /// Inits sparse array.
+    /// Initializes the sparse array with the specified size.
     /// </summary>
-    /// <param name="size"></param>
+    /// <param name="size">The size of the sparse array to initialize.</param>
     void InitSparseArray(int size);
 
     /// <summary>
     /// Initialize a sparse array alligned with segment length,
-    /// This enables faster reads without IO.
+    /// enabling faster reads without I/O operations.
     /// </summary>
     void LoadIntoMemory();
 
@@ -42,28 +42,27 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     void DetachIterator();
 
     /// <summary>
-    /// Release internal read buffers 
-    /// that are not used after given ticks.
+    /// Releases internal read buffers that have not been used since the specified tick count.
     /// </summary>
-    /// <returns>Total released read buffer count.</returns>
+    /// <returns>The total number of released read buffers.</returns>
     int ReleaseReadBuffers(long ticks);
 
     /// <summary>
     /// Returns the first keys of every part.
     /// </summary>
-    /// <returns>Keys</returns>
+    /// <returns>An array of the first keys of each part.</returns>
     TKey[] GetFirstKeysOfEveryPart();
 
     /// <summary>
     /// Returns the last keys of every part.
     /// </summary>
-    /// <returns>Keys</returns>
+    /// <returns>An array of the last keys of each part.</returns>
     TKey[] GetLastKeysOfEveryPart();
 
     /// <summary>
     /// Returns the last values of every part.
     /// </summary>
-    /// <returns>Values</returns>
+    /// <returns>An array of the last values of each part.</returns>
     TValue[] GetLastValuesOfEveryPart();
 
     /// <summary>
@@ -75,15 +74,21 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     internal Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
     /// <summary>
-    /// Gets part.
+    /// Retrieves the part of the segment at the specified index.
     /// </summary>
-    /// <param name="partIndex"></param>
-    /// <returns></returns>
+    /// <param name="partIndex">The index of the part to retrieve.</param>
+    /// <returns>The part of the segment at the specified index.</returns>
     IDiskSegment<TKey, TValue> GetPart(int partIndex);
 
     /// <summary>
-    /// Drops all sectors excluding given exclusion list.
+    /// Returns the total number of parts in the segment.
     /// </summary>
-    /// <param name="excludedPartIds"></param>
+    /// <returns>The total number of parts.</returns>
+    int GetPartCount();
+
+    /// <summary>
+    /// Drops all sectors of the segment except those in the specified exclusion list.
+    /// </summary> 
+    /// <param name="excludedPartIds">A set of part IDs to exclude from dropping.</param>
     void Drop(HashSet<long> excludedPartIds);
 }
