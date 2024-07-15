@@ -33,6 +33,14 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
 
     public HashSet<long> AppendedPartSegmentIds { get; } = new();
 
+    List<SparseArrayEntry<TKey, TValue>> DefaultSparseArray = new();
+
+    int DefaultSparseArrayStepSize;
+
+    TKey LastKey;
+
+    TValue LastValue;
+
     public DiskSegmentCreator(
         ZoneTreeOptions<TKey, TValue> options,
         IIncrementalIdProvider incrementalIdProvider
@@ -73,10 +81,17 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
                 diskOptions.CompressionLevel,
                 diskOptions.BlockCacheReplacementWarningDuration);
         Options = options;
+        DefaultSparseArrayStepSize = options.DiskSegmentOptions.DefaultSparseArrayStepSize;
     }
 
     public void Append(TKey key, TValue value, IteratorPosition iteratorPosition)
     {
+        LastKey = key;
+        LastValue = value;
+        if (DefaultSparseArrayStepSize > 0 && Length % DefaultSparseArrayStepSize == 0)
+        {
+            DefaultSparseArray.Add(new(key, value, Length));
+        }
         ++Length;
         var keyBytes = KeySerializer.Serialize(key);
         var valueBytes = ValueSerializer.Serialize(value);
@@ -129,6 +144,10 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
 
     public IDiskSegment<TKey, TValue> CreateReadOnlyDiskSegment()
     {
+        if (DefaultSparseArrayStepSize > 0 && DefaultSparseArray.LastOrDefault().Index + 1 != Length)
+        {
+            DefaultSparseArray.Add(new(LastKey, LastValue, Length - 1));
+        }
         DataHeaderDevice?.SealDevice();
         DataDevice?.SealDevice();
         DataHeaderDevice?.ReleaseReadBuffers(0);
@@ -136,6 +155,8 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         var diskSegment = DiskSegmentFactory.CreateDiskSegment<TKey, TValue>(
             SegmentId, Options,
             DataHeaderDevice, DataDevice);
+        if (DefaultSparseArray.Count > 0)
+            diskSegment.SetDefaultSparseArray(DefaultSparseArray);
         DataHeaderDevice = null;
         DataDevice = null;
         return diskSegment;

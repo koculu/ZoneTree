@@ -1,4 +1,5 @@
 ﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Segments.Disk;
 
 namespace Tenray.ZoneTree.Segments;
 
@@ -91,4 +92,10 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     /// </summary> 
     /// <param name="excludedPartIds">A set of part IDs to exclude from dropping.</param>
     void Drop(HashSet<long> excludedPartIds);
+
+    /// <summary>
+    /// Sets default sparse array of the disk segment and persists it to the disk.
+    /// </summary>
+    /// <param name="defaultSparseArray"></param>
+    void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray);
 }

@@ -157,8 +157,6 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         IDiskSegment<TKey, TValue> newDiskSegment,
         bool isBottomSegment)
     {
-        var sparseArraySize = newDiskSegment.Length / SparseArrayStepLength;
-        newDiskSegment.InitSparseArray((int)Math.Min(MinimumSparseArrayLength, sparseArraySize));
     }
 
     void OnMutableSegmentMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)

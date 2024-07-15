@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.Options;
+﻿using System.Text.Json.Serialization;
+using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.Core;
 
@@ -32,5 +33,6 @@ public sealed class ZoneTreeMeta
 
     public IReadOnlyList<long> BottomSegments { get; set; }
 
-    public bool HasDiskSegment => DiskSegment != 0 && BottomSegments?.Count > 0;
+    [JsonIgnore]
+    public bool HasDiskSegment => DiskSegment != 0 || BottomSegments?.Count > 0;
 }

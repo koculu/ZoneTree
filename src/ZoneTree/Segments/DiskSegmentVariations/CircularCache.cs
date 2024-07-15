@@ -27,6 +27,11 @@ class CircularCache<TDataType>
 
     public bool TryGetFromCache(long index, out TDataType key)
     {
+        if (CacheSize < 1)
+        {
+            key = default;
+            return false;
+        }
         var circularBuffer = CircularCacheRecordBuffer;
         var len = circularBuffer.Length;
         var circularIndex = index % CacheSize;
@@ -45,6 +50,7 @@ class CircularCache<TDataType>
 
     public bool TryAddToTheCache(long index, ref TDataType key)
     {
+        if (CacheSize < 1) return false;
         var circularIndex = index % CacheSize;
         var existingCacheRecord = this.CircularCacheRecordBuffer[circularIndex];
         /* Do not add a new cache record when the existing cache record is still active.*/

@@ -28,7 +28,6 @@ public sealed class OldTests
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
         using var basicMaintainer = zoneTree.CreateMaintainer();
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
-        basicMaintainer.MinimumSparseArrayLength = TestConfig.MinimumSparseArrayLength;
         new StatsCollector().LogWithColor(
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
@@ -118,7 +117,6 @@ public sealed class OldTests
         var stopWatch = new Stopwatch();
         stopWatch.Start();
         TestConfig.DiskSegmentMaximumCachedBlockCount = 400;
-        TestConfig.MinimumSparseArrayLength = 33;
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
 
         new StatsCollector().LogWithColor(
@@ -173,7 +171,6 @@ public sealed class OldTests
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
         using var basicMaintainer = zoneTree.CreateMaintainer();
         basicMaintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
-        basicMaintainer.MinimumSparseArrayLength = TestConfig.MinimumSparseArrayLength;
         new StatsCollector().LogWithColor(
             "Loaded in:",
             stopWatch.ElapsedMilliseconds,
@@ -286,7 +283,6 @@ public sealed class OldTests
                 x.WriteAheadLogMode = mode;
                 x.EnableIncrementalBackup = TestConfig.EnableIncrementalBackup;
             })
-            .SetInitialSparseArrayLength(TestConfig.MinimumSparseArrayLength)
             .OpenOrCreate();
     }
 }

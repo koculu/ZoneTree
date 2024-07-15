@@ -202,11 +202,12 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
         }
     }
 
-    public bool DeviceExists(long segmentId, string category)
+    public bool DeviceExists(long segmentId, string category, bool isCompressed)
     {
         lock (this)
         {
             var filePath = GetFilePath(segmentId, category);
+            if (isCompressed) filePath += ".z";
             return FileStreamProvider.FileExists(filePath);
         }
     }

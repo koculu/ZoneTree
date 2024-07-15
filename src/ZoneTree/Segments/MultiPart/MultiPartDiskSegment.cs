@@ -100,7 +100,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         IRandomAccessDeviceManager randomDeviceManager)
     {
         var category = DiskSegmentConstants.MultiPartDiskSegmentCategory;
-        if (!randomDeviceManager.DeviceExists(segmentId, category))
+        if (!randomDeviceManager.DeviceExists(segmentId, category, false))
             return 0;
         using var diskSegmentListDevice = randomDeviceManager
                 .GetReadOnlyDevice(
@@ -610,4 +610,9 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
     }
 
     public int GetPartCount() => Parts.Count;
+
+    public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray)
+    {
+        throw new NotSupportedException("SetDefaultSparseArray is not intended to be called for MultiPartDiskSegment");
+    }
 }

@@ -39,7 +39,6 @@ public class ZoneTreeTestBase<TKey, TValue>
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
             .SetDiskSegmentMaximumCachedBlockCount(TestConfig.DiskSegmentMaximumCachedBlockCount)
             .SetDataDirectory(DataPath)
-            .SetInitialSparseArrayLength(TestConfig.MinimumSparseArrayLength)
             .ConfigureDiskSegmentOptions(x =>
             {
                 x.DiskSegmentMode = TestConfig.DiskSegmentMode;
@@ -70,7 +69,6 @@ public class ZoneTreeTestBase<TKey, TValue>
     {
         var maintainer = zoneTree.CreateMaintainer();
         maintainer.ThresholdForMergeOperationStart = TestConfig.ThresholdForMergeOperationStart;
-        maintainer.MinimumSparseArrayLength = TestConfig.MinimumSparseArrayLength;
         return maintainer;
     }
 

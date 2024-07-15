@@ -1,4 +1,5 @@
 ﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Segments.Disk;
 
 namespace Tenray.ZoneTree.Segments.NullDisk;
 
@@ -129,5 +130,9 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public int GetPartIndex(long index) => -1;
 
     public int GetPartCount() => 0;
+
+    public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray)
+    {
+    }
 }
 

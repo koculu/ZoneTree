@@ -21,8 +21,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
 {
     string WalDirectory;
 
-    int InitialSparseArrayLength = 1_000_000;
-
     readonly IFileStreamProvider FileStreamProvider;
 
     Func<ZoneTreeOptions<TKey, TValue>, IWriteAheadLogProvider> GetWriteAheadLogProvider;
@@ -365,18 +363,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         return this;
     }
 
-    /// <summary>
-    /// Sets initial sparse array length. 
-    /// Factory initializes the sparse array with given size when the database is loaded.
-    /// </summary>
-    /// <param name="initialSparseArrayLength">The initial sparse array length.</param>
-    /// <returns>ZoneTree Factory</returns>
-    public ZoneTreeFactory<TKey, TValue> SetInitialSparseArrayLength(int initialSparseArrayLength)
-    {
-        InitialSparseArrayLength = initialSparseArrayLength;
-        return this;
-    }
-
     void FillMissingOptionsForKnownTypes()
     {
         if (Options.RandomAccessDeviceManager == null)
@@ -487,20 +473,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
 
     }
 
-    void LoadInitialSparseArrays(ZoneTree<TKey, TValue> zoneTree)
-    {
-        if (InitialSparseArrayLength <= 1)
-            return;
-
-        var t1 = Task.Run(() =>
-            zoneTree.Maintenance.DiskSegment.InitSparseArray(InitialSparseArrayLength));
-        Parallel.ForEach(zoneTree.Maintenance.BottomSegments, (bs) =>
-        {
-            bs.InitSparseArray(InitialSparseArrayLength);
-        });
-        t1.Wait();
-    }
-
     /// <summary>
     /// Opens or creates a ZoneTree.
     /// </summary>
@@ -513,7 +485,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         if (loader.ZoneTreeMetaExists)
         {
             var zoneTree = loader.LoadZoneTree();
-            LoadInitialSparseArrays(zoneTree);
             return zoneTree;
         }
         return new ZoneTree<TKey, TValue>(Options);
@@ -547,7 +518,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         if (!loader.ZoneTreeMetaExists)
             throw new DatabaseNotFoundException();
         var zoneTree = loader.LoadZoneTree();
-        LoadInitialSparseArrays(zoneTree);
         return zoneTree;
     }
 

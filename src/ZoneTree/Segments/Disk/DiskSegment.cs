@@ -24,7 +24,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     protected int ValueSize;
 
-    IReadOnlyList<SparseArrayEntry<TKey, TValue>> SparseArray = Array.Empty<SparseArrayEntry<TKey, TValue>>();
+    protected IReadOnlyList<SparseArrayEntry<TKey, TValue>> SparseArray = Array.Empty<SparseArrayEntry<TKey, TValue>>();
 
     int IteratorReaderCount;
 
@@ -412,4 +412,6 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public int GetPartIndex(long index) => -1;
 
     public int GetPartCount() => 0;
+
+    abstract public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray);
 }

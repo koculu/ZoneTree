@@ -70,7 +70,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             .RandomAccessDeviceManager
             .DeviceExists(
                 ZoneTreeMetaId,
-                MetaFileCategory);
+                MetaFileCategory, false);
 
     }
 

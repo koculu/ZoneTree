@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments.Disk;
@@ -14,10 +15,13 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
 
     CircularCache<TKey> CircularCache { get; }
 
+    ZoneTreeOptions<TKey, TValue> Options;
+
     public FixedSizeKeyAndValueDiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options) : base(segmentId, options)
     {
+        Options = options;
         EnsureKeyAndValueTypesAreSupported();
         var randomDeviceManager = options.RandomAccessDeviceManager;
         var diskOptions = options.DiskSegmentOptions;
@@ -33,16 +37,19 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
                 diskOptions.BlockCacheReplacementWarningDuration);
         InitKeyAndValueSizeAndDataLength();
         CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
+        LoadDefaultSparseArray();
     }
 
     public FixedSizeKeyAndValueDiskSegment(long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IRandomAccessDevice dataDevice) : base(segmentId, options, dataDevice)
     {
+        Options = options;
         EnsureKeyAndValueTypesAreSupported();
         InitKeyAndValueSizeAndDataLength();
         var diskOptions = options.DiskSegmentOptions;
         CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
+        LoadDefaultSparseArray();
     }
 
     static void EnsureKeyAndValueTypesAreSupported()
@@ -60,6 +67,76 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
         KeySize = Unsafe.SizeOf<TKey>();
         ValueSize = Unsafe.SizeOf<TValue>();
         Length = DataDevice.Length / (KeySize + ValueSize);
+    }
+
+    void LoadDefaultSparseArray()
+    {
+        var options = Options;
+        var diskOptions = options.DiskSegmentOptions;
+        if (diskOptions.DefaultSparseArrayStepSize == 0) return;
+        var deviceManager = options.RandomAccessDeviceManager;
+        if (!deviceManager.DeviceExists(
+            SegmentId,
+            DiskSegmentConstants.SparseArrayCategory,
+            diskOptions.EnableCompression))
+            return;
+        using var sparseArrayDevice = deviceManager.GetReadOnlyDevice(
+            SegmentId,
+            DiskSegmentConstants.SparseArrayCategory,
+            diskOptions.EnableCompression,
+            diskOptions.CompressionBlockSize,
+            diskOptions.BlockCacheLimit,
+            diskOptions.CompressionMethod,
+            diskOptions.CompressionLevel,
+            diskOptions.BlockCacheReplacementWarningDuration);
+        var recordCount = BinarySerializerHelper.FromByteArray<int>(sparseArrayDevice.GetBytes(0, sizeof(int)));
+        var offset = sizeof(int);
+        var keySize = KeySize;
+        var valueSize = ValueSize;
+        var sparseArray = new SparseArrayEntry<TKey, TValue>[recordCount];
+        for (var i = 0; i < recordCount; ++i)
+        {
+            var key = KeySerializer.Deserialize(sparseArrayDevice.GetBytes(offset, keySize));
+            offset += keySize;
+            var value = ValueSerializer.Deserialize(sparseArrayDevice.GetBytes(offset, valueSize));
+            offset += valueSize;
+            var index = BinarySerializerHelper.FromByteArray<int>(sparseArrayDevice.GetBytes(offset, sizeof(long)));
+            offset += sizeof(long);
+            var entry = new SparseArrayEntry<TKey, TValue>(key, value, index);
+            sparseArray[i] = entry;
+        }
+        sparseArrayDevice.Close();
+    }
+
+    public override void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray)
+    {
+        SparseArray = defaultSparseArray;
+        var options = Options;
+        var diskOptions = options.DiskSegmentOptions;
+        var deviceManager = options.RandomAccessDeviceManager;
+        using var sparseArrayDevice = deviceManager.CreateWritableDevice(
+            SegmentId,
+            DiskSegmentConstants.SparseArrayCategory,
+            diskOptions.EnableCompression,
+            diskOptions.CompressionBlockSize,
+            diskOptions.BlockCacheLimit,
+            true,
+            false,
+            diskOptions.CompressionMethod,
+            diskOptions.CompressionLevel,
+            diskOptions.BlockCacheReplacementWarningDuration);
+        var sparseArray = SparseArray;
+        var recordCount = sparseArray.Count;
+        sparseArrayDevice.AppendBytesReturnPosition(BitConverter.GetBytes(recordCount));
+        for (var i = 0; i < recordCount; ++i)
+        {
+            var entry = sparseArray[i];
+            sparseArrayDevice.AppendBytesReturnPosition(KeySerializer.Serialize(entry.Key));
+            sparseArrayDevice.AppendBytesReturnPosition(ValueSerializer.Serialize(entry.Value));
+            sparseArrayDevice.AppendBytesReturnPosition(BitConverter.GetBytes(entry.Index));
+        }
+        sparseArrayDevice.SealDevice();
+        sparseArrayDevice.Close();
     }
 
     protected override TKey ReadKey(long index)

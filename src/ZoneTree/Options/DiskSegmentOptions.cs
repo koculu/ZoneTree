@@ -70,10 +70,10 @@ public sealed class DiskSegmentOptions
 
     /// <summary>
     /// Gets or sets the size of the circular buffer cache for keys.
-    /// Lookups and searches first access this cache before performing any I/O operations.
-    /// Default value is 102400;
+    /// Lookups and searches first access the cached key value before looking into block cache.
+    /// Default value is 1024;
     /// </summary>
-    public int KeyCacheSize { get; set; } = 102_400;
+    public int KeyCacheSize { get; set; } = 1024;
 
     /// <summary>
     /// Gets or sets the maximum lifetime of a record in the key cache, in milliseconds.
@@ -81,5 +81,10 @@ public sealed class DiskSegmentOptions
     /// </summary>
     public int KeyCacheRecordLifeTimeInMillisecond { get; set; } = 10_000;
 
-
+    /// <summary>
+    /// The default step size for the default sparse array of disk segments.
+    /// Set the step size to zero to disable loading and creating the default sparse array.
+    /// Default value is 1_024;
+    /// </summary>
+    public int DefaultSparseArrayStepSize { get; set; } = 1024;
 }

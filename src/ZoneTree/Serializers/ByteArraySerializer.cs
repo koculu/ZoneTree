@@ -7,7 +7,9 @@ public sealed class ByteArraySerializer : ISerializer<Memory<byte>>
 {
     public Memory<byte> Deserialize(Memory<byte> bytes)
     {
-        return bytes;
+        // Need to create new byte array.
+        // Otherwise, the data in memory would attach to the block caches.
+        return bytes.ToArray();
     }
 
     public Memory<byte> Serialize(in Memory<byte> entry)

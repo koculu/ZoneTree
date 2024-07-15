@@ -22,7 +22,7 @@ public interface IRandomAccessDeviceManager
         int compressionLevel,
         long blockCacheReplacementWarningDuration);
 
-    bool DeviceExists(long segmentId, string category);
+    bool DeviceExists(long segmentId, string category, bool isCompressed);
 
     int DeviceCount { get; }
 
