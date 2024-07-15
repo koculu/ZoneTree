@@ -17,16 +17,11 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
     public override int ReadBufferCount =>
         (DataDevice?.ReadBufferCount ?? 0) + (DataHeaderDevice?.ReadBufferCount ?? 0);
 
-    CircularCache<TKey> CircularCache { get; }
-
-    readonly ZoneTreeOptions<TKey, TValue> Options;
-
     public FixedSizeKeyDiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options) : base(segmentId, options)
     {
         EnsureKeyAndValueTypesAreSupported();
-        Options = options;
         var randomDeviceManager = options.RandomAccessDeviceManager;
         var diskOptions = options.DiskSegmentOptions;
         DataHeaderDevice = randomDeviceManager
@@ -51,7 +46,6 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
                 diskOptions.CompressionLevel,
                 diskOptions.BlockCacheReplacementWarningDuration);
         InitKeySizeAndDataLength();
-        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
         LoadDefaultSparseArray();
     }
 
@@ -62,10 +56,8 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
     {
         EnsureKeyAndValueTypesAreSupported();
         DataHeaderDevice = dataHeaderDevice;
-        Options = options;
         InitKeySizeAndDataLength();
         var diskOptions = options.DiskSegmentOptions;
-        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
         LoadDefaultSparseArray();
     }
 
@@ -165,7 +157,7 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
     {
         try
         {
-            if (CircularCache.TryGetFromCache(index, out var key)) return key;
+            if (CircularKeyCache.TryGetFromCache(index, out var key)) return key;
             Interlocked.Increment(ref ReadCount);
             if (IsDroppping)
             {
@@ -174,7 +166,7 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
             var headSize = sizeof(ValueHead) + KeySize;
             var keyBytes = DataHeaderDevice.GetBytes(index * headSize, KeySize);
             key = KeySerializer.Deserialize(keyBytes);
-            CircularCache.TryAddToTheCache(index, ref key);
+            CircularKeyCache.TryAddToTheCache(index, ref key);
             return key;
         }
         finally
@@ -187,6 +179,7 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
     {
         try
         {
+            if (CircularValueCache.TryGetFromCache(index, out var value)) return value;
             Interlocked.Increment(ref ReadCount);
             if (IsDroppping)
             {
@@ -198,7 +191,9 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
                 .GetBytes(index * headSize + KeySize, sizeof(ValueHead));
             var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
             var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
-            return ValueSerializer.Deserialize(valueBytes);
+            value = ValueSerializer.Deserialize(valueBytes);
+            CircularValueCache.TryAddToTheCache(index, ref value);
+            return value;
         }
         finally
         {

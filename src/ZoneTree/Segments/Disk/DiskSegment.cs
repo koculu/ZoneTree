@@ -3,6 +3,7 @@ using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.DiskSegmentVariations;
 using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
@@ -50,26 +51,48 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
+    public CircularCache<TKey> CircularKeyCache { get; }
+
+    public CircularCache<TValue> CircularValueCache { get; }
+
+    protected ZoneTreeOptions<TKey, TValue> Options;
+
     protected DiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options)
     {
+        Options = options;
         SegmentId = segmentId;
         Comparer = options.Comparer;
         KeySerializer = options.KeySerializer;
         ValueSerializer = options.ValueSerializer;
+        var diskOptions = options.DiskSegmentOptions;
+        CircularKeyCache = new CircularCache<TKey>(
+            diskOptions.KeyCacheSize,
+            diskOptions.KeyCacheRecordLifeTimeInMillisecond);
+        CircularValueCache = new CircularCache<TValue>(
+            diskOptions.ValueCacheSize,
+            diskOptions.ValueCacheRecordLifeTimeInMillisecond);
     }
 
     protected DiskSegment(long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IRandomAccessDevice dataDevice)
     {
+        Options = options;
         SegmentId = segmentId;
         DataDevice = dataDevice;
 
         Comparer = options.Comparer;
         KeySerializer = options.KeySerializer;
         ValueSerializer = options.ValueSerializer;
+        var diskOptions = options.DiskSegmentOptions;
+        CircularKeyCache = new CircularCache<TKey>(
+            diskOptions.KeyCacheSize,
+            diskOptions.KeyCacheRecordLifeTimeInMillisecond);
+        CircularValueCache = new CircularCache<TValue>(
+            diskOptions.ValueCacheSize,
+            diskOptions.ValueCacheRecordLifeTimeInMillisecond);
     }
 
     public bool ContainsKey(in TKey key)
@@ -414,4 +437,14 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public int GetPartCount() => 0;
 
     abstract public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray);
+
+    public int ReleaseCircularKeyCacheRecords(long ticks)
+    {
+        return CircularKeyCache.ReleaseInactiveCacheRecords(ticks);
+    }
+
+    public int ReleaseCircularValueCacheRecords(long ticks)
+    {
+        return CircularKeyCache.ReleaseInactiveCacheRecords(ticks);
+    }
 }

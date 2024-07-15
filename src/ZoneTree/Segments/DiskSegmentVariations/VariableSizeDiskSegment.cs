@@ -15,18 +15,13 @@ public sealed partial class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<
 {
     readonly IRandomAccessDevice DataHeaderDevice;
 
-    CircularCache<TKey> CircularCache { get; }
-
     public override int ReadBufferCount =>
         (DataDevice?.ReadBufferCount ?? 0) + (DataHeaderDevice?.ReadBufferCount ?? 0);
-
-    readonly ZoneTreeOptions<TKey, TValue> Options;
 
     public VariableSizeDiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options) : base(segmentId, options)
     {
-        Options = options;
         EnsureKeyAndValueTypesAreSupported();
         var randomDeviceManager = options.RandomAccessDeviceManager;
         var diskOptions = options.DiskSegmentOptions;
@@ -52,8 +47,6 @@ public sealed partial class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<
                 diskOptions.CompressionLevel,
                 diskOptions.BlockCacheReplacementWarningDuration);
         InitDataLength();
-
-        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
         LoadDefaultSparseArray();
     }
 
@@ -63,11 +56,8 @@ public sealed partial class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<
         IRandomAccessDevice dataDevice) : base(segmentId, options, dataDevice)
     {
         DataHeaderDevice = dataHeaderDevice;
-        Options = options;
         EnsureKeyAndValueTypesAreSupported();
         InitDataLength();
-        var diskOptions = options.DiskSegmentOptions;
-        CircularCache = new CircularCache<TKey>(diskOptions.KeyCacheSize, diskOptions.KeyCacheRecordLifeTimeInMillisecond);
         LoadDefaultSparseArray();
     }
 
@@ -172,7 +162,7 @@ public sealed partial class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<
     {
         try
         {
-            if (CircularCache.TryGetFromCache(index, out var key)) return key;
+            if (CircularKeyCache.TryGetFromCache(index, out var key)) return key;
             Interlocked.Increment(ref ReadCount);
             if (IsDroppping)
             {
@@ -182,7 +172,7 @@ public sealed partial class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<
             var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
             var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
             key = KeySerializer.Deserialize(keyBytes);
-            CircularCache.TryAddToTheCache(index, ref key);
+            CircularKeyCache.TryAddToTheCache(index, ref key);
             return key;
         }
         finally
@@ -195,6 +185,7 @@ public sealed partial class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<
     {
         try
         {
+            if (CircularValueCache.TryGetFromCache(index, out var value)) return value;
             Interlocked.Increment(ref ReadCount);
             if (IsDroppping)
             {
@@ -203,7 +194,9 @@ public sealed partial class VariableSizeDiskSegment<TKey, TValue> : DiskSegment<
             var headBytes = DataHeaderDevice.GetBytes(index * sizeof(EntryHead) + sizeof(KeyHead), sizeof(ValueHead));
             var head = BinarySerializerHelper.FromByteArray<ValueHead>(headBytes);
             var valueBytes = DataDevice.GetBytes(head.ValueOffset, head.ValueLength);
-            return ValueSerializer.Deserialize(valueBytes);
+            value = ValueSerializer.Deserialize(valueBytes);
+            CircularValueCache.TryAddToTheCache(index, ref value);
+            return value;
         }
         finally
         {

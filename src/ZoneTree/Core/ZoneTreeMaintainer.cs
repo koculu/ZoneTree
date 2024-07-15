@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Segments;
+using Tenray.ZoneTree.Segments.Disk;
 
 namespace Tenray.ZoneTree.Core;
 
@@ -226,9 +227,17 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         {
             if (cts.IsCancellationRequested)
                 break;
-            var ticks = Environment.TickCount64 - DiskSegmentBufferLifeTime;
-            var releasedCount = ZoneTree.Maintenance.DiskSegment.ReleaseReadBuffers(ticks);
-            Trace("Released Buffers: " + releasedCount);
+            var diskSegment = ZoneTree.Maintenance.DiskSegment as DiskSegment<TKey, TValue>;
+            var now = Environment.TickCount64;
+            var ticks = now - DiskSegmentBufferLifeTime;
+            var ticksKey = now - diskSegment.CircularKeyCache.RecordLifeTimeInMillisecond;
+            var ticksValue = now - diskSegment.CircularValueCache.RecordLifeTimeInMillisecond;
+            var releasedCount = diskSegment.ReleaseReadBuffers(ticks);
+            Trace("Released read buffers: " + releasedCount);
+            var releasedCacheKeyRecordCount = diskSegment.ReleaseCircularKeyCacheRecords(ticksKey);
+            Trace("Released cache key records: " + releasedCacheKeyRecordCount);
+            var releasedCacheValueRecordCount = diskSegment.ReleaseCircularValueCacheRecords(ticksValue);
+            Trace("Released cached value records: " + releasedCacheValueRecordCount);
         }
     }
 

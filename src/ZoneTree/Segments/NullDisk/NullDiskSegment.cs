@@ -134,5 +134,15 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray)
     {
     }
+
+    public int ReleaseCircularKeyCacheRecords(long ticks)
+    {
+        return 0;
+    }
+
+    public int ReleaseCircularValueCacheRecords(long ticks)
+    {
+        return 0;
+    }
 }
 

@@ -49,6 +49,18 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
     int ReleaseReadBuffers(long ticks);
 
     /// <summary>
+    /// Releases circular cache key records that have not been used since the specified tick count.
+    /// </summary>
+    /// <returns>The total number of released cached records.</returns>
+    int ReleaseCircularKeyCacheRecords(long ticks);
+
+    /// <summary>
+    /// Releases circular cache value records that have not been used since the specified tick count.
+    /// </summary>
+    /// <returns>The total number of released cached records.</returns>
+    int ReleaseCircularValueCacheRecords(long ticks);
+
+    /// <summary>
     /// Returns the first keys of every part.
     /// </summary>
     /// <returns>An array of the first keys of each part.</returns>

@@ -1,40 +1,87 @@
-﻿namespace Tenray.ZoneTree.Segments.DiskSegmentVariations;
+﻿using System;
 
-class CircularCache<TDataType>
+namespace Tenray.ZoneTree.Segments.DiskSegmentVariations;
+
+public class CircularCache<TDataType>
 {
-    class CachedRecord
+    public class CacheAndCacheSize
+    {
+        public int CacheSize;
+        public CachedRecord[] circularBuffer;
+    }
+
+    public class CachedRecord
     {
         public long Index;
         public TDataType Record;
         public long LastAccess;
-        public bool IsExpired(int cacheRecordLifeTime) => LastAccess + cacheRecordLifeTime < Environment.TickCount64;
+        public bool IsExpired(long ticks) => LastAccess < ticks;
+    }
+
+    CacheAndCacheSize Cache;
+
+    public int RecordLifeTimeInMillisecond = 10000;
+
+    int statsCacheHit = 0;
+
+    int statsCacheMiss = 0;
+
+    public (int cacheHit, int cacheMiss) GetCacheStats() => (statsCacheHit, statsCacheMiss);
+
+    public void ResetCacheStats()
+    {
+        statsCacheHit = 0;
+        statsCacheMiss = 0;
     }
 
     public CircularCache(int cacheSize, int recordLifeTimeInMillisecond)
     {
-        this.CacheSize = cacheSize;
         this.RecordLifeTimeInMillisecond = recordLifeTimeInMillisecond;
-        this.CircularCacheRecordBuffer = new CachedRecord[CacheSize];
+        this.Cache = new CacheAndCacheSize()
+        {
+            CacheSize = cacheSize,
+            circularBuffer = new CachedRecord[cacheSize]
+        };
     }
 
-    CachedRecord[] CircularCacheRecordBuffer;
-    int RecordLifeTimeInMillisecond = 10000;
-    int statsCacheHit = 0;
-    int statsCacheMiss = 0;
-    readonly int CacheSize;
-
-    public (int cacheHit, int cacheMiss) GetCacheStats() => (statsCacheHit, statsCacheMiss);
+    public void SetCacheSize(int cacheSize)
+    {
+        if (cacheSize < 0)
+            cacheSize = 0;
+        var newBuffer = new CachedRecord[cacheSize];
+        var newCache = new CacheAndCacheSize
+        {
+            CacheSize = cacheSize,
+            circularBuffer = newBuffer
+        };
+        if (cacheSize > 0)
+        {
+            var ticks = Environment.TickCount64 - this.RecordLifeTimeInMillisecond;
+            var oldBuffer = this.Cache.circularBuffer;
+            var len = oldBuffer.Length;
+            for (int i = 0; i < len; i++)
+            {
+                var record = oldBuffer[i];
+                var circularIndex = i % cacheSize;
+                if (record.IsExpired(ticks)) continue;
+                newBuffer[circularIndex] = record;
+            }
+        }
+        this.Cache = newCache;
+    }
 
     public bool TryGetFromCache(long index, out TDataType key)
     {
-        if (CacheSize < 1)
+        var cache = this.Cache;
+        var cacheSize = cache.CacheSize;
+        if (cacheSize < 1)
         {
             key = default;
             return false;
         }
-        var circularBuffer = CircularCacheRecordBuffer;
+        var circularBuffer = cache.circularBuffer;
         var len = circularBuffer.Length;
-        var circularIndex = index % CacheSize;
+        var circularIndex = index % cacheSize;
         var cacheRecord = circularBuffer[circularIndex];
         if (cacheRecord != null && cacheRecord.Index == index)
         {
@@ -50,36 +97,51 @@ class CircularCache<TDataType>
 
     public bool TryAddToTheCache(long index, ref TDataType key)
     {
-        if (CacheSize < 1) return false;
-        var circularIndex = index % CacheSize;
-        var existingCacheRecord = this.CircularCacheRecordBuffer[circularIndex];
+        var cache = this.Cache;
+        var cacheSize = cache.CacheSize;
+        if (cacheSize < 1) return false;
+        var circularBuffer = cache.circularBuffer;
+        var circularIndex = index % cacheSize;
+        var existingCacheRecord = circularBuffer[circularIndex];
         /* Do not add a new cache record when the existing cache record is still active.*/
         if (existingCacheRecord != null &&
-            !existingCacheRecord.IsExpired(RecordLifeTimeInMillisecond)) return false;
+            !existingCacheRecord.IsExpired(Environment.TickCount64 - RecordLifeTimeInMillisecond))
+        {
+            return false;
+        }
         var cachedRecord = new CachedRecord
         {
             Index = index,
             Record = key,
             LastAccess = Environment.TickCount64,
         };
-        this.CircularCacheRecordBuffer[circularIndex] = cachedRecord;
+        circularBuffer[circularIndex] = cachedRecord;
         return true;
     }
 
 
     public int ReleaseInactiveCacheRecords(long ticks)
     {
-        var circularBuffer = CircularCacheRecordBuffer;
+        var circularBuffer = Cache.circularBuffer;
         var len = circularBuffer.Length;
         var totalReleasedRecords = 0;
-        var lifeTime = RecordLifeTimeInMillisecond;
         for (var i = 0; i < len; ++i)
         {
             var cacheRecord = circularBuffer[i];
-            if (cacheRecord == null || !cacheRecord.IsExpired(lifeTime)) continue;
+            if (cacheRecord == null || !cacheRecord.IsExpired(ticks)) continue;
             circularBuffer[i] = null;
             ++totalReleasedRecords;
         }
         return totalReleasedRecords;
+    }
+
+    public void ClearCache()
+    {
+        var circularBuffer = Cache.circularBuffer;
+        var len = circularBuffer.Length;
+        for (var i = 0; i < len; ++i)
+        {
+            circularBuffer[i] = null;
+        }
     }
 }
