@@ -3,7 +3,6 @@ using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments.DiskSegmentVariations;
 using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
@@ -438,13 +437,13 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     abstract public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray);
 
-    public int ReleaseCircularKeyCacheRecords(long ticks)
+    public int ReleaseCircularKeyCacheRecords()
     {
-        return CircularKeyCache.ReleaseInactiveCacheRecords(ticks);
+        return CircularKeyCache.ReleaseInactiveCacheRecords();
     }
 
-    public int ReleaseCircularValueCacheRecords(long ticks)
+    public int ReleaseCircularValueCacheRecords()
     {
-        return CircularKeyCache.ReleaseInactiveCacheRecords(ticks);
+        return CircularKeyCache.ReleaseInactiveCacheRecords();
     }
 }

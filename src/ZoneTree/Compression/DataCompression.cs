@@ -40,7 +40,7 @@ public static class DataCompression
             CompressionMethod.Zstd => ZstdDataCompression.DecompressFast(compressedBytes, decompressedLength),
             CompressionMethod.Brotli => BrotliDataCompression.DecompressFast(compressedBytes, decompressedLength),
             CompressionMethod.Gzip => GZipDataCompression.DecompressFast(compressedBytes, decompressedLength),
-            CompressionMethod.None => compressedBytes,
+            CompressionMethod.None => compressedBytes.ToArray(),
             _ => throw new ArgumentOutOfRangeException(nameof(method)),
         };
     }

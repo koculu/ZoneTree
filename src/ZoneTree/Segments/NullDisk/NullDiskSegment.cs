@@ -135,12 +135,12 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     {
     }
 
-    public int ReleaseCircularKeyCacheRecords(long ticks)
+    public int ReleaseCircularKeyCacheRecords()
     {
         return 0;
     }
 
-    public int ReleaseCircularValueCacheRecords(long ticks)
+    public int ReleaseCircularValueCacheRecords()
     {
         return 0;
     }

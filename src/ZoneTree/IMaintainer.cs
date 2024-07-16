@@ -42,11 +42,11 @@ public interface IMaintainer : IDisposable
 
     /// <summary>
     /// Gets or sets a value indicating whether a periodic timer is enabled to release
-    /// unused block cache in the disk segment. 
+    /// unused block and key/value record caches in the disk segment. 
     /// Changing this property will start or stop the periodic timer accordingly. 
     /// The default value is <c>false</c>.
     /// </summary>
-    bool EnableJobForCleaningInactiveBlockCaches { get; set; }
+    bool EnableJobForCleaningInactiveCaches { get; set; }
 
     /// <summary>
     /// Sets or gets Disk Segment block cache life time in milliseconds.

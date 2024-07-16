@@ -1,16 +1,16 @@
 ﻿using System;
 
-namespace Tenray.ZoneTree.Segments.DiskSegmentVariations;
+namespace Tenray.ZoneTree.Segments.Disk;
 
-public class CircularCache<TDataType>
+public sealed class CircularCache<TDataType>
 {
-    public class CacheAndCacheSize
+    public sealed class CacheAndCacheSize
     {
         public int CacheSize;
         public CachedRecord[] circularBuffer;
     }
 
-    public class CachedRecord
+    public sealed class CachedRecord
     {
         public long Index;
         public TDataType Record;
@@ -36,8 +36,8 @@ public class CircularCache<TDataType>
 
     public CircularCache(int cacheSize, int recordLifeTimeInMillisecond)
     {
-        this.RecordLifeTimeInMillisecond = recordLifeTimeInMillisecond;
-        this.Cache = new CacheAndCacheSize()
+        RecordLifeTimeInMillisecond = recordLifeTimeInMillisecond;
+        Cache = new CacheAndCacheSize()
         {
             CacheSize = cacheSize,
             circularBuffer = new CachedRecord[cacheSize]
@@ -56,8 +56,8 @@ public class CircularCache<TDataType>
         };
         if (cacheSize > 0)
         {
-            var ticks = Environment.TickCount64 - this.RecordLifeTimeInMillisecond;
-            var oldBuffer = this.Cache.circularBuffer;
+            var ticks = Environment.TickCount64 - RecordLifeTimeInMillisecond;
+            var oldBuffer = Cache.circularBuffer;
             var len = oldBuffer.Length;
             for (int i = 0; i < len; i++)
             {
@@ -67,12 +67,12 @@ public class CircularCache<TDataType>
                 newBuffer[circularIndex] = record;
             }
         }
-        this.Cache = newCache;
+        Cache = newCache;
     }
 
     public bool TryGetFromCache(long index, out TDataType key)
     {
-        var cache = this.Cache;
+        var cache = Cache;
         var cacheSize = cache.CacheSize;
         if (cacheSize < 1)
         {
@@ -97,7 +97,7 @@ public class CircularCache<TDataType>
 
     public bool TryAddToTheCache(long index, ref TDataType key)
     {
-        var cache = this.Cache;
+        var cache = Cache;
         var cacheSize = cache.CacheSize;
         if (cacheSize < 1) return false;
         var circularBuffer = cache.circularBuffer;
@@ -119,9 +119,9 @@ public class CircularCache<TDataType>
         return true;
     }
 
-
-    public int ReleaseInactiveCacheRecords(long ticks)
+    public int ReleaseInactiveCacheRecords()
     {
+        var ticks = Environment.TickCount64 - RecordLifeTimeInMillisecond;
         var circularBuffer = Cache.circularBuffer;
         var len = circularBuffer.Length;
         var totalReleasedRecords = 0;

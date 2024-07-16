@@ -142,11 +142,11 @@ public sealed class CircularBlockCache
 
         public override string ToString()
         {
-            var str = $"Reads are slower. Replacement frequency is too high. (Delta: {Delta})" +
+            var str = $"Block cache replacement frequency is too high. (Delta: {Delta})" +
                 Environment.NewLine +
                 $"\tBlock index: {BlockIndex}" +
                 Environment.NewLine +
-                "\tAuto performance tuning will increase block cache capacity. " +
+                "\tIncreasing block cache capacity to speed up reads. " +
                 Environment.NewLine +
                 $"\tCurrent Capacity:{CurrentCacheCapacity}" +
                 Environment.NewLine;

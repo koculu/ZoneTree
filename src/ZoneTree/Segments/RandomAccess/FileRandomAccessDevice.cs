@@ -1,4 +1,6 @@
-﻿using Tenray.ZoneTree.AbstractFileStream;
+﻿using System.IO;
+using System.Reflection.PortableExecutable;
+using Tenray.ZoneTree.AbstractFileStream;
 
 namespace Tenray.ZoneTree.Segments.RandomAccess;
 

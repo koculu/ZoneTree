@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Buffers;
+using System.Text;
 using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Options;
@@ -304,20 +305,28 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     DecompressedBlock ReadBlock(int blockIndex)
     {
         var blockPositionInFile = CompressedBlockPositions[blockIndex];
-        Memory<byte> compressedBytes = null;
-        lock (this)
+        var compressedLength = CompressedBlockLengths[blockIndex];
+        var pool = ArrayPool<byte>.Shared;
+        var compressedBytes = pool.Rent(compressedLength);
+        try
         {
-            FileStream.Position = blockPositionInFile;
-            var compressedLength = CompressedBlockLengths[blockIndex];
-            compressedBytes = BinaryReader.ReadBytes(compressedLength);
+            lock (this)
+            {
+                FileStream.Position = blockPositionInFile;
+                FileStream.ReadFaster(compressedBytes, 0, compressedLength);
+            }
+            var decompressedLength = DecompressedBlockLengths[blockIndex];
+            var decompressedBlock = DecompressedBlock
+                .FromCompressed(
+                    blockIndex, new Memory<byte>(compressedBytes).Slice(0, compressedLength),
+                    CompressionMethod, CompressionLevel, decompressedLength);
+            decompressedBlock.LastAccessTicks = Environment.TickCount64;
+            return decompressedBlock;
         }
-        var decompressedLength = DecompressedBlockLengths[blockIndex];
-        var decompressedBlock = DecompressedBlock
-            .FromCompressed(
-                blockIndex, compressedBytes,
-                CompressionMethod, CompressionLevel, decompressedLength);
-        decompressedBlock.LastAccessTicks = Environment.TickCount64;
-        return decompressedBlock;
+        finally
+        {
+            pool.Return(compressedBytes);
+        }
     }
 
     public int GetBytes(long offset, Memory<byte> buffer)

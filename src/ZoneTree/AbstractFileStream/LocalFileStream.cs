@@ -48,6 +48,22 @@ public sealed class LocalFileStream : Stream, IFileStream
         return FileStream.Read(buffer, offset, count);
     }
 
+    public int ReadFaster(byte[] buffer, int offset, int count)
+    {
+        int totalRead = 0;
+        while (totalRead < count)
+        {
+            int read = FileStream.Read(buffer, offset, count);
+            if (read == 0)
+            {
+                throw new EndOfStreamException();
+            }
+            totalRead += read;
+            offset += read;
+        }
+        return totalRead;
+    }
+
     public override long Seek(long offset, SeekOrigin origin)
     {
         return FileStream.Seek(offset, origin);
