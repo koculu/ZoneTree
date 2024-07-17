@@ -38,9 +38,9 @@ public interface IRandomAccessDevice : IDisposable
     void SealDevice();
 
     /// <summary>
-    /// Release internal read buffers 
-    /// that are not used after given ticks.
+    /// Releases inactive cached read buffers.
+    /// The buffers that have not been accessed since given ticks are released.
     /// </summary>
     /// <returns>Total released read buffer count.</returns>
-    int ReleaseReadBuffers(long ticks);
+    int ReleaseInactiveCachedBuffers(long ticks);
 }

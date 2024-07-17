@@ -21,8 +21,6 @@ public static class TestConfig
 
     public static int DiskCompressionBlockSize = 32768;
 
-    public static int DiskSegmentMaximumCachedBlockCount = 1000;
-
     public static bool EnableParalelInserts = false;
 
     public static DiskSegmentMode DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
@@ -40,7 +38,6 @@ public static class TestConfig
         Console.WriteLine($"EnableDiskSegmentCompression: {EnableDiskSegmentCompression}");
         Console.WriteLine($"WALCompressionBlockSize: {WALCompressionBlockSize}");
         Console.WriteLine($"DiskCompressionBlockSize: {DiskCompressionBlockSize}");
-        Console.WriteLine($"DiskSegmentMaximumCachedBlockCount: {DiskSegmentMaximumCachedBlockCount}");
         Console.WriteLine($"EnableParalelInserts: {EnableParalelInserts}");
         Console.WriteLine($"DiskSegmentMode: {DiskSegmentMode}");
         Console.WriteLine($"CompressionMethod: {CompressionMethod}");

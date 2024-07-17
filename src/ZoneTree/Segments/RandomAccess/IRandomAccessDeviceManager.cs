@@ -9,18 +9,16 @@ public interface IRandomAccessDeviceManager
 
     IRandomAccessDevice GetReadOnlyDevice(
         long segmentId, string category, bool isCompressed,
-        int compressionBlockSize, int maxCachedBlockCount,
+        int compressionBlockSize,
         CompressionMethod compressionMethod,
-        int compressionLevel,
-        long blockCacheReplacementWarningDuration);
+        int compressionLevel);
 
     IRandomAccessDevice CreateWritableDevice(
         long segmentId, string category, bool isCompressed,
-        int compressionBlockSize, int maxCachedBlockCount,
+        int compressionBlockSize,
         bool deleteIfExists, bool backupIfDelete,
         CompressionMethod compressionMethod,
-        int compressionLevel,
-        long blockCacheReplacementWarningDuration);
+        int compressionLevel);
 
     bool DeviceExists(long segmentId, string category, bool isCompressed);
 

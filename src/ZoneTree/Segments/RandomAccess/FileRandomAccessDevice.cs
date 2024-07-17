@@ -115,7 +115,7 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
         // nothing here.
     }
 
-    public int ReleaseReadBuffers(long ticks)
+    public int ReleaseInactiveCachedBuffers(long ticks)
     {
         // no buffer
         return 0;

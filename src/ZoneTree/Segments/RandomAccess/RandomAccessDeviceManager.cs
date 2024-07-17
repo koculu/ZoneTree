@@ -50,11 +50,10 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
     public IRandomAccessDevice CreateWritableDevice(
         long segmentId, string category,
-        bool isCompressed, int compressionBlockSize, int maxCachedBlockCount,
+        bool isCompressed, int compressionBlockSize,
         bool deleteIfExists, bool backupIfDelete,
         CompressionMethod compressionMethod,
-        int compressionLevel,
-        long blockCacheReplacementWarningDuration)
+        int compressionLevel)
     {
         lock (this)
         {
@@ -73,13 +72,11 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
             IRandomAccessDevice device = isCompressed ?
                 new CompressedFileRandomAccessDevice(
                     Logger,
-                    maxCachedBlockCount,
                     FileStreamProvider,
                     segmentId, category, this, filePath, true,
                     compressionBlockSize,
                     compressionMethod,
-                    compressionLevel,
-                    blockCacheReplacementWarningDuration) :
+                    compressionLevel) :
                 new FileRandomAccessDevice(
                     FileStreamProvider,
                     segmentId, category, this, filePath, true);
@@ -119,10 +116,8 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
     public IRandomAccessDevice GetReadOnlyDevice(
         long segmentId, string category,
         bool isCompressed, int compressionBlockSize,
-        int maxCachedBlockCount,
         CompressionMethod compressionMethod,
-        int compressionLevel,
-        long blockCacheReplacementWarningDuration)
+        int compressionLevel)
     {
         lock (this)
         {
@@ -153,13 +148,11 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
             device = isCompressed ?
                 new CompressedFileRandomAccessDevice(
                     Logger,
-                    maxCachedBlockCount,
                     FileStreamProvider,
                     segmentId, category, this, filePath, false,
                     compressionBlockSize,
                     compressionMethod,
-                    compressionLevel,
-                    blockCacheReplacementWarningDuration) :
+                    compressionLevel) :
                 new FileRandomAccessDevice(
                     FileStreamProvider,
                     segmentId, category, this, filePath, false);

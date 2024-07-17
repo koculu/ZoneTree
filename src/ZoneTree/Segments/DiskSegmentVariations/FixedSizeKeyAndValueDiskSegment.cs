@@ -26,10 +26,8 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
                 DiskSegmentConstants.DataCategory,
                 diskOptions.EnableCompression,
                 diskOptions.CompressionBlockSize,
-                diskOptions.BlockCacheLimit,
                 diskOptions.CompressionMethod,
-                diskOptions.CompressionLevel,
-                diskOptions.BlockCacheReplacementWarningDuration);
+                diskOptions.CompressionLevel);
         InitKeyAndValueSizeAndDataLength();
         LoadDefaultSparseArray();
     }
@@ -76,10 +74,8 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
             DiskSegmentConstants.SparseArrayCategory,
             diskOptions.EnableCompression,
             diskOptions.CompressionBlockSize,
-            diskOptions.BlockCacheLimit,
             diskOptions.CompressionMethod,
-            diskOptions.CompressionLevel,
-            diskOptions.BlockCacheReplacementWarningDuration);
+            diskOptions.CompressionLevel);
         var recordCount = BinarySerializerHelper.FromByteArray<int>(sparseArrayDevice.GetBytes(0, sizeof(int)));
         var offset = sizeof(int);
         var keySize = KeySize;
@@ -110,12 +106,10 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
             DiskSegmentConstants.SparseArrayCategory,
             diskOptions.EnableCompression,
             diskOptions.CompressionBlockSize,
-            diskOptions.BlockCacheLimit,
             true,
             false,
             diskOptions.CompressionMethod,
-            diskOptions.CompressionLevel,
-            diskOptions.BlockCacheReplacementWarningDuration);
+            diskOptions.CompressionLevel);
         var sparseArray = SparseArray;
         var recordCount = sparseArray.Count;
         sparseArrayDevice.AppendBytesReturnPosition(BitConverter.GetBytes(recordCount));
@@ -186,6 +180,6 @@ public sealed class FixedSizeKeyAndValueDiskSegment<TKey, TValue> : DiskSegment<
 
     public override int ReleaseReadBuffers(long ticks)
     {
-        return DataDevice?.ReleaseReadBuffers(ticks) ?? 0;
+        return DataDevice?.ReleaseInactiveCachedBuffers(ticks) ?? 0;
     }
 }

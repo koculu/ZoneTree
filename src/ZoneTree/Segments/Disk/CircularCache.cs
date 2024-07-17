@@ -20,7 +20,7 @@ public sealed class CircularCache<TDataType>
 
     CacheAndCacheSize Cache;
 
-    public int RecordLifeTimeInMillisecond = 10000;
+    public int RecordLifeTimeInMillisecond { get; set; } = 10000;
 
     int statsCacheHit = 0;
 
@@ -102,13 +102,6 @@ public sealed class CircularCache<TDataType>
         if (cacheSize < 1) return false;
         var circularBuffer = cache.circularBuffer;
         var circularIndex = index % cacheSize;
-        var existingCacheRecord = circularBuffer[circularIndex];
-        /* Do not add a new cache record when the existing cache record is still active.*/
-        if (existingCacheRecord != null &&
-            !existingCacheRecord.IsExpired(Environment.TickCount64 - RecordLifeTimeInMillisecond))
-        {
-            return false;
-        }
         var cachedRecord = new CachedRecord
         {
             Index = index,

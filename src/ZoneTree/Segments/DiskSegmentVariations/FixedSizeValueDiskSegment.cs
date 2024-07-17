@@ -28,21 +28,16 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
                     DiskSegmentConstants.DataHeaderCategory,
                     diskOptions.EnableCompression,
                     diskOptions.CompressionBlockSize,
-                    diskOptions.BlockCacheLimit,
                     diskOptions.CompressionMethod,
-                    diskOptions.CompressionLevel,
-                    diskOptions.BlockCacheReplacementWarningDuration
-                    );
+                    diskOptions.CompressionLevel);
         DataDevice = randomDeviceManager
             .GetReadOnlyDevice(
                 SegmentId,
                 DiskSegmentConstants.DataCategory,
                 diskOptions.EnableCompression,
                 diskOptions.CompressionBlockSize,
-                diskOptions.BlockCacheLimit,
                 diskOptions.CompressionMethod,
-                diskOptions.CompressionLevel,
-                diskOptions.BlockCacheReplacementWarningDuration);
+                diskOptions.CompressionLevel);
         InitKeySizeAndDataLength();
         LoadDefaultSparseArray();
     }
@@ -90,10 +85,8 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
             DiskSegmentConstants.SparseArrayCategory,
             diskOptions.EnableCompression,
             diskOptions.CompressionBlockSize,
-            diskOptions.BlockCacheLimit,
             diskOptions.CompressionMethod,
-            diskOptions.CompressionLevel,
-            diskOptions.BlockCacheReplacementWarningDuration);
+            diskOptions.CompressionLevel);
         var recordCount = BinarySerializerHelper.FromByteArray<int>(sparseArrayDevice.GetBytes(0, sizeof(int)));
         var offset = sizeof(int);
         var valueSize = ValueSize;
@@ -128,12 +121,10 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
             DiskSegmentConstants.SparseArrayCategory,
             diskOptions.EnableCompression,
             diskOptions.CompressionBlockSize,
-            diskOptions.BlockCacheLimit,
             true,
             false,
             diskOptions.CompressionMethod,
-            diskOptions.CompressionLevel,
-            diskOptions.BlockCacheReplacementWarningDuration);
+            diskOptions.CompressionLevel);
         var sparseArray = SparseArray;
         var recordCount = sparseArray.Count;
         sparseArrayDevice.AppendBytesReturnPosition(BitConverter.GetBytes(recordCount));
@@ -212,8 +203,8 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
 
     public override int ReleaseReadBuffers(long ticks)
     {
-        var a = DataHeaderDevice?.ReleaseReadBuffers(ticks) ?? 0;
-        var b = DataDevice?.ReleaseReadBuffers(ticks) ?? 0;
+        var a = DataHeaderDevice?.ReleaseInactiveCachedBuffers(ticks) ?? 0;
+        var b = DataDevice?.ReleaseInactiveCachedBuffers(ticks) ?? 0;
         return a + b;
     }
 }

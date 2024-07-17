@@ -171,12 +171,10 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
                     DiskSegmentConstants.MultiPartDiskSegmentCategory,
                     isCompressed: false,
                     compressionBlockSize: 0,
-                    maxCachedBlockCount: 0,
                     deleteIfExists: false,
                     backupIfDelete: false,
                     compressionMethod,
-                    compressionLevel,
-                    blockCacheReplacementWarningDuration: 0);
+                    compressionLevel);
         var compressedBytes = DataCompression
             .Compress(compressionMethod, compressionLevel, ms.ToArray());
         multiDevice.AppendBytesReturnPosition(compressedBytes);
@@ -246,10 +244,8 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
                 DiskSegmentConstants.MultiPartDiskSegmentCategory,
                 isCompressed: false,
                 compressionBlockSize: 0,
-                maxCachedBlockCount: 0,
                 MultiPartDiskSegment<TKey, TValue>.MultiPartHeaderCompressionMethod,
-                MultiPartDiskSegment<TKey, TValue>.MultiPartHeaderCompressionLevel,
-                blockCacheReplacementWarningDuration: 0);
+                MultiPartDiskSegment<TKey, TValue>.MultiPartHeaderCompressionLevel);
 
         multiDevice.Delete();
         Options.RandomAccessDeviceManager

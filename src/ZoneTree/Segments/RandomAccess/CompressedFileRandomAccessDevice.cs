@@ -31,13 +31,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     readonly IRandomAccessDeviceManager RandomDeviceManager;
 
-    /// <summary>
-    /// Why not LRUCache?
-    /// Because it is 40% slower. See thread-safe LRUBlockCache implementation.
-    /// The collision problem of multiple readers of a circular block cache
-    /// can be addressed by increasing BlockCacheLimit.
-    /// </summary>
-    readonly CircularBlockCache CircularBlockCache;
+    readonly BlockCache BlockCache;
 
     readonly List<long> CompressedBlockPositions = new();
 
@@ -61,7 +55,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public long Length => GetLength();
 
-    public int ReadBufferCount => CircularBlockCache.Count;
+    public int ReadBufferCount => BlockCache.Count;
 
     public struct CompressedFileMeta : IEquatable<CompressedFileMeta>
     {
@@ -105,7 +99,6 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public CompressedFileRandomAccessDevice(
         ILogger logger,
-        int maxCachedBlockCount,
         IFileStreamProvider fileStreamProvider,
         long segmentId,
         string category,
@@ -115,7 +108,6 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         int compressionBlockSize,
         CompressionMethod compressionMethod,
         int compressionLevel,
-        long blockCacheReplacementWarningDuration,
         int fileIOBufferSize = 4096)
     {
         for (var i = 0; i < BlockReadLocks.Length; ++i)
@@ -123,8 +115,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             BlockReadLocks[i] = new object();
         }
 
-        CircularBlockCache = new(
-            logger, maxCachedBlockCount, blockCacheReplacementWarningDuration);
+        BlockCache = new();
         FileStreamProvider = fileStreamProvider;
         SegmentId = segmentId;
         Category = category;
@@ -205,7 +196,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     bool TryGetBlockCache(int blockIndex, out DecompressedBlock block)
     {
-        return CircularBlockCache.TryGetBlock(blockIndex, out block);
+        return BlockCache.TryGetBlock(blockIndex, out block);
     }
 
     /// <summary>
@@ -244,7 +235,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         DecompressedBlockLengths.Add(nextBlock.Length);
         FileStream.Write(compressedBytes.Span);
         FileStream.Flush(true);
-        CircularBlockCache.RemoveBlock(nextBlock.BlockIndex);
+        BlockCache.RemoveBlock(nextBlock.BlockIndex);
         ++NextBlockIndex;
         LastBlockLength = 0;
         NextBlock = null;
@@ -292,8 +283,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
             if ((block == null || block.BlockIndex != blockIndex) &&
                 !TryGetBlockCache(blockIndex, out block))
             {
-                DecompressedBlock decompressedBlock = ReadBlock(blockIndex);
-                CircularBlockCache.AddBlock(decompressedBlock);
+                var decompressedBlock = ReadBlock(blockIndex);
+                BlockCache.AddBlock(decompressedBlock);
                 NextBlock = decompressedBlock;
                 return decompressedBlock.GetBytes(offsetInBlock, length);
             }
@@ -345,7 +336,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public void Close()
     {
-        CircularBlockCache.Clear();
+        BlockCache.Clear();
         if (FileStream == null)
             return;
         FileStream.Flush(true);
@@ -359,7 +350,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 
     public void Delete()
     {
-        CircularBlockCache.Clear();
+        BlockCache.Clear();
         Dispose();
         FileStreamProvider.DeleteFile(FilePath);
     }
@@ -375,7 +366,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         CompressedBlockLengths.Clear();
         DecompressedBlockLengths.Clear();
         LastBlockLength = 0;
-        CircularBlockCache.Clear();
+        BlockCache.Clear();
     }
 
     public void SealDevice()
@@ -434,25 +425,14 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         return (positions, compressedLengths, decompressedLengths);
     }
 
-    public int ReleaseReadBuffers(long ticks)
+    public int ReleaseInactiveCachedBuffers(long ticks)
     {
         if (NextBlock != null &&
-            NextBlock.LastAccessTicks <= ticks)
+            NextBlock.LastAccessTicks < ticks)
         {
             NextBlock = null;
         }
-        var removed = 0;
-        var blocks = CircularBlockCache.ToArray();
-        var len = blocks.Length;
-        for (int i = 0; i < len; i++)
-        {
-            var b = blocks[i];
-            if (b.LastAccessTicks > ticks)
-                continue;
-            CircularBlockCache.RemoveBlock(b.BlockIndex);
-            ++removed;
-        }
-        return removed;
+        return BlockCache.RemoveBlocksAccessedBefore(ticks);
     }
 }
 

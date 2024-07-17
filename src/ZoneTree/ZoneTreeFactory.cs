@@ -177,20 +177,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
     }
 
     /// <summary>
-    /// Sets the maximum cached block count.
-    /// </summary>
-    /// <param name="diskSegmentBlockCacheLimit">The maximum cached block count.</param>
-    /// <returns>ZoneTree Factory</returns>
-    public ZoneTreeFactory<TKey, TValue>
-        SetDiskSegmentMaximumCachedBlockCount(int diskSegmentBlockCacheLimit)
-    {
-        if (diskSegmentBlockCacheLimit < 1)
-            diskSegmentBlockCacheLimit = 1;
-        Options.DiskSegmentOptions.BlockCacheLimit = diskSegmentBlockCacheLimit;
-        return this;
-    }
-
-    /// <summary>
     /// Sets random access device manager.
     /// </summary>
     /// <param name="randomAccessDeviceManager">The random access device manager.</param>

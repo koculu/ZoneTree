@@ -62,24 +62,20 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
                     DiskSegmentConstants.DataHeaderCategory,
                     diskOptions.EnableCompression,
                     diskOptions.CompressionBlockSize,
-                    diskOptions.BlockCacheLimit,
                     deleteIfExists: true,
                     backupIfDelete: false,
                     diskOptions.CompressionMethod,
-                    diskOptions.CompressionLevel,
-                    diskOptions.BlockCacheReplacementWarningDuration);
+                    diskOptions.CompressionLevel);
         DataDevice = randomDeviceManager
             .CreateWritableDevice(
                 SegmentId,
                 DiskSegmentConstants.DataCategory,
                 diskOptions.EnableCompression,
                 diskOptions.CompressionBlockSize,
-                diskOptions.BlockCacheLimit,
                 deleteIfExists: true,
                 backupIfDelete: false,
                 diskOptions.CompressionMethod,
-                diskOptions.CompressionLevel,
-                diskOptions.BlockCacheReplacementWarningDuration);
+                diskOptions.CompressionLevel);
         Options = options;
         DefaultSparseArrayStepSize = options.DiskSegmentOptions.DefaultSparseArrayStepSize;
     }
@@ -150,8 +146,8 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         }
         DataHeaderDevice?.SealDevice();
         DataDevice?.SealDevice();
-        DataHeaderDevice?.ReleaseReadBuffers(0);
-        DataDevice?.ReleaseReadBuffers(0);
+        DataHeaderDevice?.ReleaseInactiveCachedBuffers(0);
+        DataDevice?.ReleaseInactiveCachedBuffers(0);
         var diskSegment = DiskSegmentFactory.CreateDiskSegment<TKey, TValue>(
             SegmentId, Options,
             DataHeaderDevice, DataDevice);

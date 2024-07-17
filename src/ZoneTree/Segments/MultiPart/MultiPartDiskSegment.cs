@@ -73,10 +73,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
                     DiskSegmentConstants.MultiPartDiskSegmentCategory,
                     isCompressed: false,
                     compressionBlockSize: 0,
-                    maxCachedBlockCount: 0,
                     MultiPartHeaderCompressionMethod,
-                    MultiPartHeaderCompressionLevel,
-                    blockCacheReplacementWarningDuration: 0);
+                    MultiPartHeaderCompressionLevel);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(
@@ -108,10 +106,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
                     category,
                     isCompressed: false,
                     compressionBlockSize: 0,
-                    maxCachedBlockCount: 0,
                     MultiPartHeaderCompressionMethod,
-                    MultiPartHeaderCompressionLevel,
-                    blockCacheReplacementWarningDuration: 0);
+                    MultiPartHeaderCompressionLevel);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(
@@ -329,10 +325,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
                     DiskSegmentConstants.MultiPartDiskSegmentCategory,
                     isCompressed: false,
                     compressionBlockSize: 0,
-                    maxCachedBlockCount: 0,
                     MultiPartHeaderCompressionMethod,
-                    MultiPartHeaderCompressionLevel,
-                    blockCacheReplacementWarningDuration: 0);
+                    MultiPartHeaderCompressionLevel);
 
         diskSegmentListDevice.Delete();
         randomDeviceManager

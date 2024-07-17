@@ -37,7 +37,6 @@ public class ZoneTreeTestBase<TKey, TValue>
             .SetDiskSegmentMaxItemCount(TestConfig.DiskSegmentMaxItemCount)
             .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
-            .SetDiskSegmentMaximumCachedBlockCount(TestConfig.DiskSegmentMaximumCachedBlockCount)
             .SetDataDirectory(DataPath)
             .ConfigureDiskSegmentOptions(x =>
             {

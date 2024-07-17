@@ -116,7 +116,6 @@ public sealed class OldTests
         string dataPath = GetDataPath(mode, count);
         var stopWatch = new Stopwatch();
         stopWatch.Start();
-        TestConfig.DiskSegmentMaximumCachedBlockCount = 400;
         using var zoneTree = OpenOrCreateZoneTree(mode, dataPath);
 
         new StatsCollector().LogWithColor(
@@ -273,7 +272,6 @@ public sealed class OldTests
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
             .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
-            .SetDiskSegmentMaximumCachedBlockCount(TestConfig.DiskSegmentMaximumCachedBlockCount)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureDiskSegmentOptions(x => x.DiskSegmentMode = TestConfig.DiskSegmentMode)
