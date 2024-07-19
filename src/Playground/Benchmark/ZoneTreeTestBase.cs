@@ -35,7 +35,6 @@ public class ZoneTreeTestBase<TKey, TValue>
             .DisableDeleteValueConfigurationValidation(false)
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
             .SetDiskSegmentMaxItemCount(TestConfig.DiskSegmentMaxItemCount)
-            .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
             .SetDataDirectory(DataPath)
             .ConfigureDiskSegmentOptions(x =>

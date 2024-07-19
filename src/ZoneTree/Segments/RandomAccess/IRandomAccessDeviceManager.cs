@@ -22,6 +22,8 @@ public interface IRandomAccessDeviceManager
 
     bool DeviceExists(long segmentId, string category, bool isCompressed);
 
+    void DeleteDevice(long segmentId, string category, bool isCompressed);
+
     int DeviceCount { get; }
 
     int ReadOnlyDeviceCount { get; }

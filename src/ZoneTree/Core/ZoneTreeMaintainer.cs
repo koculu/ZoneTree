@@ -43,7 +43,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     public int SparseArrayStepLength { get; set; } = 1_000;
 
     /// <inheritdoc/>
-    public int ThresholdForMergeOperationStart { get; set; } = 2_000_000;
+    public int ThresholdForMergeOperationStart { get; set; } = 0;
 
     /// <inheritdoc/>
     public int MaximumReadOnlySegmentCount { get; set; } = 64;
@@ -227,12 +227,13 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         {
             if (cts.IsCancellationRequested)
                 break;
+            var zoneTreeMaintenance = ZoneTree.Maintenance;
             var diskSegment = ZoneTree.Maintenance.DiskSegment;
             var now = Environment.TickCount64;
             var ticks = now - DiskSegmentBufferLifeTime;
-            var releasedCount = diskSegment.ReleaseReadBuffers(ticks);
-            var releasedCacheKeyRecordCount = diskSegment.ReleaseCircularKeyCacheRecords();
-            var releasedCacheValueRecordCount = diskSegment.ReleaseCircularValueCacheRecords();
+            var releasedCount = zoneTreeMaintenance.ReleaseReadBuffers(ticks);
+            var releasedCacheKeyRecordCount = zoneTreeMaintenance.ReleaseCircularKeyCacheRecords();
+            var releasedCacheValueRecordCount = zoneTreeMaintenance.ReleaseCircularValueCacheRecords();
             Trace($"Released read buffers: {releasedCount}, " +
                 $"cached key records: {releasedCacheKeyRecordCount}, " +
                 $"cached value records: {releasedCacheValueRecordCount}");

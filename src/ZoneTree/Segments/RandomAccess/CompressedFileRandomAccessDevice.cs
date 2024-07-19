@@ -241,7 +241,10 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         NextBlock = null;
     }
 
-    public Memory<byte> GetBytes(long offset, int length)
+    static int NextDeviceId = 1;
+    int DeviceId = Interlocked.Increment(ref NextDeviceId);
+
+    public Memory<byte> GetBytes(long offset, int length, SingleBlockPin blockPin = null)
     {
         var blockIndex = (int)(offset / BlockSize);
         var offsetInBlock = (int)(offset % BlockSize);
@@ -249,23 +252,29 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         {
             var chunk1Len = BlockSize - offsetInBlock;
             var chunk2Len = length - chunk1Len;
-            var chunk1 = GetBytes(offset, chunk1Len);
+            var chunk1 = GetBytes(offset, chunk1Len, blockPin);
             if (chunk1.Length < chunk1Len)
                 return chunk1;
-            var chunk2 = GetBytes(offset + chunk1Len, chunk2Len);
+            var chunk2 = GetBytes(offset + chunk1Len, chunk2Len, blockPin);
             var bytes = new Memory<byte>(new byte[chunk1.Length + chunk2.Length]);
             chunk1.CopyTo(bytes);
             chunk2.CopyTo(bytes.Slice(chunk1.Length));
             return bytes;
         }
         var block = NextBlock;
+        if (block == null || (block.BlockIndex != blockIndex))
+        {
+            block = blockPin?.Device;
+            if (block != null && block.DeviceId != DeviceId) block = null;
+        }
+
         if ((block == null || block.BlockIndex != blockIndex) &&
             !TryGetBlockCache(blockIndex, out block))
         {
             if (blockIndex >= CompressedBlockPositions.Count)
                 return Array.Empty<byte>();
 
-            return ReadBlockAndAddToCache(blockIndex, offsetInBlock, length);
+            return ReadBlockAndAddToCache(blockIndex, offsetInBlock, length, blockPin);
         }
         block.LastAccessTicks = Environment.TickCount64;
         return block.GetBytes(offsetInBlock, length);
@@ -274,17 +283,31 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     Memory<byte> ReadBlockAndAddToCache(
         int blockIndex,
         int offsetInBlock,
-        int length)
+        int length,
+        SingleBlockPin blockPin)
     {
         var blockLock = BlockReadLocks[blockIndex % BlockReadLocks.Length];
         lock (blockLock)
         {
             var block = NextBlock;
+            if (block == null || (block.BlockIndex != blockIndex))
+            {
+                block = blockPin?.Device;
+                if (block != null && block.DeviceId != DeviceId) block = null;
+            }
             if ((block == null || block.BlockIndex != blockIndex) &&
                 !TryGetBlockCache(blockIndex, out block))
             {
                 var decompressedBlock = ReadBlock(blockIndex);
-                BlockCache.AddBlock(decompressedBlock);
+                decompressedBlock.DeviceId = DeviceId;
+                if (blockPin != null)
+                {
+                    blockPin.Device = decompressedBlock;
+                }
+                else
+                {
+                    BlockCache.AddBlock(decompressedBlock);
+                }
                 NextBlock = decompressedBlock;
                 return decompressedBlock.GetBytes(offsetInBlock, length);
             }
@@ -318,13 +341,6 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
         {
             pool.Return(compressedBytes);
         }
-    }
-
-    public int GetBytes(long offset, Memory<byte> buffer)
-    {
-        var bytes = GetBytes(offset, buffer.Length);
-        bytes.CopyTo(buffer);
-        return bytes.Length;
     }
 
     public void Dispose()

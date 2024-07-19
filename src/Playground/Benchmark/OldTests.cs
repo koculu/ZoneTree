@@ -270,7 +270,6 @@ public sealed class OldTests
         return new ZoneTreeFactory<int, int>()
             .DisableDeleteValueConfigurationValidation(false)
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
-            .SetDiskSegmentCompression(TestConfig.EnableDiskSegmentCompression)
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)

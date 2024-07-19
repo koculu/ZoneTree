@@ -3,6 +3,7 @@ using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Block;
 using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
@@ -196,9 +197,13 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return sparseArrayEntry;
     }
 
-    protected abstract TKey ReadKey(long index);
+    protected TKey ReadKey(long index) => ReadKey(index, null);
 
-    protected abstract TValue ReadValue(long index);
+    protected TValue ReadValue(long index) => ReadValue(index, null);
+
+    protected abstract TKey ReadKey(long index, BlockPin pin);
+
+    protected abstract TValue ReadValue(long index, BlockPin pin);
 
     /// <summary>
     /// Finds the position of element that is greater or equal than key.
@@ -445,5 +450,15 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public int ReleaseCircularValueCacheRecords()
     {
         return CircularKeyCache.ReleaseInactiveCacheRecords();
+    }
+
+    public TKey GetKey(long index, BlockPin pin)
+    {
+        return ReadKey(index, pin);
+    }
+
+    public TValue GetValue(long index, BlockPin pin)
+    {
+        return ReadValue(index, pin);
     }
 }

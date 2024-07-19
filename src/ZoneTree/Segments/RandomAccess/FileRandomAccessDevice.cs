@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Reflection.PortableExecutable;
 using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Segments.Block;
 
 namespace Tenray.ZoneTree.Segments.RandomAccess;
 
@@ -58,23 +59,14 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
         return pos;
     }
 
-    public Memory<byte> GetBytes(long offset, int length)
+    public Memory<byte> GetBytes(long offset, int length, SingleBlockPin pin)
     {
         lock (this)
         {
             var bytes = new byte[length];
             FileStream.Seek(offset, SeekOrigin.Begin);
-            FileStream.Read(bytes);
+            FileStream.ReadFaster(bytes, 0, length);
             return bytes;
-        }
-    }
-
-    public int GetBytes(long offset, Memory<byte> buffer)
-    {
-        lock (this)
-        {
-            FileStream.Seek(offset, SeekOrigin.Begin);
-            return FileStream.Read(buffer.Span);
         }
     }
 

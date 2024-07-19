@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Segments.RandomAccess;
+﻿using Tenray.ZoneTree.Segments.Block;
+
+namespace Tenray.ZoneTree.Segments.RandomAccess;
 
 public interface IRandomAccessDevice : IDisposable
 {
@@ -22,9 +24,7 @@ public interface IRandomAccessDevice : IDisposable
     /// <returns>Position of the bytes.</returns>
     long AppendBytesReturnPosition(Memory<byte> bytes);
 
-    Memory<byte> GetBytes(long offset, int length);
-
-    int GetBytes(long offset, Memory<byte> buffer);
+    Memory<byte> GetBytes(long offset, int length, SingleBlockPin blockPin = null);
 
     void Close();
 

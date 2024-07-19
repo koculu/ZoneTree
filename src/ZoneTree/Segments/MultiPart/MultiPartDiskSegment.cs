@@ -6,6 +6,7 @@ using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Compression;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Block;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
@@ -626,5 +627,48 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         for (var i = 0; i < len; ++i)
             result += Parts[i].ReleaseCircularValueCacheRecords();
         return result;
+    }
+
+    public TKey GetKey(long index, BlockPin pin)
+    {
+        long off = 0;
+        var partIndex = 0;
+        var len = Parts[partIndex].Length;
+        while (off + len <= index)
+        {
+            off += len;
+            ++partIndex;
+            len = Parts[partIndex].Length;
+        }
+        var localIndex = index - off;
+
+        if (localIndex == 0)
+            return PartKeys[partIndex * 2];
+        if (localIndex == len - 1)
+            return PartKeys[partIndex * 2 + 1];
+
+        var key = Parts[partIndex].GetKey(localIndex, pin);
+        return key;
+    }
+
+    public TValue GetValue(long index, BlockPin pin)
+    {
+        long off = 0;
+        var partIndex = 0;
+        var len = Parts[partIndex].Length;
+        while (off + len <= index)
+        {
+            off += len;
+            ++partIndex;
+            len = Parts[partIndex].Length;
+        }
+        var localIndex = index - off;
+
+        if (localIndex == 0)
+            return PartValues[partIndex * 2];
+        if (localIndex == len - 1)
+            return PartValues[partIndex * 2 + 1];
+
+        return Parts[partIndex].GetValue(localIndex, pin);
     }
 }

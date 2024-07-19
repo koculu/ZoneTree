@@ -205,6 +205,17 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
         }
     }
 
+    public void DeleteDevice(long segmentId, string category, bool isCompressed)
+    {
+        lock (this)
+        {
+            var filePath = GetFilePath(segmentId, category);
+            if (isCompressed) filePath += ".z";
+            if (FileStreamProvider.FileExists(filePath))
+                FileStreamProvider.DeleteFile(filePath);
+        }
+    }
+
     public void DropStore()
     {
         lock (this)

@@ -218,6 +218,40 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             }
     }
 
+    public int ReleaseReadBuffers(long ticks)
+    {
+        var total = 0;
+        if (DiskSegment != null) total += DiskSegment.ReleaseReadBuffers(ticks);
+        foreach (var bs in BottomSegments)
+        {
+            total += bs.ReleaseReadBuffers(ticks);
+        }
+        return total;
+    }
+
+    public int ReleaseCircularKeyCacheRecords()
+    {
+        var total = 0;
+        if (DiskSegment != null) total += DiskSegment.ReleaseCircularKeyCacheRecords();
+        foreach (var bs in BottomSegments)
+        {
+            total += bs.ReleaseCircularKeyCacheRecords();
+        }
+        return total;
+    }
+
+    public int ReleaseCircularValueCacheRecords()
+    {
+        var total = 0;
+        if (DiskSegment != null) total += DiskSegment.ReleaseCircularValueCacheRecords();
+        foreach (var bs in BottomSegments)
+        {
+            total += bs.ReleaseCircularValueCacheRecords();
+        }
+        return total;
+    }
+
+
     public void Dispose()
     {
         OnZoneTreeIsDisposing?.Invoke(this);

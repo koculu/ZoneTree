@@ -13,12 +13,6 @@ public sealed class DiskSegmentOptions
         = DiskSegmentMode.MultiPartDiskSegment;
 
     /// <summary>
-    /// Gets or sets a value indicating whether compression is enabled for the disk segment.
-    /// Default value is <c>true</c>.
-    /// </summary>
-    public bool EnableCompression { get; set; } = true;
-
-    /// <summary>
     /// Gets or sets the block size for disk segment compression, in bytes.
     /// Default value is 4 MB (4 * 1024 * 1024 bytes).
     /// </summary>

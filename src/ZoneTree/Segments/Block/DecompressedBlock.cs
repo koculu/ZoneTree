@@ -26,6 +26,8 @@ public sealed class DecompressedBlock
 
     long _lastAccessTicks;
 
+    public int DeviceId;
+
     public long LastAccessTicks
     {
         get => Volatile.Read(ref _lastAccessTicks);

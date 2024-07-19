@@ -2,6 +2,7 @@
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Core;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Block;
 using Tenray.ZoneTree.WAL;
 
 namespace Tenray.ZoneTree.Segments.InMemory;
@@ -123,4 +124,14 @@ public sealed class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValu
     public bool IsEndOfAPart(long index) => false;
 
     public int GetPartIndex(long index) => -1;
+
+    public TKey GetKey(long index, BlockPin pin)
+    {
+        return SortedKeys[(int)index];
+    }
+
+    public TValue GetValue(long index, BlockPin pin)
+    {
+        return SortedValues[(int)index];
+    }
 }

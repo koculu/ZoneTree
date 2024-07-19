@@ -70,7 +70,7 @@ public sealed class CircularCache<TDataType>
         Cache = newCache;
     }
 
-    public bool TryGetFromCache(long index, out TDataType key)
+    public bool TryGet(long index, out TDataType key)
     {
         var cache = Cache;
         var cacheSize = cache.CacheSize;
@@ -95,7 +95,7 @@ public sealed class CircularCache<TDataType>
         return false;
     }
 
-    public bool TryAddToTheCache(long index, ref TDataType key)
+    public bool TryAdd(long index, ref TDataType key)
     {
         var cache = Cache;
         var cacheSize = cache.CacheSize;
@@ -128,7 +128,7 @@ public sealed class CircularCache<TDataType>
         return totalReleasedRecords;
     }
 
-    public void ClearCache()
+    public void Clear()
     {
         var circularBuffer = Cache.circularBuffer;
         var len = circularBuffer.Length;

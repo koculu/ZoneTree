@@ -124,18 +124,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
     }
 
     /// <summary>
-    /// Enables or disables the disk segment compression.
-    /// </summary>
-    /// <param name="enabled">If true the compression is enabled, otherwise the compression is disabled.</param>
-    /// <returns>ZoneTree Factory</returns>
-    public ZoneTreeFactory<TKey, TValue>
-        SetDiskSegmentCompression(bool enabled)
-    {
-        Options.DiskSegmentOptions.EnableCompression = enabled;
-        return this;
-    }
-
-    /// <summary>
     /// Configures the disk segment compression block size.
     /// </summary>
     /// <param name="blockSize">The block size</param>
@@ -385,7 +373,7 @@ public sealed class ZoneTreeFactory<TKey, TValue>
             Options.Comparer =
                 new StringOrdinalComparerAscending() as IRefComparer<TKey>;
 
-        else if (typeof(TKey) == typeof(byte[]))
+        else if (typeof(TKey) == typeof(Memory<byte>))
             Options.Comparer =
                 new ByteArrayComparerAscending() as IRefComparer<TKey>;
     }

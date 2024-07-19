@@ -1,6 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Net.NetworkInformation;
+using System.Runtime.CompilerServices;
+using System.Text;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Block;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Segments.Model;
 using Tenray.ZoneTree.Segments.RandomAccess;
@@ -26,7 +29,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
                 .GetReadOnlyDevice(
                     SegmentId,
                     DiskSegmentConstants.DataHeaderCategory,
-                    diskOptions.EnableCompression,
+                    isCompressed: true,
                     diskOptions.CompressionBlockSize,
                     diskOptions.CompressionMethod,
                     diskOptions.CompressionLevel);
@@ -34,7 +37,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
             .GetReadOnlyDevice(
                 SegmentId,
                 DiskSegmentConstants.DataCategory,
-                diskOptions.EnableCompression,
+                isCompressed: true,
                 diskOptions.CompressionBlockSize,
                 diskOptions.CompressionMethod,
                 diskOptions.CompressionLevel);
@@ -78,12 +81,12 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
         if (!deviceManager.DeviceExists(
             SegmentId,
             DiskSegmentConstants.SparseArrayCategory,
-            diskOptions.EnableCompression))
+            isCompressed: true))
             return;
         using var sparseArrayDevice = deviceManager.GetReadOnlyDevice(
             SegmentId,
             DiskSegmentConstants.SparseArrayCategory,
-            diskOptions.EnableCompression,
+            isCompressed: true,
             diskOptions.CompressionBlockSize,
             diskOptions.CompressionMethod,
             diskOptions.CompressionLevel);
@@ -119,7 +122,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
         using var sparseArrayDevice = deviceManager.CreateWritableDevice(
             SegmentId,
             DiskSegmentConstants.SparseArrayCategory,
-            diskOptions.EnableCompression,
+            isCompressed: true,
             diskOptions.CompressionBlockSize,
             true,
             false,
@@ -141,22 +144,32 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
         sparseArrayDevice.Close();
     }
 
-    protected unsafe override TKey ReadKey(long index)
+    protected unsafe override TKey ReadKey(long index, BlockPin blockPin)
     {
         try
         {
-            if (CircularKeyCache.TryGetFromCache(index, out var key)) return key;
+            if (CircularKeyCache.TryGet(index, out var key)) return key;
             Interlocked.Increment(ref ReadCount);
             if (IsDroppping)
             {
                 throw new DiskSegmentIsDroppingException();
             }
+            var pin1 = blockPin?.ToSingleBlockPin(1);
+            var pin2 = blockPin?.ToSingleBlockPin(2);
             var headSize = sizeof(KeyHead) + ValueSize;
-            var headBytes = DataHeaderDevice.GetBytes(index * headSize, sizeof(KeyHead));
+            var headBytes = DataHeaderDevice.GetBytes(
+                index * headSize,
+                sizeof(KeyHead),
+                pin1);
             var head = BinarySerializerHelper.FromByteArray<KeyHead>(headBytes);
-            var keyBytes = DataDevice.GetBytes(head.KeyOffset, head.KeyLength);
+            var keyBytes = DataDevice.GetBytes(
+                head.KeyOffset,
+                head.KeyLength,
+                pin2);
+            blockPin?.SetDevice1(pin1.Device);
+            blockPin?.SetDevice2(pin2.Device);
             key = KeySerializer.Deserialize(keyBytes);
-            CircularKeyCache.TryAddToTheCache(index, ref key);
+            CircularKeyCache.TryAdd(index, ref key);
             return key;
         }
         finally
@@ -165,22 +178,26 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
         }
     }
 
-    protected unsafe override TValue ReadValue(long index)
+    protected unsafe override TValue ReadValue(long index, BlockPin blockPin)
     {
         try
         {
-            if (CircularValueCache.TryGetFromCache(index, out var value)) return value;
+            if (CircularValueCache.TryGet(index, out var value)) return value;
             Interlocked.Increment(ref ReadCount);
             if (IsDroppping)
             {
                 throw new DiskSegmentIsDroppingException();
             }
 
+            var pin1 = blockPin?.ToSingleBlockPin(1);
             var headSize = sizeof(KeyHead) + ValueSize;
-            var valueBytes = DataHeaderDevice
-                .GetBytes(index * headSize + sizeof(KeyHead), ValueSize);
+            var valueBytes = DataHeaderDevice.GetBytes(
+                index * headSize + sizeof(KeyHead),
+                ValueSize,
+                pin1);
+            blockPin?.SetDevice1(pin1.Device);
             value = ValueSerializer.Deserialize(valueBytes);
-            CircularValueCache.TryAddToTheCache(index, ref value);
+            CircularValueCache.TryAdd(index, ref value);
             return value;
         }
         finally
@@ -193,6 +210,9 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
     {
         DataHeaderDevice?.Delete();
         DataDevice?.Delete();
+        Options.RandomAccessDeviceManager.DeleteDevice(SegmentId,
+            DiskSegmentConstants.SparseArrayCategory,
+            isCompressed: true);
     }
 
     public override void ReleaseResources()

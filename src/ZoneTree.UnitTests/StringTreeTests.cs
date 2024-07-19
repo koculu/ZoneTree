@@ -1,5 +1,7 @@
-﻿using Tenray.ZoneTree.AbstractFileStream;
+﻿using Newtonsoft.Json.Linq;
+using Tenray.ZoneTree.AbstractFileStream;
 using Tenray.ZoneTree.Comparers;
+using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.WAL;
 
@@ -71,5 +73,60 @@ public sealed class StringTreeTests
             db.Upsert("0", 123);
 
         }
+    }
+
+    [Test]
+    public void HelloWorldTest()
+    {
+        var dataPath = "data/HelloWorldTest";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var zoneTree = new ZoneTreeFactory<int, string>()
+            .OpenOrCreate();
+        zoneTree.Upsert(39, "Hello Zone Tree");
+        zoneTree.TryGet(39, out var value);
+        Assert.That(value, Is.EqualTo("Hello Zone Tree"));
+    }
+
+    [Test]
+    public void HelloWorldTest2()
+    {
+        var dataPath = "data/HelloWorldTest2";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var zoneTree = new ZoneTreeFactory<int, string>()
+          .SetComparer(new Int32ComparerAscending())
+          .SetDataDirectory(dataPath)
+          .SetKeySerializer(new Int32Serializer())
+          .SetValueSerializer(new Utf8StringSerializer())
+          .OpenOrCreate();
+
+        // atomic (thread-safe) on single mutable-segment.
+        zoneTree.Upsert(39, "Hello Zone Tree!");
+
+        zoneTree.TryGet(39, out var value);
+        Assert.That(value, Is.EqualTo("Hello Zone Tree!"));
+        // atomic across all segments
+        zoneTree.TryAtomicAddOrUpdate(39, "a",
+            bool (ref string x) =>
+            {
+                x += "b";
+                return true;
+            });
+        zoneTree.TryGet(39, out value);
+        Assert.That(value, Is.EqualTo("Hello Zone Tree!b"));
+    }
+
+    [Test]
+    public void HelloWorldTest3()
+    {
+        var dataPath = "data/HelloWorldTest";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        Assert.Throws<MissingOptionException>(() => new ZoneTreeFactory<int, int>()
+            .OpenOrCreate());
     }
 }

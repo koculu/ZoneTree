@@ -29,7 +29,7 @@ public interface IMaintainer : IDisposable
     /// <summary>
     /// Starts merge operation when records count
     /// in read-only segments exceeds this value.
-    /// Default value is 2M.
+    /// Default value is 0.  
     /// </summary>
     int ThresholdForMergeOperationStart { get; set; }
 

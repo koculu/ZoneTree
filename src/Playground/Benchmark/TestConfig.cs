@@ -15,8 +15,6 @@ public static class TestConfig
 
     public static bool EnableIncrementalBackup = true;
 
-    public static bool EnableDiskSegmentCompression = true;
-
     public static int WALCompressionBlockSize = 32768;
 
     public static int DiskCompressionBlockSize = 32768;
@@ -35,7 +33,6 @@ public static class TestConfig
         Console.WriteLine($"MutableSegmentMaxItemCount: {MutableSegmentMaxItemCount}");
         Console.WriteLine($"DiskSegmentMaxItemCount: {DiskSegmentMaxItemCount}");
         Console.WriteLine($"EnableIncrementalBackup: {EnableIncrementalBackup}");
-        Console.WriteLine($"EnableDiskSegmentCompression: {EnableDiskSegmentCompression}");
         Console.WriteLine($"WALCompressionBlockSize: {WALCompressionBlockSize}");
         Console.WriteLine($"DiskCompressionBlockSize: {DiskCompressionBlockSize}");
         Console.WriteLine($"EnableParalelInserts: {EnableParalelInserts}");
