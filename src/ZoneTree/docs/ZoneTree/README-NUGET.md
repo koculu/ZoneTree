@@ -35,20 +35,20 @@ It is possible with ZoneTree to insert 100 Million integer key-value pairs in 20
 
 Benchmark for all modes: [benchmark](https://raw.githubusercontent.com/koculu/ZoneTree/main/src/Playground/BenchmarkForAllModes.txt)
 
-| Insert Benchmarks                               | 1M      | 2M       | 3M         | 10M        |
-| ------------------------------------------------|---------|----------|------------|------------|
-| int-int ZoneTree async-compressed WAL                       | 267 ms  | 464 ms   | 716 ms     | 2693 ms    |
-| int-int ZoneTree sync-compressed WAL       | 834 ms  | 1617 ms  | 2546 ms    | 8642 ms    |
-| int-int ZoneTree sync WAL                  | 2742 ms | 5533 ms  | 8242 ms    | 27497 ms   |
-||
-| str-str ZoneTree async-compressed WAL                       | 892 ms  | 1833 ms  | 2711 ms    | 9443 ms    |
-| str-str ZoneTree sync-compressed WAL       | 1752 ms | 3397 ms  | 5070 ms    | 19153 ms   |
-| str-str ZoneTree sync WAL                  | 3488 ms | 7002 ms  | 10483 ms   | 38727 ms   |
-||
-| RocksDb sync WAL (10K => 11 sec)           | ~1.100.000 ms | N/A | N/A | N/A                             |
-| int-int RocksDb sync-compressed WAL        | 8059 ms | 16188 ms | 23599 ms   | 61947 ms   |
-| str-str RocksDb sync-compressed WAL        | 8215 ms | 16146 ms | 23760 ms   | 72491 ms   |
-||
+| Insert Benchmarks                     | 1M            | 2M       | 3M       | 10M      |
+| ------------------------------------- | ------------- | -------- | -------- | -------- |
+| int-int ZoneTree async-compressed WAL | 267 ms        | 464 ms   | 716 ms   | 2693 ms  |
+| int-int ZoneTree sync-compressed WAL  | 834 ms        | 1617 ms  | 2546 ms  | 8642 ms  |
+| int-int ZoneTree sync WAL             | 2742 ms       | 5533 ms  | 8242 ms  | 27497 ms |
+|                                       |
+| str-str ZoneTree async-compressed WAL | 892 ms        | 1833 ms  | 2711 ms  | 9443 ms  |
+| str-str ZoneTree sync-compressed WAL  | 1752 ms       | 3397 ms  | 5070 ms  | 19153 ms |
+| str-str ZoneTree sync WAL             | 3488 ms       | 7002 ms  | 10483 ms | 38727 ms |
+|                                       |
+| RocksDb sync WAL (10K => 11 sec)      | ~1.100.000 ms | N/A      | N/A      | N/A      |
+| int-int RocksDb sync-compressed WAL   | 8059 ms       | 16188 ms | 23599 ms | 61947 ms |
+| str-str RocksDb sync-compressed WAL   | 8215 ms       | 16146 ms | 23760 ms | 72491 ms |
+|                                       |
 
 Benchmark Configuration:
 ```c#
@@ -112,7 +112,7 @@ The following sample demonstrates creating a database.
     zoneTree.Upsert(39, "Hello Zone Tree!");
     
     // atomic across all segments
-    zoneTree.TryAtomicAddOrUpdate(39, "a",
+    zoneTree.TryAtomicAddOrUpdate(39, "a", 
         bool (ref string x) => 
         {
             x += "b";
@@ -136,6 +136,7 @@ Note: For small data you don't need a maintainer.
     .OpenOrCreate();
  
   using var maintainer = zoneTree.CreateMaintainer();
+  maintainer.EnableJobForCleaningInactiveCaches = true;
 
   // 2. Read/Write data
   zoneTree.Upsert(39, "Hello ZoneTree!");
@@ -274,45 +275,45 @@ The following sample shows traditional way of doing transactions with ZoneTree.
 ```
 
 ## Features
-| ZoneTree Features                                          |
-| ---------------------------------------------------------- |
-| Works with .NET primitives, structs and classes.           |
-| High Speed and Low Memory consumption.                     |
-| Crash Resilience                                           |
-| Optimum disk space utilization.                            |
-| WAL and DiskSegment data compression.                      |
-| Very fast load/unload.                                     |
-| Standard read/upsert/delete functions.                     |
-| Optimistic Transaction Support                             |
-| Atomic Read Modify Update                                  |
-| Can work in memory.                                        |
-| Can work with any disk device including cloud devices.     |
-| Supports optimistic transactions.                          |
-| Supports Atomicity, Consistency, Isolation, Durability.    |
-| Supports Read Committed Isolation.                         |
-| 4 different modes for write ahead log.              |
-| Audit support with incremental transaction log backup.     |
-| Live backup.                                               |
-| Configurable amount of data that can stay in memory.       |
-| Partially (with sparse arrays) or completely load/unload data on disk to/from memory. |
-| Forward/Backward iteration.                                |
-| Allow optional dirty reads.                                |
-| Embeddable.                                                |
-| Optimized for SSDs.                                        |
-| Exceptionless Transaction API.                             |
-| Fluent Transaction API with ready to use retry capabilities. |
-| Easy Maintenance.                                          |
-| Configurable LSM merger.                                   |
-| Transparent and simple implementation that reveals your database's internals. |
-| Fully open-source with unrestrictive MIT license.          |
-| Transaction Log compaction. |
-| Analyze / control transactions. |
-| Concurrency Control with minimum overhead by novel separation of Concurrency Stamps and Data.|
-| TTL support. |
-| Use your custom serializer for keys and values. |
-| Use your custom comparer. |
-| MultipleDiskSegments Mode to enable dividing data files into configurable sized chunks.|
-|Snapshot iterators.|
+| ZoneTree Features                                                                             |
+| --------------------------------------------------------------------------------------------- |
+| Works with .NET primitives, structs and classes.                                              |
+| High Speed and Low Memory consumption.                                                        |
+| Crash Resilience                                                                              |
+| Optimum disk space utilization.                                                               |
+| WAL and DiskSegment data compression.                                                         |
+| Very fast load/unload.                                                                        |
+| Standard read/upsert/delete functions.                                                        |
+| Optimistic Transaction Support                                                                |
+| Atomic Read Modify Update                                                                     |
+| Can work in memory.                                                                           |
+| Can work with any disk device including cloud devices.                                        |
+| Supports optimistic transactions.                                                             |
+| Supports Atomicity, Consistency, Isolation, Durability.                                       |
+| Supports Read Committed Isolation.                                                            |
+| 4 different modes for write ahead log.                                                        |
+| Audit support with incremental transaction log backup.                                        |
+| Live backup.                                                                                  |
+| Configurable amount of data that can stay in memory.                                          |
+| Partially (with sparse arrays) or completely load/unload data on disk to/from memory.         |
+| Forward/Backward iteration.                                                                   |
+| Allow optional dirty reads.                                                                   |
+| Embeddable.                                                                                   |
+| Optimized for SSDs.                                                                           |
+| Exceptionless Transaction API.                                                                |
+| Fluent Transaction API with ready to use retry capabilities.                                  |
+| Easy Maintenance.                                                                             |
+| Configurable LSM merger.                                                                      |
+| Transparent and simple implementation that reveals your database's internals.                 |
+| Fully open-source with unrestrictive MIT license.                                             |
+| Transaction Log compaction.                                                                   |
+| Analyze / control transactions.                                                               |
+| Concurrency Control with minimum overhead by novel separation of Concurrency Stamps and Data. |
+| TTL support.                                                                                  |
+| Use your custom serializer for keys and values.                                               |
+| Use your custom comparer.                                                                     |
+| MultipleDiskSegments Mode to enable dividing data files into configurable sized chunks.       |
+| Snapshot iterators.                                                                           |
 
 ## I want to contribute. What can I do?
 I appreciate any contribution to the project.
