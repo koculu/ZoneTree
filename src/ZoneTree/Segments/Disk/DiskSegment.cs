@@ -3,6 +3,7 @@ using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Block;
 using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
 
@@ -24,7 +25,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     protected int ValueSize;
 
-    IReadOnlyList<SparseArrayEntry<TKey, TValue>> SparseArray = Array.Empty<SparseArrayEntry<TKey, TValue>>();
+    protected IReadOnlyList<SparseArrayEntry<TKey, TValue>> SparseArray = Array.Empty<SparseArrayEntry<TKey, TValue>>();
 
     int IteratorReaderCount;
 
@@ -50,26 +51,48 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public Action<IDiskSegment<TKey, TValue>, Exception> DropFailureReporter { get; set; }
 
+    public CircularCache<TKey> CircularKeyCache { get; }
+
+    public CircularCache<TValue> CircularValueCache { get; }
+
+    protected ZoneTreeOptions<TKey, TValue> Options;
+
     protected DiskSegment(
         long segmentId,
         ZoneTreeOptions<TKey, TValue> options)
     {
+        Options = options;
         SegmentId = segmentId;
         Comparer = options.Comparer;
         KeySerializer = options.KeySerializer;
         ValueSerializer = options.ValueSerializer;
+        var diskOptions = options.DiskSegmentOptions;
+        CircularKeyCache = new CircularCache<TKey>(
+            diskOptions.KeyCacheSize,
+            diskOptions.KeyCacheRecordLifeTimeInMillisecond);
+        CircularValueCache = new CircularCache<TValue>(
+            diskOptions.ValueCacheSize,
+            diskOptions.ValueCacheRecordLifeTimeInMillisecond);
     }
 
     protected DiskSegment(long segmentId,
         ZoneTreeOptions<TKey, TValue> options,
         IRandomAccessDevice dataDevice)
     {
+        Options = options;
         SegmentId = segmentId;
         DataDevice = dataDevice;
 
         Comparer = options.Comparer;
         KeySerializer = options.KeySerializer;
         ValueSerializer = options.ValueSerializer;
+        var diskOptions = options.DiskSegmentOptions;
+        CircularKeyCache = new CircularCache<TKey>(
+            diskOptions.KeyCacheSize,
+            diskOptions.KeyCacheRecordLifeTimeInMillisecond);
+        CircularValueCache = new CircularCache<TValue>(
+            diskOptions.ValueCacheSize,
+            diskOptions.ValueCacheRecordLifeTimeInMillisecond);
     }
 
     public bool ContainsKey(in TKey key)
@@ -174,9 +197,13 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return sparseArrayEntry;
     }
 
-    protected abstract TKey ReadKey(long index);
+    protected TKey ReadKey(long index) => ReadKey(index, null);
 
-    protected abstract TValue ReadValue(long index);
+    protected TValue ReadValue(long index) => ReadValue(index, null);
+
+    protected abstract TKey ReadKey(long index, BlockPin pin);
+
+    protected abstract TValue ReadValue(long index, BlockPin pin);
 
     /// <summary>
     /// Finds the position of element that is greater or equal than key.
@@ -410,4 +437,28 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public bool IsEndOfAPart(long index) => false;
 
     public int GetPartIndex(long index) => -1;
+
+    public int GetPartCount() => 0;
+
+    abstract public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray);
+
+    public int ReleaseCircularKeyCacheRecords()
+    {
+        return CircularKeyCache.ReleaseInactiveCacheRecords();
+    }
+
+    public int ReleaseCircularValueCacheRecords()
+    {
+        return CircularKeyCache.ReleaseInactiveCacheRecords();
+    }
+
+    public TKey GetKey(long index, BlockPin pin)
+    {
+        return ReadKey(index, pin);
+    }
+
+    public TValue GetValue(long index, BlockPin pin)
+    {
+        return ReadValue(index, pin);
+    }
 }

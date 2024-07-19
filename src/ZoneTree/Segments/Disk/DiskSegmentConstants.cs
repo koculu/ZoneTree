@@ -7,4 +7,6 @@ public static class DiskSegmentConstants
     public const string DataCategory = ".data";
 
     public const string MultiPartDiskSegmentCategory = ".multi";
+
+    public const string SparseArrayCategory = ".sparse";
 }

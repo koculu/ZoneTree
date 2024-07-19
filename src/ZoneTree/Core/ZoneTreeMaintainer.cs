@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Segments;
+using Tenray.ZoneTree.Segments.Disk;
 
 namespace Tenray.ZoneTree.Core;
 
@@ -42,20 +43,20 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     public int SparseArrayStepLength { get; set; } = 1_000;
 
     /// <inheritdoc/>
-    public int ThresholdForMergeOperationStart { get; set; } = 2_000_000;
+    public int ThresholdForMergeOperationStart { get; set; } = 0;
 
     /// <inheritdoc/>
     public int MaximumReadOnlySegmentCount { get; set; } = 64;
 
     /// <inheritdoc/>
-    public bool EnablePeriodicTimer
+    public bool EnableJobForCleaningInactiveCaches
     {
         get => isPeriodicTimerRunning;
         set
         {
             if (value && !isPeriodicTimerRunning)
                 Task.Run(StartPeriodicTimer);
-            else
+            else if (!value)
                 StopPeriodicTimer();
         }
     }
@@ -64,23 +65,23 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     public long DiskSegmentBufferLifeTime { get; set; } = 10_000;
 
     /// <inheritdoc/>
-    public TimeSpan PeriodicTimerInterval { get; set; } = TimeSpan.FromSeconds(5);
+    public TimeSpan InactiveBlockCacheCleanupInterval { get; set; } = TimeSpan.FromSeconds(5);
 
     /// <summary>
     /// Creates a ZoneTreeMaintainer.
     /// </summary>
     /// <param name="zoneTree">The ZoneTree</param>
-    /// <param name="startPeriodicTimer">Starts periodic timer if true.</param>
+    /// <param name="startJobForCleaningInactiveBlockCaches">Starts periodic timer if true.</param>
     /// <param name="logger">The logger</param>
     public ZoneTreeMaintainer(IZoneTree<TKey, TValue> zoneTree,
-        bool startPeriodicTimer = true,
+        bool startJobForCleaningInactiveBlockCaches = true,
         ILogger logger = null)
     {
         Logger = logger ?? zoneTree.Logger;
         ZoneTree = zoneTree;
         Maintenance = zoneTree.Maintenance;
         AttachEvents();
-        if (startPeriodicTimer)
+        if (startJobForCleaningInactiveBlockCaches)
             Task.Run(StartPeriodicTimer);
     }
 
@@ -157,8 +158,6 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         IDiskSegment<TKey, TValue> newDiskSegment,
         bool isBottomSegment)
     {
-        var sparseArraySize = newDiskSegment.Length / SparseArrayStepLength;
-        newDiskSegment.InitSparseArray((int)Math.Min(MinimumSparseArrayLength, sparseArraySize));
     }
 
     void OnMutableSegmentMovedForward(IZoneTreeMaintenance<TKey, TValue> zoneTree)
@@ -223,14 +222,21 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
             StopPeriodicTimer();
         isPeriodicTimerRunning = true;
         var cts = PeriodicTimerCancellationTokenSource;
-        using var timer = new PeriodicTimer(PeriodicTimerInterval);
+        using var timer = new PeriodicTimer(InactiveBlockCacheCleanupInterval);
         while (await timer.WaitForNextTickAsync(cts.Token))
         {
             if (cts.IsCancellationRequested)
                 break;
-            var ticks = Environment.TickCount64 - DiskSegmentBufferLifeTime;
-            var releasedCount = ZoneTree.Maintenance.DiskSegment.ReleaseReadBuffers(ticks);
-            Trace("Released Buffers: " + releasedCount);
+            var zoneTreeMaintenance = ZoneTree.Maintenance;
+            var diskSegment = ZoneTree.Maintenance.DiskSegment;
+            var now = Environment.TickCount64;
+            var ticks = now - DiskSegmentBufferLifeTime;
+            var releasedCount = zoneTreeMaintenance.ReleaseReadBuffers(ticks);
+            var releasedCacheKeyRecordCount = zoneTreeMaintenance.ReleaseCircularKeyCacheRecords();
+            var releasedCacheValueRecordCount = zoneTreeMaintenance.ReleaseCircularValueCacheRecords();
+            Trace($"Released read buffers: {releasedCount}, " +
+                $"cached key records: {releasedCacheKeyRecordCount}, " +
+                $"cached value records: {releasedCacheValueRecordCount}");
         }
     }
 

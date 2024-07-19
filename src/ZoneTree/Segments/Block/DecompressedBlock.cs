@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.Compression;
+﻿using System;
+using Tenray.ZoneTree.Compression;
 using Tenray.ZoneTree.Options;
 
 namespace Tenray.ZoneTree.Segments.Block;
@@ -19,11 +20,13 @@ public sealed class DecompressedBlock
         set => _length = value;
     }
 
-    volatile byte[] Bytes;
+    Memory<byte> Bytes;
 
     public bool IsFull => Length == Bytes.Length;
 
     long _lastAccessTicks;
+
+    public int DeviceId;
 
     public long LastAccessTicks
     {
@@ -46,7 +49,7 @@ public sealed class DecompressedBlock
 
     public DecompressedBlock(
         int blockIndex,
-        byte[] bytes,
+        Memory<byte> bytes,
         CompressionMethod method,
         int compressionLevel)
     {
@@ -61,19 +64,22 @@ public sealed class DecompressedBlock
     {
         var remainingLength = Bytes.Length - Length;
         var copyLength = Math.Min(data.Length, remainingLength);
-        data[..copyLength].CopyTo(Bytes.AsSpan(Length));
+        data[..copyLength].CopyTo(Bytes.Span.Slice(Length));
         Length += copyLength;
         return copyLength;
     }
 
-    public byte[] Compress()
+    public Memory<byte> Compress()
     {
-        var span = Bytes.AsSpan(0, Length);
-        return DataCompression.Compress(CompressionMethod, CompressionLevel, span);
+        return DataCompression
+            .Compress(
+            CompressionMethod,
+            CompressionLevel,
+            Bytes.Slice(0, Length));
     }
 
     public static DecompressedBlock FromCompressed(
-        int blockIndex, byte[] compressedBytes,
+        int blockIndex, Memory<byte> compressedBytes,
         CompressionMethod method, int compressionLevel,
         int decompressedLength)
     {
@@ -82,20 +88,18 @@ public sealed class DecompressedBlock
         return new DecompressedBlock(blockIndex, decompressed, method, compressionLevel);
     }
 
-    public byte[] GetBytes(int offset, int length)
+    public Memory<byte> GetBytes(int offset, int length)
     {
         if (offset + length > Length)
             length = Length - offset;
-        if (offset == 0 && length == Bytes.Length && Length == length)
-            return Bytes;
-        return Bytes.AsSpan().Slice(offset, length).ToArray();
+        return Bytes.Slice(offset, length);
     }
 
     public int TrimRight(long length)
     {
         var amount = Math.Min(length, Length);
         var newSize = Length - amount;
-        Bytes = Bytes.AsSpan(0, (int)newSize).ToArray();
+        Bytes = Bytes.Slice(0, (int)newSize).ToArray();
         Length = (int)newSize;
         return (int)amount;
     }

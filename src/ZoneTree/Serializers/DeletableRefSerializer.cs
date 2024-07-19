@@ -11,22 +11,22 @@ public sealed class DeletableRefSerializer<TValue> : ISerializer<Deletable<TValu
         ValueSerializer = valueSerializer;
     }
 
-    public Deletable<TValue> Deserialize(byte[] bytes)
+    public Deletable<TValue> Deserialize(Memory<byte> bytes)
     {
         var isDeletedOffset = bytes.Length - 1;
-        var b1 = bytes.AsSpan(0, isDeletedOffset);
-        var isDeleted = bytes[isDeletedOffset] != 0;
+        var b1 = bytes.Slice(0, isDeletedOffset);
+        var isDeleted = bytes.Span[isDeletedOffset] != 0;
         return new Deletable<TValue>(
-            ValueSerializer.Deserialize(b1.ToArray()),
+            ValueSerializer.Deserialize(b1),
             isDeleted);
     }
 
-    public byte[] Serialize(in Deletable<TValue> entry)
+    public Memory<byte> Serialize(in Deletable<TValue> entry)
     {
         var b1 = ValueSerializer.Serialize(entry.Value);
         var len = b1.Length;
         var b2 = new byte[len + 1];
-        Array.Copy(b1, b2, len);
+        b1.CopyTo(b2);
         b2[len] = entry.IsDeleted ? (byte)1 : (byte)0;
         return b2;
     }

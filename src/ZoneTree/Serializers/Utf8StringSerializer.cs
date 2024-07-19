@@ -8,14 +8,14 @@ public sealed class Utf8StringSerializer : ISerializer<string>
     // We can use that to serialize the null strings.
     const byte NullMarker = 0xC2;
 
-    public string Deserialize(byte[] bytes)
+    public string Deserialize(Memory<byte> bytes)
     {
-        if (bytes.Length == 1 && bytes[0] == 0xC2)
+        if (bytes.Length == 1 && bytes.Span[0] == 0xC2)
             return null;
-        return Encoding.UTF8.GetString(bytes);
+        return Encoding.UTF8.GetString(bytes.Span);
     }
 
-    public byte[] Serialize(in string entry)
+    public Memory<byte> Serialize(in string entry)
     {
         if (entry == null)
         {

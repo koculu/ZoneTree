@@ -1,4 +1,6 @@
 ﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Segments.Block;
+using Tenray.ZoneTree.Segments.Disk;
 
 namespace Tenray.ZoneTree.Segments.NullDisk;
 
@@ -127,5 +129,31 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     public bool IsEndOfAPart(long index) => false;
 
     public int GetPartIndex(long index) => -1;
+
+    public int GetPartCount() => 0;
+
+    public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray)
+    {
+    }
+
+    public int ReleaseCircularKeyCacheRecords()
+    {
+        return 0;
+    }
+
+    public int ReleaseCircularValueCacheRecords()
+    {
+        return 0;
+    }
+
+    public TKey GetKey(long index, BlockPin pin)
+    {
+        throw new IndexOutOfRangeException();
+    }
+
+    public TValue GetValue(long index, BlockPin pin)
+    {
+        throw new IndexOutOfRangeException();
+    }
 }
 

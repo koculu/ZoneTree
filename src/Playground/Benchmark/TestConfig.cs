@@ -15,22 +15,16 @@ public static class TestConfig
 
     public static bool EnableIncrementalBackup = true;
 
-    public static bool EnableDiskSegmentCompression = true;
-
     public static int WALCompressionBlockSize = 32768;
 
     public static int DiskCompressionBlockSize = 32768;
-
-    public static int DiskSegmentMaximumCachedBlockCount = 1000;
-
-    public static int MinimumSparseArrayLength = 1_000_000;
 
     public static bool EnableParalelInserts = false;
 
     public static DiskSegmentMode DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
 
     public static CompressionMethod CompressionMethod = CompressionMethod.LZ4;
-    
+
     public static int CompressionLevel = 0;
 
     public static void PrintConfig()
@@ -39,11 +33,8 @@ public static class TestConfig
         Console.WriteLine($"MutableSegmentMaxItemCount: {MutableSegmentMaxItemCount}");
         Console.WriteLine($"DiskSegmentMaxItemCount: {DiskSegmentMaxItemCount}");
         Console.WriteLine($"EnableIncrementalBackup: {EnableIncrementalBackup}");
-        Console.WriteLine($"EnableDiskSegmentCompression: {EnableDiskSegmentCompression}");
         Console.WriteLine($"WALCompressionBlockSize: {WALCompressionBlockSize}");
         Console.WriteLine($"DiskCompressionBlockSize: {DiskCompressionBlockSize}");
-        Console.WriteLine($"DiskSegmentMaximumCachedBlockCount: {DiskSegmentMaximumCachedBlockCount}");
-        Console.WriteLine($"MinimumSparseArrayLength: {MinimumSparseArrayLength}");
         Console.WriteLine($"EnableParalelInserts: {EnableParalelInserts}");
         Console.WriteLine($"DiskSegmentMode: {DiskSegmentMode}");
         Console.WriteLine($"CompressionMethod: {CompressionMethod}");

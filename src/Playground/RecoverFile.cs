@@ -29,7 +29,6 @@ public sealed class RecoverFile
             RandomAccessDeviceManager = deviceManager,
             DiskSegmentOptions = new()
             {
-                EnableCompression = true
             },
             KeySerializer = new Utf8StringSerializer(),
             ValueSerializer = new Utf8StringSerializer(),
@@ -62,7 +61,6 @@ public sealed class RecoverFile
             DiskSegmentOptions = new()
             {
                 CompressionBlockSize = meta.DiskSegmentOptions.CompressionBlockSize,
-                EnableCompression = true,
             },
             KeySerializer = new Int32Serializer(),
             ValueSerializer = new Int32Serializer(),

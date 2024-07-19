@@ -27,7 +27,7 @@ public sealed class Test1
             })
             .OpenOrCreateTransactional();
         using var basicMaintainer = new ZoneTreeMaintainer<int, int>(zoneTree);
-        
+
         Console.WriteLine("Loaded: " + stopWatch.ElapsedMilliseconds);
 
         stopWatch.Restart();
@@ -88,7 +88,6 @@ public sealed class Test1
             })
             .ConfigureDiskSegmentOptions(x =>
             {
-                x.EnableCompression = true;
                 x.DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
                 x.CompressionBlockSize = 1024 * 1024 * 20;
                 x.MinimumRecordCount = 10_000;
@@ -151,7 +150,7 @@ public sealed class Test1
 
         if (2 * count != iterateCount)
         {
-            throw new Exception($"iterateCount != {2*count} " + iterateCount);
+            throw new Exception($"iterateCount != {2 * count} " + iterateCount);
         }
         stopwatchAll.Stop();
         Console.WriteLine($"All Time:{stopwatchAll.Elapsed}");
@@ -201,7 +200,6 @@ public sealed class Test1
             })
             .ConfigureDiskSegmentOptions(x =>
             {
-                x.EnableCompression = true;
                 x.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
             })
             .OpenOrCreate();
@@ -210,7 +208,7 @@ public sealed class Test1
         using var maintainer = zoneTree1.CreateMaintainer();
         var t1 = Task.Run(() =>
         {
-            for(var i = 0; i < count; ++i)
+            for (var i = 0; i < count; ++i)
             {
                 zoneTree1.Upsert(i, i);
             }
@@ -223,7 +221,7 @@ public sealed class Test1
             var c = zoneTree1.Count();
             var s = 0;
             Console.WriteLine("count:" + c);
-            using var it = reverse ? 
+            using var it = reverse ?
                 zoneTree1.CreateReverseIterator() :
                 zoneTree1.CreateIterator();
             it.Next();
@@ -236,7 +234,7 @@ public sealed class Test1
                 var k = it.CurrentKey;
                 if (Math.Abs(k - p) > 1)
                 {
-                    Console.WriteLine($"{k} - {k-p}");
+                    Console.WriteLine($"{k} - {k - p}");
                 }
                 p = k;
             }

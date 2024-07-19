@@ -138,6 +138,7 @@ Note: For small data you don't need a maintainer.
     .OpenOrCreate();
  
   using var maintainer = zoneTree.CreateMaintainer();
+  maintainer.EnableJobForCleaningInactiveCaches = true;
 
   // 2. Read/Write data
   zoneTree.Upsert(39, "Hello ZoneTree!");

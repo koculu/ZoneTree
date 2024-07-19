@@ -171,12 +171,10 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
                     DiskSegmentConstants.MultiPartDiskSegmentCategory,
                     isCompressed: false,
                     compressionBlockSize: 0,
-                    maxCachedBlockCount: 0,
                     deleteIfExists: false,
                     backupIfDelete: false,
                     compressionMethod,
-                    compressionLevel,
-                    blockCacheReplacementWarningDuration: 0);
+                    compressionLevel);
         var compressedBytes = DataCompression
             .Compress(compressionMethod, compressionLevel, ms.ToArray());
         multiDevice.AppendBytesReturnPosition(compressedBytes);
@@ -203,12 +201,12 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
             var k1 = PartKeys[a];
             var bytes = KeySerializer.Serialize(k1);
             bw.Write(bytes.Length);
-            bw.Write(bytes);
+            bw.Write(bytes.Span);
 
             var k2 = PartKeys[b];
             bytes = KeySerializer.Serialize(k2);
             bw.Write(bytes.Length);
-            bw.Write(bytes);
+            bw.Write(bytes.Span);
         }
     }
 
@@ -223,12 +221,12 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
             var v1 = PartValues[a];
             var bytes = ValueSerializer.Serialize(v1);
             bw.Write(bytes.Length);
-            bw.Write(bytes);
+            bw.Write(bytes.Span);
 
             var v2 = PartValues[b];
             bytes = ValueSerializer.Serialize(v2);
             bw.Write(bytes.Length);
-            bw.Write(bytes);
+            bw.Write(bytes.Span);
         }
     }
 
@@ -246,10 +244,8 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
                 DiskSegmentConstants.MultiPartDiskSegmentCategory,
                 isCompressed: false,
                 compressionBlockSize: 0,
-                maxCachedBlockCount: 0,
                 MultiPartDiskSegment<TKey, TValue>.MultiPartHeaderCompressionMethod,
-                MultiPartDiskSegment<TKey, TValue>.MultiPartHeaderCompressionLevel,
-                blockCacheReplacementWarningDuration: 0);
+                MultiPartDiskSegment<TKey, TValue>.MultiPartHeaderCompressionLevel);
 
         multiDevice.Delete();
         Options.RandomAccessDeviceManager

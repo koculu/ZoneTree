@@ -4,34 +4,21 @@ namespace Tenray.ZoneTree.Compression;
 
 public static class DataCompression
 {
-    public static byte[] Compress(CompressionMethod method, int level, Span<byte> span)
+    public static Memory<byte> Compress(CompressionMethod method, int level, Memory<byte> bytes)
     {
         return method switch
         {
-            CompressionMethod.LZ4 => LZ4DataCompression.Compress(span, level),
-            CompressionMethod.Zstd => ZstdDataCompression.Compress(span, level),
-            CompressionMethod.Brotli => BrotliDataCompression.Compress(span, level),
-            CompressionMethod.Gzip => GZipDataCompression.Compress(span, level),
-            CompressionMethod.None => span.ToArray(),
+            CompressionMethod.LZ4 => LZ4DataCompression.Compress(bytes, level),
+            CompressionMethod.Zstd => ZstdDataCompression.Compress(bytes, level),
+            CompressionMethod.Brotli => BrotliDataCompression.Compress(bytes, level),
+            CompressionMethod.Gzip => GZipDataCompression.Compress(bytes, level),
+            CompressionMethod.None => bytes,
             _ => throw new ArgumentOutOfRangeException(nameof(method)),
         };
     }
 
-    public static byte[] Compress(CompressionMethod method, int level, byte[] byteArray)
-    {
-        return method switch
-        {
-            CompressionMethod.LZ4 => LZ4DataCompression.Compress(byteArray, level),
-            CompressionMethod.Zstd => ZstdDataCompression.Compress(byteArray, level),
-            CompressionMethod.Brotli => BrotliDataCompression.Compress(byteArray, level),
-            CompressionMethod.Gzip => GZipDataCompression.Compress(byteArray, level),
-            CompressionMethod.None => byteArray,
-            _ => throw new ArgumentOutOfRangeException(nameof(method)),
-        };
-    }
-
-    public static byte[] Decompress(
-        CompressionMethod method, byte[] compressedBytes)
+    public static Memory<byte> Decompress(
+        CompressionMethod method, Memory<byte> compressedBytes)
     {
         return method switch
         {
@@ -44,8 +31,8 @@ public static class DataCompression
         };
     }
 
-    public static byte[] DecompressFast(
-        CompressionMethod method, byte[] compressedBytes, int decompressedLength)
+    public static Memory<byte> DecompressFast(
+        CompressionMethod method, Memory<byte> compressedBytes, int decompressedLength)
     {
         return method switch
         {
@@ -53,7 +40,7 @@ public static class DataCompression
             CompressionMethod.Zstd => ZstdDataCompression.DecompressFast(compressedBytes, decompressedLength),
             CompressionMethod.Brotli => BrotliDataCompression.DecompressFast(compressedBytes, decompressedLength),
             CompressionMethod.Gzip => GZipDataCompression.DecompressFast(compressedBytes, decompressedLength),
-            CompressionMethod.None => compressedBytes,
+            CompressionMethod.None => compressedBytes.ToArray(),
             _ => throw new ArgumentOutOfRangeException(nameof(method)),
         };
     }

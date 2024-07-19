@@ -2,12 +2,12 @@
 
 public sealed class DateTimeSerializer : ISerializer<DateTime>
 {
-    public DateTime Deserialize(byte[] bytes)
+    public DateTime Deserialize(Memory<byte> bytes)
     {
-        return new DateTime(BitConverter.ToInt64(bytes));
+        return new DateTime(BitConverter.ToInt64(bytes.Span));
     }
 
-    public byte[] Serialize(in DateTime entry)
+    public Memory<byte> Serialize(in DateTime entry)
     {
         return BitConverter.GetBytes(entry.Ticks);
     }

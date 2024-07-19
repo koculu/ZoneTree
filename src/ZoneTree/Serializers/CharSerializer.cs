@@ -1,13 +1,14 @@
-﻿namespace Tenray.ZoneTree.Serializers;
+﻿
+namespace Tenray.ZoneTree.Serializers;
 
 public sealed class CharSerializer : ISerializer<char>
 {
-    public char Deserialize(byte[] bytes)
+    public char Deserialize(Memory<byte> bytes)
     {
-        return (char)bytes[0];
+        return (char)bytes.Span[0];
     }
 
-    public byte[] Serialize(in char entry)
+    public Memory<byte> Serialize(in char entry)
     {
         return new byte[1] { (byte)entry };
     }

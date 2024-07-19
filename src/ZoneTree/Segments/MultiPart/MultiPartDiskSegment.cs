@@ -1,8 +1,12 @@
-﻿using Tenray.ZoneTree.Collections;
+﻿using System;
+using System.Buffers;
+using Tenray.ZoneTree.AbstractFileStream;
+using Tenray.ZoneTree.Collections;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Compression;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments.Block;
 using Tenray.ZoneTree.Segments.Disk;
 using Tenray.ZoneTree.Segments.RandomAccess;
 using Tenray.ZoneTree.Serializers;
@@ -70,10 +74,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
                     DiskSegmentConstants.MultiPartDiskSegmentCategory,
                     isCompressed: false,
                     compressionBlockSize: 0,
-                    maxCachedBlockCount: 0,
                     MultiPartHeaderCompressionMethod,
-                    MultiPartHeaderCompressionLevel,
-                    blockCacheReplacementWarningDuration: 0);
+                    MultiPartHeaderCompressionLevel);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(
@@ -83,8 +85,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         var compressedBytes = diskSegmentListDevice.GetBytes(0, len);
         var bytes = DataCompression
             .Decompress(MultiPartHeaderCompressionMethod, compressedBytes);
-
-        using var ms = new MemoryStream(bytes);
+        using var pin = bytes.Pin();
+        using var ms = bytes.ToReadOnlyStream(pin);
         using var br = new BinaryReader(ms);
         Parts = ReadParts(options, br);
         PartKeys = ReadKeys(br);
@@ -97,7 +99,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         IRandomAccessDeviceManager randomDeviceManager)
     {
         var category = DiskSegmentConstants.MultiPartDiskSegmentCategory;
-        if (!randomDeviceManager.DeviceExists(segmentId, category))
+        if (!randomDeviceManager.DeviceExists(segmentId, category, false))
             return 0;
         using var diskSegmentListDevice = randomDeviceManager
                 .GetReadOnlyDevice(
@@ -105,10 +107,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
                     category,
                     isCompressed: false,
                     compressionBlockSize: 0,
-                    maxCachedBlockCount: 0,
                     MultiPartHeaderCompressionMethod,
-                    MultiPartHeaderCompressionLevel,
-                    blockCacheReplacementWarningDuration: 0);
+                    MultiPartHeaderCompressionLevel);
 
         if (diskSegmentListDevice.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(
@@ -118,7 +118,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         var compressedBytes = diskSegmentListDevice.GetBytes(0, len);
         var bytes = DataCompression.Decompress(MultiPartHeaderCompressionMethod, compressedBytes);
 
-        using var ms = new MemoryStream(bytes);
+        using var pin = bytes.Pin();
+        using var ms = bytes.ToReadOnlyStream(pin);
         using var br = new BinaryReader(ms);
 
         var partCount = br.ReadInt32();
@@ -325,10 +326,8 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
                     DiskSegmentConstants.MultiPartDiskSegmentCategory,
                     isCompressed: false,
                     compressionBlockSize: 0,
-                    maxCachedBlockCount: 0,
                     MultiPartHeaderCompressionMethod,
-                    MultiPartHeaderCompressionLevel,
-                    blockCacheReplacementWarningDuration: 0);
+                    MultiPartHeaderCompressionLevel);
 
         diskSegmentListDevice.Delete();
         randomDeviceManager
@@ -603,5 +602,73 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
             len = Parts[partIndex].Length;
         }
         return partIndex;
+    }
+
+    public int GetPartCount() => Parts.Count;
+
+    public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray)
+    {
+        throw new NotSupportedException("SetDefaultSparseArray is not intended to be called for MultiPartDiskSegment");
+    }
+
+    public int ReleaseCircularKeyCacheRecords()
+    {
+        var len = Parts.Count;
+        var result = 0;
+        for (var i = 0; i < len; ++i)
+            result += Parts[i].ReleaseCircularKeyCacheRecords();
+        return result;
+    }
+
+    public int ReleaseCircularValueCacheRecords()
+    {
+        var len = Parts.Count;
+        var result = 0;
+        for (var i = 0; i < len; ++i)
+            result += Parts[i].ReleaseCircularValueCacheRecords();
+        return result;
+    }
+
+    public TKey GetKey(long index, BlockPin pin)
+    {
+        long off = 0;
+        var partIndex = 0;
+        var len = Parts[partIndex].Length;
+        while (off + len <= index)
+        {
+            off += len;
+            ++partIndex;
+            len = Parts[partIndex].Length;
+        }
+        var localIndex = index - off;
+
+        if (localIndex == 0)
+            return PartKeys[partIndex * 2];
+        if (localIndex == len - 1)
+            return PartKeys[partIndex * 2 + 1];
+
+        var key = Parts[partIndex].GetKey(localIndex, pin);
+        return key;
+    }
+
+    public TValue GetValue(long index, BlockPin pin)
+    {
+        long off = 0;
+        var partIndex = 0;
+        var len = Parts[partIndex].Length;
+        while (off + len <= index)
+        {
+            off += len;
+            ++partIndex;
+            len = Parts[partIndex].Length;
+        }
+        var localIndex = index - off;
+
+        if (localIndex == 0)
+            return PartValues[partIndex * 2];
+        if (localIndex == len - 1)
+            return PartValues[partIndex * 2 + 1];
+
+        return Parts[partIndex].GetValue(localIndex, pin);
     }
 }

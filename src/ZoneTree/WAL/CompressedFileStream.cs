@@ -274,7 +274,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
             BinaryTailWriter.Write(tailBlock.BlockIndex);
             BinaryTailWriter.Write(tailBlock.Length);
             var bytes = tailBlock.GetBytes(0, tailBlock.Length);
-            BinaryTailWriter.Write(bytes);
+            BinaryTailWriter.Write(bytes.Span);
             TailStream.Flush(true);
             LastWrittenTailIndex = tailBlock.BlockIndex;
             LastWrittenTailLength = tailBlock.Length;
@@ -372,7 +372,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         var bytes = CurrentBlock.GetBytes(CurrentBlockPosition, count);
         CurrentBlockPosition += bytes.Length;
         Position += bytes.Length;
-        Array.Copy(bytes, 0, buffer, offset, bytes.Length);
+        bytes.CopyTo(new Memory<byte>(buffer).Slice(offset));
         return bytes.Length;
     }
 
@@ -513,7 +513,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
                 var bw = BinaryWriter;
                 bw.Write(compressedBytes.Length);
                 bw.Write(truncatedBytes.Length);
-                bw.Write(compressedBytes);
+                bw.Write(compressedBytes.Span);
                 FileStream.SetLength(FileStream.Position);
                 _length -= (int)remainingTruncation;
                 break;
@@ -571,7 +571,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
         bw.Write(tailBlock.BlockIndex);
         bw.Write(compressedBytes.Length);
         bw.Write(tailBlock.Length);
-        bw.Write(compressedBytes);
+        bw.Write(compressedBytes.Span);
         FileStream.Flush(true);
         TailBlock = new DecompressedBlock(tailBlock.BlockIndex + 1, BlockSize, CompressionMethod, CompressionLevel);
     }
@@ -629,7 +629,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
             bw.Write(tailBlock.BlockIndex);
             bw.Write(compressedBytes.Length);
             bw.Write(tailBlock.Length);
-            bw.Write(compressedBytes);
+            bw.Write(compressedBytes.Span);
             ms.Flush();
             FileStream.Position = currentPosition;
             return bytes;

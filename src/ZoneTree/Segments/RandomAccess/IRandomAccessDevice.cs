@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Segments.RandomAccess;
+﻿using Tenray.ZoneTree.Segments.Block;
+
+namespace Tenray.ZoneTree.Segments.RandomAccess;
 
 public interface IRandomAccessDevice : IDisposable
 {
@@ -20,11 +22,9 @@ public interface IRandomAccessDevice : IDisposable
     /// </summary>
     /// <param name="bytes">Bytes</param>
     /// <returns>Position of the bytes.</returns>
-    long AppendBytesReturnPosition(byte[] bytes);
+    long AppendBytesReturnPosition(Memory<byte> bytes);
 
-    byte[] GetBytes(long offset, int length);
-
-    int GetBytes(long offset, byte[] buffer);
+    Memory<byte> GetBytes(long offset, int length, SingleBlockPin blockPin = null);
 
     void Close();
 
@@ -38,9 +38,9 @@ public interface IRandomAccessDevice : IDisposable
     void SealDevice();
 
     /// <summary>
-    /// Release internal read buffers 
-    /// that are not used after given ticks.
+    /// Releases inactive cached read buffers.
+    /// The buffers that have not been accessed since given ticks are released.
     /// </summary>
     /// <returns>Total released read buffer count.</returns>
-    int ReleaseReadBuffers(long ticks);
+    int ReleaseInactiveCachedBuffers(long ticks);
 }

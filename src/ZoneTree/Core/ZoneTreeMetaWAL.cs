@@ -40,10 +40,8 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
                     MetaWalCategory,
                     isCompressed: false,
                     compressionBlockSize: 0,
-                    maxCachedBlockCount: 0,
                     MetaWALCompressionMethod,
-                    MetaWALCompressionLevel,
-                    blockCacheReplacementWarningDuration: 0);
+                    MetaWALCompressionLevel);
         }
         else
         {
@@ -55,12 +53,10 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
                     MetaWalCategory,
                     isCompressed: false,
                     compressionBlockSize: 0,
-                    maxCachedBlockCount: 0,
                     deleteIfExists: false,
                     backupIfDelete: false,
                     MetaWALCompressionMethod,
-                    MetaWALCompressionLevel,
-                    blockCacheReplacementWarningDuration: 0);
+                    MetaWALCompressionLevel);
         }
     }
 
@@ -70,7 +66,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             .RandomAccessDeviceManager
             .DeviceExists(
                 ZoneTreeMetaId,
-                MetaFileCategory);
+                MetaFileCategory, false);
 
     }
 
@@ -275,23 +271,21 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
                 MetaFileCategory,
                 isCompressed: false,
                 compressionBlockSize: 0,
-                maxCachedBlockCount: 0,
                 MetaWALCompressionMethod,
-                MetaWALCompressionLevel,
-                blockCacheReplacementWarningDuration: 0);
+                MetaWALCompressionLevel);
 
         if (device.Length > int.MaxValue)
             throw new DataIsTooBigToLoadAtOnceException(device.Length, int.MaxValue);
         var bytes = device.GetBytes(0, (int)device.Length);
         device.Close();
         deviceManager.RemoveReadOnlyDevice(device.SegmentId, MetaFileCategory);
-        var meta = JsonDeserialize(bytes);
+        var meta = JsonDeserialize(bytes.Span);
         return meta;
     }
 
     private static byte[] JsonSerializeToUtf8Bytes(ZoneTreeMeta meta)
     {
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
         return JsonSerializer.SerializeToUtf8Bytes(
             meta,
             ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);
@@ -307,7 +301,16 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
     private static ZoneTreeMeta JsonDeserialize(byte[] bytes)
     {
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
+        return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes, ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);
+#else
+        return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes);
+#endif
+    }
+
+    private static ZoneTreeMeta JsonDeserialize(Span<byte> bytes)
+    {
+#if NET6_0_OR_GREATER
         return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes, ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);
 #else
         return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes);
@@ -315,7 +318,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
     }
 }
 
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(ZoneTreeMeta))]
 internal partial class ZoneTreeMetaSourceGenerationContext : JsonSerializerContext

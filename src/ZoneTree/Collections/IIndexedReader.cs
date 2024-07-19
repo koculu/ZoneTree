@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Collections;
+﻿using Tenray.ZoneTree.Segments.Block;
+
+namespace Tenray.ZoneTree.Collections;
 
 public interface IIndexedReader<TKey, TValue>
 {
@@ -8,6 +10,10 @@ public interface IIndexedReader<TKey, TValue>
 
     TValue GetValue(long index);
 
+    TKey GetKey(long index, BlockPin pin);
+
+    TValue GetValue(long index, BlockPin pin);
+
     long GetLastSmallerOrEqualPosition(in TKey key);
 
     long GetFirstGreaterOrEqualPosition(in TKey key);
@@ -15,7 +21,7 @@ public interface IIndexedReader<TKey, TValue>
     bool IsBeginningOfAPart(long index);
 
     bool IsEndOfAPart(long index);
-    
+
     int GetPartIndex(long index);
 }
 

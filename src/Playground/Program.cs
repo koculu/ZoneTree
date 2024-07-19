@@ -7,10 +7,8 @@ TestConfig.MutableSegmentMaxItemCount = 1_000_000;
 TestConfig.ThresholdForMergeOperationStart = 2_000_000;
 TestConfig.RecreateDatabases = true;
 TestConfig.EnableParalelInserts = false;
-TestConfig.DiskSegmentMaximumCachedBlockCount = 1;
 TestConfig.DiskCompressionBlockSize = 1024 * 1024 * 10;
 TestConfig.WALCompressionBlockSize = 1024 * 32 * 8;
-TestConfig.MinimumSparseArrayLength = 0;
 TestConfig.DiskSegmentMode = DiskSegmentMode.SingleDiskSegment;
 ConsoleLogger.DefaultLogLevel = LogLevel.Info;
 

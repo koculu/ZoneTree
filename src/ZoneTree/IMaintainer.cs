@@ -29,7 +29,7 @@ public interface IMaintainer : IDisposable
     /// <summary>
     /// Starts merge operation when records count
     /// in read-only segments exceeds this value.
-    /// Default value is 2M.
+    /// Default value is 0.  
     /// </summary>
     int ThresholdForMergeOperationStart { get; set; }
 
@@ -41,11 +41,12 @@ public interface IMaintainer : IDisposable
     int MaximumReadOnlySegmentCount { get; set; }
 
     /// <summary>
-    /// Enables a periodic timer to release disk segment unused block cache.
-    /// Changing this property would start or stop the periodic timer.
-    /// Default value is true.
+    /// Gets or sets a value indicating whether a periodic timer is enabled to release
+    /// unused block and key/value record caches in the disk segment. 
+    /// Changing this property will start or stop the periodic timer accordingly. 
+    /// The default value is <c>false</c>.
     /// </summary>
-    bool EnablePeriodicTimer { get; set; }
+    bool EnableJobForCleaningInactiveCaches { get; set; }
 
     /// <summary>
     /// Sets or gets Disk Segment block cache life time in milliseconds.
@@ -54,10 +55,10 @@ public interface IMaintainer : IDisposable
     long DiskSegmentBufferLifeTime { get; set; }
 
     /// <summary>
-    /// Sets or gets Periodic timer interval.
-    /// Default value is 5 seconds;
+    /// Gets or sets the interval for the periodic timer that triggers the cleanup job.
+    /// The default value is 5 seconds.
     /// </summary>
-    TimeSpan PeriodicTimerInterval { get; set; }
+    TimeSpan InactiveBlockCacheCleanupInterval { get; set; }
 
     /// <summary>
     /// Tries cancel running tasks.

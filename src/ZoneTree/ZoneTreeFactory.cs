@@ -21,8 +21,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
 {
     string WalDirectory;
 
-    int InitialSparseArrayLength = 1_000_000;
-
     readonly IFileStreamProvider FileStreamProvider;
 
     Func<ZoneTreeOptions<TKey, TValue>, IWriteAheadLogProvider> GetWriteAheadLogProvider;
@@ -126,18 +124,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
     }
 
     /// <summary>
-    /// Enables or disables the disk segment compression.
-    /// </summary>
-    /// <param name="enabled">If true the compression is enabled, otherwise the compression is disabled.</param>
-    /// <returns>ZoneTree Factory</returns>
-    public ZoneTreeFactory<TKey, TValue>
-        SetDiskSegmentCompression(bool enabled)
-    {
-        Options.DiskSegmentOptions.EnableCompression = enabled;
-        return this;
-    }
-
-    /// <summary>
     /// Configures the disk segment compression block size.
     /// </summary>
     /// <param name="blockSize">The block size</param>
@@ -175,20 +161,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         Options.DeleteValueConfigurationValidation = keepWarning ?
             DeleteValueConfigurationValidation.Warning :
             DeleteValueConfigurationValidation.NotRequired;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets the maximum cached block count.
-    /// </summary>
-    /// <param name="diskSegmentBlockCacheLimit">The maximum cached block count.</param>
-    /// <returns>ZoneTree Factory</returns>
-    public ZoneTreeFactory<TKey, TValue>
-        SetDiskSegmentMaximumCachedBlockCount(int diskSegmentBlockCacheLimit)
-    {
-        if (diskSegmentBlockCacheLimit < 1)
-            diskSegmentBlockCacheLimit = 1;
-        Options.DiskSegmentOptions.BlockCacheLimit = diskSegmentBlockCacheLimit;
         return this;
     }
 
@@ -365,18 +337,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         return this;
     }
 
-    /// <summary>
-    /// Sets initial sparse array length. 
-    /// Factory initializes the sparse array with given size when the database is loaded.
-    /// </summary>
-    /// <param name="initialSparseArrayLength">The initial sparse array length.</param>
-    /// <returns>ZoneTree Factory</returns>
-    public ZoneTreeFactory<TKey, TValue> SetInitialSparseArrayLength(int initialSparseArrayLength)
-    {
-        InitialSparseArrayLength = initialSparseArrayLength;
-        return this;
-    }
-
     void FillMissingOptionsForKnownTypes()
     {
         if (Options.RandomAccessDeviceManager == null)
@@ -413,7 +373,7 @@ public sealed class ZoneTreeFactory<TKey, TValue>
             Options.Comparer =
                 new StringOrdinalComparerAscending() as IRefComparer<TKey>;
 
-        else if (typeof(TKey) == typeof(byte[]))
+        else if (typeof(TKey) == typeof(Memory<byte>))
             Options.Comparer =
                 new ByteArrayComparerAscending() as IRefComparer<TKey>;
     }
@@ -440,10 +400,15 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         if (typeof(TKey) == typeof(string))
             Options.KeySerializer =
                 new Utf8StringSerializer() as ISerializer<TKey>;
-
-        else if (typeof(TKey) == typeof(byte[]))
+        else if (typeof(TKey) == typeof(Memory<byte>))
+        {
             Options.KeySerializer =
                 new ByteArraySerializer() as ISerializer<TKey>;
+        }
+        else if (typeof(TKey) == typeof(byte[]))
+        {
+            throw new ZoneTreeException("ZoneTree<byte[], ...> is not supported. Use ZoneTree<Memory<byte>, ...> instead.");
+        }
     }
 
     void FillValueSerializer()
@@ -470,23 +435,16 @@ public sealed class ZoneTreeFactory<TKey, TValue>
             Options.ValueSerializer =
                 new Utf8StringSerializer() as ISerializer<TValue>;
 
-        else if (typeof(TValue) == typeof(byte[]))
+        else if (typeof(TValue) == typeof(Memory<byte>))
+        {
             Options.ValueSerializer =
                 new ByteArraySerializer() as ISerializer<TValue>;
-    }
-
-    void LoadInitialSparseArrays(ZoneTree<TKey, TValue> zoneTree)
-    {
-        if (InitialSparseArrayLength <= 1)
-            return;
-
-        var t1 = Task.Run(() =>
-            zoneTree.Maintenance.DiskSegment.InitSparseArray(InitialSparseArrayLength));
-        Parallel.ForEach(zoneTree.Maintenance.BottomSegments, (bs) =>
+        }
+        else if (typeof(TValue) == typeof(byte[]))
         {
-            bs.InitSparseArray(InitialSparseArrayLength);
-        });
-        t1.Wait();
+            throw new ZoneTreeException("ZoneTree<..., byte[]> is not supported. Use ZoneTree<..., Memory<byte>> instead.");
+        }
+
     }
 
     /// <summary>
@@ -501,7 +459,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         if (loader.ZoneTreeMetaExists)
         {
             var zoneTree = loader.LoadZoneTree();
-            LoadInitialSparseArrays(zoneTree);
             return zoneTree;
         }
         return new ZoneTree<TKey, TValue>(Options);
@@ -535,7 +492,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         if (!loader.ZoneTreeMetaExists)
             throw new DatabaseNotFoundException();
         var zoneTree = loader.LoadZoneTree();
-        LoadInitialSparseArrays(zoneTree);
         return zoneTree;
     }
 

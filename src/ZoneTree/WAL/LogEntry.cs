@@ -10,9 +10,9 @@ public struct LogEntry : IEquatable<LogEntry>
 
     public int ValueLength;
 
-    public byte[] Key;
+    public Memory<byte> Key;
 
-    public byte[] Value;
+    public Memory<byte> Value;
 
     public uint Checksum;
 
@@ -25,8 +25,8 @@ public struct LogEntry : IEquatable<LogEntry>
             crc32 = Crc32Computer_SSE42_X64.Compute(crc32, (ulong)OpIndex);
             crc32 = Crc32Computer_SSE42_X64.Compute(crc32, KeyLength);
             crc32 = Crc32Computer_SSE42_X64.Compute(crc32, ValueLength);
-            crc32 = Crc32Computer_SSE42_X64.Compute(crc32, Key);
-            crc32 = Crc32Computer_SSE42_X64.Compute(crc32, Value);
+            crc32 = Crc32Computer_SSE42_X64.Compute(crc32, Key.Span);
+            crc32 = Crc32Computer_SSE42_X64.Compute(crc32, Value.Span);
             return crc32;
         }
 
@@ -45,8 +45,8 @@ public struct LogEntry : IEquatable<LogEntry>
             crc32 = Crc32Computer_ARM64.Compute(crc32, (ulong)OpIndex);
             crc32 = Crc32Computer_ARM64.Compute(crc32, KeyLength);
             crc32 = Crc32Computer_ARM64.Compute(crc32, ValueLength);
-            crc32 = Crc32Computer_ARM64.Compute(crc32, Key);
-            crc32 = Crc32Computer_ARM64.Compute(crc32, Value);
+            crc32 = Crc32Computer_ARM64.Compute(crc32, Key.Span);
+            crc32 = Crc32Computer_ARM64.Compute(crc32, Value.Span);
             return crc32;
         }
 
@@ -62,8 +62,8 @@ public struct LogEntry : IEquatable<LogEntry>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AppendLogEntry(
         BinaryWriter binaryWriter,
-        byte[] keyBytes,
-        byte[] valueBytes,
+        Memory<byte> keyBytes,
+        Memory<byte> valueBytes,
         long opIndex)
     {
         var entry = new LogEntry
@@ -78,10 +78,10 @@ public struct LogEntry : IEquatable<LogEntry>
         binaryWriter.Write(entry.OpIndex);
         binaryWriter.Write(entry.KeyLength);
         binaryWriter.Write(entry.ValueLength);
-        if (entry.Key != null)
-            binaryWriter.Write(entry.Key);
-        if (entry.Value != null)
-            binaryWriter.Write(entry.Value);
+        if (!entry.Key.IsEmpty)
+            binaryWriter.Write(entry.Key.Span);
+        if (!entry.Value.IsEmpty)
+            binaryWriter.Write(entry.Value.Span);
         binaryWriter.Write(entry.Checksum);
         binaryWriter.Flush();
     }
@@ -107,8 +107,8 @@ public struct LogEntry : IEquatable<LogEntry>
         return OpIndex == other.OpIndex &&
                KeyLength == other.KeyLength &&
                ValueLength == other.ValueLength &&
-               EqualityComparer<byte[]>.Default.Equals(Key, other.Key) &&
-               EqualityComparer<byte[]>.Default.Equals(Value, other.Value) &&
+               Key.Span.SequenceEqual(other.Key.Span) &&
+               Value.Span.SequenceEqual(other.Value.Span) &&
                Checksum == other.Checksum;
     }
 

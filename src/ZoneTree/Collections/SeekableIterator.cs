@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.Collections;
+﻿using Tenray.ZoneTree.Segments.Block;
+
+namespace Tenray.ZoneTree.Collections;
 
 public sealed class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 {
@@ -8,15 +10,17 @@ public sealed class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TVa
 
     long position = -1;
 
+    BlockPin blockPin = new();
+
     public TKey CurrentKey =>
         position == -1 || position >= Length ?
         throw new IndexOutOfRangeException("Iterator is not in a valid position. Have you forgotten to call Next() or Prev()?") :
-        IndexedReader.GetKey(position);
+        IndexedReader.GetKey(position, blockPin);
 
     public TValue CurrentValue =>
         position == -1 || position >= Length ?
         throw new IndexOutOfRangeException("Iterator is not in a valid position. Have you forgotten to call Next() or Prev()?") :
-        IndexedReader.GetValue(position);
+        IndexedReader.GetValue(position, blockPin);
 
     public bool HasCurrent => position >= 0 && position < Length;
 

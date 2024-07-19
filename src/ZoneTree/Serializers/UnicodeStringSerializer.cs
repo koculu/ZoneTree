@@ -4,14 +4,21 @@ namespace Tenray.ZoneTree.Serializers;
 
 public sealed class UnicodeStringSerializer : ISerializer<string>
 {
-    public string Deserialize(byte[] bytes)
+    public string Deserialize(Memory<byte> bytes)
+    {
+        if (bytes.Length == 1)
+            return null;
+        return Encoding.Unicode.GetString(bytes.Span);
+    }
+
+    public string Deserialize(Span<byte> bytes)
     {
         if (bytes.Length == 1)
             return null;
         return Encoding.Unicode.GetString(bytes);
     }
 
-    public byte[] Serialize(in string entry)
+    public Memory<byte> Serialize(in string entry)
     {
         if (entry == null)
             return new byte[1] { 0 };

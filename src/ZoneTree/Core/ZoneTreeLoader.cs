@@ -188,7 +188,7 @@ public sealed class ZoneTreeLoader<TKey, TValue>
             return;
         }
         if (Options.RandomAccessDeviceManager
-            .DeviceExists(segmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory))
+            .DeviceExists(segmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory, false))
         {
             DiskSegment = new MultiPartDiskSegment<TKey, TValue>(segmentId, Options);
             return;
@@ -205,7 +205,7 @@ public sealed class ZoneTreeLoader<TKey, TValue>
         {
             if (Options.RandomAccessDeviceManager
                 .DeviceExists(segmentId,
-                    DiskSegmentConstants.MultiPartDiskSegmentCategory))
+                    DiskSegmentConstants.MultiPartDiskSegmentCategory, false))
             {
                 var ds = new MultiPartDiskSegment<TKey, TValue>(segmentId, Options);
                 map.AddOrUpdate(segmentId, ds, (_, _) => ds);

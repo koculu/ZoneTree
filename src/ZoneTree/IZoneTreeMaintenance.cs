@@ -121,6 +121,24 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     void SaveMetaData();
 
     /// <summary>
+    /// Releases internal read buffers that have not been used since the specified tick count.
+    /// </summary>
+    /// <returns>The total number of released read buffers.</returns>
+    int ReleaseReadBuffers(long ticks);
+
+    /// <summary>
+    /// Releases expired circular cache key records.
+    /// </summary>
+    /// <returns>The total number of released cached records.</returns>
+    int ReleaseCircularKeyCacheRecords();
+
+    /// <summary>
+    /// Releases expired circular cache value records.
+    /// </summary>
+    /// <returns>The total number of released cached records.</returns>
+    int ReleaseCircularValueCacheRecords();
+
+    /// <summary>
     /// Destroys the tree, deletes entire data and WAL store or folder.
     /// </summary>
     void DestroyTree();

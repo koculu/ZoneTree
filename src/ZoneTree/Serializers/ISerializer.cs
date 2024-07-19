@@ -11,12 +11,12 @@ public interface ISerializer<TEntry>
     /// </summary>
     /// <param name="bytes">The bytes to be deserialized.</param>
     /// <returns>The deserialized entry.</returns>
-    TEntry Deserialize(byte[] bytes);
+    TEntry Deserialize(Memory<byte> bytes);
 
     /// <summary>
     /// Serialize the entry into byte array.
     /// </summary>
     /// <param name="entry">The entry</param>
     /// <returns>The serialized bytes.</returns>
-    byte[] Serialize(in TEntry entry);
+    Memory<byte> Serialize(in TEntry entry);
 }
