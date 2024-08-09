@@ -283,37 +283,46 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         using var iterator = CreateInMemorySegmentsIterator(
             autoRefresh: false,
             includeDeletedRecords: true);
-
         IDiskSegment<TKey, TValue> diskSegment = null;
-        lock (ShortMergerLock)
-            lock (AtomicUpdateLock)
-            {
-                // 2 things to synchronize with
-                // MoveSegmentForward and disk merger segment swap.
-                diskSegment = DiskSegment;
-                iterator.Refresh();
-            }
-
-        if (!BottomSegmentQueue.IsEmpty)
-            return CountFullScan();
-
-        var count = diskSegment.Length;
-        while (iterator.Next())
+        try
         {
-            var hasKey = diskSegment.ContainsKey(iterator.CurrentKey);
-            var isValueDeleted = IsValueDeleted(iterator.CurrentValue);
-            if (hasKey)
+            lock (ShortMergerLock)
+                lock (AtomicUpdateLock)
+                {
+                    // 2 things to synchronize with
+                    // MoveSegmentForward and disk merger segment swap.
+                    diskSegment = DiskSegment;
+
+                    // ShortMergerLock ensures the diskSegment drop is not requested at the moment.
+                    // We can safely attach an iterator to the disk segment.
+                    diskSegment.AttachIterator();
+                    iterator.Refresh();
+                }
+
+            if (!BottomSegmentQueue.IsEmpty)
+                return CountFullScan();
+            var count = diskSegment.Length;
+            while (iterator.Next())
             {
-                if (isValueDeleted)
-                    --count;
+                var hasKey = diskSegment.ContainsKey(iterator.CurrentKey);
+                var isValueDeleted = IsValueDeleted(iterator.CurrentValue);
+                if (hasKey)
+                {
+                    if (isValueDeleted)
+                        --count;
+                }
+                else
+                {
+                    if (!isValueDeleted)
+                        ++count;
+                }
             }
-            else
-            {
-                if (!isValueDeleted)
-                    ++count;
-            }
+            return count;
         }
-        return count;
+        finally
+        {
+            diskSegment.DetachIterator();
+        }
     }
 
     public long CountFullScan()

@@ -55,7 +55,8 @@ using var zoneTree = new ZoneTreeFactory<int, int>()
     .OpenOrCreate();
     
 using var maintainer = zoneTree.CreateMaintainer();
-for (var i = 0 ; i < 10_000_000; ++i){
+maintainer.EnableJobForCleaningInactiveCaches = true;
+for (var i = 0; i < 10_000_000; ++i){
    zoneTree.Insert(i, i+i);
 }
  
@@ -71,7 +72,7 @@ using var zoneTree = new ZoneTreeFactory<int, int>()
     .SetDataDirectory(dataPath)
     .OpenOrCreate();
     
-for (var i = 0 ; i < 10_000_000; ++i){
+for (var i = 0; i < 10_000_000; ++i){
    zoneTree.Insert(i, i+i);
 }
 

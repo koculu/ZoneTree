@@ -486,7 +486,7 @@ public sealed class IteratorTests
         int minimumRecordCount,
         int maximumRecordCount)
     {
-        var dataPath = "data/SeekIteratorsAfterMerge" + merge + diskSegmentMode + minimumRecordCount + maximumRecordCount; ;
+        var dataPath = "data/SeekIteratorsAfterMerge" + merge + diskSegmentMode + minimumRecordCount + maximumRecordCount;
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
