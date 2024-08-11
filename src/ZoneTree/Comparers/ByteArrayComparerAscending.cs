@@ -9,7 +9,7 @@ public sealed class ByteArrayComparerAscending : IRefComparer<Memory<byte>>
         var spanY = y.Span;
         for (var i = 0; i < len; ++i)
         {
-            var r = spanX[i] - spanY[i];
+            var r = spanX[i].CompareTo(spanY[i]);
             if (r < 0)
                 return -1;
             if (r > 0)

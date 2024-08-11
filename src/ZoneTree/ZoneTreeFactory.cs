@@ -364,8 +364,11 @@ public sealed class ZoneTreeFactory<TKey, TValue>
             decimal => new DecimalComparerAscending() as IRefComparer<TKey>,
             double => new DoubleComparerAscending() as IRefComparer<TKey>,
             short => new Int16ComparerAscending() as IRefComparer<TKey>,
+            ushort => new UInt16ComparerAscending() as IRefComparer<TKey>,
             int => new Int32ComparerAscending() as IRefComparer<TKey>,
+            uint => new UInt32ComparerAscending() as IRefComparer<TKey>,
             long => new Int64ComparerAscending() as IRefComparer<TKey>,
+            ulong => new UInt64ComparerAscending() as IRefComparer<TKey>,
             Guid => new GuidComparerAscending() as IRefComparer<TKey>,
             _ => null
         };
@@ -391,8 +394,11 @@ public sealed class ZoneTreeFactory<TKey, TValue>
             decimal => new DecimalSerializer() as ISerializer<TKey>,
             double => new DoubleSerializer() as ISerializer<TKey>,
             short => new Int16Serializer() as ISerializer<TKey>,
+            ushort => new UInt16Serializer() as ISerializer<TKey>,
             int => new Int32Serializer() as ISerializer<TKey>,
+            uint => new UInt32Serializer() as ISerializer<TKey>,
             long => new Int64Serializer() as ISerializer<TKey>,
+            ulong => new UInt64Serializer() as ISerializer<TKey>,
             Guid => new StructSerializer<Guid>() as ISerializer<TKey>,
             _ => null
         };
@@ -425,8 +431,11 @@ public sealed class ZoneTreeFactory<TKey, TValue>
             decimal => new DecimalSerializer() as ISerializer<TValue>,
             double => new DoubleSerializer() as ISerializer<TValue>,
             short => new Int16Serializer() as ISerializer<TValue>,
+            ushort => new UInt16Serializer() as ISerializer<TValue>,
             int => new Int32Serializer() as ISerializer<TValue>,
+            uint => new UInt32Serializer() as ISerializer<TValue>,
             long => new Int64Serializer() as ISerializer<TValue>,
+            ulong => new UInt64Serializer() as ISerializer<TValue>,
             Guid => new StructSerializer<Guid>() as ISerializer<TValue>,
             _ => null
         };
