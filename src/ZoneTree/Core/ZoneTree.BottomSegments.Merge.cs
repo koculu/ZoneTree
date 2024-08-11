@@ -77,6 +77,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
         var writeDeletedValues = from > 0;
 
+        if (to > BottomSegments.Count)
+            to = BottomSegments.Count;
+
         var mergingSegments = bottomSegments
             .Select(x => x.GetSeekableIterator())
             .Skip(from)

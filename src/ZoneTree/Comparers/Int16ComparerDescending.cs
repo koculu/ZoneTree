@@ -4,6 +4,6 @@ public sealed class Int16ComparerDescending : IRefComparer<short>
 {
     public int Compare(in short x, in short y)
     {
-        return y - x;
+        return y.CompareTo(x);
     }
 }
