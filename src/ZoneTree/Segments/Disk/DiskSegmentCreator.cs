@@ -140,7 +140,10 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
 
     public IDiskSegment<TKey, TValue> CreateReadOnlyDiskSegment()
     {
-        if (DefaultSparseArrayStepSize > 0 && DefaultSparseArray.LastOrDefault().Index + 1 != Length)
+        var isSparseArrayNotEmpty = DefaultSparseArray.Count > 0;
+        if (isSparseArrayNotEmpty &&
+            DefaultSparseArrayStepSize > 0 &&
+            DefaultSparseArray.Last().Index + 1 != Length)
         {
             DefaultSparseArray.Add(new(LastKey, LastValue, Length - 1));
         }
@@ -151,7 +154,7 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
         var diskSegment = DiskSegmentFactory.CreateDiskSegment<TKey, TValue>(
             SegmentId, Options,
             DataHeaderDevice, DataDevice);
-        if (DefaultSparseArray.Count > 0)
+        if (isSparseArrayNotEmpty)
             diskSegment.SetDefaultSparseArray(DefaultSparseArray);
         DataHeaderDevice = null;
         DataDevice = null;
