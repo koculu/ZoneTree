@@ -61,6 +61,14 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         return TryGetFromReadonlySegments(in key, out value);
     }
 
+    public bool TryAdd(in TKey key, in TValue value)
+    {
+        if (ContainsKey(key))
+            return false;
+        Upsert(in key, in value);
+        return true;
+    }
+
     public bool TryGetAndUpdate(in TKey key, out TValue value, ValueUpdaterDelegate<TValue> valueUpdater)
     {
         if (IsReadOnly)

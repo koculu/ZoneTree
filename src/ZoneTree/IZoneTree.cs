@@ -34,12 +34,20 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     bool ContainsKey(in TKey key);
 
     /// <summary>
-    /// Tries to get the value of the given key.
+    /// Tries to retrieve the value associated with the specified key.
     /// </summary>
-    /// <param name="key">The key of the element.</param>
+    /// <param name="key">The key of the element to retrieve.</param>
     /// <param name="value">The value of the element associated with the key.</param>
     /// <returns>true if the key is found; otherwise, false</returns>
     bool TryGet(in TKey key, out TValue value);
+
+    /// <summary>
+    /// Tries to add the specified key and value to the collection.
+    /// </summary>
+    /// <param name="key">The key of the element to add.</param>
+    /// <param name="value">The value of the element to add.</param>
+    /// <returns>true if the key and value were added successfully; otherwise, false if the key already exists.</returns>
+    bool TryAdd(in TKey key, in TValue value);
 
     /// <summary>
     /// Tries to get the value of the given key and
