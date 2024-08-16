@@ -5,27 +5,11 @@
 /// merge operations and memory compaction.
 /// </summary>
 /// <remarks>
-/// You must complete or cancel all pending tasks of this maintainer
+/// You must complete or cancel all pending threads of this maintainer
 /// before disposing.
 /// </remarks>
 public interface IMaintainer : IDisposable
 {
-    /// <summary>
-    /// Minimum sparse array length when a new disk segment is created.
-    /// Default value is 0.
-    /// </summary>
-    int MinimumSparseArrayLength { get; set; }
-
-    /// <summary>
-    /// Configures sparse array step length when the disk segment length is bigger than
-    /// MinimumSparseArrayLength * SparseArrayStepLength.
-    /// The default value is 1000.
-    /// <remarks>The sparse array length reduce binary lookup range on disk segment
-    /// to reduce IO.
-    /// </remarks>
-    /// </summary>
-    int SparseArrayStepLength { get; set; }
-
     /// <summary>
     /// Starts merge operation when records count
     /// in read-only segments exceeds this value.
@@ -61,12 +45,43 @@ public interface IMaintainer : IDisposable
     TimeSpan InactiveBlockCacheCleanupInterval { get; set; }
 
     /// <summary>
-    /// Tries cancel running tasks.
+    /// Tries cancel background threads.
     /// </summary>
-    void TryCancelRunningTasks();
+    void TryCancelBackgroundThreads();
 
     /// <summary>
-    /// Waits until all running tasks are completed.
+    /// Blocks the calling thread until all background threads have completed their execution.
     /// </summary>
-    void CompleteRunningTasks();
+    void WaitForBackgroundThreads();
+
+    /// <summary>
+    /// Asynchronously waits for all background threads to complete.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous wait operation.</returns>
+    Task WaitForBackgroundThreadsAsync();
+
+    /// <summary>
+    /// Evicts all in-memory data to disk by moving the mutable segment forward and initiating a merge process.
+    /// </summary>
+    /// <remarks>
+    /// This method is responsible for freeing up memory in the LSM tree by moving data from the mutable in-memory segment to disk storage. 
+    /// It first advances the current mutable segment to a new state, ensuring that any data currently in memory is prepared for disk storage. 
+    /// Afterward, it starts the merging process, which combines the in-memory data with existing on-disk data to maintain the integrity 
+    /// and efficiency of the LSM tree structure.
+    /// </remarks>
+    void EvictToDisk();
+
+    /// <summary>
+    /// Initiates the merge process in a new thread.
+    /// </summary>
+    void StartMerge();
+
+    /// <summary>
+    /// Initiates a merge of selected bottom segments into a single bottom disk segment.
+    /// </summary>
+    /// <param name="fromIndex">The lower bound</param>
+    /// <param name="toIndex">The upper bound</param>
+    /// <returns></returns>
+    void StartBottomSegmentsMerge(
+        int fromIndex = 0, int toIndex = int.MaxValue);
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Segments;
 using Tenray.ZoneTree.Segments.Disk;
@@ -35,12 +36,6 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     /// The associated ZoneTree maintenance instance.
     /// </summary>
     public IZoneTreeMaintenance<TKey, TValue> Maintenance { get; }
-
-    /// <inheritdoc/>
-    public int MinimumSparseArrayLength { get; set; }
-
-    /// <inheritdoc/>
-    public int SparseArrayStepLength { get; set; } = 1_000;
 
     /// <inheritdoc/>
     public int ThresholdForMergeOperationStart { get; set; } = 0;
@@ -105,15 +100,25 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         Maintenance.OnDiskSegmentCreated += OnDiskSegmentCreated;
         Maintenance.OnMergeOperationEnded += OnMergeOperationEnded;
         Maintenance.OnZoneTreeIsDisposing += OnZoneTreeIsDisposing;
+        Maintenance.OnBottomSegmentsMergeOperationEnded += OnBottomSegmentsMergeOperationEnded;
     }
+
 
     void OnZoneTreeIsDisposing(IZoneTreeMaintenance<TKey, TValue> zoneTree)
     {
         Trace("ZoneTree is disposing. ZoneTreeMaintainer disposal started.");
         PeriodicTimerCancellationTokenSource.Cancel();
-        CompleteRunningTasks();
+        WaitForBackgroundThreads();
         Dispose();
         Trace("ZoneTreeMaintainer is disposed.");
+    }
+
+    void OnBottomSegmentsMergeOperationEnded(
+        IZoneTreeMaintenance<TKey, TValue> zoneTree,
+        MergeResult mergeResult)
+    {
+        Trace(mergeResult.ToString());
+        MergerThreads.Remove(Environment.CurrentManagedThreadId, out _);
     }
 
     void OnMergeOperationEnded(
@@ -168,7 +173,8 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
             StartMerge();
     }
 
-    void StartMerge()
+    /// <inheritdoc/>
+    public void StartMerge()
     {
         lock (this)
         {
@@ -182,14 +188,39 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         }
     }
 
+
     /// <inheritdoc/>
-    public void TryCancelRunningTasks()
+    public void StartBottomSegmentsMerge(
+        int fromIndex = 0, int toIndex = int.MaxValue)
     {
-        Maintenance.TryCancelMergeOperation();
+        lock (this)
+        {
+            var mergerThread = Maintenance
+                .StartBottomSegmentsMergeOperation(fromIndex, toIndex);
+            if (mergerThread == null)
+                return;
+            MergerThreads.AddOrUpdate(
+                mergerThread.ManagedThreadId,
+                mergerThread,
+                (key, value) => mergerThread);
+        }
     }
 
     /// <inheritdoc/>
-    public void CompleteRunningTasks()
+    public void TryCancelBackgroundThreads()
+    {
+        Maintenance.TryCancelMergeOperation();
+        Maintenance.TryCancelBottomSegmentsMergeOperation();
+    }
+
+    /// <inheritdoc/>
+    public void WaitForBackgroundThreads()
+    {
+        WaitForBackgroundThreadsAsync().Wait();
+    }
+
+    /// <inheritdoc/>
+    public async Task WaitForBackgroundThreadsAsync()
     {
         while (true)
         {
@@ -203,7 +234,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
                 if (t.ThreadState == ThreadState.Stopped)
                     MergerThreads.TryRemove(a.Key, out var _);
                 else
-                    t.Join();
+                    await Task.Run(() => t.Join());
             }
             Trace("Wait ended");
         }
@@ -245,6 +276,13 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         Logger.LogTrace(msg);
     }
 
+    /// <inheritdoc/>
+    public void EvictToDisk()
+    {
+        Maintenance.MoveMutableSegmentForward();
+        StartMerge();
+    }
+
     /// <summary>
     /// Disposes this maintainer.
     /// </summary>
@@ -256,5 +294,6 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
         Maintenance.OnDiskSegmentCreated -= OnDiskSegmentCreated;
         Maintenance.OnMergeOperationEnded -= OnMergeOperationEnded;
         Maintenance.OnZoneTreeIsDisposing -= OnZoneTreeIsDisposing;
+        Maintenance.OnBottomSegmentsMergeOperationEnded -= OnBottomSegmentsMergeOperationEnded;
     }
 }
