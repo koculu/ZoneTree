@@ -1,6 +1,5 @@
 ﻿namespace Tenray.ZoneTree.Comparers;
 
-
 /// <summary>
 /// Defines a method that a type implements to compare two objects.
 /// </summary>
