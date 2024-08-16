@@ -59,7 +59,7 @@ public sealed class OldTests
             zoneTree.Maintenance.MoveMutableSegmentForward();
             zoneTree.Maintenance.StartMergeOperation()?.Join();
         }
-        basicMaintainer.CompleteRunningTasks();
+        basicMaintainer.WaitForBackgroundThreads();
         new StatsCollector().LogWithColor(
             "Merged in:",
             stopWatch.ElapsedMilliseconds,
@@ -183,7 +183,7 @@ public sealed class OldTests
         zoneTree.Maintenance.MoveMutableSegmentForward();
         zoneTree.Maintenance.StartMergeOperation()?.Join();
 
-        basicMaintainer.CompleteRunningTasks();
+        basicMaintainer.WaitForBackgroundThreads();
         new StatsCollector().LogWithColor(
             "Merged in:",
             stopWatch.ElapsedMilliseconds,
@@ -222,7 +222,7 @@ public sealed class OldTests
             "Completed in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
-        basicMaintainer.CompleteRunningTasks();
+        basicMaintainer.WaitForBackgroundThreads();
     }
 
     public static void MultipleIterate(WriteAheadLogMode mode, int count, int iteratorCount)
@@ -262,7 +262,7 @@ public sealed class OldTests
             "Completed in:",
             stopWatch.ElapsedMilliseconds,
             ConsoleColor.Green);
-        basicMaintainer.CompleteRunningTasks();
+        basicMaintainer.WaitForBackgroundThreads();
     }
 
     private static IZoneTree<int, int> OpenOrCreateZoneTree(WriteAheadLogMode mode, string dataPath)

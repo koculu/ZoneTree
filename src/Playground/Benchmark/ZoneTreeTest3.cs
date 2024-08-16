@@ -51,7 +51,7 @@ public sealed class ZoneTreeTest3 : ZoneTreeTestBase<int, int>
             zoneTree.Maintenance.ZoneTree.Maintenance.MoveMutableSegmentForward();
             zoneTree.Maintenance.ZoneTree.Maintenance.StartMergeOperation()?.Join();
         }
-        maintainer.CompleteRunningTasks();
+        maintainer.WaitForBackgroundThreads();
 
         stats.AddStage("Merged In", ConsoleColor.DarkCyan);
     }
@@ -82,6 +82,6 @@ public sealed class ZoneTreeTest3 : ZoneTreeTestBase<int, int>
         stats.AddStage(
             "Iterated in",
             ConsoleColor.Green);
-        maintainer.CompleteRunningTasks();
+        maintainer.WaitForBackgroundThreads();
     }
 }

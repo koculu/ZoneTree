@@ -71,7 +71,7 @@ public sealed class StevesChallenge : ZoneTreeTestBase<Memory<byte>, Memory<byte
             zoneTree.Maintenance.MoveMutableSegmentForward();
             zoneTree.Maintenance.StartMergeOperation()?.Join();
         }
-        maintainer.CompleteRunningTasks();
+        maintainer.WaitForBackgroundThreads();
 
         stats.AddStage("Merged In", ConsoleColor.DarkCyan);
     }
@@ -100,7 +100,7 @@ public sealed class StevesChallenge : ZoneTreeTestBase<Memory<byte>, Memory<byte
         stats.AddStage(
             "Iterated in",
             ConsoleColor.Green);
-        maintainer.CompleteRunningTasks();
+        maintainer.WaitForBackgroundThreads();
     }
 
 }

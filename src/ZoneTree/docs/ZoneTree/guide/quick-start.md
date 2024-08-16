@@ -61,7 +61,7 @@ for (var i = 0; i < 10_000_000; ++i){
 }
  
 // Ensure maintainer merge operations are completed before tree disposal.
-maintainer.CompleteRunningTasks();
+maintainer.WaitForBackgroundThreads();
 ```
 
 ## How to merge data to the disk segment manually?

@@ -63,7 +63,7 @@ public sealed class Test1
             });
         }
         Console.WriteLine("Elapsed: " + stopWatch.ElapsedMilliseconds);
-        basicMaintainer.CompleteRunningTasks();
+        basicMaintainer.WaitForBackgroundThreads();
         zoneTree.Maintenance.SaveMetaData();
     }
 
@@ -110,7 +110,7 @@ public sealed class Test1
                         return true;
                     });
             }
-            maintainer.CompleteRunningTasks();
+            maintainer.WaitForBackgroundThreads();
         }
 
         upload.Stop();
@@ -247,7 +247,7 @@ public sealed class Test1
         });
         t1.Wait();
         zoneTree1.Maintenance.TryCancelMergeOperation();
-        maintainer.CompleteRunningTasks();
+        maintainer.WaitForBackgroundThreads();
     }
 
 
