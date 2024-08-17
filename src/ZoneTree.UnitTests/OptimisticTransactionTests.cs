@@ -17,7 +17,7 @@ public sealed class OptimisticTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .OpenOrCreateTransactional();
@@ -65,7 +65,7 @@ public sealed class OptimisticTransactionTests
 
         int n = 10000;
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogOptions(x => x.WriteAheadLogMode = walMode)
@@ -93,7 +93,7 @@ public sealed class OptimisticTransactionTests
 
         int n = 10000;
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogOptions(x => x.WriteAheadLogMode = walMode)

@@ -67,11 +67,10 @@ public sealed class StringTreeTests
         for (var i = 0; i < 2; ++i)
         {
             using var db = new ZoneTreeFactory<string, int>()
-                .DisableDeleteValueConfigurationValidation(false)
+                .DisableDeletion()
                 .SetDataDirectory(dataPath)
                 .OpenOrCreate();
             db.Upsert("0", 123);
-
         }
     }
 
@@ -83,6 +82,7 @@ public sealed class StringTreeTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, string>()
+            .SetDataDirectory(dataPath)
             .OpenOrCreate();
         zoneTree.Upsert(39, "Hello Zone Tree");
         zoneTree.TryGet(39, out var value);
@@ -122,11 +122,17 @@ public sealed class StringTreeTests
     [Test]
     public void HelloWorldTest3()
     {
-        var dataPath = "data/HelloWorldTest";
+        var dataPath = "data/HelloWorldTest3";
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
-        Assert.Throws<MissingOptionException>(() => new ZoneTreeFactory<int, int>()
-            .OpenOrCreate());
+        var tree = new ZoneTreeFactory<int, int>()
+            .SetDataDirectory(dataPath)
+            .OpenOrCreate();
+        tree.Upsert(1, 0);
+        // The value 0 represents deleted record.
+        Assert.That(tree.Count(), Is.EqualTo(0));
+        tree.Upsert(1, 2);
+        Assert.That(tree.Count(), Is.EqualTo(1));
     }
 }

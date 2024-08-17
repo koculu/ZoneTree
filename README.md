@@ -1,30 +1,40 @@
 ![img](https://raw.githubusercontent.com/koculu/ZoneTree/main/src/ZoneTree/docs/ZoneTree/images/logo2.png)
 
 # ZoneTree
+
 ZoneTree is a persistent, high-performance, transactional, and ACID-compliant [ordered key-value database](https://en.wikipedia.org/wiki/Ordered_Key-Value_Store) for .NET.
 It can operate in memory or on local/cloud storage.
 
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 [![Downloads](https://img.shields.io/nuget/dt/ZoneTree)](https://www.nuget.org/packages/ZoneTree/)
+![Platform](https://img.shields.io/badge/platform-.NET-blue.svg)
+![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)
 [![](https://dcbadge.vercel.app/api/server/d9aDtzVNNv?logoColor=f1c400&theme=discord&style=flat)](https://discord.gg/d9aDtzVNNv)
 
 ZoneTree is a lightweight, transactional and high-performance LSM Tree for .NET.
 
 It is several times faster than Facebook's RocksDB and hundreds of times faster than SQLite. It is faster than any other alternative that I have tested so far.
-100 Million integer key-value pair inserts in 20 seconds. You may get longer durations based on the durability level. 
+100 Million integer key-value pair inserts in 20 seconds. You may get longer durations based on the durability level.
 For example, with async-compressed WAL mode, you can insert 100M integer key-value pairs in 28 seconds. Background merge operation that might take a bit longer is excluded from the insert duration because your inserted data is immediately queryable.
 Loading 100M integer key-value pair database is in 812 ms. The iteration on 100M key-value pairs takes 24 seconds.
 There are so many tuning options wait you to discover.
 
-
 ## [INTRODUCTION](https://tenray.io/docs/ZoneTree/guide/introduction.html)
+
 ## [QUICK START GUIDE](https://tenray.io/docs/ZoneTree/guide/quick-start.html)
+
 ## [API DOCS](https://tenray.io/docs/ZoneTree/api/Tenray.ZoneTree.html)
+
 ## [TUNING ZONETREE](https://tenray.io/docs/ZoneTree/guide/tuning-disk-segment.html)
+
 ## [FEATURES](https://tenray.io/docs/ZoneTree/guide/features.html)
+
 ## [TERMINOLOGY](https://tenray.io/docs/ZoneTree/guide/terminology.html)
+
 ## [PERFORMANCE](https://tenray.io/docs/ZoneTree/guide/performance.html)
 
 ## Why ZoneTree?
+
 1. It is pure C#.
 2. It is fast. See benchmark below.
 3. Your data is protected against crashes / power cuts (optional).
@@ -33,6 +43,7 @@ There are so many tuning options wait you to discover.
 6. You can create scalable and non-scalable databases using ZoneTree as core database engine.
 
 ## How fast is it?
+
 It is possible with ZoneTree to insert 100 Million integer key-value pairs in 20 seconds using WAL mode = NONE.
 
 Benchmark for all modes: [benchmark](https://raw.githubusercontent.com/koculu/ZoneTree/main/src/Playground/BenchmarkForAllModes.txt)
@@ -53,6 +64,7 @@ Benchmark for all modes: [benchmark](https://raw.githubusercontent.com/koculu/Zo
 |                                       |
 
 Benchmark Configuration:
+
 ```c#
 DiskCompressionBlockSize = 1024 * 1024 * 10;
 WALCompressionBlockSize = 1024 * 32 * 8;
@@ -67,21 +79,22 @@ Tested up to 1 billion records in desktop computers till now.
 
 ### ZoneTree offers 4 WAL modes to let you make a flexible tradeoff.
 
-* The sync mode provides maximum durability but slower write speed.
- In case of a crash/power cut, the sync mode ensures that the inserted data is not lost.
+- The sync mode provides maximum durability but slower write speed.
+  In case of a crash/power cut, the sync mode ensures that the inserted data is not lost.
 
-* The sync-compressed mode provides faster write speed but less durability.
+- The sync-compressed mode provides faster write speed but less durability.
   Compression requires chunks to be filled before appending them into the WAL file.
   It is possible to enable a periodic job to persist decompressed tail records into a separate location in a specified interval.
   See IWriteAheadLogProvider options for more details.
 
-* The async-compressed mode provides faster write speed but less durability.
+- The async-compressed mode provides faster write speed but less durability.
   Log entries are queued to be written in a separate thread.
   async-compressed mode uses compression in WAL files and provides immediate tail record persistence.
 
-* None WAL mode disables WAL completely to get maximum performance. Data still can be saved to disk by tree maintainer automatically or manually.
+- None WAL mode disables WAL completely to get maximum performance. Data still can be saved to disk by tree maintainer automatically or manually.
 
 ### Environment:
+
 ```
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
 Intel Core i7-6850K CPU 3.60GHz (Skylake), 1 CPU, 12 logical and 6 physical cores
@@ -101,6 +114,7 @@ zoneTree.Upsert(39, "Hello Zone Tree");
 ```
 
 The following sample demonstrates creating a database.
+
 ```c#
   var dataPath = "data/mydatabase";
   using var zoneTree = new ZoneTreeFactory<int, string>()
@@ -109,23 +123,26 @@ The following sample demonstrates creating a database.
     .SetKeySerializer(new Int32Serializer())
     .SetValueSerializer(new Utf8StringSerializer())
     .OpenOrCreate();
-    
+
     // atomic (thread-safe) on single mutable-segment.
     zoneTree.Upsert(39, "Hello Zone Tree!");
-    
+
     // atomic across all segments
-    zoneTree.TryAtomicAddOrUpdate(39, "a", 
-        bool (ref string x) => 
+    zoneTree.TryAtomicAddOrUpdate(39, "a",
+        bool (ref string x) =>
         {
             x += "b";
             return true;
         });
 ```
+
 ## How to maintain LSM Tree?
+
 Big LSM Trees require maintenance tasks. ZoneTree provides the IZoneTreeMaintenance interface to give you full power on maintenance tasks.
 It also comes with a default maintainer to let you focus on your business logic without wasting time with LSM details.
 You can start using the default maintainer like in the following sample code.
 Note: For small data you don't need a maintainer.
+
 ```c#
   var dataPath = "data/mydatabase";
 
@@ -136,7 +153,7 @@ Note: For small data you don't need a maintainer.
     .SetKeySerializer(new Int32Serializer())
     .SetValueSerializer(new Utf8StringSerializer())
     .OpenOrCreate();
- 
+
   using var maintainer = zoneTree.CreateMaintainer();
   maintainer.EnableJobForCleaningInactiveCaches = true;
 
@@ -148,43 +165,57 @@ Note: For small data you don't need a maintainer.
 ```
 
 ## How to delete keys?
-In LSM trees, the deletions are handled by upserting key/value with deleted flag.
-Later on, during the compaction stage, the actual deletion happens.
-ZoneTree does not implement this flag format by default. It lets the user to define the suitable deletion flag themselves.
-For example, the deletion flag might be defined by user as -1 for int values.
-If user wants to use any int value as a valid record, then the value-type should be changed.
-For example, one can define the following struct and use this type as a value-type.
+
+In Log-Structured Merge (LSM) trees, deletions are managed by upserting a key/value pair with a deletion marker. The actual removal of the data occurs during the compaction stage. In ZoneTree, by default, the system assumes that the default values indicate deletion. However, you can customize this behavior by defining a specific deletion flag, such as using -1 for integer values or completely disable deletion by calling DisableDeletion method.
+
+### Custom Deletion Flag
+
+If you need more control over how deletions are handled, you can define a custom structure to represent your values and their deletion status. For example:
+
 ```c#
 [StructLayout(LayoutKind.Sequential)]
 struct MyDeletableValueType {
-   int Number; 
-   bool IsDeleted; 
+   int Number;
+   bool IsDeleted;
 }
 ```
-You can micro-manage the tree size with ZoneTree.
-The following sample shows how to configure the deletion markers for your database.
+
+This struct allows you to include a boolean flag indicating whether a value is deleted. You can then use this custom type as the value type in your ZoneTree.
+
+### Configuring Deletion Markers
+
+ZoneTree provides flexibility in managing the tree size by allowing you to configure how deletion markers are set and identified. Below are examples of how you can configure these markers for your database:
+
+#### Example 1: Using an Integer Deletion Flag
+
+In this example, -1 is used as the deletion marker for integer values:
+
 ```c#
 using var zoneTree = new ZoneTreeFactory<int, int>()
   // Additional stuff goes here
   .SetIsValueDeletedDelegate((in int x) => x == -1)
   .SetMarkValueDeletedDelegate((ref int x) => x = -1)
-  .OpenOrCreate();  
+  .OpenOrCreate();
 ```
-or
+
+#### Example 2: Using a Custom Struct for Deletion
+
+Alternatively, if you're using a custom struct to manage deletions, you can configure ZoneTree to recognize and mark deletions as follows:
+
 ```c#
 using var zoneTree = new ZoneTreeFactory<int, MyDeletableValueType>()
   // Additional stuff goes here
   .SetIsValueDeletedDelegate((in MyDeletableValueType x) => x.IsDeleted)
   .SetMarkValueDeletedDelegate((ref MyDeletableValueType x) => x.IsDeleted = true)
-  .OpenOrCreate();  
+  .OpenOrCreate();
 ```
-If you forget to provide the deletion marker delegates, you can never delete the record from your database.
 
 ## How to iterate over data?
 
 Iteration is possible in both directions, forward and backward.
 Unlike other LSM tree implementations, iteration performance is equal in both directions.
 The following sample shows how to do the iteration.
+
 ```c#
  using var zoneTree = new ZoneTreeFactory<int, int>()
     // Additional stuff goes here
@@ -193,8 +224,8 @@ The following sample shows how to do the iteration.
  while(iterator.Next()) {
     var key = iterator.CurrentKey;
     var value = iterator.CurrentValue;
- } 
- 
+ }
+
  using var reverseIterator = zoneTree.CreateReverseIterator();
  while(reverseIterator.Next()) {
     var key = reverseIterator.CurrentKey;
@@ -206,26 +237,28 @@ The following sample shows how to do the iteration.
 
 ZoneTreeIterator provides Seek() method to jump into any record with in O(log(n)) complexity.
 That is useful for doing prefix search with forward-iterator or with backward-iterator.
+
 ```c#
  using var zoneTree = new ZoneTreeFactory<string, int>()
     // Additional stuff goes here
     .OpenOrCreate();
  using var iterator = zoneTree.CreateIterator();
- // iterator jumps into the first record starting with "SomePrefix" in O(log(n)) complexity. 
+ // iterator jumps into the first record starting with "SomePrefix" in O(log(n)) complexity.
  iterator.Seek("SomePrefix");
- 
+
  //iterator.Next() complexity is O(1)
  while(iterator.Next()) {
     var key = iterator.CurrentKey;
     var value = iterator.CurrentValue;
- } 
+ }
 ```
 
-
 ## Transaction Support
+
 ZoneTree supports Optimistic Transactions. It is proud to announce that the ZoneTree is ACID-compliant. Of course, you can use non-transactional API for the scenarios where eventual consistency is sufficient.
 
 ZoneTree supports 3 way of doing transactions.
+
 1. Fluent Transactions with ready to use retry capability.
 2. Classical Transaction API.
 3. Exceptionless Transaction API.
@@ -254,11 +287,12 @@ using var transaction =
 ```
 
 The following sample shows traditional way of doing transactions with ZoneTree.
+
 ```c#
  using var zoneTree = new ZoneTreeFactory<int, int>()
     // Additional stuff goes here
     .OpenOrCreateTransactional();
- try 
+ try
  {
      var txId = zoneTree.BeginTransaction();
      zoneTree.TryGet(txId, 3, out var value);
@@ -277,6 +311,7 @@ The following sample shows traditional way of doing transactions with ZoneTree.
 ```
 
 ## Features
+
 | ZoneTree Features                                                                             |
 | --------------------------------------------------------------------------------------------- |
 | Works with .NET primitives, structs and classes.                                              |
@@ -318,12 +353,15 @@ The following sample shows traditional way of doing transactions with ZoneTree.
 | Snapshot iterators.                                                                           |
 
 ## I want to contribute. What can I do?
+
 I appreciate any contribution to the project.
 These are the things I do think we need at the moment:
+
 1. Write tests / benchmarks.
 2. Write documentation.
 3. Feature requests & bug fixes.
 4. Performance improvements.
 
 ## Contributing
+
 This project welcomes contributions and suggestions. Please follow [CONTRIBUTING.md](.github/CONTRIBUTING.md) instructions.

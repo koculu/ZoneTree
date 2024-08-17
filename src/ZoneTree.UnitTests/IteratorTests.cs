@@ -245,7 +245,7 @@ public sealed class IteratorTests
         var iteratorCount = 1000;
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetMutableSegmentMaxItemCount(insertCount * 2)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -294,7 +294,7 @@ public sealed class IteratorTests
         var iteratorCount = 1000;
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetMutableSegmentMaxItemCount(insertCount * 2)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -357,7 +357,7 @@ public sealed class IteratorTests
         var iteratorCount = 1000;
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetMutableSegmentMaxItemCount(insertCount * 2)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -400,7 +400,7 @@ public sealed class IteratorTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<string, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .OpenOrCreate();
@@ -442,7 +442,7 @@ public sealed class IteratorTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<string, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .OpenOrCreate();
@@ -491,7 +491,7 @@ public sealed class IteratorTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<string, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetComparer(new StringCurrentCultureComparerAscending())
@@ -566,7 +566,7 @@ public sealed class IteratorTests
             Directory.Delete(dataPath, true);
 
         var zoneTree = new ZoneTreeFactory<string, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetComparer(new StringCurrentCultureComparerAscending())
@@ -589,7 +589,7 @@ public sealed class IteratorTests
 
         zoneTree.Dispose();
         zoneTree = new ZoneTreeFactory<string, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetComparer(new StringCurrentCultureComparerAscending())

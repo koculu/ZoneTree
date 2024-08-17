@@ -5,6 +5,7 @@ using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Segments.RandomAccess;
+using Tenray.ZoneTree.PresetTypes;
 
 namespace Tenray.ZoneTree.Options;
 
@@ -30,14 +31,6 @@ public delegate void MarkValueDeletedDelegate<TValue>(ref TValue value);
 /// <typeparam name="TValue">The value type</typeparam>
 public sealed class ZoneTreeOptions<TKey, TValue>
 {
-    static bool DefaultIsValueDeleted(in TValue _) => false;
-
-    static void DefaultMarkValueDeleted(ref TValue value) { value = default; }
-
-    static bool ReferenceTypeIsValueDeleted(in TValue value) => object.ReferenceEquals(value, default(TValue));
-
-    static void ReferenceTypeMarkValueDeleted(ref TValue value) { value = default; }
-
     /// <summary>
     /// Mutable segment maximumum key-value pair count.
     /// When the maximum count is reached 
@@ -71,12 +64,12 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     /// <summary>
     /// Delegate to query value deletion state.
     /// </summary>
-    public IsValueDeletedDelegate<TValue> IsValueDeleted { get; set; } = DefaultIsValueDeleted;
+    public IsValueDeletedDelegate<TValue> IsValueDeleted { get; set; }
 
     /// <summary>
     /// Delegate to mark value deleted.
     /// </summary>
-    public MarkValueDeletedDelegate<TValue> MarkValueDeleted { get; set; } = DefaultMarkValueDeleted;
+    public MarkValueDeletedDelegate<TValue> MarkValueDeleted { get; set; }
 
     /// <summary>
     /// Write Ahead Log Options. The options are used
@@ -150,39 +143,6 @@ public sealed class ZoneTreeOptions<TKey, TValue>
             return false;
         }
 
-        switch (DeleteValueConfigurationValidation)
-        {
-            case DeleteValueConfigurationValidation.Required:
-                {
-                    if (IsValueDeleted == DefaultIsValueDeleted)
-                    {
-                        exception = new MissingOptionException(nameof(IsValueDeleted));
-                        return false;
-                    }
-
-                    if (MarkValueDeleted == DefaultMarkValueDeleted)
-                    {
-                        exception = new MissingOptionException(nameof(MarkValueDeleted));
-                        return false;
-                    }
-                }
-                break;
-            case DeleteValueConfigurationValidation.Warning:
-                {
-                    if (IsValueDeleted == DefaultIsValueDeleted)
-                    {
-                        Logger.LogWarning(new MissingOptionException(nameof(IsValueDeleted)));
-                    }
-
-                    if (MarkValueDeleted == DefaultMarkValueDeleted)
-                    {
-                        Logger.LogWarning(new MissingOptionException(nameof(MarkValueDeleted)));
-                    }
-                }
-                break;
-            default: break;
-        }
-
         exception = ValidateCompressionLevel(
             "disk segment",
             DiskSegmentOptions.CompressionMethod,
@@ -251,12 +211,6 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     public IRandomAccessDeviceManager RandomAccessDeviceManager { get; set; }
 
     /// <summary>
-    /// Defines the validation behavior 
-    /// of not providing the delete value delegates.
-    /// </summary>
-    public DeleteValueConfigurationValidation DeleteValueConfigurationValidation { get; set; }
-
-    /// <summary>
     /// If the ZoneTree contains only a single segment (which is the mutable segment),
     /// there is an opportunity to perform a hard delete of the soft deleted values.
     /// If enabled, the tree performs garbage collection on load if it is applicable.
@@ -264,22 +218,14 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     public bool EnableSingleSegmentGarbageCollection { get; set; }
 
     /// <summary>
-    /// Creates default delete delegates for nullable types.
+    /// Creates default delete delegates for nullable types if they are not already set.
     /// </summary>
     public void CreateDefaultDeleteDelegates()
     {
-        if (!IsAssignableToNull(typeof(TValue)))
-            return;
-
-        if (MarkValueDeleted == DefaultMarkValueDeleted)
-        {
-            MarkValueDeleted = ReferenceTypeMarkValueDeleted;
-        }
-
-        if (IsValueDeleted == DefaultIsValueDeleted)
-        {
-            IsValueDeleted = ReferenceTypeIsValueDeleted;
-        }
+        if (IsValueDeleted == null)
+            IsValueDeleted = ComponentsForKnownTypes.GetIsValueDeleted<TValue>();
+        if (MarkValueDeleted == null)
+            MarkValueDeleted = ComponentsForKnownTypes.GetMarkValueDeleted<TValue>();
     }
 
     static bool IsAssignableToNull(Type type)
@@ -290,5 +236,15 @@ public sealed class ZoneTreeOptions<TKey, TValue>
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Disables deletion to be able to insert default values of the value type.
+    /// Databases created with this option are not able to delete records.
+    /// </summary>
+    public void DisableDeletion()
+    {
+        IsValueDeleted = (in TValue _) => false;
+        MarkValueDeleted = (ref TValue _) => { };
     }
 }

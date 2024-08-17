@@ -17,7 +17,7 @@ public sealed class ExceptionlessTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .OpenOrCreateTransactional();
@@ -64,7 +64,7 @@ public sealed class ExceptionlessTransactionTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogOptions(x =>
