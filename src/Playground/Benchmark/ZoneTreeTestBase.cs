@@ -32,7 +32,7 @@ public class ZoneTreeTestBase<TKey, TValue>
     protected ZoneTreeFactory<TKey, TValue> GetFactory()
     {
         return new ZoneTreeFactory<TKey, TValue>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
             .SetDiskSegmentMaxItemCount(TestConfig.DiskSegmentMaxItemCount)
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)

@@ -81,12 +81,11 @@ zoneTree.Maintenance.StartMergeOperation()?.Join();
 ```
 
 ## How to delete keys?
-In LSM trees, the deletions are handled by upserting key/value with deleted flag.
-Later on, during the compaction stage, the actual deletion happens.
-ZoneTree does not implement this flag format by default. It lets the user to define the suitable deletion flag themselves.
-For example, the deletion flag might be defined by user as -1 for int values.
-If user wants to use any int value as a valid record, then the value-type should be changed.
-For example, one can define the following struct and use this type as a value-type.
+In Log-Structured Merge (LSM) trees, deletions are managed by upserting a key/value pair with a deletion marker. The actual removal of the data occurs during the compaction stage. In ZoneTree, by default, the system assumes that the default values indicate deletion. However, you can customize this behavior by defining a specific deletion flag, such as using -1 for integer values or completely disable deletion by calling DisableDeletion method.
+
+### Custom Deletion Flag
+If you need more control over how deletions are handled, you can define a custom structure to represent your values and their deletion status. For example:
+
 ```c#
 [StructLayout(LayoutKind.Sequential)]
 struct MyDeletableValueType {
@@ -94,8 +93,15 @@ struct MyDeletableValueType {
    bool IsDeleted; 
 }
 ```
-You can micro-manage the tree size with ZoneTree.
-The following sample shows how to configure the deletion markers for your database.
+
+This struct allows you to include a boolean flag indicating whether a value is deleted. You can then use this custom type as the value type in your ZoneTree.
+
+### Configuring Deletion Markers
+ZoneTree provides flexibility in managing the tree size by allowing you to configure how deletion markers are set and identified. Below are examples of how you can configure these markers for your database:
+
+#### Example 1: Using an Integer Deletion Flag
+In this example, -1 is used as the deletion marker for integer values:
+
 ```c#
 using var zoneTree = new ZoneTreeFactory<int, int>()
   // Additional stuff goes here
@@ -103,7 +109,10 @@ using var zoneTree = new ZoneTreeFactory<int, int>()
   .SetMarkValueDeletedDelegate((ref int x) => x = -1)
   .OpenOrCreate();  
 ```
-or
+
+#### Example 2: Using a Custom Struct for Deletion
+Alternatively, if you're using a custom struct to manage deletions, you can configure ZoneTree to recognize and mark deletions as follows:
+
 ```c#
 using var zoneTree = new ZoneTreeFactory<int, MyDeletableValueType>()
   // Additional stuff goes here
@@ -111,9 +120,8 @@ using var zoneTree = new ZoneTreeFactory<int, MyDeletableValueType>()
   .SetMarkValueDeletedDelegate((ref MyDeletableValueType x) => x.IsDeleted = true)
   .OpenOrCreate();  
 ```
-If you forget to provide the deletion marker delegates, you can never delete the record from your database.
 
-You can use built in generic [Deletable&lt;TValue&gt;](/docs/ZoneTree/api/Tenray.ZoneTree.PresetTypes.Deletable-1.html) for deletion.
+You can also use built in generic [Deletable&lt;TValue&gt;](/docs/ZoneTree/api/Tenray.ZoneTree.PresetTypes.Deletable-1.html) for deletion.
 
 ## How to iterate over data?
 

@@ -12,7 +12,7 @@ public sealed class FixedSizeKeyAndValueTests
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         using var data = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -243,7 +243,7 @@ public sealed class FixedSizeKeyAndValueTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<string, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetMutableSegmentMaxItemCount(5)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)

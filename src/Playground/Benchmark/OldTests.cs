@@ -268,7 +268,7 @@ public sealed class OldTests
     private static IZoneTree<int, int> OpenOrCreateZoneTree(WriteAheadLogMode mode, string dataPath)
     {
         return new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetMutableSegmentMaxItemCount(TestConfig.MutableSegmentMaxItemCount)
             .SetDiskSegmentCompressionBlockSize(TestConfig.DiskCompressionBlockSize)
             .SetDataDirectory(dataPath)

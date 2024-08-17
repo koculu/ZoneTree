@@ -9,6 +9,7 @@ using Tenray.ZoneTree.Serializers;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Segments.RandomAccess;
+using Tenray.ZoneTree.PresetTypes;
 
 namespace Tenray.ZoneTree;
 
@@ -148,19 +149,6 @@ public sealed class ZoneTreeFactory<TKey, TValue>
     public ZoneTreeFactory<TKey, TValue> SetOptions(ZoneTreeOptions<TKey, TValue> options)
     {
         Options = options;
-        return this;
-    }
-
-    /// <summary>
-    /// Disables the delete value configuration validation.
-    /// </summary>
-    /// <param name="keepWarning">If true, validation logs a warning when value deletion is not configured.</param>
-    /// <returns>ZoneTree Factory</returns>
-    public ZoneTreeFactory<TKey, TValue> DisableDeleteValueConfigurationValidation(bool keepWarning = true)
-    {
-        Options.DeleteValueConfigurationValidation = keepWarning ?
-            DeleteValueConfigurationValidation.Warning :
-            DeleteValueConfigurationValidation.NotRequired;
         return this;
     }
 
@@ -355,105 +343,21 @@ public sealed class ZoneTreeFactory<TKey, TValue>
     {
         if (Options.Comparer != null)
             return;
-        TKey key = default;
-        Options.Comparer = key switch
-        {
-            byte => new ByteComparerAscending() as IRefComparer<TKey>,
-            char => new CharComparerAscending() as IRefComparer<TKey>,
-            DateTime => new DateTimeComparerAscending() as IRefComparer<TKey>,
-            decimal => new DecimalComparerAscending() as IRefComparer<TKey>,
-            double => new DoubleComparerAscending() as IRefComparer<TKey>,
-            short => new Int16ComparerAscending() as IRefComparer<TKey>,
-            ushort => new UInt16ComparerAscending() as IRefComparer<TKey>,
-            int => new Int32ComparerAscending() as IRefComparer<TKey>,
-            uint => new UInt32ComparerAscending() as IRefComparer<TKey>,
-            long => new Int64ComparerAscending() as IRefComparer<TKey>,
-            ulong => new UInt64ComparerAscending() as IRefComparer<TKey>,
-            Guid => new GuidComparerAscending() as IRefComparer<TKey>,
-            _ => null
-        };
-        if (typeof(TKey) == typeof(string))
-            Options.Comparer =
-                new StringOrdinalComparerAscending() as IRefComparer<TKey>;
-
-        else if (typeof(TKey) == typeof(Memory<byte>))
-            Options.Comparer =
-                new ByteArrayComparerAscending() as IRefComparer<TKey>;
+        Options.Comparer = ComponentsForKnownTypes.GetComparer<TKey>();
     }
 
     void FillKeySerializer()
     {
         if (Options.KeySerializer != null)
             return;
-        TKey key = default;
-        Options.KeySerializer = key switch
-        {
-            byte => new ByteSerializer() as ISerializer<TKey>,
-            char => new CharSerializer() as ISerializer<TKey>,
-            DateTime => new DateTimeSerializer() as ISerializer<TKey>,
-            decimal => new DecimalSerializer() as ISerializer<TKey>,
-            double => new DoubleSerializer() as ISerializer<TKey>,
-            short => new Int16Serializer() as ISerializer<TKey>,
-            ushort => new UInt16Serializer() as ISerializer<TKey>,
-            int => new Int32Serializer() as ISerializer<TKey>,
-            uint => new UInt32Serializer() as ISerializer<TKey>,
-            long => new Int64Serializer() as ISerializer<TKey>,
-            ulong => new UInt64Serializer() as ISerializer<TKey>,
-            Guid => new StructSerializer<Guid>() as ISerializer<TKey>,
-            _ => null
-        };
-
-        if (typeof(TKey) == typeof(string))
-            Options.KeySerializer =
-                new Utf8StringSerializer() as ISerializer<TKey>;
-        else if (typeof(TKey) == typeof(Memory<byte>))
-        {
-            Options.KeySerializer =
-                new ByteArraySerializer() as ISerializer<TKey>;
-        }
-        else if (typeof(TKey) == typeof(byte[]))
-        {
-            throw new ZoneTreeException("ZoneTree<byte[], ...> is not supported. Use ZoneTree<Memory<byte>, ...> instead.");
-        }
+        Options.KeySerializer = ComponentsForKnownTypes.GetSerializer<TKey>();
     }
 
     void FillValueSerializer()
     {
         if (Options.ValueSerializer != null)
             return;
-        TValue value = default;
-        Options.ValueSerializer = value switch
-        {
-            byte => new ByteSerializer() as ISerializer<TValue>,
-            bool => new BooleanSerializer() as ISerializer<TValue>,
-            char => new CharSerializer() as ISerializer<TValue>,
-            DateTime => new DateTimeSerializer() as ISerializer<TValue>,
-            decimal => new DecimalSerializer() as ISerializer<TValue>,
-            double => new DoubleSerializer() as ISerializer<TValue>,
-            short => new Int16Serializer() as ISerializer<TValue>,
-            ushort => new UInt16Serializer() as ISerializer<TValue>,
-            int => new Int32Serializer() as ISerializer<TValue>,
-            uint => new UInt32Serializer() as ISerializer<TValue>,
-            long => new Int64Serializer() as ISerializer<TValue>,
-            ulong => new UInt64Serializer() as ISerializer<TValue>,
-            Guid => new StructSerializer<Guid>() as ISerializer<TValue>,
-            _ => null
-        };
-
-        if (typeof(TValue) == typeof(string))
-            Options.ValueSerializer =
-                new Utf8StringSerializer() as ISerializer<TValue>;
-
-        else if (typeof(TValue) == typeof(Memory<byte>))
-        {
-            Options.ValueSerializer =
-                new ByteArraySerializer() as ISerializer<TValue>;
-        }
-        else if (typeof(TValue) == typeof(byte[]))
-        {
-            throw new ZoneTreeException("ZoneTree<..., byte[]> is not supported. Use ZoneTree<..., Memory<byte>> instead.");
-        }
-
+        Options.ValueSerializer = ComponentsForKnownTypes.GetSerializer<TValue>();
     }
 
     /// <summary>
@@ -537,5 +441,16 @@ public sealed class ZoneTreeFactory<TKey, TValue>
         var zoneTree = Open();
         InitTransactionLog();
         return new OptimisticZoneTree<TKey, TValue>(Options, TransactionLog, zoneTree);
+    }
+
+    /// <summary>
+    /// Disables deletion to be able to insert default values of the value type.
+    /// Databases created with this option are not able to delete records.
+    /// </summary>
+    /// <returns>ZoneTree Factory</returns>
+    public ZoneTreeFactory<TKey, TValue> DisableDeletion()
+    {
+        Options.DisableDeletion();
+        return this;
     }
 }

@@ -16,7 +16,7 @@ public sealed class AtomicUpdateTests
             Directory.Delete(dataPath, true);
         var counterKey = -3999;
         using var data = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetComparer(new Int32ComparerDescending())
             .SetMutableSegmentMaxItemCount(500)
             .SetDataDirectory(dataPath)
@@ -87,7 +87,7 @@ public sealed class AtomicUpdateTests
             Directory.Delete(dataPath, true);
 
         using var data = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -153,7 +153,7 @@ public sealed class AtomicUpdateTests
             Directory.Delete(dataPath, true);
         var counterKey = -3999;
         using var data = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -218,7 +218,7 @@ public sealed class AtomicUpdateTests
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
         using var data = new ZoneTreeFactory<int, int>()
-            .DisableDeleteValueConfigurationValidation(false)
+            .DisableDeletion()
             .SetComparer(new Int32ComparerDescending())
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
