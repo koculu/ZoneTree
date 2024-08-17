@@ -231,6 +231,9 @@ public sealed class ZoneTreeLoader<TKey, TValue>
         var bs = ZoneTreeMeta.BottomSegments;
         maximumId = bs.Count > 0 ? bs.Max() : 0;
         SetMaximumSegmentId(maximumId);
+        if (maximumId > 0)
+            SetMaximumSegmentId(MultiPartDiskSegment<TKey, TValue>
+                .ReadMaximumSegmentId(maximumId, Options.RandomAccessDeviceManager));
     }
 
     public ZoneTree<TKey, TValue> LoadZoneTree()
