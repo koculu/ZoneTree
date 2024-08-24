@@ -52,7 +52,7 @@ public sealed class ExceptionlessTransactionTests
 
         Assert.Throws<TransactionAlreadyCommittedException>(() => zoneTree.CommitNoThrow(tx1));
 
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [TestCase(0)]
@@ -106,6 +106,6 @@ public sealed class ExceptionlessTransactionTests
                 Console.WriteLine("pending:" + transaction.TotalPendingTransactionsRetried);
         });
 
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 }

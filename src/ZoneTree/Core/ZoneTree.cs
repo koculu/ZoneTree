@@ -185,11 +185,11 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     {
         if (MutableSegment != null)
             ZoneTreeMeta.MutableSegment = MutableSegment.SegmentId;
-        ZoneTreeMeta.ComparerType = Options.Comparer.GetType().FullName;
-        ZoneTreeMeta.KeyType = typeof(TKey).FullName;
-        ZoneTreeMeta.ValueType = typeof(TValue).FullName;
-        ZoneTreeMeta.KeySerializerType = Options.KeySerializer.GetType().FullName;
-        ZoneTreeMeta.ValueSerializerType = Options.ValueSerializer.GetType().FullName;
+        ZoneTreeMeta.ComparerType = Options.Comparer.GetType().SimplifiedFullName();
+        ZoneTreeMeta.KeyType = typeof(TKey).SimplifiedFullName();
+        ZoneTreeMeta.ValueType = typeof(TValue).SimplifiedFullName();
+        ZoneTreeMeta.KeySerializerType = Options.KeySerializer.GetType().SimplifiedFullName();
+        ZoneTreeMeta.ValueSerializerType = Options.ValueSerializer.GetType().SimplifiedFullName();
         ZoneTreeMeta.DiskSegment = DiskSegment.SegmentId;
         ZoneTreeMeta.ReadOnlySegments = ReadOnlySegmentQueue.Select(x => x.SegmentId).ToArray();
         ZoneTreeMeta.BottomSegments = BottomSegmentQueue.Select(x => x.SegmentId).ToArray();
@@ -264,7 +264,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             bs.ReleaseResources();
     }
 
-    public void DestroyTree()
+    public void Drop()
     {
         MetaWal.Dispose();
         MutableSegment.Drop();

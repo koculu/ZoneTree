@@ -75,7 +75,7 @@ public sealed class IteratorTests
         zoneTree.Maintenance.SaveMetaData();
         iterator.Dispose();
         reverseIterator.Dispose();
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [Test]
@@ -166,7 +166,7 @@ public sealed class IteratorTests
         zoneTree.Maintenance.SaveMetaData();
         iterator.Dispose();
         reverseIterator.Dispose();
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [Test]
@@ -230,7 +230,7 @@ public sealed class IteratorTests
         Assert.That(zoneTree.Count(), Is.EqualTo(b / 2 - 2));
         zoneTree.Maintenance.SaveMetaData();
         iterator.Dispose();
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [Test]
@@ -278,7 +278,7 @@ public sealed class IteratorTests
         });
 
         task.Wait();
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [TestCase(true)]
@@ -342,7 +342,7 @@ public sealed class IteratorTests
         });
 
         task.Wait();
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [Test]
@@ -389,7 +389,7 @@ public sealed class IteratorTests
         });
 
         task.Wait();
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [Test]
@@ -431,7 +431,7 @@ public sealed class IteratorTests
 
         Assert.That(reverseIterator.Next(), Is.False);
         Assert.That(zoneTree.Count(), Is.EqualTo(b - a + 1));
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [Test]
@@ -473,7 +473,7 @@ public sealed class IteratorTests
 
         Assert.That(iterator.Next(), Is.False);
         Assert.That(zoneTree.Count(), Is.EqualTo(b - a + 1));
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [TestCase(true, DiskSegmentMode.SingleDiskSegment, 0, 0)]
@@ -516,7 +516,7 @@ public sealed class IteratorTests
         DoPrefixSearch(zoneTree, list, random);
         zoneTree.Maintenance.DiskSegment.InitSparseArray(100);
         DoPrefixSearch(zoneTree, list, random);
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     static List<Tuple<string, int>> PrepareData1(IZoneTree<string, int> zoneTree, int n)

@@ -42,7 +42,7 @@ public interface ITransactionalZoneTreeMaintenance<TKey, TValue>
     /// Removes the transactional tree from the universe.
     /// Destroys the tree, transaction logs, entire data and WAL store or folder.
     /// </summary>
-    void DestroyTree();
+    void Drop();
 
     /// <summary>
     /// Rollbacks all uncommitted transactions.

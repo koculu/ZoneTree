@@ -62,7 +62,7 @@ public sealed class CountTests
         mergeThread?.Join();
         isMergeFinished = true;
         task.Wait();
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
 
         Assert.That(failedCount, Is.EqualTo(0));
     }

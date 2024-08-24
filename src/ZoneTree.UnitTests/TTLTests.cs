@@ -46,6 +46,6 @@ public sealed class TTLTests
         Assert.That(f1, Is.True);
         Assert.That(f2, Is.False);
 
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 }

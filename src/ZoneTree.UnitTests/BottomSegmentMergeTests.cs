@@ -64,7 +64,7 @@ public sealed class BottomSegmentMergeTests
 
         lens = m.BottomSegments.Select(x => x.Length).ToArray();
         Assert.That(lens, Is.EqualTo(expected2));
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
         zoneTree.Dispose();
     }
 }

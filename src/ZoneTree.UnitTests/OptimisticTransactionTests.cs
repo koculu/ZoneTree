@@ -52,7 +52,7 @@ public sealed class OptimisticTransactionTests
 
         Assert.Throws<TransactionAlreadyCommittedException>(() => zoneTree.Commit(tx1));
 
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [TestCase(WriteAheadLogMode.Sync)]
@@ -80,7 +80,7 @@ public sealed class OptimisticTransactionTests
             zoneTree.Commit(tx);
         });
 
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [TestCase(WriteAheadLogMode.Sync)]
@@ -105,7 +105,7 @@ public sealed class OptimisticTransactionTests
             zoneTree.Upsert(-x, -x - x);
         });
 
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [TestCase(0)]
@@ -158,7 +158,7 @@ public sealed class OptimisticTransactionTests
         Assert.That(zoneTree.ReadCommittedContainsKey(7), Is.False);
         Assert.That(zoneTree.ReadCommittedTryGet(7, out var _), Is.False);
 
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [TestCase(0)]
@@ -205,7 +205,7 @@ public sealed class OptimisticTransactionTests
         Assert.That(v6, Is.EqualTo(14));
 
         zoneTree.Rollback(tx3);
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [TestCase(0)]
@@ -240,7 +240,7 @@ public sealed class OptimisticTransactionTests
         Assert.That(zoneTree.ReadCommittedTryGet(5, out var v5), Is.True);
         Assert.That(v5, Is.EqualTo(12));
 
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [TestCase(0)]
@@ -276,6 +276,6 @@ public sealed class OptimisticTransactionTests
         // tx2 depends on tx1 bcs of read of key 9. tx1 aborted and so tx2.
         Assert.That(zoneTree.PrepareAndCommitNoThrow(tx2).IsAborted, Is.True);
 
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 }

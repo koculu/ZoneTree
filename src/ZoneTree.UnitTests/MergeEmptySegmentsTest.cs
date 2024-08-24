@@ -48,7 +48,7 @@ public sealed class MergeEmptySegmentsTest
         }
 
         zoneTree.Maintenance.SaveMetaData();
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [TestCase(DiskSegmentMode.SingleDiskSegment, 33, 77)]
@@ -108,7 +108,7 @@ public sealed class MergeEmptySegmentsTest
         }
 
         zoneTree.Maintenance.SaveMetaData();
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [TestCase(DiskSegmentMode.SingleDiskSegment, 33, 77)]
@@ -173,6 +173,6 @@ public sealed class MergeEmptySegmentsTest
                 Assert.That(hasRecord, Is.False);
         }
         zoneTree.Maintenance.SaveMetaData();
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 }
