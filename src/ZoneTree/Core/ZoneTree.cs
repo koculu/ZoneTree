@@ -264,7 +264,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             bs.ReleaseResources();
     }
 
-    public void DestroyTree()
+    public void Drop()
     {
         MetaWal.Dispose();
         MutableSegment.Drop();

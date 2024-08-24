@@ -54,7 +54,7 @@ public sealed class StringTreeTests
             Assert.That(iterator2.CurrentValue, Is.EqualTo(values[j]));
             ++j;
         }
-        zoneTree.Maintenance.DestroyTree();
+        zoneTree.Maintenance.Drop();
     }
 
     [Test]

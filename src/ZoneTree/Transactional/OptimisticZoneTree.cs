@@ -255,10 +255,10 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
             throw new TransactionAbortedException(transactionId);
     }
 
-    public void DestroyTree()
+    public void Drop()
     {
         TransactionLog.Dispose();
-        ZoneTree.Maintenance.DestroyTree();
+        ZoneTree.Maintenance.Drop();
     }
 
     public void SaveMetaData()

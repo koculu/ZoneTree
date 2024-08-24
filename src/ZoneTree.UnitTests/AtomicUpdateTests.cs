@@ -74,7 +74,7 @@ public sealed class AtomicUpdateTests
         data.Maintenance.StartMergeOperation().Join();
         data.TryGet(counterKey, out var finalValue);
         Assert.That(finalValue, Is.EqualTo(off));
-        data.Maintenance.DestroyTree();
+        data.Maintenance.Drop();
     }
 
     [TestCase(WriteAheadLogMode.Sync)]
@@ -140,7 +140,7 @@ public sealed class AtomicUpdateTests
 
         data.TryGet(3999, out var finalValue);
         Assert.That(finalValue, Is.EqualTo(off));
-        data.Maintenance.DestroyTree();
+        data.Maintenance.Drop();
     }
 
     [TestCase(WriteAheadLogMode.Sync)]
@@ -206,7 +206,7 @@ public sealed class AtomicUpdateTests
 
         data.TryGet(counterKey, out var finalValue);
         Assert.That(finalValue, Is.EqualTo(off));
-        data.Maintenance.DestroyTree();
+        data.Maintenance.Drop();
     }
 
     [TestCase(WriteAheadLogMode.Sync)]
@@ -255,6 +255,6 @@ public sealed class AtomicUpdateTests
             });
         }
 
-        data.Maintenance.DestroyTree();
+        data.Maintenance.Drop();
     }
 }

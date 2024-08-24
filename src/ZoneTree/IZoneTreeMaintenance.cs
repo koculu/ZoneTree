@@ -141,7 +141,7 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     /// <summary>
     /// Destroys the tree, deletes entire data and WAL store or folder.
     /// </summary>
-    void DestroyTree();
+    void Drop();
 
     /// <summary>
     /// Event is fired when mutable segment is moved forward.

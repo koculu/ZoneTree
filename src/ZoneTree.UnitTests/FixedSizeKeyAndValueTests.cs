@@ -31,7 +31,7 @@ public sealed class FixedSizeKeyAndValueTests
             Assert.That(v, Is.EqualTo(i + i));
             Assert.That(data.ContainsKey(i), Is.True);
         }
-        data.Maintenance.DestroyTree();
+        data.Maintenance.Drop();
     }
 
     [Test]
@@ -62,7 +62,7 @@ public sealed class FixedSizeKeyAndValueTests
             Assert.That(data.ContainsKey(i), Is.True);
         }
         Assert.That(data.TryGet(n + 1, out var _), Is.False);
-        data.Maintenance.DestroyTree();
+        data.Maintenance.Drop();
     }
 
     [Test]
@@ -266,7 +266,7 @@ public sealed class FixedSizeKeyAndValueTests
             Assert.That(data.ContainsKey(i.ToString()), Is.True);
         }
         Assert.That(data.TryGet(n + 1.ToString(), out var _), Is.False);
-        data.Maintenance.DestroyTree();
+        data.Maintenance.Drop();
     }
 
     [TestCase(true)]
@@ -301,7 +301,7 @@ public sealed class FixedSizeKeyAndValueTests
             Assert.That(data.ContainsKey(i.ToString()), Is.True);
         }
         Assert.That(data.TryGet(n + 1.ToString(), out var _), Is.False);
-        data.Maintenance.DestroyTree();
+        data.Maintenance.Drop();
     }
 
     static void ReloadIntIntTreeTestHelper(string dataPath, bool destroy)
@@ -342,7 +342,7 @@ public sealed class FixedSizeKeyAndValueTests
         }
         Assert.That(data.Count(), Is.EqualTo(n - deleted.Count));
         if (destroy)
-            data.Maintenance.DestroyTree();
+            data.Maintenance.Drop();
     }
     [Test]
     public void ReloadIntIntTreeTest()
