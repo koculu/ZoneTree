@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Text;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Options;
 using Tenray.ZoneTree.Segments;
@@ -54,30 +55,30 @@ public sealed class ZoneTreeLoader<TKey, TValue>
                 Version.Parse(version),
                 ZoneTreeInfo.ProductVersion);
 
-        if (!string.Equals(ZoneTreeMeta.KeyType, typeof(TKey).FullName, StringComparison.Ordinal))
+        if (!string.Equals(ZoneTreeMeta.KeyType, typeof(TKey).SimplifiedFullName(), StringComparison.Ordinal))
             throw new TreeKeyTypeMismatchException(
                 ZoneTreeMeta.KeyType,
-                typeof(TKey).FullName);
+                typeof(TKey).SimplifiedFullName());
 
-        if (!string.Equals(ZoneTreeMeta.ValueType, typeof(TValue).FullName, StringComparison.Ordinal))
+        if (!string.Equals(ZoneTreeMeta.ValueType, typeof(TValue).SimplifiedFullName(), StringComparison.Ordinal))
             throw new TreeValueTypeMismatchException(
                 ZoneTreeMeta.ValueType,
-                typeof(TValue).FullName);
+                typeof(TValue).SimplifiedFullName());
 
-        if (!string.Equals(ZoneTreeMeta.ComparerType, Options.Comparer.GetType().FullName, StringComparison.Ordinal))
+        if (!string.Equals(ZoneTreeMeta.ComparerType, Options.Comparer.GetType().SimplifiedFullName(), StringComparison.Ordinal))
             throw new TreeComparerMismatchException(
                 ZoneTreeMeta.ComparerType,
-                Options.Comparer.GetType().FullName);
+                Options.Comparer.GetType().SimplifiedFullName());
 
-        if (!string.Equals(ZoneTreeMeta.KeySerializerType, Options.KeySerializer.GetType().FullName, StringComparison.Ordinal))
+        if (!string.Equals(ZoneTreeMeta.KeySerializerType, Options.KeySerializer.GetType().SimplifiedFullName(), StringComparison.Ordinal))
             throw new TreeKeySerializerTypeMismatchException(
                 ZoneTreeMeta.KeySerializerType,
-                Options.KeySerializer.GetType().FullName);
+                Options.KeySerializer.GetType().SimplifiedFullName());
 
-        if (!string.Equals(ZoneTreeMeta.ValueSerializerType, Options.ValueSerializer.GetType().FullName, StringComparison.Ordinal))
+        if (!string.Equals(ZoneTreeMeta.ValueSerializerType, Options.ValueSerializer.GetType().SimplifiedFullName(), StringComparison.Ordinal))
             throw new TreeValueSerializerTypeMismatchException(
                 ZoneTreeMeta.ValueSerializerType,
-                Options.ValueSerializer.GetType().FullName);
+                Options.ValueSerializer.GetType().SimplifiedFullName());
     }
 
     void LoadZoneTreeMetaWAL()
