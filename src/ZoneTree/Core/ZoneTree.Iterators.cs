@@ -9,7 +9,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     public SegmentCollection CollectSegments(
         bool includeMutableSegment,
         bool includeDiskSegment,
-        bool includeBottomSegments)
+        bool includeBottomSegments,
+        bool contributeToTheBlockCache)
     {
         lock (ShortMergerLock)
             lock (AtomicUpdateLock)
@@ -34,7 +35,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     {
                         diskSegment.AttachIterator();
                         result.DiskSegment = diskSegment;
-                        seekableIterators.Add(diskSegment.GetSeekableIterator());
+                        seekableIterators.Add(diskSegment.GetSeekableIterator(contributeToTheBlockCache));
                     }
                 }
 
@@ -44,7 +45,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     foreach (var bottom in bottomSegments)
                     {
                         bottom.AttachIterator();
-                        seekableIterators.Add(bottom.GetSeekableIterator());
+                        seekableIterators.Add(bottom.GetSeekableIterator(contributeToTheBlockCache));
                     }
                     result.BottomSegments = bottomSegments;
                 }
@@ -62,7 +63,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     }
 
     public IZoneTreeIterator<TKey, TValue> CreateIterator(
-        IteratorType iteratorType, bool includeDeletedRecords)
+        IteratorType iteratorType, bool includeDeletedRecords, bool contributeToTheBlockCache)
     {
         var includeMutableSegment = iteratorType is not IteratorType.Snapshot and
             not IteratorType.ReadOnlyRegion;
@@ -77,6 +78,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             includeMutableSegment: includeMutableSegment,
             includeDiskSegment: true,
             includeBottomSegments: true);
+        iterator.ContributeToTheBlockCache = contributeToTheBlockCache;
 
         if (iteratorType == IteratorType.Snapshot)
         {
@@ -93,7 +95,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     }
 
     public IZoneTreeIterator<TKey, TValue> CreateReverseIterator(
-        IteratorType iteratorType, bool includeDeletedRecords)
+        IteratorType iteratorType, bool includeDeletedRecords, bool contributeToTheBlockCache)
     {
         var includeMutableSegment = iteratorType is not IteratorType.Snapshot and
             not IteratorType.ReadOnlyRegion;
@@ -108,6 +110,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             includeMutableSegment: includeMutableSegment,
             includeDiskSegment: true,
             includeBottomSegments: true);
+
+        iterator.ContributeToTheBlockCache = contributeToTheBlockCache;
 
         if (iteratorType == IteratorType.Snapshot)
         {

@@ -189,12 +189,15 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// 
     /// <param name="iteratorType">Defines iterator type.</param>
     /// <param name="includeDeletedRecords">if true the iterator retrieves 
-    /// the deleted and normal records</param>
+    /// the deleted and normal records.</param>
+    /// <param name="contributeToTheBlockCache">if true the iterator disk segment reads 
+    /// contributes to the block cache.</param>
     /// 
     /// <returns>ZoneTree Iterator</returns>
     IZoneTreeIterator<TKey, TValue> CreateIterator(
         IteratorType iteratorType = IteratorType.AutoRefresh,
-        bool includeDeletedRecords = false);
+        bool includeDeletedRecords = false,
+        bool contributeToTheBlockCache = false);
 
     /// <summary>
     /// Creates a reverse iterator that enables scanning of the entire database.
@@ -205,13 +208,17 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// Forward and backward iterator's performances are equal.
     /// </remarks>
     /// 
-    /// <param name="iteratorType">Defines iterator type.</param>/// <param name="includeDeletedRecords">if true the iterator retrieves 
-    /// the deleted and normal records</param>
+    /// <param name="iteratorType">Defines iterator type.</param>
+    /// <param name="includeDeletedRecords">if true the iterator retrieves 
+    /// the deleted and normal records.</param>
+    /// <param name="contributeToTheBlockCache">if true the iterator disk segment reads 
+    /// contributes to the block cache</param>
     /// 
     /// <returns>ZoneTree Iterator</returns>
     IZoneTreeIterator<TKey, TValue> CreateReverseIterator(
         IteratorType iteratorType = IteratorType.AutoRefresh,
-        bool includeDeletedRecords = false);
+        bool includeDeletedRecords = false,
+        bool contributeToTheBlockCache = false);
 
     /// <summary>
     /// Returns maintenance object belongs to this ZoneTree.

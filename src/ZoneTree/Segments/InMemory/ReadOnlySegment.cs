@@ -90,9 +90,9 @@ public sealed class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValu
         return this;
     }
 
-    public ISeekableIterator<TKey, TValue> GetSeekableIterator()
+    public ISeekableIterator<TKey, TValue> GetSeekableIterator(bool contributeToTheBlockCache)
     {
-        return new SeekableIterator<TKey, TValue>(this);
+        return new SeekableIterator<TKey, TValue>(this, contributeToTheBlockCache);
     }
 
     /// <summary>

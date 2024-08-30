@@ -4,6 +4,8 @@ public sealed class SingleBlockPin
 {
     public DecompressedBlock Device;
 
+    public bool ContributeToTheBlockCache;
+
     public SingleBlockPin(DecompressedBlock device)
     {
         Device = device;
