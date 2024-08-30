@@ -3,7 +3,11 @@
 public sealed class BlockPin
 {
     public DecompressedBlock Device1;
+
     public DecompressedBlock Device2;
+
+    public bool ContributeToTheBlockCache;
+
     public BlockPin(DecompressedBlock device1 = null, DecompressedBlock device2 = null)
     {
         Device1 = device1;
@@ -11,8 +15,14 @@ public sealed class BlockPin
     }
     public SingleBlockPin ToSingleBlockPin(int num)
     {
-        if (num == 1) return new SingleBlockPin(Device1);
-        if (num == 2) return new SingleBlockPin(Device2);
+        if (num == 1) return new SingleBlockPin(Device1)
+        {
+            ContributeToTheBlockCache = ContributeToTheBlockCache
+        };
+        if (num == 2) return new SingleBlockPin(Device2)
+        {
+            ContributeToTheBlockCache = ContributeToTheBlockCache
+        };
         throw new ArgumentException("Supported device numbers are 1 and 2 but given " + num);
     }
 

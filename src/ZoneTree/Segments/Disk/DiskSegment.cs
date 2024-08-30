@@ -371,9 +371,9 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         }
     }
 
-    public ISeekableIterator<TKey, TValue> GetSeekableIterator()
+    public ISeekableIterator<TKey, TValue> GetSeekableIterator(bool contributeToTheBlockCache)
     {
-        return new SeekableIterator<TKey, TValue>(this);
+        return new SeekableIterator<TKey, TValue>(this, contributeToTheBlockCache);
     }
 
     public long GetLastSmallerOrEqualPosition(in TKey key)

@@ -105,7 +105,7 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
         return -1;
     }
 
-    public ISeekableIterator<TKey, TValue> GetSeekableIterator()
+    public ISeekableIterator<TKey, TValue> GetSeekableIterator(bool contributeToTheBlockCache)
     {
         return new NullDiskSegmentSeekableIterator<TKey, TValue>();
     }

@@ -20,7 +20,7 @@ public interface IReadOnlySegment<TKey, TValue>
 
     IIndexedReader<TKey, TValue> GetIndexedReader();
 
-    ISeekableIterator<TKey, TValue> GetSeekableIterator();
+    ISeekableIterator<TKey, TValue> GetSeekableIterator(bool contributeToTheBlockCache = false);
 
     /// <summary>
     /// This flag indicates that the readonly segment has completed all writes

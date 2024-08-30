@@ -327,7 +327,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     public long CountFullScan()
     {
-        using var iterator = CreateIterator(IteratorType.NoRefresh, false);
+        using var iterator = CreateIterator(IteratorType.NoRefresh, false, false);
         var count = 0;
         while (iterator.Next())
             ++count;

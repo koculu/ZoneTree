@@ -303,6 +303,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
                 if (blockPin != null)
                 {
                     blockPin.Device = decompressedBlock;
+                    if (blockPin.ContributeToTheBlockCache)
+                        BlockCache.AddBlock(decompressedBlock);
                 }
                 else
                 {

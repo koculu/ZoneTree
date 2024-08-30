@@ -72,6 +72,8 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
     public IReadOnlyList<IDiskSegment<TKey, TValue>> BottomSegments { get; private set; }
 
+    public bool ContributeToTheBlockCache { get; set; }
+
     public ZoneTreeIterator(
         ZoneTreeOptions<TKey, TValue> options,
         ZoneTree<TKey, TValue> zoneTree,
@@ -241,7 +243,8 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
             .CollectSegments(
                 IncludeMutableSegment,
                 IncludeDiskSegment,
-                IncludeBottomSegments);
+                IncludeBottomSegments,
+                ContributeToTheBlockCache);
         DiskSegment = segments.DiskSegment;
         BottomSegments = segments.BottomSegments;
         SeekableIterators = segments.SeekableIterators;

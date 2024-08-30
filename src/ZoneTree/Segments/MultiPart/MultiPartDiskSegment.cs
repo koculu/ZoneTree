@@ -453,9 +453,9 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
         return off + position;
     }
 
-    public ISeekableIterator<TKey, TValue> GetSeekableIterator()
+    public ISeekableIterator<TKey, TValue> GetSeekableIterator(bool contributeToTheBlockCache)
     {
-        return new SeekableIterator<TKey, TValue>(this);
+        return new SeekableIterator<TKey, TValue>(this, contributeToTheBlockCache);
     }
 
     public void InitSparseArray(int size)

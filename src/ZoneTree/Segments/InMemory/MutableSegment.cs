@@ -237,7 +237,7 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         throw new NotSupportedException("BTree Indexed Reader is not supported.");
     }
 
-    public ISeekableIterator<TKey, TValue> GetSeekableIterator()
+    public ISeekableIterator<TKey, TValue> GetSeekableIterator(bool contributeToTheBlockCache)
     {
         return IsFullyFrozen ?
             new FrozenBTreeSeekableIterator<TKey, TValue>(BTree) :
