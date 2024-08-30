@@ -33,8 +33,6 @@ public sealed class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TVa
     /// </summary>
     public bool IsFullyFrozen => true;
 
-    private bool ContributeToTheBlockCache = false;
-
     public SeekableIterator(IIndexedReader<TKey, TValue> indexedReader, bool contributeToTheBlockCache = false)
     {
         IndexedReader = indexedReader;
@@ -43,7 +41,7 @@ public sealed class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TVa
         // Hence it is safe to pin the length here.
         Length = indexedReader.Length;
 
-        ContributeToTheBlockCache = contributeToTheBlockCache;
+        blockPin.ContributeToTheBlockCache = contributeToTheBlockCache;
     }
 
     public bool Next()
