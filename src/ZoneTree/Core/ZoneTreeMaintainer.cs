@@ -57,10 +57,10 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
     }
 
     /// <inheritdoc/>
-    public long DiskSegmentBufferLifeTime { get; set; } = 10_000;
+    public TimeSpan BlockCacheLifeTime { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <inheritdoc/>
-    public TimeSpan InactiveBlockCacheCleanupInterval { get; set; } = TimeSpan.FromSeconds(5);
+    public TimeSpan InactiveBlockCacheCleanupInterval { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// Creates a ZoneTreeMaintainer.
@@ -261,7 +261,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
             var zoneTreeMaintenance = ZoneTree.Maintenance;
             var diskSegment = ZoneTree.Maintenance.DiskSegment;
             var now = Environment.TickCount64;
-            var ticks = now - DiskSegmentBufferLifeTime;
+            var ticks = now - (long)BlockCacheLifeTime.TotalMilliseconds;
             var releasedCount = zoneTreeMaintenance.ReleaseReadBuffers(ticks);
             var releasedCacheKeyRecordCount = zoneTreeMaintenance.ReleaseCircularKeyCacheRecords();
             var releasedCacheValueRecordCount = zoneTreeMaintenance.ReleaseCircularValueCacheRecords();
