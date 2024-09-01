@@ -1,87 +1,80 @@
 ﻿namespace Tenray.ZoneTree;
 
 /// <summary>
-/// The maintainer for ZoneTree to control 
-/// merge operations and memory compaction.
+/// Provides functionality to manage merge operations and memory compaction within the ZoneTree.
 /// </summary>
 /// <remarks>
-/// You must complete or cancel all pending threads of this maintainer
-/// before disposing.
+/// Ensure that all pending operations are either completed or cancelled before disposing of this maintainer.
 /// </remarks>
 public interface IMaintainer : IDisposable
 {
     /// <summary>
-    /// Starts merge operation when records count
-    /// in read-only segments exceeds this value.
-    /// Default value is 0.  
+    /// The threshold of record count in read-only segments that triggers the start of a merge operation.
+    /// The default value is 0.
     /// </summary>
     int ThresholdForMergeOperationStart { get; set; }
 
     /// <summary>
-    /// Starts merge operation when read-only segments
-    /// count exceeds this value.
-    /// Default value is 64.
+    /// The maximum number of read-only segments allowed before triggering a merge operation.
+    /// The default value is 64.
     /// </summary>
     int MaximumReadOnlySegmentCount { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether a periodic timer is enabled to release
-    /// unused block and key/value record caches in the disk segment. 
-    /// Changing this property will start or stop the periodic timer accordingly. 
+    /// Gets or sets a value indicating whether a periodic cleanup job is enabled to release 
+    /// unused block and key/value caches in disk segments.
+    /// Toggling this property starts or stops the associated periodic timer.
     /// The default value is <c>false</c>.
     /// </summary>
     bool EnableJobForCleaningInactiveCaches { get; set; }
 
     /// <summary>
-    /// Sets or gets Disk Segment block cache life time in milliseconds.
-    /// Default value is 10_000 milliseconds.
+    /// Gets or sets the lifespan of the disk segment block cache.
+    /// The default value is 1 minute.
     /// </summary>
-    long DiskSegmentBufferLifeTime { get; set; }
+    TimeSpan BlockCacheLifeTime { get; set; }
 
     /// <summary>
-    /// Gets or sets the interval for the periodic timer that triggers the cleanup job.
-    /// The default value is 5 seconds.
+    /// Gets or sets the interval at which the cleanup job runs to remove inactive block caches.
+    /// The default value is 30 seconds.
     /// </summary>
     TimeSpan InactiveBlockCacheCleanupInterval { get; set; }
 
     /// <summary>
-    /// Tries cancel background threads.
+    /// Attempts to cancel all background threads associated with the maintainer.
     /// </summary>
     void TryCancelBackgroundThreads();
 
     /// <summary>
-    /// Blocks the calling thread until all background threads have completed their execution.
+    /// Blocks the calling thread until all background threads have finished execution.
     /// </summary>
     void WaitForBackgroundThreads();
 
     /// <summary>
-    /// Asynchronously waits for all background threads to complete.
+    /// Asynchronously waits for the completion of all background threads.
     /// </summary>
-    /// <returns>A task that represents the asynchronous wait operation.</returns>
+    /// <returns>A task representing the asynchronous operation.</returns>
     Task WaitForBackgroundThreadsAsync();
 
     /// <summary>
-    /// Evicts all in-memory data to disk by moving the mutable segment forward and initiating a merge process.
+    /// Evicts in-memory data to disk by advancing the mutable segment and initiating a merge process.
     /// </summary>
     /// <remarks>
-    /// This method is responsible for freeing up memory in the LSM tree by moving data from the mutable in-memory segment to disk storage. 
-    /// It first advances the current mutable segment to a new state, ensuring that any data currently in memory is prepared for disk storage. 
-    /// Afterward, it starts the merging process, which combines the in-memory data with existing on-disk data to maintain the integrity 
-    /// and efficiency of the LSM tree structure.
+    /// This operation is crucial for freeing up memory by transferring data from the mutable in-memory segment 
+    /// to disk storage. It advances the current mutable segment, ensuring all in-memory data is properly prepared 
+    /// for disk storage, and then initiates the merging process to maintain the efficiency and integrity of the LSM tree.
     /// </remarks>
     void EvictToDisk();
 
     /// <summary>
-    /// Initiates the merge process in a new thread.
+    /// Starts the merge process in a new background thread.
     /// </summary>
     void StartMerge();
 
     /// <summary>
-    /// Initiates a merge of selected bottom segments into a single bottom disk segment.
+    /// Initiates a merge operation for selected bottom segments, combining them into a single bottom disk segment.
     /// </summary>
-    /// <param name="fromIndex">The lower bound</param>
-    /// <param name="toIndex">The upper bound</param>
-    /// <returns></returns>
-    void StartBottomSegmentsMerge(
-        int fromIndex = 0, int toIndex = int.MaxValue);
+    /// <param name="fromIndex">The starting index of the range of segments to merge.</param>
+    /// <param name="toIndex">The ending index of the range of segments to merge.</param>
+    void StartBottomSegmentsMerge(int fromIndex = 0, int toIndex = int.MaxValue);
 }
