@@ -401,54 +401,42 @@ public async Task<bool> ExecuteTransactionWithRetryAsync(ZoneTreeFactory<int, in
 {
     using var zoneTree = zoneTreeFactory.OpenOrCreateTransactional();
     var transactionId = zoneTree.BeginTransaction();
-    int retryCount = 0;
 
+    // Execute the operations within the transaction
+    var result = zoneTree.UpsertNoThrow(transactionId, 1, 100);
+    if (result.IsAborted)
+        return false; // Abort the transaction and return false on failure.
+
+    result = zoneTree.UpsertNoThrow(transactionId, 2, 200);
+    if (result.IsAborted)
+        return false; // Abort the transaction and return false on failure.
+
+    // Retry only the prepare step
+    int retryCount = 0;
     while (retryCount <= maxRetries)
     {
-        var result = zoneTree.UpsertNoThrow(transactionId, 1, 100);
-        if (result.IsAborted)
-        {
-            // Abort the transaction and return false on failure.
-            return false;
-        }
-
-        result = zoneTree.UpsertNoThrow(transactionId, 2, 200);
-        if (result.IsAborted)
-        {
-            // Abort the transaction and return false on failure.
-            return false;
-        }
-
         var prepareResult = zoneTree.PrepareNoThrow(transactionId);
         if (prepareResult.IsAborted)
-        {
-            // Abort the transaction and return false on failure.
-            return false;
-        }
+            return false; // Abort the transaction and return false on failure.
 
         if (prepareResult.IsPendingTransactions)
         {
-            // Optionally wait or handle pending transactions
             await Task.Delay(100); // Simple delay before retrying
             retryCount++;
-            continue; // Retry the transaction
+            continue; // Retry the prepare step
         }
 
         if (prepareResult.IsReadyToCommit)
-        {
-            var commitResult = zoneTree.CommitNoThrow(transactionId);
-            if (commitResult.IsAborted)
-            {
-                // Abort the transaction and return false on failure.
-                return false;
-            }
-            // Transaction committed successfully
-            return true;
-        }
+            break; // Exit loop if ready to commit
     }
 
-    // Return false if retries are exhausted without a successful commit.
-    return false;
+    // After successfully preparing, commit the transaction
+    var commitResult = zoneTree.CommitNoThrow(transactionId);
+    if (commitResult.IsAborted)
+        return false; // Abort the transaction and return false on failure.
+
+    // Transaction committed successfully
+    return true;
 }
 ```
 
