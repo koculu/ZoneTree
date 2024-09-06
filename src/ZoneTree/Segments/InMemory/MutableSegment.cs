@@ -118,7 +118,7 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         var distinctKeys =
             new BTree<TKey, byte>(Options.Comparer, Collections.BTree.Lock.BTreeLockMode.NoLock);
 
-        var isValueDeleted = Options.IsValueDeleted;
+        var isDeleted = Options.IsDeleted;
         for (var i = keys.Count - 1; i >= 0; --i)
         {
             var key = keys[i];
@@ -126,7 +126,7 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                 continue;
             var value = values[i];
             distinctKeys.Upsert(in key, 1, out _);
-            if (isValueDeleted(in key, in value))
+            if (isDeleted(in key, in value))
             {
                 continue;
             }

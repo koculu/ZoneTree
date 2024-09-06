@@ -105,7 +105,7 @@ In this example, -1 is used as the deletion marker for integer values:
 ```c#
 using var zoneTree = new ZoneTreeFactory<int, int>()
   // Additional stuff goes here
-  .SetIsValueDeletedDelegate((in int x) => x == -1)
+  .SetIsDeletedDelegate((in int x) => x == -1)
   .SetMarkValueDeletedDelegate((ref int x) => x = -1)
   .OpenOrCreate();  
 ```
@@ -116,7 +116,7 @@ Alternatively, if you're using a custom struct to manage deletions, you can conf
 ```c#
 using var zoneTree = new ZoneTreeFactory<int, MyDeletableValueType>()
   // Additional stuff goes here
-  .SetIsValueDeletedDelegate((in MyDeletableValueType x) => x.IsDeleted)
+  .SetIsDeletedDelegate((in MyDeletableValueType x) => x.IsDeleted)
   .SetMarkValueDeletedDelegate((ref MyDeletableValueType x) => x.IsDeleted = true)
   .OpenOrCreate();  
 ```

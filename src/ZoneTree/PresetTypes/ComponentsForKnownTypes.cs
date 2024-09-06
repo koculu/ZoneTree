@@ -94,21 +94,21 @@ public static class ComponentsForKnownTypes
     }
 
     // Specific methods for checking if certain primitive types are considered deleted
-    static bool IsValueDeletedByte<TKey>(in TKey key, in byte value) => value == default;
-    static bool IsValueDeletedChar<TKey>(in TKey key, in char value) => value == default;
-    static bool IsValueDeletedDateTime<TKey>(in TKey key, in DateTime value) => value == default;
-    static bool IsValueDeletedDecimal<TKey>(in TKey key, in decimal value) => value == default;
-    static bool IsValueDeletedDouble<TKey>(in TKey key, in double value) => value == default;
-    static bool IsValueDeletedShort<TKey>(in TKey key, in short value) => value == default;
-    static bool IsValueDeletedUShort<TKey>(in TKey key, in ushort value) => value == default;
-    static bool IsValueDeletedInt<TKey>(in TKey key, in int value) => value == default;
-    static bool IsValueDeletedUInt<TKey>(in TKey key, in uint value) => value == default;
-    static bool IsValueDeletedLong<TKey>(in TKey key, in long value) => value == default;
-    static bool IsValueDeletedULong<TKey>(in TKey key, in ulong value) => value == default;
-    static bool IsValueDeletedGuid<TKey>(in TKey key, in Guid value) => value == default;
-    static bool IsValueDeletedMemoryByte<TKey>(in TKey key, in Memory<byte> value) => value.Length == 0;
-    static bool IsValueDeletedReferenceType<TKey, TValue>(in TKey key, in TValue value) => ReferenceEquals(value, default(TValue));
-    static bool IsValueDeletedDefault<TKey, TValue>(in TKey key, in TValue value) => EqualityComparer<TValue>.Default.Equals(value, default);
+    static bool IsDeletedByte<TKey>(in TKey key, in byte value) => value == default;
+    static bool IsDeletedChar<TKey>(in TKey key, in char value) => value == default;
+    static bool IsDeletedDateTime<TKey>(in TKey key, in DateTime value) => value == default;
+    static bool IsDeletedDecimal<TKey>(in TKey key, in decimal value) => value == default;
+    static bool IsDeletedDouble<TKey>(in TKey key, in double value) => value == default;
+    static bool IsDeletedShort<TKey>(in TKey key, in short value) => value == default;
+    static bool IsDeletedUShort<TKey>(in TKey key, in ushort value) => value == default;
+    static bool IsDeletedInt<TKey>(in TKey key, in int value) => value == default;
+    static bool IsDeletedUInt<TKey>(in TKey key, in uint value) => value == default;
+    static bool IsDeletedLong<TKey>(in TKey key, in long value) => value == default;
+    static bool IsDeletedULong<TKey>(in TKey key, in ulong value) => value == default;
+    static bool IsDeletedGuid<TKey>(in TKey key, in Guid value) => value == default;
+    static bool IsDeletedMemoryByte<TKey>(in TKey key, in Memory<byte> value) => value.Length == 0;
+    static bool IsDeletedReferenceType<TKey, TValue>(in TKey key, in TValue value) => ReferenceEquals(value, default(TValue));
+    static bool IsDeletedDefault<TKey, TValue>(in TKey key, in TValue value) => EqualityComparer<TValue>.Default.Equals(value, default);
 
     static void MarkValueDeletedDefault<TValue>(ref TValue value) { value = default; }
 
@@ -118,32 +118,32 @@ public static class ComponentsForKnownTypes
     /// <typeparam name="TKey">The type of the key.</typeparam>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <returns>A delegate that checks if the value is considered deleted.</returns>
-    public static IsValueDeletedDelegate<TKey, TValue> GetIsValueDeleted<TKey, TValue>()
+    public static IsDeletedDelegate<TKey, TValue> GetIsDeleted<TKey, TValue>()
     {
-        static IsValueDeletedDelegate<TKey, TValue> Cast(object method) =>
-            (IsValueDeletedDelegate<TKey, TValue>)method;
+        static IsDeletedDelegate<TKey, TValue> Cast(object method) =>
+            (IsDeletedDelegate<TKey, TValue>)method;
         TValue value = default;
         var result = value switch
         {
-            byte => Cast(new IsValueDeletedDelegate<TKey, byte>(IsValueDeletedByte)),
-            char => Cast(new IsValueDeletedDelegate<TKey, char>(IsValueDeletedChar)),
-            DateTime => Cast(new IsValueDeletedDelegate<TKey, DateTime>(IsValueDeletedDateTime)),
-            decimal => Cast(new IsValueDeletedDelegate<TKey, decimal>(IsValueDeletedDecimal)),
-            double => Cast(new IsValueDeletedDelegate<TKey, double>(IsValueDeletedDouble)),
-            short => Cast(new IsValueDeletedDelegate<TKey, short>(IsValueDeletedShort)),
-            ushort => Cast(new IsValueDeletedDelegate<TKey, ushort>(IsValueDeletedUShort)),
-            int => Cast(new IsValueDeletedDelegate<TKey, int>(IsValueDeletedInt)),
-            uint => Cast(new IsValueDeletedDelegate<TKey, uint>(IsValueDeletedUInt)),
-            long => Cast(new IsValueDeletedDelegate<TKey, long>(IsValueDeletedLong)),
-            ulong => Cast(new IsValueDeletedDelegate<TKey, ulong>(IsValueDeletedULong)),
-            Guid => Cast(new IsValueDeletedDelegate<TKey, Guid>(IsValueDeletedGuid)),
-            _ => IsValueDeletedDefault
+            byte => Cast(new IsDeletedDelegate<TKey, byte>(IsDeletedByte)),
+            char => Cast(new IsDeletedDelegate<TKey, char>(IsDeletedChar)),
+            DateTime => Cast(new IsDeletedDelegate<TKey, DateTime>(IsDeletedDateTime)),
+            decimal => Cast(new IsDeletedDelegate<TKey, decimal>(IsDeletedDecimal)),
+            double => Cast(new IsDeletedDelegate<TKey, double>(IsDeletedDouble)),
+            short => Cast(new IsDeletedDelegate<TKey, short>(IsDeletedShort)),
+            ushort => Cast(new IsDeletedDelegate<TKey, ushort>(IsDeletedUShort)),
+            int => Cast(new IsDeletedDelegate<TKey, int>(IsDeletedInt)),
+            uint => Cast(new IsDeletedDelegate<TKey, uint>(IsDeletedUInt)),
+            long => Cast(new IsDeletedDelegate<TKey, long>(IsDeletedLong)),
+            ulong => Cast(new IsDeletedDelegate<TKey, ulong>(IsDeletedULong)),
+            Guid => Cast(new IsDeletedDelegate<TKey, Guid>(IsDeletedGuid)),
+            _ => IsDeletedDefault
         };
 
         if (typeof(TValue) == typeof(Memory<byte>))
-            result = Cast(new IsValueDeletedDelegate<TKey, Memory<byte>>(IsValueDeletedMemoryByte));
+            result = Cast(new IsDeletedDelegate<TKey, Memory<byte>>(IsDeletedMemoryByte));
         if (RuntimeHelpers.IsReferenceOrContainsReferences<TValue>())
-            return IsValueDeletedReferenceType;
+            return IsDeletedReferenceType;
         return result;
     }
 

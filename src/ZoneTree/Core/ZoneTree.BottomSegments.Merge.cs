@@ -184,7 +184,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             minSegmentIndex = minEntry.SegmentIndex;
 
             // ignore deleted entries if writeDeletedValues is false.
-            if (!writeDeletedValues && IsValueDeleted(minEntry.Key, minEntry.Value))
+            if (!writeDeletedValues && IsDeleted(minEntry.Key, minEntry.Value))
             {
                 skipElement();
                 prevKey = minEntry.Key;

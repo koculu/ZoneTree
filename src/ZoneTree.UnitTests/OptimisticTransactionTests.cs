@@ -119,7 +119,7 @@ public sealed class OptimisticTransactionTests
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetIsValueDeletedDelegate((in int key, in int value) => value == -1)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
             .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreateTransactional();
 
@@ -172,7 +172,7 @@ public sealed class OptimisticTransactionTests
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetIsValueDeletedDelegate((in int key, in int value) => value == -1)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
             .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreateTransactional();
 
@@ -219,7 +219,7 @@ public sealed class OptimisticTransactionTests
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetIsValueDeletedDelegate((in int key, in int value) => value == -1)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
             .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreateTransactional();
 
@@ -254,7 +254,7 @@ public sealed class OptimisticTransactionTests
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetIsValueDeletedDelegate((in int key, in int value) => value == -1)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
             .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreateTransactional();
 

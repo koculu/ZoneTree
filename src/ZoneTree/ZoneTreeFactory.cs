@@ -304,12 +304,12 @@ public sealed class ZoneTreeFactory<TKey, TValue>
     /// <summary>
     /// Assigns key-value pair deletion query delegate.
     /// </summary>
-    /// <param name="isValueDeleted">The key-value pair deleted query delagate.</param>
+    /// <param name="isDeleted">The key-value pair deleted query delagate.</param>
     /// <returns>ZoneTree Factory</returns>
     public ZoneTreeFactory<TKey, TValue>
-        SetIsValueDeletedDelegate(IsValueDeletedDelegate<TKey, TValue> isValueDeleted)
+        SetIsDeletedDelegate(IsDeletedDelegate<TKey, TValue> isDeleted)
     {
-        Options.IsValueDeleted = isValueDeleted;
+        Options.IsDeleted = isDeleted;
         return this;
     }
 

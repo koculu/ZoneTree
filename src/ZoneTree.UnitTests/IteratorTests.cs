@@ -19,7 +19,7 @@ public sealed class IteratorTests
             .SetMutableSegmentMaxItemCount(11)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetIsValueDeletedDelegate((in int key, in int value) => value == -1)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
             .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreate();
         var a = 250;
@@ -89,7 +89,7 @@ public sealed class IteratorTests
             .SetMutableSegmentMaxItemCount(11)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetIsValueDeletedDelegate((in int key, in int value) => value == -1)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
             .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreate();
         var a = 250;
@@ -180,7 +180,7 @@ public sealed class IteratorTests
             .SetMutableSegmentMaxItemCount(250)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetIsValueDeletedDelegate((in int key, in int value) => value == -1)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
             .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreate();
         var a = 251;

@@ -226,7 +226,7 @@ In this example, `-1` is used as the deletion marker for integer values:
 using Tenray.ZoneTree;
 
 using var zoneTree = new ZoneTreeFactory<int, int>()
-    .SetIsValueDeletedDelegate((in int key, in int value) => value == -1)
+    .SetIsDeletedDelegate((in int key, in int value) => value == -1)
     .SetMarkValueDeletedDelegate((ref int x) => x = -1)
     .OpenOrCreate();
 
@@ -250,7 +250,7 @@ struct MyDeletableValueType
 }
 
 using var zoneTree = new ZoneTreeFactory<int, MyDeletableValueType>()
-    .SetIsValueDeletedDelegate((in int key, in MyDeletableValueType value) => value.IsDeleted)
+    .SetIsDeletedDelegate((in int key, in MyDeletableValueType value) => value.IsDeleted)
     .SetMarkValueDeletedDelegate((ref MyDeletableValueType value) => value.IsDeleted = true)
     .OpenOrCreate();
 

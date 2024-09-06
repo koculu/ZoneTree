@@ -17,7 +17,7 @@ public sealed class TTLTests
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetValueSerializer(new StructSerializer<TTLValue<int>>())
-            .SetIsValueDeletedDelegate((in int key, in TTLValue<int> value) => value.IsExpired)
+            .SetIsDeletedDelegate((in int key, in TTLValue<int> value) => value.IsExpired)
             .SetMarkValueDeletedDelegate(void (ref TTLValue<int> value) => value.Expire())
             .OpenOrCreate();
 

@@ -26,7 +26,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     readonly MaxHeapEntryRefComparer<TKey, TValue> MaxHeapEntryComparer;
 
-    readonly IsValueDeletedDelegate<TKey, TValue> IsValueDeleted;
+    readonly IsDeletedDelegate<TKey, TValue> IsDeleted;
 
     readonly SingleProducerSingleConsumerQueue<IReadOnlySegment<TKey, TValue>> ReadOnlySegmentQueue = new();
 
@@ -142,7 +142,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         MaxHeapEntryComparer = new MaxHeapEntryRefComparer<TKey, TValue>(options.Comparer);
         MutableSegment = new MutableSegment<TKey, TValue>(
             options, IncrementalIdProvider.NextId(), new IncrementalIdProvider());
-        IsValueDeleted = options.IsValueDeleted;
+        IsDeleted = options.IsDeleted;
         FillZoneTreeMeta();
         MetaWal.SaveMetaData(
             ZoneTreeMeta,
@@ -178,7 +178,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             ReadOnlySegmentQueue.Enqueue(ros);
         foreach (var bs in bottomSegments.Reverse())
             BottomSegmentQueue.Enqueue(bs);
-        IsValueDeleted = options.IsValueDeleted;
+        IsDeleted = options.IsDeleted;
     }
 
     void FillZoneTreeMeta()
@@ -306,15 +306,15 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             {
                 var key = iterator.CurrentKey;
                 var hasKey = diskSegment.ContainsKey(key);
-                var isValueDeleted = IsValueDeleted(key, iterator.CurrentValue);
+                var isDeleted = IsDeleted(key, iterator.CurrentValue);
                 if (hasKey)
                 {
-                    if (isValueDeleted)
+                    if (isDeleted)
                         --count;
                 }
                 else
                 {
-                    if (!isValueDeleted)
+                    if (!isDeleted)
                         ++count;
                 }
             }

@@ -17,7 +17,7 @@ namespace Tenray.ZoneTree.Options;
 /// <param name="value">Key to be queried</param>
 /// <param name="value">Value to be queried</param>
 /// <returns>true if the key-value pair is deleted, false otherwise</returns>
-public delegate bool IsValueDeletedDelegate<TKey, TValue>(in TKey key, in TValue value);
+public delegate bool IsDeletedDelegate<TKey, TValue>(in TKey key, in TValue value);
 
 /// <summary>
 /// A delegate to mark a value deleted.
@@ -66,7 +66,7 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     /// <summary>
     /// Delegate to query key-value pair deletion state.
     /// </summary>
-    public IsValueDeletedDelegate<TKey, TValue> IsValueDeleted { get; set; }
+    public IsDeletedDelegate<TKey, TValue> IsDeleted { get; set; }
 
     /// <summary>
     /// Delegate to mark value deleted.
@@ -224,8 +224,8 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     /// </summary>
     public void CreateDefaultDeleteDelegates()
     {
-        if (IsValueDeleted == null)
-            IsValueDeleted = ComponentsForKnownTypes.GetIsValueDeleted<TKey, TValue>();
+        if (IsDeleted == null)
+            IsDeleted = ComponentsForKnownTypes.GetIsDeleted<TKey, TValue>();
         if (MarkValueDeleted == null)
             MarkValueDeleted = ComponentsForKnownTypes.GetMarkValueDeleted<TValue>();
     }
@@ -246,7 +246,7 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     /// </summary>
     public void DisableDeletion()
     {
-        IsValueDeleted = (in TKey _, in TValue _) => false;
+        IsDeleted = (in TKey _, in TValue _) => false;
         MarkValueDeleted = (ref TValue _) => { };
     }
 }
