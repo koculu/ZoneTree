@@ -28,7 +28,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 
     readonly IRefComparer<TKey> Comparer;
 
-    readonly IsValueDeletedDelegate<TValue> IsValueDeleted;
+    readonly IsDeletedDelegate<TKey, TValue> IsDeleted;
 
     readonly MarkValueDeletedDelegate<TValue> MarkValueDeleted;
 
@@ -54,7 +54,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         IRefComparer<TKey> comparer,
-        IsValueDeletedDelegate<TValue> isValueDeleted,
+        IsDeletedDelegate<TKey, TValue> isDeleted,
         MarkValueDeletedDelegate<TValue> markValueDeleted)
     {
         WriteAheadLogProvider = writeAheadLogProvider;
@@ -63,7 +63,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
             .GetOrCreateWAL(segmentId, category, options, keySerializer, valueSerializer);
         SegmentId = segmentId;
         Category = category;
-        IsValueDeleted = isValueDeleted;
+        IsDeleted = isDeleted;
         MarkValueDeleted = markValueDeleted;
         LoadFromWriteAheadLog();
     }
@@ -91,7 +91,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
             result.Keys,
             result.Values,
             Comparer,
-            IsValueDeleted);
+            IsDeleted);
         var len = newKeys.Count;
         for (var i = 0; i < len; ++i)
         {

@@ -18,7 +18,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
     IReadOnlyList<ISeekableIterator<TKey, TValue>> SeekableIterators;
 
-    readonly IsValueDeletedDelegate<TValue> IsValueDeleted;
+    readonly IsDeletedDelegate<TKey, TValue> IsDeleted;
 
     readonly IRefComparer<TKey> Comparer;
 
@@ -85,7 +85,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
         bool includeDiskSegment,
         bool includeBottomSegments)
     {
-        IsValueDeleted = options.IsValueDeleted;
+        IsDeleted = options.IsDeleted;
         Comparer = options.Comparer;
         ZoneTree = zoneTree;
         HeapEntryComparer = heapEntryComparer;
@@ -280,7 +280,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
             minSegmentIndex = minEntry.SegmentIndex;
 
             // ignore deleted entries.
-            if (!IncludeDeletedRecords && IsValueDeleted(minEntry.Value))
+            if (!IncludeDeletedRecords && IsDeleted(minEntry.Key, minEntry.Value))
             {
                 skipElement();
                 PrevKey = minEntry.Key;
@@ -330,7 +330,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
             minSegmentIndex = minEntry.SegmentIndex;
 
             // ignore deleted entries.
-            if (!IncludeDeletedRecords && IsValueDeleted(minEntry.Value))
+            if (!IncludeDeletedRecords && IsDeleted(minEntry.Key, minEntry.Value))
             {
                 skipElement();
                 PrevKey = minEntry.Key;

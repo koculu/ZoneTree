@@ -119,8 +119,8 @@ public sealed class OptimisticTransactionTests
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetIsValueDeletedDelegate((in int x) => x == -1)
-            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
+            .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreateTransactional();
 
         zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
@@ -172,8 +172,8 @@ public sealed class OptimisticTransactionTests
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetIsValueDeletedDelegate((in int x) => x == -1)
-            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
+            .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreateTransactional();
 
         zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
@@ -219,8 +219,8 @@ public sealed class OptimisticTransactionTests
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetIsValueDeletedDelegate((in int x) => x == -1)
-            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
+            .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreateTransactional();
 
         zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
@@ -254,8 +254,8 @@ public sealed class OptimisticTransactionTests
         using var zoneTree = new ZoneTreeFactory<int, int>()
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
-            .SetIsValueDeletedDelegate((in int x) => x == -1)
-            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
+            .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreateTransactional();
 
         zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;

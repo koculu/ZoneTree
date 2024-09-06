@@ -11,7 +11,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         if (MutableSegment.ContainsKey(key))
         {
             if (MutableSegment.TryGet(key, out TValue value))
-                return !IsValueDeleted(value);
+                return !IsDeleted(key, value);
         }
 
         return TryGetFromReadonlySegments(in key, out _);
@@ -23,7 +23,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         {
             if (segment.TryGet(key, out value))
             {
-                return !IsValueDeleted(value);
+                return !IsDeleted(key, value);
             }
         }
 
@@ -33,14 +33,14 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             {
                 if (DiskSegment.TryGet(key, out value))
                 {
-                    return !IsValueDeleted(value);
+                    return !IsDeleted(key, value);
                 }
 
                 foreach (var segment in BottomSegmentQueue)
                 {
                     if (segment.TryGet(key, out value))
                     {
-                        return !IsValueDeleted(value);
+                        return !IsDeleted(key, value);
                     }
                 }
                 return false;
@@ -56,7 +56,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     {
         if (MutableSegment.TryGet(key, out value))
         {
-            return !IsValueDeleted(value);
+            return !IsDeleted(key, value);
         }
         return TryGetFromReadonlySegments(in key, out value);
     }
@@ -76,7 +76,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
         if (MutableSegment.TryGet(key, out value))
         {
-            if (IsValueDeleted(value))
+            if (IsDeleted(key, value))
                 return false;
         }
         else if (!TryGetFromReadonlySegments(in key, out value))
@@ -101,7 +101,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         {
             if (MutableSegment.TryGet(key, out value))
             {
-                if (IsValueDeleted(value))
+                if (IsDeleted(key, value))
                     return false;
             }
             else if (!TryGetFromReadonlySegments(in key, out value))

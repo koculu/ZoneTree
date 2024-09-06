@@ -230,7 +230,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             minSegmentIndex = minEntry.SegmentIndex;
 
             // ignore deleted entries if bottom segments queue is empty.
-            if (!hasBottomSegments && IsValueDeleted(minEntry.Value))
+            if (!hasBottomSegments && IsDeleted(minEntry.Key, minEntry.Value))
             {
                 skipElement();
                 prevKey = minEntry.Key;
