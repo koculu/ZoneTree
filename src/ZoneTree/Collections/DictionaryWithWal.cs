@@ -28,7 +28,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
 
     readonly IRefComparer<TKey> Comparer;
 
-    readonly IsValueDeletedDelegate<TValue> IsValueDeleted;
+    readonly IsValueDeletedDelegate<TKey, TValue> IsValueDeleted;
 
     readonly MarkValueDeletedDelegate<TValue> MarkValueDeleted;
 
@@ -54,7 +54,7 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
         ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer,
         IRefComparer<TKey> comparer,
-        IsValueDeletedDelegate<TValue> isValueDeleted,
+        IsValueDeletedDelegate<TKey, TValue> isValueDeleted,
         MarkValueDeletedDelegate<TValue> markValueDeleted)
     {
         WriteAheadLogProvider = writeAheadLogProvider;

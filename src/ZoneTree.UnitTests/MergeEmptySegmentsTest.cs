@@ -16,8 +16,8 @@ public sealed class MergeEmptySegmentsTest
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetIsValueDeletedDelegate((in int x) => true)
-            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .SetIsValueDeletedDelegate((in int key, in int value) => true)
+            .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .SetMutableSegmentMaxItemCount(100)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -64,8 +64,8 @@ public sealed class MergeEmptySegmentsTest
 
         var isRecordDeleted = false;
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetIsValueDeletedDelegate((in int x) => isRecordDeleted)
-            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .SetIsValueDeletedDelegate((in int key, in int value) => isRecordDeleted)
+            .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .SetMutableSegmentMaxItemCount(100)
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
@@ -124,8 +124,8 @@ public sealed class MergeEmptySegmentsTest
 
         var isRecordDeleted = false;
         using var zoneTree = new ZoneTreeFactory<int, int>()
-            .SetIsValueDeletedDelegate((in int x) => isRecordDeleted)
-            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .SetIsValueDeletedDelegate((in int key, in int value) => isRecordDeleted)
+            .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .SetMutableSegmentMaxItemCount(100)
             .SetDiskSegmentMaxItemCount(250)
             .SetDataDirectory(dataPath)

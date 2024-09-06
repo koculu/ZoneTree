@@ -10,12 +10,14 @@ using Tenray.ZoneTree.PresetTypes;
 namespace Tenray.ZoneTree.Options;
 
 /// <summary>
-/// A delegate to query value deletion state.
+/// A delegate to query key-value pair deletion state.
 /// </summary>
 /// <typeparam name="TValue">The value type</typeparam>
+/// <typeparam name="TKey">The key type</typeparam>
+/// <param name="value">Key to be queried</param>
 /// <param name="value">Value to be queried</param>
-/// <returns>true if value is deleted, false otherwise</returns>
-public delegate bool IsValueDeletedDelegate<TValue>(in TValue value);
+/// <returns>true if the key-value pair is deleted, false otherwise</returns>
+public delegate bool IsValueDeletedDelegate<TKey, TValue>(in TKey key, in TValue value);
 
 /// <summary>
 /// A delegate to mark a value deleted.
@@ -62,9 +64,9 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     public ISerializer<TValue> ValueSerializer { get; set; }
 
     /// <summary>
-    /// Delegate to query value deletion state.
+    /// Delegate to query key-value pair deletion state.
     /// </summary>
-    public IsValueDeletedDelegate<TValue> IsValueDeleted { get; set; }
+    public IsValueDeletedDelegate<TKey, TValue> IsValueDeleted { get; set; }
 
     /// <summary>
     /// Delegate to mark value deleted.
@@ -223,7 +225,7 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     public void CreateDefaultDeleteDelegates()
     {
         if (IsValueDeleted == null)
-            IsValueDeleted = ComponentsForKnownTypes.GetIsValueDeleted<TValue>();
+            IsValueDeleted = ComponentsForKnownTypes.GetIsValueDeleted<TKey, TValue>();
         if (MarkValueDeleted == null)
             MarkValueDeleted = ComponentsForKnownTypes.GetMarkValueDeleted<TValue>();
     }
@@ -244,7 +246,7 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     /// </summary>
     public void DisableDeletion()
     {
-        IsValueDeleted = (in TValue _) => false;
+        IsValueDeleted = (in TKey _, in TValue _) => false;
         MarkValueDeleted = (ref TValue _) => { };
     }
 }

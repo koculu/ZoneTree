@@ -126,7 +126,7 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                 continue;
             var value = values[i];
             distinctKeys.Upsert(in key, 1, out _);
-            if (isValueDeleted(in value))
+            if (isValueDeleted(in key, in value))
             {
                 continue;
             }

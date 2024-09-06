@@ -11,7 +11,7 @@ public static class WriteAheadLogUtility
             IReadOnlyList<TKey> keys,
             IReadOnlyList<TValue> values,
             IRefComparer<TKey> comparer,
-            IsValueDeletedDelegate<TValue> isValueDeleted)
+            IsValueDeletedDelegate<TKey, TValue> isValueDeleted)
     {
         // WAL has unsorted data. Need to do following.
         // 1. stable sort keys and values based on keys
@@ -32,7 +32,7 @@ public static class WriteAheadLogUtility
         {
             var value = list[i].Value;
             var key = list[i].Key;
-            if (isValueDeleted(value))
+            if (isValueDeleted(key, value))
             {
                 // discard deleted items;
                 while (++i < len)

@@ -17,8 +17,8 @@ public sealed class TTLTests
             .SetDataDirectory(dataPath)
             .SetWriteAheadLogDirectory(dataPath)
             .SetValueSerializer(new StructSerializer<TTLValue<int>>())
-            .SetIsValueDeletedDelegate((in TTLValue<int> x) => x.IsExpired)
-            .SetMarkValueDeletedDelegate(void (ref TTLValue<int> x) => x.Expire())
+            .SetIsValueDeletedDelegate((in int key, in TTLValue<int> value) => value.IsExpired)
+            .SetMarkValueDeletedDelegate(void (ref TTLValue<int> value) => value.Expire())
             .OpenOrCreate();
 
         zoneTree.Upsert(5, new TTLValue<int>(99, DateTime.UtcNow.AddMilliseconds(300)));
@@ -33,8 +33,8 @@ public sealed class TTLTests
         Thread.Sleep(150);
         f1 = zoneTree.TryGetAndUpdate(
             5,
-            out v1, 
-            bool (ref TTLValue<int> v) => 
+            out v1,
+            bool (ref TTLValue<int> v) =>
                 v.SlideExpiration(TimeSpan.FromMilliseconds(300)));
         Thread.Sleep(450); // initial expiration (300) + slided expiration (300) - Thread.Sleep(150)
         f2 = zoneTree.TryGetAndUpdate(

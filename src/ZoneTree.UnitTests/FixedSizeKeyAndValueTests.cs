@@ -312,8 +312,8 @@ public sealed class FixedSizeKeyAndValueTests
             .SetWriteAheadLogDirectory(dataPath)
             .ConfigureWriteAheadLogOptions(x =>
                 x.WriteAheadLogMode = WriteAheadLogMode.Sync)
-            .SetIsValueDeletedDelegate((in int x) => x == -1)
-            .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+            .SetIsValueDeletedDelegate((in int key, in int value) => value == -1)
+            .SetMarkValueDeletedDelegate((ref int value) => value = -1)
             .OpenOrCreate();
         var n = 2000;
         var deleted = new HashSet<int>() { 11, 99, 273, 200, 333, 441, 203, 499, 666 };

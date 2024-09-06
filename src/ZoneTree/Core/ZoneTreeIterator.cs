@@ -18,7 +18,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
     IReadOnlyList<ISeekableIterator<TKey, TValue>> SeekableIterators;
 
-    readonly IsValueDeletedDelegate<TValue> IsValueDeleted;
+    readonly IsValueDeletedDelegate<TKey, TValue> IsValueDeleted;
 
     readonly IRefComparer<TKey> Comparer;
 
@@ -280,7 +280,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
             minSegmentIndex = minEntry.SegmentIndex;
 
             // ignore deleted entries.
-            if (!IncludeDeletedRecords && IsValueDeleted(minEntry.Value))
+            if (!IncludeDeletedRecords && IsValueDeleted(minEntry.Key, minEntry.Value))
             {
                 skipElement();
                 PrevKey = minEntry.Key;
@@ -330,7 +330,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
             minSegmentIndex = minEntry.SegmentIndex;
 
             // ignore deleted entries.
-            if (!IncludeDeletedRecords && IsValueDeleted(minEntry.Value))
+            if (!IncludeDeletedRecords && IsValueDeleted(minEntry.Key, minEntry.Value))
             {
                 skipElement();
                 PrevKey = minEntry.Key;

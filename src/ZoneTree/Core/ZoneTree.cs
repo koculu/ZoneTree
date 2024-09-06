@@ -26,7 +26,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     readonly MaxHeapEntryRefComparer<TKey, TValue> MaxHeapEntryComparer;
 
-    readonly IsValueDeletedDelegate<TValue> IsValueDeleted;
+    readonly IsValueDeletedDelegate<TKey, TValue> IsValueDeleted;
 
     readonly SingleProducerSingleConsumerQueue<IReadOnlySegment<TKey, TValue>> ReadOnlySegmentQueue = new();
 
@@ -304,8 +304,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             var count = diskSegment.Length;
             while (iterator.Next())
             {
-                var hasKey = diskSegment.ContainsKey(iterator.CurrentKey);
-                var isValueDeleted = IsValueDeleted(iterator.CurrentValue);
+                var key = iterator.CurrentKey;
+                var hasKey = diskSegment.ContainsKey(key);
+                var isValueDeleted = IsValueDeleted(key, iterator.CurrentValue);
                 if (hasKey)
                 {
                     if (isValueDeleted)

@@ -323,7 +323,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
                 Debug.Assert(state != TransactionState.Aborted);
 
-                if (Options.IsValueDeleted(history.Value1))
+                if (Options.IsValueDeleted(in key, history.Value1))
                 {
                     return false;
                 }
@@ -374,7 +374,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
                 Debug.Assert(state != TransactionState.Aborted);
 
-                if (Options.IsValueDeleted(history.Value1))
+                if (Options.IsValueDeleted(in key, history.Value1))
                 {
                     value = default;
                     return false;

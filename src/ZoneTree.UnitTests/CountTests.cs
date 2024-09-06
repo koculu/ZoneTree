@@ -19,7 +19,7 @@ public sealed class CountTests
             Directory.Delete(dataPath, true);
 
         using var zoneTree = new ZoneTreeFactory<string, int>()
-            .SetIsValueDeletedDelegate((in int x) => x == -1)
+            .SetIsValueDeletedDelegate((in string key, in int value) => value == -1)
             .SetMarkValueDeletedDelegate((ref int x) => x = -1)
             .SetMutableSegmentMaxItemCount(100)
             .SetDataDirectory(dataPath)
