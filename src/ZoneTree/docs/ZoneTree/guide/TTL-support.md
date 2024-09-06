@@ -11,8 +11,8 @@ Following code demonstrates a TTL ZoneTree database with absolute expiration.
 ```C#
 using var zoneTree = new ZoneTreeFactory<int, TTLValue<int>>()    
     .SetValueSerializer(new StructSerializer<TTLValue<int>>())
-    .SetIsDeletedDelegate((in TTLValue<int> x) => x.IsExpired)
-    .SetMarkValueDeletedDelegate(void (ref TTLValue<int> x) => x.Expire())
+    .SetIsDeletedDelegate((in int key, in TTLValue<int> value) => value.IsExpired)
+    .SetMarkValueDeletedDelegate(void (ref TTLValue<int> value) => value.Expire())
     .OpenOrCreate();
 
 var expiration = DateTime.UtcNow.AddSeconds(30);
@@ -26,8 +26,8 @@ Following code demonstrates a TTL ZoneTree database with sliding expiration.
 ```C#
 using var zoneTree = new ZoneTreeFactory<int, TTLValue<int>>()    
     .SetValueSerializer(new StructSerializer<TTLValue<int>>())
-    .SetIsDeletedDelegate((in TTLValue<int> x) => x.IsExpired)
-    .SetMarkValueDeletedDelegate(void (ref TTLValue<int> x) => x.Expire())
+    .SetIsDeletedDelegate((in int key, in TTLValue<int> value) => value.IsExpired)
+    .SetMarkValueDeletedDelegate(void (ref TTLValue<int> value) => value.Expire())
     .OpenOrCreate();
 
 var expiration = DateTime.UtcNow.AddSeconds(30);
