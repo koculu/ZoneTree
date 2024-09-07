@@ -36,6 +36,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
             mutableSegment.Freeze();
             ReadOnlySegmentQueue.Enqueue(mutableSegment);
+            MetaWal.EnqueueMaximumOpIndex(mutableSegment.MaximumOpIndex);
             MetaWal.EnqueueReadOnlySegment(mutableSegment.SegmentId);
 
             MutableSegment = new MutableSegment<TKey, TValue>(

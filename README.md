@@ -175,7 +175,7 @@ zoneTree.TryAtomicAddOrUpdate(39, "a", (ref string x) =>
 {
     x += "b";
     return true;
-});
+}, out var opIndex);
 ```
 
 ---

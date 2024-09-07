@@ -46,8 +46,9 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="key">The key of the element to add.</param>
     /// <param name="value">The value of the element to add.</param>
+    /// <param name="opIndex">The operation index.</param>
     /// <returns>true if the key and value were added successfully; otherwise, false if the key already exists.</returns>
-    bool TryAdd(in TKey key, in TValue value);
+    bool TryAdd(in TKey key, in TValue value, out long opIndex);
 
     /// <summary>
     /// Tries to get the value of the given key and
@@ -56,8 +57,13 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <param name="key">The key of the element.</param>
     /// <param name="value">The value of the element associated with the key.</param>
     /// <param name="valueUpdater">The delegate function that updates the value.</param>
+    /// <param name="opIndex">The operation index.</param>
     /// <returns>true if the key is found; otherwise, false</returns>
-    bool TryGetAndUpdate(in TKey key, out TValue value, ValueUpdaterDelegate<TValue> valueUpdater);
+    bool TryGetAndUpdate(
+        in TKey key,
+        out TValue value,
+        ValueUpdaterDelegate<TValue> valueUpdater,
+        out long opIndex);
 
     /// <summary>
     /// Tries to get the value of the given key and
@@ -67,25 +73,30 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <param name="value">The value of the element associated with the key.</param>
     /// <param name="valueUpdater">The delegate function that updates the value.</param>
     /// <returns>true if the key is found; otherwise, false</returns>
-    bool TryAtomicGetAndUpdate(in TKey key, out TValue value, ValueUpdaterDelegate<TValue> valueUpdater);
+    bool TryAtomicGetAndUpdate(
+        in TKey key,
+        out TValue value,
+        ValueUpdaterDelegate<TValue> valueUpdater);
 
     /// <summary>
     /// Attempts to add the specified key and value atomically across LSM-Tree segments.
     /// </summary>
     /// <param name="key">The key of the element to add.</param>
     /// <param name="value">The value of the element to add. It can be null.</param>
+    /// <param name="opIndex">The operation index.</param>
     /// <returns>true if the key/value pair was added successfully;
     /// otherwise, false.</returns>
-    bool TryAtomicAdd(in TKey key, in TValue value);
+    bool TryAtomicAdd(in TKey key, in TValue value, out long opIndex);
 
     /// <summary>
     /// Attempts to update the specified key's value atomically across LSM-Tree segments.
     /// </summary>
     /// <param name="key">The key of the element to update.</param>
     /// <param name="value">The value of the element to update. It can be null.</param>
+    /// <param name="opIndex">The operation index.</param>
     /// <returns>true if the key/value pair was updated successfully;
     /// otherwise, false.</returns>
-    bool TryAtomicUpdate(in TKey key, in TValue value);
+    bool TryAtomicUpdate(in TKey key, in TValue value, out long opIndex);
 
     /// <summary>
     /// Attempts to add or update the specified key and value atomically across LSM-Tree segments.    
@@ -93,16 +104,22 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <param name="key">The key of the element to add.</param>
     /// <param name="valueToAdd">The value of the element to add. It can be null.</param>
     /// <param name="valueUpdater">The delegate function that updates the value.</param>
+    /// <param name="opIndex">The operation index.</param>
     /// <returns>true if the key/value pair was added;
     /// false, if the key/value pair was updated.</returns>
-    bool TryAtomicAddOrUpdate(in TKey key, in TValue valueToAdd, ValueUpdaterDelegate<TValue> valueUpdater);
+    bool TryAtomicAddOrUpdate(
+        in TKey key,
+        in TValue valueToAdd,
+        ValueUpdaterDelegate<TValue> valueUpdater,
+        out long opIndex);
 
     /// <summary>
     /// Adds or updates the specified key/value pair atomically across LSM-Tree segments.
     /// </summary>
     /// <param name="key">The key of the element to upsert.</param>
     /// <param name="value">The value of the element to upsert.</param>
-    void AtomicUpsert(in TKey key, in TValue value);
+    /// <returns>The operation index. It can be used to distrubute the operations in stable order.</returns>
+    long AtomicUpsert(in TKey key, in TValue value);
 
     /// <summary>
     /// Adds or updates the specified key/value pair.
@@ -133,7 +150,8 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// </remarks>    
     /// <param name="key">The key of the element to upsert.</param>
     /// <param name="value">The value of the element to upsert.</param>
-    void Upsert(in TKey key, in TValue value);
+    /// <returns>The operation index. It can be used to distrubute the operations in stable order.</returns>
+    long Upsert(in TKey key, in TValue value);
 
     /// <summary>
     /// Attempts to delete the specified key.
@@ -141,7 +159,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <param name="key">The key of the element to delete.</param>
     /// <returns>true if the key was found and deleted;
     /// false if the key was not found.</returns>
-    bool TryDelete(in TKey key);
+    bool TryDelete(in TKey key, out long opIndex);
 
     /// <summary>
     /// Deletes the specified key regardless of existence. (hint: LSM Tree delete is an insert)
@@ -149,7 +167,8 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// It increases the data lake size.
     /// </summary>
     /// <param name="key">The key of the element to delete.</param>
-    void ForceDelete(in TKey key);
+    /// <returns>The operation index. It can be used to distrubute the operations in stable order.</returns>
+    long ForceDelete(in TKey key);
 
     /// <summary>
     /// Counts Keys in the entire database.

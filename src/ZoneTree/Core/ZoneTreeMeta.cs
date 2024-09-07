@@ -33,6 +33,8 @@ public sealed class ZoneTreeMeta
 
     public IReadOnlyList<long> BottomSegments { get; set; }
 
+    public long MaximumOpIndex { get; set; }
+
     [JsonIgnore]
     public bool HasDiskSegment => DiskSegment != 0 || BottomSegments?.Count > 0;
 }
