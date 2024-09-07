@@ -82,7 +82,6 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
             null,
             Options.BTreeNodeSize,
             Options.BTreeLeafSize);
-        BTree.SetNextOpIndex(nextOpIndex);
 
         MarkValueDeleted = options.MarkValueDeleted;
         MutableSegmentMaxItemCount = options.MutableSegmentMaxItemCount;
@@ -96,6 +95,8 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         {
             LoadLogEntries(keys, values);
         }
+        // set op index after loading entries.
+        BTree.SetNextOpIndex(nextOpIndex);
     }
 
     void LoadLogEntries(IReadOnlyList<TKey> keys, IReadOnlyList<TValue> values)
