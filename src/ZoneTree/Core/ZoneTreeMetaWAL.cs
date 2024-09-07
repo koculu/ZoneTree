@@ -70,6 +70,16 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
     }
 
+    public void EnqueueMaximumOpIndex(long maximumOpIndex)
+    {
+        var record = new MetaWalRecord
+        {
+            Operation = MetaWalOperation.EnqueueMaximumOpIndex,
+            SegmentId = maximumOpIndex
+        };
+        AppendRecord(record);
+    }
+
     public void EnqueueReadOnlySegment(long segmentId)
     {
         var record = new MetaWalRecord
@@ -230,6 +240,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
             MutableSegmentMaxItemCount = zoneTreeMeta.MutableSegmentMaxItemCount,
             DiskSegmentMaxItemCount = zoneTreeMeta.DiskSegmentMaxItemCount,
             BottomSegments = bottomSegments,
+            MaximumOpIndex = zoneTreeMeta.MaximumOpIndex,
         };
 
         var bytes = JsonSerializeToUtf8Bytes(newZoneTreeMeta);
@@ -336,6 +347,7 @@ public enum MetaWalOperation
     DequeueBottomSegment,
     InsertBottomSegment,
     DeleteBottomSegment,
+    EnqueueMaximumOpIndex,
 }
 
 [StructLayout(LayoutKind.Sequential)]

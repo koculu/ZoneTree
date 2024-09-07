@@ -102,6 +102,7 @@ public sealed class ZoneTreeLoader<TKey, TValue>
         var records = metaWal.GetAllRecords();
         var readOnlySegments = ZoneTreeMeta.ReadOnlySegments.ToList();
         var bottomSegments = ZoneTreeMeta.BottomSegments?.ToList() ?? new List<long>();
+        var maximumOpIndex = 0L;
         foreach (var record in records)
         {
             var segmentId = record.SegmentId;
@@ -138,10 +139,14 @@ public sealed class ZoneTreeLoader<TKey, TValue>
                 case MetaWalOperation.DeleteBottomSegment:
                     bottomSegments.Remove(segmentId);
                     break;
+                case MetaWalOperation.EnqueueMaximumOpIndex:
+                    maximumOpIndex = Math.Max(maximumOpIndex, record.SegmentId);
+                    break;
             }
         }
         ZoneTreeMeta.ReadOnlySegments = readOnlySegments;
         ZoneTreeMeta.BottomSegments = bottomSegments;
+        ZoneTreeMeta.MaximumOpIndex = maximumOpIndex;
         metaWal.SaveMetaData(
             ZoneTreeMeta,
             ZoneTreeMeta.MutableSegment,
@@ -257,7 +262,7 @@ public sealed class ZoneTreeLoader<TKey, TValue>
         LoadZoneTreeMeta();
         LoadZoneTreeMetaWAL();
         SetMaximumId();
-        var maximumOpIndex = LoadReadOnlySegments();
+        var maximumOpIndex = Math.Max(ZoneTreeMeta.MaximumOpIndex, LoadReadOnlySegments());
         bool collectGarbage = Options.EnableSingleSegmentGarbageCollection && !ZoneTreeMeta.HasDiskSegment && ReadOnlySegments.Count == 0;
         var mutableSegmentWal = LoadMutableSegment(maximumOpIndex, collectGarbage);
         if (collectGarbage)
@@ -279,6 +284,7 @@ public sealed class ZoneTreeLoader<TKey, TValue>
         }
         LoadDiskSegment();
         LoadBottomSegments();
+
         var zoneTree = new ZoneTree<TKey, TValue>(Options, ZoneTreeMeta,
             ReadOnlySegments, MutableSegment, DiskSegment, BottomSegments, maximumSegmentId);
         return zoneTree;

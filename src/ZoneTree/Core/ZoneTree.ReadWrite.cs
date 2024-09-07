@@ -61,15 +61,22 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         return TryGetFromReadonlySegments(in key, out value);
     }
 
-    public bool TryAdd(in TKey key, in TValue value)
+    public bool TryAdd(in TKey key, in TValue value, out long opIndex)
     {
         if (ContainsKey(key))
+        {
+            opIndex = 0;
             return false;
-        Upsert(in key, in value);
+        }
+        opIndex = Upsert(in key, in value);
         return true;
     }
 
-    public bool TryGetAndUpdate(in TKey key, out TValue value, ValueUpdaterDelegate<TValue> valueUpdater)
+    public bool TryGetAndUpdate(
+        in TKey key,
+        out TValue value,
+        ValueUpdaterDelegate<TValue> valueUpdater,
+        out long opIndex)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
@@ -77,22 +84,32 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         if (MutableSegment.TryGet(key, out value))
         {
             if (IsDeleted(key, value))
+            {
+                opIndex = 0;
                 return false;
+            }
         }
         else if (!TryGetFromReadonlySegments(in key, out value))
+        {
+            opIndex = 0;
             return false;
+        }
 
         if (!valueUpdater(ref value))
         {
             // return true because
             // no update happened, but the value is found.
+            opIndex = 0;
             return true;
         }
-        Upsert(in key, in value);
+        opIndex = Upsert(in key, in value);
         return true;
     }
 
-    public bool TryAtomicGetAndUpdate(in TKey key, out TValue value, ValueUpdaterDelegate<TValue> valueUpdater)
+    public bool TryAtomicGetAndUpdate(
+        in TKey key,
+        out TValue value,
+        ValueUpdaterDelegate<TValue> valueUpdater)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
@@ -119,7 +136,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         }
     }
 
-    public bool TryAtomicAdd(in TKey key, in TValue value)
+    public bool TryAtomicAdd(in TKey key, in TValue value, out long opIndex)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
@@ -127,13 +144,16 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         lock (AtomicUpdateLock)
         {
             if (ContainsKey(key))
+            {
+                opIndex = 0;
                 return false;
-            Upsert(key, value);
+            }
+            opIndex = Upsert(key, value);
             return true;
         }
     }
 
-    public bool TryAtomicUpdate(in TKey key, in TValue value)
+    public bool TryAtomicUpdate(in TKey key, in TValue value, out long opIndex)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
@@ -141,18 +161,26 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         lock (AtomicUpdateLock)
         {
             if (!ContainsKey(key))
+            {
+                opIndex = 0;
                 return false;
-            Upsert(key, value);
+            }
+            opIndex = Upsert(key, value);
             return true;
         }
     }
 
-    public bool TryAtomicAddOrUpdate(in TKey key, in TValue valueToAdd, ValueUpdaterDelegate<TValue> valueUpdater)
+    public bool TryAtomicAddOrUpdate(
+        in TKey key,
+        in TValue valueToAdd,
+        ValueUpdaterDelegate<TValue> valueUpdater,
+        out long opIndex)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
         AddOrUpdateResult status;
         IMutableSegment<TKey, TValue> mutableSegment;
+        opIndex = 0;
         while (true)
         {
             lock (AtomicUpdateLock)
@@ -164,19 +192,17 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 }
                 else if (mutableSegment.TryGet(in key, out var existing))
                 {
-                    if (!valueUpdater(ref existing))
-                        return false;
-                    status = mutableSegment.Upsert(key, existing);
+                    if (!valueUpdater(ref existing)) return false;
+                    status = mutableSegment.Upsert(key, existing, out opIndex);
                 }
                 else if (TryGetFromReadonlySegments(in key, out existing))
                 {
-                    if (!valueUpdater(ref existing))
-                        return false;
-                    status = mutableSegment.Upsert(key, existing);
+                    if (!valueUpdater(ref existing)) return false;
+                    status = mutableSegment.Upsert(key, existing, out opIndex);
                 }
                 else
                 {
-                    status = mutableSegment.Upsert(key, valueToAdd);
+                    status = mutableSegment.Upsert(key, valueToAdd, out opIndex);
                 }
             }
             switch (status)
@@ -192,24 +218,24 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         }
     }
 
-    public void AtomicUpsert(in TKey key, in TValue value)
+    public long AtomicUpsert(in TKey key, in TValue value)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
         lock (AtomicUpdateLock)
         {
-            Upsert(in key, in value);
+            return Upsert(in key, in value);
         }
     }
 
-    public void Upsert(in TKey key, in TValue value)
+    public long Upsert(in TKey key, in TValue value)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
         while (true)
         {
             var mutableSegment = MutableSegment;
-            var status = mutableSegment.Upsert(key, value);
+            var status = mutableSegment.Upsert(key, value, out var opIndex);
             switch (status)
             {
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
@@ -218,29 +244,33 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     MoveMutableSegmentForward(mutableSegment);
                     continue;
                 default:
-                    return;
+                    return opIndex;
             }
         }
     }
 
-    public bool TryDelete(in TKey key)
+    public bool TryDelete(in TKey key, out long opIndex)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
         if (!ContainsKey(key))
+        {
+            opIndex = 0;
             return false;
-        ForceDelete(in key);
+        }
+        opIndex = ForceDelete(in key);
         return true;
     }
 
-    public void ForceDelete(in TKey key)
+    public long ForceDelete(in TKey key)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
+        long opIndex;
         while (true)
         {
             var mutableSegment = MutableSegment;
-            var status = mutableSegment.Delete(key);
+            var status = mutableSegment.Delete(key, out opIndex);
             switch (status)
             {
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
@@ -248,7 +278,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
                     MoveMutableSegmentForward(mutableSegment);
                     continue;
-                default: return;
+                default: return opIndex;
             }
         }
     }

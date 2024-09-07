@@ -144,18 +144,24 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         return BTree.TryGetValue(key, out value);
     }
 
-    public AddOrUpdateResult Upsert(in TKey key, in TValue value)
+    public AddOrUpdateResult Upsert(in TKey key, in TValue value, out long opIndex)
     {
         try
         {
             Interlocked.Increment(ref WritesInProgress);
 
             if (IsFrozenFlag)
+            {
+                opIndex = 0;
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN;
+            }
 
             if (BTree.Length >= MutableSegmentMaxItemCount)
+            {
+                opIndex = 0;
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
-            var result = BTree.Upsert(in key, in value, out var opIndex);
+            }
+            var result = BTree.Upsert(in key, in value, out opIndex);
             WriteAheadLog.Append(in key, in value, opIndex);
             return result ? AddOrUpdateResult.ADDED : AddOrUpdateResult.UPDATED;
         }
@@ -165,12 +171,12 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         }
     }
 
-    public AddOrUpdateResult Delete(in TKey key)
+    public AddOrUpdateResult Delete(in TKey key, out long opIndex)
     {
         try
         {
             Interlocked.Increment(ref WritesInProgress);
-
+            opIndex = 0;
             if (IsFrozenFlag)
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN;
 
@@ -192,7 +198,7 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
                         MarkValueDeleted(ref x);
                         insertedValue = x;
                         return AddOrUpdateResult.UPDATED;
-                    }, out var opIndex);
+                    }, out opIndex);
             WriteAheadLog.Append(in key, in insertedValue, opIndex);
             return status;
         }

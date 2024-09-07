@@ -114,7 +114,7 @@ public sealed class StringTreeTests
             {
                 x += "b";
                 return true;
-            });
+            }, out _);
         zoneTree.TryGet(39, out value);
         Assert.That(value, Is.EqualTo("Hello Zone Tree!b"));
     }

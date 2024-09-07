@@ -144,6 +144,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             options, IncrementalIdProvider.NextId(), new IncrementalIdProvider());
         IsDeleted = options.IsDeleted;
         FillZoneTreeMeta();
+        ZoneTreeMeta.MaximumOpIndex = MutableSegment.OpIndexProvider.LastId;
         MetaWal.SaveMetaData(
             ZoneTreeMeta,
             MutableSegment.SegmentId,
@@ -209,6 +210,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         lock (ShortMergerLock)
             lock (AtomicUpdateLock)
             {
+                ZoneTreeMeta.MaximumOpIndex = MutableSegment.OpIndexProvider.LastId;
                 MetaWal.SaveMetaData(
                     ZoneTreeMeta,
                     MutableSegment.SegmentId,
