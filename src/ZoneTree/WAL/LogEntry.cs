@@ -50,7 +50,12 @@ public struct LogEntry : IEquatable<LogEntry>
             return crc32;
         }
 
-        throw new PlatformNotSupportedException();
+        crc32 = Crc32Computer_Software.Compute(crc32, (ulong)OpIndex);
+        crc32 = Crc32Computer_Software.Compute(crc32, KeyLength);
+        crc32 = Crc32Computer_Software.Compute(crc32, ValueLength);
+        crc32 = Crc32Computer_Software.Compute(crc32, Key.Span);
+        crc32 = Crc32Computer_Software.Compute(crc32, Value.Span);
+        return crc32;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
