@@ -35,18 +35,20 @@ public sealed class Replicator<TKey, TValue> : IDisposable
                 (ref long newOpIndex) =>
                 {
                     newOpIndex = opIndex;
-                    Replica.Upsert(key, value);
                     return true;
                 },
                 (ref long existingOpIndex) =>
                 {
                     if (opIndex < existingOpIndex)
                         return false;
-                    Replica.Upsert(key, value);
                     existingOpIndex = opIndex;
                     return true;
                 },
-                out _);
+                (in long _, long _, OperationResult result) =>
+                {
+                    if (result == OperationResult.Cancelled) return;
+                    Replica.Upsert(key, value);
+                });
     }
 
     public void Dispose()

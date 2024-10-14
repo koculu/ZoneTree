@@ -25,7 +25,7 @@ public sealed class ReplicatorTests
                 .SetMutableSegmentMaxItemCount(maxMemory)
                 .OpenOrCreate();
 
-            var replicator = new Replicator<int, int>(replica, dataPath + "/replica-op-index");
+            using var replicator = new Replicator<int, int>(replica, dataPath + "/replica-op-index");
             using var maintainer1 = zoneTree.CreateMaintainer();
             using var maintainer2 = replica.CreateMaintainer();
             var random = new Random();

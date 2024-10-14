@@ -100,35 +100,37 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     bool TryAtomicUpdate(in TKey key, in TValue value, out long opIndex);
 
     /// <summary>
-    /// Attempts to add or update the specified key and value atomically across LSM-Tree segments.    
+    /// Attempts to add or update the specified key and value atomically across LSM-Tree segments  and calls the result delegate atomically.
+    /// valueUpdater can be called one or more times.
     /// </summary>
     /// <param name="key">The key of the element to add.</param>
     /// <param name="valueToAdd">The value of the element to add. It can be null.</param>
     /// <param name="valueUpdater">The delegate function that updates the value.</param>
-    /// <param name="opIndex">The operation index.</param>
+    /// <param name="result">The operation result delegate.</param>
     /// <returns>true if the key/value pair was added;
     /// false, if the key/value pair was updated.</returns>
     bool TryAtomicAddOrUpdate(
         in TKey key,
         in TValue valueToAdd,
         ValueUpdaterDelegate<TValue> valueUpdater,
-        out long opIndex);
+        OperationResultDelegate<TValue> result = null);
 
     /// <summary>
-    /// Attempts to add or update the specified key and value atomically across LSM-Tree segments.    
+    /// Attempts to add or update the specified key and value atomically across LSM-Tree segments and calls the result delegate atomically.    
+    /// valueAdder can be called one or more times.
+    /// valueUpdater can be called one or more times.
     /// </summary>
     /// <param name="key">The key of the element to add.</param>
     /// <param name="valueAdder">he delegate function that adds the value.</param>
     /// <param name="valueUpdater">The delegate function that updates the value.</param>
-    /// <param name="opIndex">The operation index.</param>
+    /// <param name="result">The operation result delegate.</param>
     /// <returns>true if the key/value pair was added;
     /// false, if the key/value pair was updated.</returns>
     bool TryAtomicAddOrUpdate(
         in TKey key,
         ValueAdderDelegate<TValue> valueAdder,
         ValueUpdaterDelegate<TValue> valueUpdater,
-        out long opIndex);
-
+        OperationResultDelegate<TValue> result = null);
 
     /// <summary>
     /// Adds or updates the specified key/value pair atomically across LSM-Tree segments.
@@ -302,3 +304,19 @@ public delegate bool ValueUpdaterDelegate<TValue>(ref TValue value);
 /// <param name="value">The value as a reference to be added.</param>
 /// <returns>true if the value is added, false otherwise.</returns>
 public delegate bool ValueAdderDelegate<TValue>(ref TValue value);
+
+public enum OperationResult
+{
+    Added,
+    Updated,
+    Cancelled
+}
+
+/// <summary>
+/// Value adder delegate.
+/// </summary>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="value">The value that has been updated or added.</param>
+/// <param name="opIndex">The operation index.</param>
+/// <param name="operationResult">The operation result.</param>
+public delegate void OperationResultDelegate<TValue>(in TValue value, long opIndex, OperationResult operationResult);

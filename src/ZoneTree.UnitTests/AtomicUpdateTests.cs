@@ -49,7 +49,9 @@ public sealed class AtomicUpdateTests
                             ++y;
                             return true;
                         },
-                        out _
+                        (in int _, long _, OperationResult result) =>
+                        {
+                        }
                     );
                     Interlocked.Increment(ref off);
                 }
@@ -117,7 +119,7 @@ public sealed class AtomicUpdateTests
                         {
                             ++y;
                             return true;
-                        }, out _);
+                        });
                     Interlocked.Increment(ref off);
                 }
 
@@ -183,7 +185,7 @@ public sealed class AtomicUpdateTests
                         {
                             ++y;
                             return true;
-                        }, out _);
+                        });
                     Interlocked.Increment(ref off);
                 }
 
