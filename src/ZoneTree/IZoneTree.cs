@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.Comparers;
+﻿using Tenray.ZoneTree.Collections.BTree;
+using Tenray.ZoneTree.Comparers;
 using Tenray.ZoneTree.Logger;
 using Tenray.ZoneTree.Serializers;
 
@@ -114,6 +115,22 @@ public interface IZoneTree<TKey, TValue> : IDisposable
         out long opIndex);
 
     /// <summary>
+    /// Attempts to add or update the specified key and value atomically across LSM-Tree segments.    
+    /// </summary>
+    /// <param name="key">The key of the element to add.</param>
+    /// <param name="valueAdder">he delegate function that adds the value.</param>
+    /// <param name="valueUpdater">The delegate function that updates the value.</param>
+    /// <param name="opIndex">The operation index.</param>
+    /// <returns>true if the key/value pair was added;
+    /// false, if the key/value pair was updated.</returns>
+    bool TryAtomicAddOrUpdate(
+        in TKey key,
+        ValueAdderDelegate<TValue> valueAdder,
+        ValueUpdaterDelegate<TValue> valueUpdater,
+        out long opIndex);
+
+
+    /// <summary>
     /// Adds or updates the specified key/value pair atomically across LSM-Tree segments.
     /// </summary>
     /// <param name="key">The key of the element to upsert.</param>
@@ -152,6 +169,16 @@ public interface IZoneTree<TKey, TValue> : IDisposable
     /// <param name="value">The value of the element to upsert.</param>
     /// <returns>The operation index. It can be used to distrubute the operations in stable order.</returns>
     long Upsert(in TKey key, in TValue value);
+
+    /// <summary>
+    /// Adds or updates the specified key with a value getter.
+    /// Value getter receives the operation index as an argument. 
+    /// It is useful when the user wants to save the operation index into the record.
+    /// </summary>
+    /// <param name="key">The key of the element to upsert.</param>
+    /// <param name="valueGetter">The delegate provides the value to upsert.</param>
+    /// <returns>The operation index. It can be used to distrubute the operations in stable order.</returns>
+    long Upsert(in TKey key, GetValueDelegate<TKey, TValue> valueGetter);
 
     /// <summary>
     /// Attempts to delete the specified key.
@@ -267,3 +294,11 @@ public interface IZoneTree<TKey, TValue> : IDisposable
 /// <param name="value">The value as a reference to be updated.</param>
 /// <returns>true if the value is updated, false otherwise.</returns>
 public delegate bool ValueUpdaterDelegate<TValue>(ref TValue value);
+
+/// <summary>
+/// Value adder delegate.
+/// </summary>
+/// <typeparam name="TValue">The value type</typeparam>
+/// <param name="value">The value as a reference to be added.</param>
+/// <returns>true if the value is added, false otherwise.</returns>
+public delegate bool ValueAdderDelegate<TValue>(ref TValue value);
