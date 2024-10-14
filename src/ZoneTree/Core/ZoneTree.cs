@@ -273,9 +273,14 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         DiskSegment.Drop();
         DiskSegment.Dispose();
         foreach (var ros in ReadOnlySegmentQueue)
+        {
             ros.Drop();
+        }
         foreach (var bs in BottomSegmentQueue)
+        {
             bs.Drop();
+            bs.Dispose();
+        }
         Options.WriteAheadLogProvider.DropStore();
         Options.RandomAccessDeviceManager.DropStore();
     }
