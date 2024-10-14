@@ -108,7 +108,7 @@ public sealed class Test1
                     {
                         x += " ooops!";
                         return true;
-                    }, out _);
+                    });
             }
             maintainer.WaitForBackgroundThreads();
         }

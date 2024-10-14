@@ -12,8 +12,6 @@ public sealed partial class BTree<TKey, TValue>
 
         public TValue[] Values { get; }
 
-        public long[] OpIndexes { get; }
-
         public TKey CurrentKey => Keys[CurrentIndex];
 
         public TValue CurrentValue => Values[CurrentIndex];
@@ -28,14 +26,12 @@ public sealed partial class BTree<TKey, TValue>
             BTree<TKey, TValue> tree,
             LeafNode leafNode,
             TKey[] keys,
-            TValue[] values,
-            long[] opIndexes = null)
+            TValue[] values)
         {
             Tree = tree;
             Node = leafNode;
             Keys = keys;
             Values = values;
-            OpIndexes = opIndexes;
         }
 
         public NodeIterator GetPreviousNodeIterator()

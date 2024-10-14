@@ -1,4 +1,5 @@
 ﻿using Tenray.ZoneTree.Collections;
+using Tenray.ZoneTree.Collections.BTree;
 using Tenray.ZoneTree.Exceptions;
 using Tenray.ZoneTree.Segments;
 
@@ -170,17 +171,25 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         }
     }
 
+    static OperationResultDelegate<TValue> EmptyOperationResultDelegate =
+        (in TValue value, long opIndex, OperationResult result) =>
+        {
+        };
+
     public bool TryAtomicAddOrUpdate(
         in TKey key,
         in TValue valueToAdd,
         ValueUpdaterDelegate<TValue> valueUpdater,
-        out long opIndex)
+        OperationResultDelegate<TValue> result)
     {
         if (IsReadOnly)
             throw new ZoneTreeIsReadOnlyException();
         AddOrUpdateResult status;
         IMutableSegment<TKey, TValue> mutableSegment;
-        opIndex = 0;
+        var opIndex = 0L;
+        if (result == null)
+            result = EmptyOperationResultDelegate;
+
         while (true)
         {
             lock (AtomicUpdateLock)
@@ -192,17 +201,40 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                 }
                 else if (mutableSegment.TryGet(in key, out var existing))
                 {
-                    if (!valueUpdater(ref existing)) return false;
+                    if (!valueUpdater(ref existing))
+                    {
+                        result(in existing, 0, OperationResult.Cancelled);
+                        return false;
+                    }
                     status = mutableSegment.Upsert(key, existing, out opIndex);
+                    if (status == AddOrUpdateResult.UPDATED)
+                    {
+                        result(in existing, opIndex, OperationResult.Updated);
+                        return false;
+                    }
                 }
                 else if (TryGetFromReadonlySegments(in key, out existing))
                 {
-                    if (!valueUpdater(ref existing)) return false;
+                    if (!valueUpdater(ref existing))
+                    {
+                        result(in existing, 0, OperationResult.Cancelled);
+                        return false;
+                    }
                     status = mutableSegment.Upsert(key, existing, out opIndex);
+                    if (status == AddOrUpdateResult.ADDED)
+                    {
+                        result(in existing, opIndex, OperationResult.Updated);
+                        return false;
+                    }
                 }
                 else
                 {
                     status = mutableSegment.Upsert(key, valueToAdd, out opIndex);
+                    if (status == AddOrUpdateResult.ADDED)
+                    {
+                        result(in existing, opIndex, OperationResult.Added);
+                        return true;
+                    }
                 }
             }
             switch (status)
@@ -213,7 +245,85 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
                     MoveMutableSegmentForward(mutableSegment);
                     continue;
                 default:
-                    return status == AddOrUpdateResult.ADDED;
+                    throw new Exception("Impossible.");
+            }
+        }
+    }
+
+    public bool TryAtomicAddOrUpdate(
+        in TKey key,
+        ValueAdderDelegate<TValue> valueAdder,
+        ValueUpdaterDelegate<TValue> valueUpdater,
+        OperationResultDelegate<TValue> result)
+    {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
+        AddOrUpdateResult status;
+        IMutableSegment<TKey, TValue> mutableSegment;
+        var opIndex = 0L;
+        if (result == null)
+            result = EmptyOperationResultDelegate;
+        while (true)
+        {
+            lock (AtomicUpdateLock)
+            {
+                mutableSegment = MutableSegment;
+                if (mutableSegment.IsFrozen)
+                {
+                    status = AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
+                }
+                else if (mutableSegment.TryGet(in key, out var existing))
+                {
+                    if (!valueUpdater(ref existing))
+                    {
+                        result(in existing, 0, OperationResult.Cancelled);
+                        return false;
+                    }
+                    status = mutableSegment.Upsert(key, existing, out opIndex);
+                    if (status == AddOrUpdateResult.UPDATED)
+                    {
+                        result(in existing, opIndex, OperationResult.Updated);
+                        return false;
+                    }
+                }
+                else if (TryGetFromReadonlySegments(in key, out existing))
+                {
+                    if (!valueUpdater(ref existing))
+                    {
+                        result(in existing, 0, OperationResult.Cancelled);
+                        return false;
+                    }
+                    status = mutableSegment.Upsert(key, existing, out opIndex);
+                    if (status == AddOrUpdateResult.ADDED)
+                    {
+                        result(in existing, opIndex, OperationResult.Updated);
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (!valueAdder(ref existing))
+                    {
+                        result(in existing, 0, OperationResult.Cancelled);
+                        return false;
+                    }
+                    status = mutableSegment.Upsert(key, existing, out opIndex);
+                    if (status == AddOrUpdateResult.ADDED)
+                    {
+                        result(in existing, opIndex, OperationResult.Added);
+                        return true;
+                    }
+                }
+            }
+            switch (status)
+            {
+                case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
+                    continue;
+                case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
+                    MoveMutableSegmentForward(mutableSegment);
+                    continue;
+                default:
+                    throw new Exception("Impossible.");
             }
         }
     }
@@ -236,6 +346,27 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         {
             var mutableSegment = MutableSegment;
             var status = mutableSegment.Upsert(key, value, out var opIndex);
+            switch (status)
+            {
+                case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
+                    continue;
+                case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
+                    MoveMutableSegmentForward(mutableSegment);
+                    continue;
+                default:
+                    return opIndex;
+            }
+        }
+    }
+
+    public long Upsert(in TKey key, GetValueDelegate<TKey, TValue> valueGetter)
+    {
+        if (IsReadOnly)
+            throw new ZoneTreeIsReadOnlyException();
+        while (true)
+        {
+            var mutableSegment = MutableSegment;
+            var status = mutableSegment.Upsert(key, valueGetter, out var opIndex);
             switch (status)
             {
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
