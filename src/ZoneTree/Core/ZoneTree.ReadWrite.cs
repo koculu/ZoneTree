@@ -240,6 +240,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             switch (status)
             {
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
+                    Thread.Yield();
                     continue;
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
                     MoveMutableSegmentForward(mutableSegment);
@@ -318,6 +319,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             switch (status)
             {
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
+                    Thread.Yield();
                     continue;
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
                     MoveMutableSegmentForward(mutableSegment);
@@ -349,6 +351,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             switch (status)
             {
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
+                    Thread.Yield();
                     continue;
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
                     MoveMutableSegmentForward(mutableSegment);
@@ -370,6 +373,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             switch (status)
             {
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
+                    Thread.Yield();
                     continue;
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
                     MoveMutableSegmentForward(mutableSegment);
@@ -405,6 +409,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             switch (status)
             {
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN:
+                    Thread.Yield();
                     continue;
                 case AddOrUpdateResult.RETRY_SEGMENT_IS_FULL:
                     MoveMutableSegmentForward(mutableSegment);
