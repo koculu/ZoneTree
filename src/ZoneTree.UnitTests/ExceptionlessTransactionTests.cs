@@ -82,7 +82,7 @@ public sealed class ExceptionlessTransactionTests
 
         zoneTree.Maintenance.TransactionLog.CompactionThreshold = compactionThreshold;
 
-        var random = new Random();
+        var random = Random.Shared;
         await Parallel.ForEachAsync(Enumerable.Range(0, 1000), async (x, cancel) =>
         {
             using var transaction =

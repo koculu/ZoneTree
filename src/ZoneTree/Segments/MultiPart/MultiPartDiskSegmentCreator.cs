@@ -34,7 +34,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
 
     readonly List<TValue> PartValues = new();
 
-    readonly Random Random = new();
+    readonly Random Random = Random.Shared;
 
     TKey LastAppendedKey;
 

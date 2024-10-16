@@ -22,13 +22,13 @@ public sealed class SafeBTreeTests
             tree.TryInsert(i, i + i, out _);
 
         var iterator = new BTreeSeekableIterator<int, int>(tree);
-        var j = 0; 
+        var j = 0;
         while (iterator.Next())
         {
             Assert.That(iterator.CurrentKey, Is.EqualTo(j));
             Assert.That(iterator.CurrentValue, Is.EqualTo(j + j));
             ++j;
-        } 
+        }
 
         iterator.SeekEnd();
         j = n - 1;
@@ -92,7 +92,7 @@ public sealed class SafeBTreeTests
             Assert.That(GetLastNodeSmallerOrEqual(iterator, 4), Is.EqualTo(3));
             Assert.That(GetLastNodeSmallerOrEqual(iterator, 3), Is.EqualTo(3));
             Assert.Throws<IndexOutOfRangeException>(
-                () => GetLastNodeSmallerOrEqual(iterator ,- 1));
+                () => GetLastNodeSmallerOrEqual(iterator, -1));
             Assert.That(GetLastNodeSmallerOrEqual(iterator, 10), Is.EqualTo(9));
             Assert.That(GetLastNodeSmallerOrEqual(iterator, 9), Is.EqualTo(9));
             Assert.That(GetLastNodeSmallerOrEqual(iterator, 1), Is.EqualTo(1));
@@ -135,7 +135,7 @@ public sealed class SafeBTreeTests
     [TestCase(BTreeLockMode.NodeLevelMonitor)]
     public void BTreeIteratorParallelInserts(BTreeLockMode lockMode)
     {
-        var random = new Random();
+        var random = Random.Shared;
         var insertCount = 100000;
         var iteratorCount = 1000;
 
@@ -190,7 +190,7 @@ public sealed class SafeBTreeTests
     [TestCase(BTreeLockMode.NodeLevelMonitor)]
     public void BTreeReverseIteratorParallelInserts(BTreeLockMode lockMode)
     {
-        var random = new Random();
+        var random = Random.Shared;
         var insertCount = 100000;
         var iteratorCount = 1550;
 
@@ -203,7 +203,7 @@ public sealed class SafeBTreeTests
             {
                 var key = random.Next();
                 tree.AddOrUpdate(key,
-                    AddOrUpdateResult  (ref int x) =>
+                    AddOrUpdateResult (ref int x) =>
                     {
                         x = key + key;
                         return AddOrUpdateResult.ADDED;
@@ -253,7 +253,7 @@ public sealed class SafeBTreeTests
     [TestCase(BTreeLockMode.NodeLevelMonitor)]
     public void IntIntDuplicateRecords(BTreeLockMode lockMode)
     {
-        var random = new Random();
+        var random = Random.Shared;
         var insertCount = 1000000;
         var iteratorCount = 1000;
 
@@ -297,7 +297,7 @@ public sealed class SafeBTreeTests
     [TestCase(BTreeLockMode.NodeLevelMonitor)]
     public void IntIntDuplicateReverseRecords(BTreeLockMode lockMode)
     {
-        var random = new Random();
+        var random = Random.Shared;
         var insertCount = 1000000;
         var iteratorCount = 1000;
 

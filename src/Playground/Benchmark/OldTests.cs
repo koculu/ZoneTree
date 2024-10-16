@@ -125,7 +125,7 @@ public sealed class OldTests
         var iterate = false;
         if (iterate)
         {
-            var random = new Random();
+            var random = Random.Shared;
             Parallel.For(0, 750000, (i) =>
             {
                 var key = random.Next(0, 999_999_999);
