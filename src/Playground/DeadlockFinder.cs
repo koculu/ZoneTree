@@ -20,7 +20,7 @@ public class DeadlockFinder
             const int upsertLogFrequency = 1_000_000;
             const int iterationLogFrequency = 10_000_000;
             const int iterationYieldFrequency = 1000;
-            var rand = new Random();
+            var rand = Random.Shared;
 
             void resetTree()
             {

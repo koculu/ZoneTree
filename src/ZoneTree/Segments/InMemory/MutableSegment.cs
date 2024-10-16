@@ -207,12 +207,18 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
         try
         {
             Interlocked.Increment(ref WritesInProgress);
-            opIndex = 0;
+
             if (IsFrozenFlag)
+            {
+                opIndex = 0;
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FROZEN;
+            }
 
             if (BTree.Length >= MutableSegmentMaxItemCount)
+            {
+                opIndex = 0;
                 return AddOrUpdateResult.RETRY_SEGMENT_IS_FULL;
+            }
 
             TValue insertedValue = default;
 

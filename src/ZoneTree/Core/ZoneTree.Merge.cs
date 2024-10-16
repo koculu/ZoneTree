@@ -26,7 +26,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             // move segment zero only if
             // the given mutable segment is the current mutable segment (not already moved)
             // and it is not frozen.
-            if (mutableSegment.IsFrozen || mutableSegment != MutableSegment)
+            if (mutableSegment.IsFrozen || !ReferenceEquals(mutableSegment, MutableSegment))
                 return;
 
             //Don't move empty mutable segment.
@@ -34,11 +34,12 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             if (c == 0)
                 return;
 
+            MutableSegment = new FrozenMutableSegment<TKey, TValue>(mutableSegment);
             mutableSegment.Freeze();
+            while (!mutableSegment.IsFullyFrozen) Thread.Yield();
             ReadOnlySegmentQueue.Enqueue(mutableSegment);
             MetaWal.EnqueueMaximumOpIndex(mutableSegment.MaximumOpIndex);
             MetaWal.EnqueueReadOnlySegment(mutableSegment.SegmentId);
-
             MutableSegment = new MutableSegment<TKey, TValue>(
                 Options, IncrementalIdProvider.NextId(),
                 mutableSegment.OpIndexProvider);

@@ -29,7 +29,7 @@ public sealed class AtomicUpdateTests
         }
         data.Maintenance.MoveMutableSegmentForward();
         data.Maintenance.StartMergeOperation().Join();
-        var random = new Random();
+        var random = Random.Shared;
         var off = -1;
         Parallel.For(0, 1001, (x) =>
         {
@@ -100,7 +100,7 @@ public sealed class AtomicUpdateTests
         {
             data.Upsert(i, i + i);
         }
-        var random = new Random();
+        var random = Random.Shared;
         var off = -1;
         Parallel.For(0, 1001, (x) =>
         {
@@ -166,7 +166,7 @@ public sealed class AtomicUpdateTests
         {
             data.Upsert(i, i + i);
         }
-        var random = new Random();
+        var random = Random.Shared;
         var off = -1;
         Parallel.For(0, 1001, (x) =>
         {
@@ -228,7 +228,7 @@ public sealed class AtomicUpdateTests
             .ConfigureWriteAheadLogOptions(x => x.WriteAheadLogMode = walMode)
             .OpenOrCreate();
         var n = 1000;
-        var random = new Random();
+        var random = Random.Shared;
         Parallel.For(0, 1000, (x) =>
         {
             try

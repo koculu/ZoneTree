@@ -240,7 +240,7 @@ public sealed class IteratorTests
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
-        var random = new Random();
+        var random = Random.Shared;
         var insertCount = 100000;
         var iteratorCount = 1000;
 
@@ -289,7 +289,7 @@ public sealed class IteratorTests
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
-        var random = new Random();
+        var random = Random.Shared;
         var insertCount = 1000000;
         var iteratorCount = 1000;
 
@@ -352,7 +352,7 @@ public sealed class IteratorTests
         if (Directory.Exists(dataPath))
             Directory.Delete(dataPath, true);
 
-        var random = new Random();
+        var random = Random.Shared;
         var insertCount = 100000;
         var iteratorCount = 1000;
 
@@ -512,7 +512,7 @@ public sealed class IteratorTests
         if (merge)
             zoneTree.Maintenance.StartMergeOperation()?.Join();
 
-        var random = new Random();
+        var random = Random.Shared;
         DoPrefixSearch(zoneTree, list, random);
         zoneTree.Maintenance.DiskSegment.InitSparseArray(100);
         DoPrefixSearch(zoneTree, list, random);
@@ -604,7 +604,7 @@ public sealed class IteratorTests
                     x.MaximumRecordCount = maximumRecordCount;
             })
             .Open();
-        var random = new Random();
+        var random = Random.Shared;
         DoPrefixSearch(zoneTree, list, random);
         zoneTree.Maintenance.DiskSegment.InitSparseArray(100);
         DoPrefixSearch(zoneTree, list, random);
