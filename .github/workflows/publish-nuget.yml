@@ -4,34 +4,34 @@ on:
   workflow_dispatch:
     inputs:
       name:
-        description: "When you press run workflow, the nuget package will be published."
-        default: "I understand."
+        description: 'When you press run workflow, the nuget package will be published.'
+        default: 'I understand.'
 jobs:
   build:
-
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: |
-          8.0.x
-          7.0.x
-          6.0.x
-    - name: Display dotnet version
-      run: dotnet --version
-    - name: Restore dependencies
-      working-directory: ./src
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-      working-directory: ./src
-    - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal
-      working-directory: ./src
-    - name: Publish the package to nuget.org
-      run: dotnet nuget push ZoneTree/bin/Release/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}
-      working-directory: ./src
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            9.0.x
+            8.0.x
+            7.0.x
+            6.0.x
+      - name: Display dotnet version
+        run: dotnet --version
+      - name: Restore dependencies
+        working-directory: ./src
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+        working-directory: ./src
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal
+        working-directory: ./src
+      - name: Publish the package to nuget.org
+        run: dotnet nuget push ZoneTree/bin/Release/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}
+        working-directory: ./src
