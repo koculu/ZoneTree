@@ -224,17 +224,15 @@ public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 
             var status = BTree
                 .AddOrUpdate(key,
-                    AddOrUpdateResult (ref TValue x) =>
+                    void (ref TValue x) =>
                     {
                         MarkValueDeleted(ref x);
                         insertedValue = x;
-                        return AddOrUpdateResult.ADDED;
                     },
-                    AddOrUpdateResult (ref TValue x) =>
+                    void (ref TValue x) =>
                     {
                         MarkValueDeleted(ref x);
                         insertedValue = x;
-                        return AddOrUpdateResult.UPDATED;
                     }, out opIndex);
             WriteAheadLog.Append(in key, in insertedValue, opIndex);
             return status;

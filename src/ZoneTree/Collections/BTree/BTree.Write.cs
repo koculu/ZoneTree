@@ -95,9 +95,9 @@ public sealed partial class BTree<TKey, TValue>
         }
     }
 
-    public delegate AddOrUpdateResult AddDelegate(ref TValue value);
+    public delegate void AddDelegate(ref TValue value);
 
-    public delegate AddOrUpdateResult UpdateDelegate(ref TValue value);
+    public delegate void UpdateDelegate(ref TValue value);
 
     public AddOrUpdateResult AddOrUpdate(
         in TKey key,

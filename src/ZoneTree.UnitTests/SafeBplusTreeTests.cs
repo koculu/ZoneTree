@@ -148,15 +148,13 @@ public sealed class SafeBTreeTests
             {
                 var key = random.Next();
                 tree.AddOrUpdate(key,
-                    AddOrUpdateResult (ref int value) =>
+                    void (ref int value) =>
                     {
                         value = key + key;
-                        return AddOrUpdateResult.ADDED;
                     },
-                    AddOrUpdateResult (ref int value) =>
+                    void (ref int value) =>
                     {
                         value = key + key;
-                        return AddOrUpdateResult.UPDATED;
                     }, out _);
             });
         });
@@ -203,15 +201,13 @@ public sealed class SafeBTreeTests
             {
                 var key = random.Next();
                 tree.AddOrUpdate(key,
-                    AddOrUpdateResult (ref int x) =>
+                    void (ref int x) =>
                     {
                         x = key + key;
-                        return AddOrUpdateResult.ADDED;
                     },
-                    AddOrUpdateResult (ref int y) =>
+                    void (ref int y) =>
                     {
                         y = key + key;
-                        return AddOrUpdateResult.UPDATED;
                     }, out _);
             });
         });
