@@ -2,35 +2,35 @@ name: Build and Test
 
 on:
   push:
-    branches: [ "main" ]    
+    branches: ['main']
     paths-ignore:
-    - '*.md'
+      - '*.md'
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
     paths-ignore:
-    - '*.md'
+      - '*.md'
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: |
-          8.0.x
-          7.0.x
-          6.0.x
-    - name: Display dotnet version
-      run: dotnet --version
-    - name: Restore dependencies
-      working-directory: ./src
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-      working-directory: ./src
-    - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal
-      working-directory: ./src
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            9.0.x
+            8.0.x
+            7.0.x
+            6.0.x
+      - name: Display dotnet version
+        run: dotnet --version
+      - name: Restore dependencies
+        working-directory: ./src
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+        working-directory: ./src
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal
+        working-directory: ./src
