@@ -76,7 +76,6 @@ ZoneTree sets new standards in database performance, showcasing remarkable speed
 | **str-str ZoneTree sync-compressed WAL**  | 1752 ms       | 3397 ms  | 5070 ms  | 19153 ms |
 | **str-str ZoneTree sync WAL**             | 3488 ms       | 7002 ms  | 10483 ms | 38727 ms |
 |                                           |               |          |          |          |
-| **RocksDb sync WAL (10K => 11 sec)**      | ~1,100,000 ms | N/A      | N/A      | N/A      |
 | **int-int RocksDb sync-compressed WAL**   | 8059 ms       | 16188 ms | 23599 ms | 61947 ms |
 | **str-str RocksDb sync-compressed WAL**   | 8215 ms       | 16146 ms | 23760 ms | 72491 ms |
 
