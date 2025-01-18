@@ -39,14 +39,14 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     /// MoveMutableSegmentForward is called and current mutable segment is enqueued to
     /// the ReadOnlySegments layer.
     /// </summary>
-    public int MutableSegmentMaxItemCount { get; set; } = 1_000_000;
+    public int MutableSegmentMaxItemCount { get; set; } = DefaultValues.MutableSegmentMaxItemCount;
 
     /// <summary>
     /// Disk segment maximumum key-value pair count.
     /// When the maximum count is reached
     /// The disk segment is enqueued into to the bottom segments layer.
     /// </summary>
-    public int DiskSegmentMaxItemCount { get; set; } = 20_000_000;
+    public int DiskSegmentMaxItemCount { get; set; } = DefaultValues.DiskSegmentMaxItemCount;
 
     /// <summary>
     /// The key comparer.
@@ -92,17 +92,17 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     /// Controls lock granularity of in-memory BTree that represents the
     /// mutable segment.
     /// </summary>
-    public BTreeLockMode BTreeLockMode { get; set; } = BTreeLockMode.NodeLevelMonitor;
+    public BTreeLockMode BTreeLockMode { get; set; } = DefaultValues.BTreeLockMode;
 
     /// <summary>
     /// The B+Tree node size.
     /// </summary>
-    public int BTreeNodeSize { get; set; } = 128;
+    public int BTreeNodeSize { get; set; } = DefaultValues.BTreeNodeSize;
 
     /// <summary>
     /// The B+Tree leaf size.
     /// </summary>
-    public int BTreeLeafSize { get; set; } = 128;
+    public int BTreeLeafSize { get; set; } = DefaultValues.BTreeLeafSize;
 
     /// <summary>
     /// ZoneTree Logger.

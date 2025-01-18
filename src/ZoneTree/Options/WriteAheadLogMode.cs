@@ -8,7 +8,7 @@ public enum WriteAheadLogMode : byte
     /// <summary>
     /// Sync mode write ahead log ensures that the data is flushed to the device
     /// immediately.
-    /// It provides maximum durability in case of a crash/power cut,
+    /// It provides maximum durability in case of a crash,
     /// but slower write speed.
     /// </summary>
     Sync = 0,

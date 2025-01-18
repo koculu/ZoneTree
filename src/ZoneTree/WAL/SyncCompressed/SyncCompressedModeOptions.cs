@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Options;
+
+namespace Tenray.ZoneTree.WAL;
 
 public sealed class SyncCompressedModeOptions
 {
@@ -9,11 +11,11 @@ public sealed class SyncCompressedModeOptions
     /// This improves durability in compressed WALs.
     /// Default value is true.
     /// </summary>
-    public bool EnableTailWriterJob { get; set; } = true;
+    public bool EnableTailWriterJob { get; set; } = WriteAheadLogDefaultValues.SyncCompressedModeEnableTailWriterJob;
 
     /// <summary>
     /// The delay in milliseconds before the next tail write.
     /// Default value is 500 ms.
     /// </summary>
-    public int TailWriterJobInterval { get; set; } = 500;
+    public int TailWriterJobInterval { get; set; } = WriteAheadLogDefaultValues.SyncCompressedModeTailWriterJobInterval;
 }
