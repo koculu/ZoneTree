@@ -1,4 +1,5 @@
-﻿using Tenray.ZoneTree.Segments;
+﻿using Tenray.ZoneTree.Options;
+using Tenray.ZoneTree.Segments;
 using Tenray.ZoneTree.Segments.Disk;
 
 namespace Tenray.ZoneTree;
@@ -207,6 +208,15 @@ public interface IZoneTreeMaintenance<TKey, TValue>
     /// Event is fired when the ZoneTree is disposing.
     /// </summary>
     event ZoneTreeIsDisposing<TKey, TValue> OnZoneTreeIsDisposing;
+
+    /// <summary>
+    /// Clones the options used by ZoneTree instance.
+    /// </summary>
+    /// <remarks>
+    /// Modifying the cloned option values does not change the ZoneTree instance's behavior.
+    /// </remarks>
+    /// <returns>Cloned ZoneTree options.</returns>
+    public ZoneTreeOptions<TKey, TValue> CloneOptions();
 }
 
 /// <summary>
