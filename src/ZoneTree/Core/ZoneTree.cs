@@ -346,4 +346,66 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     {
         return new ZoneTreeMaintainer<TKey, TValue>(this);
     }
+
+    public ZoneTreeOptions<TKey, TValue> CloneOptions()
+    {
+        var options = Options;
+        var wal = Options.WriteAheadLogOptions;
+        var dsk = Options.DiskSegmentOptions;
+
+        var clonedWal = new WriteAheadLogOptions()
+        {
+            AsyncCompressedModeOptions = new()
+            {
+                EmptyQueuePollInterval = wal.AsyncCompressedModeOptions.EmptyQueuePollInterval,
+            },
+            CompressionBlockSize = wal.CompressionBlockSize,
+            CompressionLevel = wal.CompressionLevel,
+            CompressionMethod = wal.CompressionMethod,
+            CustomOptions = wal.CustomOptions,
+            EnableIncrementalBackup = wal.EnableIncrementalBackup,
+            SyncCompressedModeOptions = new()
+            {
+                EnableTailWriterJob = wal.SyncCompressedModeOptions.EnableTailWriterJob,
+                TailWriterJobInterval = wal.SyncCompressedModeOptions.TailWriterJobInterval
+            },
+            WriteAheadLogMode = wal.WriteAheadLogMode,
+        };
+
+        var clonesDiskSegmentOptions = new DiskSegmentOptions()
+        {
+            CompressionBlockSize = dsk.CompressionBlockSize,
+            CompressionLevel = dsk.CompressionLevel,
+            CompressionMethod = dsk.CompressionMethod,
+            DefaultSparseArrayStepSize = dsk.DefaultSparseArrayStepSize,
+            DiskSegmentMode = dsk.DiskSegmentMode,
+            KeyCacheRecordLifeTimeInMillisecond = dsk.KeyCacheRecordLifeTimeInMillisecond,
+            KeyCacheSize = dsk.KeyCacheSize,
+            MaximumRecordCount = dsk.MaximumRecordCount,
+            MinimumRecordCount = dsk.MinimumRecordCount,
+            ValueCacheRecordLifeTimeInMillisecond = dsk.ValueCacheRecordLifeTimeInMillisecond,
+            ValueCacheSize = dsk.ValueCacheSize,
+        };
+
+        var clone = new ZoneTreeOptions<TKey, TValue>()
+        {
+            BTreeLeafSize = options.BTreeLeafSize,
+            BTreeLockMode = options.BTreeLockMode,
+            BTreeNodeSize = options.BTreeNodeSize,
+            Comparer = options.Comparer,
+            DiskSegmentMaxItemCount = options.DiskSegmentMaxItemCount,
+            DiskSegmentOptions = dsk,
+            EnableSingleSegmentGarbageCollection = options.EnableSingleSegmentGarbageCollection,
+            IsDeleted = options.IsDeleted,
+            KeySerializer = options.KeySerializer,
+            Logger = options.Logger,
+            MarkValueDeleted = options.MarkValueDeleted,
+            MutableSegmentMaxItemCount = options.MutableSegmentMaxItemCount,
+            RandomAccessDeviceManager = options.RandomAccessDeviceManager,
+            ValueSerializer = options.ValueSerializer,
+            WriteAheadLogOptions = clonedWal,
+            WriteAheadLogProvider = options.WriteAheadLogProvider,
+        };
+        return clone;
+    }
 }
