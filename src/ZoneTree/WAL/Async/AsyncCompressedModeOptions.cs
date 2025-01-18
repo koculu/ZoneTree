@@ -1,4 +1,6 @@
-﻿namespace Tenray.ZoneTree.WAL;
+﻿using Tenray.ZoneTree.Options;
+
+namespace Tenray.ZoneTree.WAL;
 
 public sealed class AsyncCompressedModeOptions
 {
@@ -7,5 +9,5 @@ public sealed class AsyncCompressedModeOptions
     /// to retrieve the new entries in the queue,
     /// when the queue is empty.
     /// </summary>
-    public int EmptyQueuePollInterval { get; set; } = 100;
+    public int EmptyQueuePollInterval { get; set; } = WriteAheadLogDefaultValues.AsyncCompressedModeEmptyQueuePollInterval;
 }

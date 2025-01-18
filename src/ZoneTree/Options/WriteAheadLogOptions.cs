@@ -14,7 +14,7 @@ public sealed class WriteAheadLogOptions
     /// based on this setting. Default value is AsyncCompressed.
     /// </summary>
     public WriteAheadLogMode WriteAheadLogMode { get; set; }
-        = WriteAheadLogMode.AsyncCompressed;
+        = WriteAheadLogDefaultValues.WriteAheadLogMode;
 
     /// <summary>
     /// The custom options are reserved to be used
@@ -27,19 +27,19 @@ public sealed class WriteAheadLogOptions
     /// based on this setting. Default value = 256 KB
     /// </summary>
     public int CompressionBlockSize { get; set; }
-        = 1024 * 32 * 8;
+        = WriteAheadLogDefaultValues.CompressionBlockSize;
 
     /// <summary>
     /// The compression method for the WALs with compression enabled.
     /// Default is LZ4.
     /// </summary>
-    public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.LZ4;
+    public CompressionMethod CompressionMethod { get; set; } = WriteAheadLogDefaultValues.CompressionMethod;
 
     /// <summary>
     /// The compression level of the selected compression method.
     /// Default is <see cref="CompressionLevels.LZ4Fastest"/>.
     /// </summary>
-    public int CompressionLevel { get; set; } = CompressionLevels.LZ4Fastest;
+    public int CompressionLevel { get; set; } = WriteAheadLogDefaultValues.CompressionLevel;
 
     /// <summary>
     /// Options for sync-compressed mode.
