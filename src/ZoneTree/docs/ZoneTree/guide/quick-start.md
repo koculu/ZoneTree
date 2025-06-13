@@ -163,3 +163,13 @@ while(iterator.Next()) {
    var value = iterator.CurrentValue;
 } 
 ```
+## Using the InMemoryFileStreamProvider
+
+The `InMemoryFileStreamProvider` keeps all files entirely in memory. It is useful for unit testing or scenarios that require fast, temporary storage without touching the disk.
+
+```csharp
+var provider = new InMemoryFileStreamProvider();
+using var zoneTree = new ZoneTreeFactory<int, string>(provider)
+    .OpenOrCreate();
+zoneTree.Upsert(1, "value");
+```
