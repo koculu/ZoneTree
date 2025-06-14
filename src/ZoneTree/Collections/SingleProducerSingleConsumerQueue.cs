@@ -68,10 +68,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
 
             while (start != end)
             {
-                var item = items[start];
-                if (item == null)
-                    continue;
-                list.Add(item);
+                list.Add(items[start]);
                 start = (start + 1) % size;
             }
             return list;
@@ -87,10 +84,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
 
             while (start != end)
             {
-                var item = items[end];
-                if (item == null)
-                    continue;
-                list.Add(item);
+                list.Add(items[end]);
                 end = (size + end - 1) % size;
             }
             return list;
