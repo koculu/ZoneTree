@@ -394,7 +394,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             BTreeNodeSize = options.BTreeNodeSize,
             Comparer = options.Comparer,
             DiskSegmentMaxItemCount = options.DiskSegmentMaxItemCount,
-            DiskSegmentOptions = dsk,
+            DiskSegmentOptions = clonesDiskSegmentOptions,
             EnableSingleSegmentGarbageCollection = options.EnableSingleSegmentGarbageCollection,
             IsDeleted = options.IsDeleted,
             KeySerializer = options.KeySerializer,
