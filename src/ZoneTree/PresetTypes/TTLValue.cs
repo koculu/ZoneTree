@@ -25,8 +25,7 @@ public struct TTLValue<TValue> : IEquatable<TTLValue<TValue>>
     public bool Equals(TTLValue<TValue> other)
     {
         return EqualityComparer<TValue>.Default.Equals(Value, other.Value) &&
-               Expiration == other.Expiration &&
-               IsExpired == other.IsExpired;
+               Expiration == other.Expiration;
     }
 
     public void Expire()
@@ -36,7 +35,10 @@ public struct TTLValue<TValue> : IEquatable<TTLValue<TValue>>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Value, Expiration, IsExpired);
+        // IsExpired depends on the current time. Including it in the
+        // hash code would cause different hashes for the same value
+        // depending on when GetHashCode is called.
+        return HashCode.Combine(Value, Expiration);
     }
 
     public bool SlideExpiration(TimeSpan timeSpan)
