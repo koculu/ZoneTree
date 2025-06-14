@@ -150,7 +150,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
         {
             if (CircularKeyCache.TryGet(index, out var key)) return key;
             Interlocked.Increment(ref ReadCount);
-            if (IsDroppping)
+            if (IsDropping)
             {
                 throw new DiskSegmentIsDroppingException();
             }
@@ -184,7 +184,7 @@ public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, 
         {
             if (CircularValueCache.TryGet(index, out var value)) return value;
             Interlocked.Increment(ref ReadCount);
-            if (IsDroppping)
+            if (IsDropping)
             {
                 throw new DiskSegmentIsDroppingException();
             }

@@ -33,7 +33,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     volatile bool IsDropRequested;
 
-    protected volatile bool IsDroppping;
+    protected volatile bool IsDropping;
 
     bool IsDropped;
 
@@ -317,7 +317,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
             // reads will increase ReadCount when they begin,
             // and decrease ReadCount when they end.
-            IsDroppping = true;
+            IsDropping = true;
             // After the flag change,
             // reads will start throwing DiskSegmentIsDroppingException
 
