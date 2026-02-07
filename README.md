@@ -8,7 +8,7 @@ ZoneTree is a **persistent**, **high-performance**, **transactional**, and **ACI
 [![Downloads](https://img.shields.io/nuget/dt/ZoneTree)](https://www.nuget.org/packages/ZoneTree/)
 ![Platform](https://img.shields.io/badge/platform-.NET-blue.svg)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)
-[![Join Discord](https://dcbadge.vercel.app/api/server/d9aDtzVNNv?logoColor=f1c400&theme=discord&style=flat)](https://discord.gg/d9aDtzVNNv)
+[![Join Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/d9aDtzVNNv)
 
 ## Table of Contents
 
