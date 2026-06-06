@@ -13,6 +13,12 @@ namespace ZoneTree.Core;
 
 public sealed class ZoneTreeLoader<TKey, TValue>
 {
+    const string LegacyRootNamespace = "Tenray.ZoneTree.";
+
+    const string RootNamespace = "ZoneTree.";
+
+    static readonly Version LegacyNamespaceMigrationVersion = new("1.8.7.0");
+
     ZoneTreeOptions<TKey, TValue> Options { get; }
 
     ZoneTreeMeta ZoneTreeMeta;
@@ -55,6 +61,10 @@ public sealed class ZoneTreeLoader<TKey, TValue>
                 Version.Parse(version),
                 ZoneTreeInfo.ProductVersion);
 
+        var isLegacyNamespaceMigrated =
+            Version.Parse(version) < LegacyNamespaceMigrationVersion &&
+            NormalizeLegacyNamespaceInZoneTreeMeta();
+
         if (!string.Equals(
             ZoneTreeMeta.KeyType,
             typeof(TKey).SimplifiedFullName(),
@@ -94,6 +104,43 @@ public sealed class ZoneTreeLoader<TKey, TValue>
             throw new TreeValueSerializerTypeMismatchException(
                 ZoneTreeMeta.ValueSerializerType,
                 Options.ValueSerializer.GetType().SimplifiedFullName());
+
+        if (isLegacyNamespaceMigrated)
+        {
+            Options.Logger?.LogWarning(
+                "ZoneTree metadata type names were migrated from Tenray.ZoneTree namespace to ZoneTree namespace.");
+        }
+    }
+
+    static string NormalizeLegacyNamespace(string typeName)
+    {
+        return typeName?.Replace(
+            LegacyRootNamespace,
+            RootNamespace,
+            StringComparison.Ordinal);
+    }
+
+    bool NormalizeLegacyNamespaceInZoneTreeMeta()
+    {
+        var keyType = NormalizeLegacyNamespace(ZoneTreeMeta.KeyType);
+        var valueType = NormalizeLegacyNamespace(ZoneTreeMeta.ValueType);
+        var comparerType = NormalizeLegacyNamespace(ZoneTreeMeta.ComparerType);
+        var keySerializerType = NormalizeLegacyNamespace(ZoneTreeMeta.KeySerializerType);
+        var valueSerializerType = NormalizeLegacyNamespace(ZoneTreeMeta.ValueSerializerType);
+
+        if (keyType == ZoneTreeMeta.KeyType &&
+            valueType == ZoneTreeMeta.ValueType &&
+            comparerType == ZoneTreeMeta.ComparerType &&
+            keySerializerType == ZoneTreeMeta.KeySerializerType &&
+            valueSerializerType == ZoneTreeMeta.ValueSerializerType)
+            return false;
+
+        ZoneTreeMeta.KeyType = keyType;
+        ZoneTreeMeta.ValueType = valueType;
+        ZoneTreeMeta.ComparerType = comparerType;
+        ZoneTreeMeta.KeySerializerType = keySerializerType;
+        ZoneTreeMeta.ValueSerializerType = valueSerializerType;
+        return true;
     }
 
     void LoadZoneTreeMetaWAL()
