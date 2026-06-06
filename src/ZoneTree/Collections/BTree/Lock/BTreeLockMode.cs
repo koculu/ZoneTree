@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Collections.BTree.Lock;
+﻿namespace ZoneTree.Collections.BTree.Lock;
 
 /// <summary>
 /// Available BTree lock modes.

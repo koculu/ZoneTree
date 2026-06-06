@@ -1,6 +1,6 @@
 ﻿using K4os.Compression.LZ4;
 
-namespace Tenray.ZoneTree.Compression;
+namespace ZoneTree.Compression;
 
 public static class LZ4DataCompression
 {

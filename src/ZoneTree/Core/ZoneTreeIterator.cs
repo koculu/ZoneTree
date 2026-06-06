@@ -1,10 +1,10 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments;
+﻿using ZoneTree.Collections;
+using ZoneTree.Comparers;
+using ZoneTree.Exceptions;
+using ZoneTree.Options;
+using ZoneTree.Segments;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
 {

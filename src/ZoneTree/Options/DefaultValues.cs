@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
-using Tenray.ZoneTree.Collections.BTree.Lock;
+using ZoneTree.Collections.BTree.Lock;
 
-namespace Tenray.ZoneTree.Options;
+namespace ZoneTree.Options;
 
 public static class DefaultValues
 {

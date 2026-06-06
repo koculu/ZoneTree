@@ -1,8 +1,8 @@
-﻿using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Transactional;
+﻿using ZoneTree.Exceptions;
+using ZoneTree.Logger;
+using ZoneTree.Transactional;
 
-namespace Tenray.ZoneTree;
+namespace ZoneTree;
 
 /// <summary>
 /// The interface for the core functionality of a transactional ZoneTree.

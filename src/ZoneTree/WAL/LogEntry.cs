@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace Tenray.ZoneTree.WAL;
+namespace ZoneTree.WAL;
 
 public struct LogEntry : IEquatable<LogEntry>
 {

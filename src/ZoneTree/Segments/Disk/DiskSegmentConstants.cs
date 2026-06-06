@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Segments.Disk;
+﻿namespace ZoneTree.Segments.Disk;
 
 public static class DiskSegmentConstants
 {

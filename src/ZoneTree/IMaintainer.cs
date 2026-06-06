@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree;
+﻿namespace ZoneTree;
 
 /// <summary>
 /// Provides functionality to manage merge operations and memory compaction within the ZoneTree.

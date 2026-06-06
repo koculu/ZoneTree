@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Options;
+﻿namespace ZoneTree.Options;
 
 public static class WriteAheadLogDefaultValues
 {

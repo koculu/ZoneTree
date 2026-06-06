@@ -1,17 +1,17 @@
-﻿using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Segments.Disk;
-using Tenray.ZoneTree.Transactional;
-using Tenray.ZoneTree.WAL;
-using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Serializers;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Segments.RandomAccess;
-using Tenray.ZoneTree.PresetTypes;
+﻿using ZoneTree.Exceptions;
+using ZoneTree.Segments.Disk;
+using ZoneTree.Transactional;
+using ZoneTree.WAL;
+using ZoneTree.Core;
+using ZoneTree.AbstractFileStream;
+using ZoneTree.Comparers;
+using ZoneTree.Serializers;
+using ZoneTree.Options;
+using ZoneTree.Logger;
+using ZoneTree.Segments.RandomAccess;
+using ZoneTree.PresetTypes;
 
-namespace Tenray.ZoneTree;
+namespace ZoneTree;
 
 /// <summary>
 /// The factory to open or create a ZoneTree.

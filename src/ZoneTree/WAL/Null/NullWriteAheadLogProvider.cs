@@ -1,7 +1,7 @@
-﻿using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Serializers;
+﻿using ZoneTree.Options;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.WAL;
+namespace ZoneTree.WAL;
 
 public sealed class NullWriteAheadLogProvider : IWriteAheadLogProvider
 {

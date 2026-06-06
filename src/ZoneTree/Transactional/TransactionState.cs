@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Transactional;
+﻿namespace ZoneTree.Transactional;
 
 public enum TransactionState
 {

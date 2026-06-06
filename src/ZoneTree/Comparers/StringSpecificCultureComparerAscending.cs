@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace Tenray.ZoneTree.Comparers;
+namespace ZoneTree.Comparers;
 
 public sealed class StringSpecificCultureComparerAscending : IRefComparer<string>
 {

@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Exceptions;
+﻿using ZoneTree.Exceptions;
 
-namespace Tenray.ZoneTree.Collections.BTree;
+namespace ZoneTree.Collections.BTree;
 
 public delegate TValue GetValueDelegate<TKey, TValue>(long opIndex);
 

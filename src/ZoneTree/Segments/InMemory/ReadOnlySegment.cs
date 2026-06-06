@@ -1,11 +1,11 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments.Block;
-using Tenray.ZoneTree.WAL;
+﻿using ZoneTree.Collections;
+using ZoneTree.Comparers;
+using ZoneTree.Core;
+using ZoneTree.Options;
+using ZoneTree.Segments.Block;
+using ZoneTree.WAL;
 
-namespace Tenray.ZoneTree.Segments.InMemory;
+namespace ZoneTree.Segments.InMemory;
 
 public sealed class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, IIndexedReader<TKey, TValue>
 {

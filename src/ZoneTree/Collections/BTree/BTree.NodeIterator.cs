@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Comparers;
+﻿using ZoneTree.Comparers;
 
-namespace Tenray.ZoneTree.Collections.BTree;
+namespace ZoneTree.Collections.BTree;
 
 public sealed partial class BTree<TKey, TValue>
 {

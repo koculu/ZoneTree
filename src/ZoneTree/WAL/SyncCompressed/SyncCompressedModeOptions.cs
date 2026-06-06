@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Options;
+﻿using ZoneTree.Options;
 
-namespace Tenray.ZoneTree.WAL;
+namespace ZoneTree.WAL;
 
 public sealed class SyncCompressedModeOptions
 {

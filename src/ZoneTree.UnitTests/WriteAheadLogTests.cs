@@ -1,11 +1,11 @@
-using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Serializers;
-using Tenray.ZoneTree.WAL;
+using ZoneTree.AbstractFileStream;
+using ZoneTree.Core;
+using ZoneTree.Exceptions;
+using ZoneTree.Logger;
+using ZoneTree.Serializers;
+using ZoneTree.WAL;
 
-namespace Tenray.ZoneTree.UnitTests;
+namespace ZoneTree.UnitTests;
 
 public sealed class WriteAheadLogTests
 {

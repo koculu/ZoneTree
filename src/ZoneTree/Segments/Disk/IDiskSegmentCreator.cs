@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Core;
+﻿using ZoneTree.Core;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace ZoneTree.Segments.Disk;
 
 public interface IDiskSegmentCreator<TKey, TValue> : IDisposable
 {

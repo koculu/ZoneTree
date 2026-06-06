@@ -1,8 +1,8 @@
-﻿using Tenray.ZoneTree.Collections.BTree.Lock;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Core;
+﻿using ZoneTree.Collections.BTree.Lock;
+using ZoneTree.Comparers;
+using ZoneTree.Core;
 
-namespace Tenray.ZoneTree.Collections.BTree;
+namespace ZoneTree.Collections.BTree;
 
 /// <summary>
 /// In memory B+Tree.

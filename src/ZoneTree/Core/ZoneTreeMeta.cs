@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
-using Tenray.ZoneTree.Options;
+using ZoneTree.Options;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed class ZoneTreeMeta
 {

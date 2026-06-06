@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.PresetTypes;
+﻿using ZoneTree.PresetTypes;
 
-namespace Tenray.ZoneTree.Serializers;
+namespace ZoneTree.Serializers;
 
 public sealed class DeletableSerializer<TValue> : ISerializer<Deletable<TValue>>
     where TValue : unmanaged

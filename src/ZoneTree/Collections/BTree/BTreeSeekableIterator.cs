@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Collections.BTree;
+﻿namespace ZoneTree.Collections.BTree;
 
 public sealed class BTreeSeekableIterator<TKey, TValue>
     : ISeekableIterator<TKey, TValue>

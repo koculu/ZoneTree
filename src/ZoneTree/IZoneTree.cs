@@ -1,9 +1,9 @@
-﻿using Tenray.ZoneTree.Collections.BTree;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Serializers;
+﻿using ZoneTree.Collections.BTree;
+using ZoneTree.Comparers;
+using ZoneTree.Logger;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree;
+namespace ZoneTree;
 
 /// <summary>
 /// The interface for the core functionality of a ZoneTree.

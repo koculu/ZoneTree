@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Options;
+﻿using ZoneTree.Options;
 
-namespace Tenray.ZoneTree.Compression;
+namespace ZoneTree.Compression;
 
 public static class DataCompression
 {

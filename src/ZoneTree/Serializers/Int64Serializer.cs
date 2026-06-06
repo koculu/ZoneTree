@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Serializers;
+﻿namespace ZoneTree.Serializers;
 
 public sealed class Int64Serializer : ISerializer<long>
 {

@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.PresetTypes;
+﻿using ZoneTree.PresetTypes;
 
-namespace Tenray.ZoneTree.Comparers;
+namespace ZoneTree.Comparers;
 
 public sealed class DeletableComparer<TValue> : IRefComparer<Deletable<TValue>>
 {

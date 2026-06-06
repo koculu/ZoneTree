@@ -121,7 +121,7 @@ using var zoneTree = new ZoneTreeFactory<int, MyDeletableValueType>()
   .OpenOrCreate();  
 ```
 
-You can also use built in generic [Deletable&lt;TValue&gt;](/docs/ZoneTree/api/Tenray.ZoneTree.PresetTypes.Deletable-1.html) for deletion.
+You can also use built in generic [Deletable&lt;TValue&gt;](/docs/ZoneTree/api/ZoneTree.PresetTypes.Deletable-1.html) for deletion.
 
 ## How to iterate over data?
 

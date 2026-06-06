@@ -1,7 +1,7 @@
 ﻿
 using System;
 
-namespace Tenray.ZoneTree.Serializers;
+namespace ZoneTree.Serializers;
 
 public sealed class StructSerializer<TType> : ISerializer<TType> where TType : unmanaged
 {

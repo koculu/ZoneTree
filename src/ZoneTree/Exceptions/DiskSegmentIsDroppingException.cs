@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Exceptions;
+﻿namespace ZoneTree.Exceptions;
 
 /// <summary>
 /// Internal exception to synchronize reads with disk segment drop operation.

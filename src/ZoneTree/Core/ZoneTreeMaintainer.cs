@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Segments;
-using Tenray.ZoneTree.Segments.Disk;
+using ZoneTree.Logger;
+using ZoneTree.Segments;
+using ZoneTree.Segments.Disk;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 /// <summary>
 /// The maintainer for ZoneTree to control merge operations and memory compaction.

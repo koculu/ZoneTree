@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.WAL;
+﻿namespace ZoneTree.WAL;
 
 public struct KeyValuePocket<TKey, TValue> : IEquatable<KeyValuePocket<TKey, TValue>>
 {

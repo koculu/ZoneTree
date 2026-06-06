@@ -1,6 +1,6 @@
 ﻿using System.Buffers;
 
-namespace Tenray.ZoneTree.AbstractFileStream;
+namespace ZoneTree.AbstractFileStream;
 
 public static class MemoryStreamExtensions
 {

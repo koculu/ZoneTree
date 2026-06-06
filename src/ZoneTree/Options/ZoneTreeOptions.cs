@@ -1,13 +1,13 @@
-﻿using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.WAL;
-using Tenray.ZoneTree.Collections.BTree.Lock;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Serializers;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Segments.RandomAccess;
-using Tenray.ZoneTree.PresetTypes;
+﻿using ZoneTree.Exceptions;
+using ZoneTree.WAL;
+using ZoneTree.Collections.BTree.Lock;
+using ZoneTree.Logger;
+using ZoneTree.Serializers;
+using ZoneTree.Comparers;
+using ZoneTree.Segments.RandomAccess;
+using ZoneTree.PresetTypes;
 
-namespace Tenray.ZoneTree.Options;
+namespace ZoneTree.Options;
 
 /// <summary>
 /// A delegate to query key-value pair deletion state.

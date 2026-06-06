@@ -41,7 +41,7 @@
     "globalMetadata": {
       "_enableNewTab": true,
       "_appTitle": "ZoneTree - Ordered Key Value Database",
-      "_appFooter": "Copyright © 2022 Tenray.io ",
+      "_appFooter": "Copyright © 2022 zonetree.dev ",
       "_enableSearch": true,
       "_description": "ZoneTree is a persistent, high-performance, transactional, ACID-compliant ordered key-value database for NET. It can operate in memory or on local/cloud storage.",
       "_appLogoPath": "./docs/ZoneTree/images/logo2.svg"

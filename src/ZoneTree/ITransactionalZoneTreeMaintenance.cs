@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Transactional;
+﻿using ZoneTree.Transactional;
 
-namespace Tenray.ZoneTree;
+namespace ZoneTree;
 
 /// <summary>
 /// The interface for the maintenance of a transactional ZoneTree.

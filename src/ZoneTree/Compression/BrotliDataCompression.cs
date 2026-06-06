@@ -1,7 +1,7 @@
 ﻿using System.IO.Compression;
-using Tenray.ZoneTree.AbstractFileStream;
+using ZoneTree.AbstractFileStream;
 
-namespace Tenray.ZoneTree.Compression;
+namespace ZoneTree.Compression;
 
 public static class BrotliDataCompression
 {

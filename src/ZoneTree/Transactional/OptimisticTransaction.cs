@@ -1,7 +1,7 @@
-﻿using Tenray.ZoneTree.Serializers;
-using Tenray.ZoneTree.Options;
+﻿using ZoneTree.Serializers;
+using ZoneTree.Options;
 
-namespace Tenray.ZoneTree.Transactional;
+namespace ZoneTree.Transactional;
 
 public sealed class OptimisticTransaction<TKey, TValue>
 {

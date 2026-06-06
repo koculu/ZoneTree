@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.AbstractFileStream;
+﻿namespace ZoneTree.AbstractFileStream;
 
 /// <summary>
 /// Abstraction over FileStream to make it easy to integrate with

@@ -82,10 +82,10 @@
 // (i.e. when handling arrays of reference types).
 
 using System.Diagnostics;
-using Tenray.ZoneTree.Comparers;
-using static Tenray.ZoneTree.Collections.TimSort.TimSortUtils;
+using ZoneTree.Comparers;
+using static ZoneTree.Collections.TimSort.TimSortUtils;
 
-namespace Tenray.ZoneTree.Collections.TimSort;
+namespace ZoneTree.Collections.TimSort;
 
 /// <summary>
 /// STABLE TimSort Implementation

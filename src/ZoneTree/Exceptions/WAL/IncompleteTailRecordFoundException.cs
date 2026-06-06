@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Exceptions.WAL;
+﻿namespace ZoneTree.Exceptions.WAL;
 
 public sealed class IncompleteTailRecordFoundException : ZoneTreeException
 {

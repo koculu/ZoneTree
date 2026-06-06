@@ -1,5 +1,5 @@
 ﻿
-namespace Tenray.ZoneTree.Serializers;
+namespace ZoneTree.Serializers;
 
 public sealed class ByteSerializer : ISerializer<byte>
 {

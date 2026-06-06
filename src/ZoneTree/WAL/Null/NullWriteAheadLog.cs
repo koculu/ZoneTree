@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Exceptions.WAL;
+﻿using ZoneTree.Exceptions.WAL;
 
-namespace Tenray.ZoneTree.WAL;
+namespace ZoneTree.WAL;
 
 public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {

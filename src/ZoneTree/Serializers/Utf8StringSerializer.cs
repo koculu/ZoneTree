@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Tenray.ZoneTree.Serializers;
+namespace ZoneTree.Serializers;
 
 public sealed class Utf8StringSerializer : ISerializer<string>
 {

@@ -1,8 +1,8 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Segments;
-using Tenray.ZoneTree.Segments.NullDisk;
+﻿using ZoneTree.Collections;
+using ZoneTree.Segments;
+using ZoneTree.Segments.NullDisk;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeMaintenance<TKey, TValue>
 {

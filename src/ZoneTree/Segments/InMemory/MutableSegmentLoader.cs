@@ -1,9 +1,9 @@
-﻿using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.WAL;
+﻿using ZoneTree.Exceptions;
+using ZoneTree.Core;
+using ZoneTree.Options;
+using ZoneTree.WAL;
 
-namespace Tenray.ZoneTree.Segments.InMemory;
+namespace ZoneTree.Segments.InMemory;
 
 public sealed class MutableSegmentLoader<TKey, TValue>
 {

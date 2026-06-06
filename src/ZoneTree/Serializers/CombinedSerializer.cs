@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Serializers;
+﻿namespace ZoneTree.Serializers;
 
 public sealed class CombinedSerializer<TValue1, TValue2> : ISerializer<CombinedValue<TValue1, TValue2>>
 {

@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Comparers;
+﻿namespace ZoneTree.Comparers;
 
 public sealed class UInt64ComparerAscending : IRefComparer<ulong>
 {

@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Comparers;
+﻿using ZoneTree.Comparers;
 
-namespace Tenray.ZoneTree.WAL;
+namespace ZoneTree.WAL;
 
 public sealed class KeyValuePocketRefComparer<TKey, TValue> : IRefComparer<KeyValuePocket<TKey, TValue>>
 {

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
-using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Serializers;
+using ZoneTree.AbstractFileStream;
+using ZoneTree.Logger;
+using ZoneTree.Options;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.WAL;
+namespace ZoneTree.WAL;
 
 public sealed class WriteAheadLogProvider : IWriteAheadLogProvider
 {

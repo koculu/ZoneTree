@@ -1,8 +1,8 @@
 ﻿using System.Text;
-using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Exceptions;
+using ZoneTree.AbstractFileStream;
+using ZoneTree.Exceptions;
 
-namespace Tenray.ZoneTree.WAL;
+namespace ZoneTree.WAL;
 
 public static class IncrementalLogAppender
 {

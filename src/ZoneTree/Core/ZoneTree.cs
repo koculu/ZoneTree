@@ -1,14 +1,14 @@
 ﻿using System.Collections.Concurrent;
-using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments;
-using Tenray.ZoneTree.Segments.InMemory;
-using Tenray.ZoneTree.Segments.NullDisk;
-using Tenray.ZoneTree.Serializers;
+using ZoneTree.Collections;
+using ZoneTree.Comparers;
+using ZoneTree.Logger;
+using ZoneTree.Options;
+using ZoneTree.Segments;
+using ZoneTree.Segments.InMemory;
+using ZoneTree.Segments.NullDisk;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeMaintenance<TKey, TValue>
 {

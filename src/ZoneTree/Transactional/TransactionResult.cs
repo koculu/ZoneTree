@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Transactional;
+﻿namespace ZoneTree.Transactional;
 
 public readonly struct TransactionResult : ITransactionResult, IEquatable<TransactionResult>
 {

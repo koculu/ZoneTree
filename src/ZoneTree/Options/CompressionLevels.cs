@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Options;
+﻿namespace ZoneTree.Options;
 
 /// <summary>
 /// Compression levels for available compression methods.

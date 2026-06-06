@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace Tenray.ZoneTree.WAL;
+namespace ZoneTree.WAL;
 
 public sealed class Crc32Computer_Software
 {

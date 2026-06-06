@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
-using Tenray.ZoneTree.Comparers;
+using ZoneTree.Comparers;
 
-namespace Tenray.ZoneTree.Collections;
+namespace ZoneTree.Collections;
 
 public static class BinarySearchAlgorithms
 {

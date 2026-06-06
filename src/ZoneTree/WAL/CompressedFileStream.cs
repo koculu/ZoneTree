@@ -1,11 +1,11 @@
 ﻿using System.Text;
-using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments.Block;
-using Tenray.ZoneTree.Serializers;
+using ZoneTree.AbstractFileStream;
+using ZoneTree.Logger;
+using ZoneTree.Options;
+using ZoneTree.Segments.Block;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.WAL;
+namespace ZoneTree.WAL;
 
 #pragma warning disable CA1063
 #pragma warning disable CA2213

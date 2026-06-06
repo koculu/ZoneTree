@@ -1,6 +1,6 @@
 ﻿#undef USE_NODE_IDS
 
-namespace Tenray.ZoneTree.Collections.BTree;
+namespace ZoneTree.Collections.BTree;
 
 public interface ILocker
 {

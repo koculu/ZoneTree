@@ -1,9 +1,9 @@
 ﻿#undef USE_NODE_IDS
 
-using Tenray.ZoneTree.Collections.BTree.Lock;
-using Tenray.ZoneTree.Comparers;
+using ZoneTree.Collections.BTree.Lock;
+using ZoneTree.Comparers;
 
-namespace Tenray.ZoneTree.Collections.BTree;
+namespace ZoneTree.Collections.BTree;
 
 public sealed partial class BTree<TKey, TValue>
 {

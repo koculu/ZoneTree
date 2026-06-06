@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
-using Tenray.ZoneTree.Logger;
+using ZoneTree.Logger;
 
-namespace Tenray.ZoneTree.Segments.Block;
+namespace ZoneTree.Segments.Block;
 
 public sealed class BlockCache
 {

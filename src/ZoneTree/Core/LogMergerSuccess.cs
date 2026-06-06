@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Logger;
+﻿using ZoneTree.Logger;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed class LogMergerSuccess : LogObject
 {

@@ -2,12 +2,12 @@
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments.RandomAccess;
-using Tenray.ZoneTree.Serializers;
+using ZoneTree.Exceptions;
+using ZoneTree.Options;
+using ZoneTree.Segments.RandomAccess;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 {

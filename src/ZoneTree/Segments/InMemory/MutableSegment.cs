@@ -1,11 +1,11 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.BTree;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.WAL;
+﻿using ZoneTree.Collections;
+using ZoneTree.Collections.BTree;
+using ZoneTree.Comparers;
+using ZoneTree.Core;
+using ZoneTree.Options;
+using ZoneTree.WAL;
 
-namespace Tenray.ZoneTree.Segments.InMemory;
+namespace ZoneTree.Segments.InMemory;
 
 public sealed class MutableSegment<TKey, TValue> : IMutableSegment<TKey, TValue>
 {

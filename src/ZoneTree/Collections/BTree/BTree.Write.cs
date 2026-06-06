@@ -1,8 +1,8 @@
 ﻿#undef LOG_DEADLOCK_PREVENTION
 
-using Tenray.ZoneTree.Exceptions;
+using ZoneTree.Exceptions;
 
-namespace Tenray.ZoneTree.Collections.BTree;
+namespace ZoneTree.Collections.BTree;
 
 /// <summary>
 /// In memory B+Tree.

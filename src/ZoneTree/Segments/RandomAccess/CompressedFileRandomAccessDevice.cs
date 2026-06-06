@@ -1,11 +1,11 @@
 ﻿using System.Buffers;
 using System.Text;
-using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments.Block;
+using ZoneTree.AbstractFileStream;
+using ZoneTree.Logger;
+using ZoneTree.Options;
+using ZoneTree.Segments.Block;
 
-namespace Tenray.ZoneTree.Segments.RandomAccess;
+namespace ZoneTree.Segments.RandomAccess;
 
 #pragma warning disable CA2213
 

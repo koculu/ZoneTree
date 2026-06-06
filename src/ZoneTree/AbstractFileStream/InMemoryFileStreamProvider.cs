@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Tenray.ZoneTree.AbstractFileStream;
+namespace ZoneTree.AbstractFileStream;
 
 public sealed class InMemoryFileStreamProvider : IFileStreamProvider
 {

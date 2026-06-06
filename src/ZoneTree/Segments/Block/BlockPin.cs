@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Segments.Block;
+﻿namespace ZoneTree.Segments.Block;
 
 public sealed class BlockPin
 {

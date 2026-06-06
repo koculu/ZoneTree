@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Collections;
+﻿using ZoneTree.Collections;
 
-namespace Tenray.ZoneTree.Segments;
+namespace ZoneTree.Segments;
 
 public interface IReadOnlySegment<TKey, TValue>
 {

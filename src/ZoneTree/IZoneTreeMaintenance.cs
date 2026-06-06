@@ -1,8 +1,8 @@
-﻿using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments;
-using Tenray.ZoneTree.Segments.Disk;
+﻿using ZoneTree.Options;
+using ZoneTree.Segments;
+using ZoneTree.Segments.Disk;
 
-namespace Tenray.ZoneTree;
+namespace ZoneTree;
 
 /// <summary>
 /// The interface for the maintenance of a ZoneTree.

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
-using Tenray.ZoneTree.Comparers;
+using ZoneTree.Comparers;
 
-namespace Tenray.ZoneTree.Collections.TimSort;
+namespace ZoneTree.Collections.TimSort;
 
 /// <summary>
 /// TimSort static utility methods.

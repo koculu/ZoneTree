@@ -1,15 +1,15 @@
 ﻿using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments.Block;
-using Tenray.ZoneTree.Segments.Disk;
-using Tenray.ZoneTree.Segments.Model;
-using Tenray.ZoneTree.Segments.RandomAccess;
-using Tenray.ZoneTree.Serializers;
+using ZoneTree.Exceptions;
+using ZoneTree.Options;
+using ZoneTree.Segments.Block;
+using ZoneTree.Segments.Disk;
+using ZoneTree.Segments.Model;
+using ZoneTree.Segments.RandomAccess;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.Segments.DiskSegmentVariations;
+namespace ZoneTree.Segments.DiskSegmentVariations;
 
 public sealed class FixedSizeValueDiskSegment<TKey, TValue> : DiskSegment<TKey, TValue>
 {

@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Logger;
+﻿namespace ZoneTree.Logger;
 
 public sealed class ConsoleLogger : ILogger
 {

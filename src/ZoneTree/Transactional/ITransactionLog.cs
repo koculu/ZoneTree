@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Serializers;
+﻿using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.Transactional;
+namespace ZoneTree.Transactional;
 
 public interface ITransactionLog<TKey, TValue> : IDisposable
 {

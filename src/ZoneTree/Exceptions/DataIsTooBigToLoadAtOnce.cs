@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Exceptions;
+﻿namespace ZoneTree.Exceptions;
 
 public sealed class DataIsTooBigToLoadAtOnceException : ZoneTreeException
 {

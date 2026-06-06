@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.AbstractFileStream;
+﻿namespace ZoneTree.AbstractFileStream;
 
 #pragma warning disable CA2215
 

@@ -1,8 +1,8 @@
 ﻿using System;
-using Tenray.ZoneTree.Compression;
-using Tenray.ZoneTree.Options;
+using ZoneTree.Compression;
+using ZoneTree.Options;
 
-namespace Tenray.ZoneTree.Segments.Block;
+namespace ZoneTree.Segments.Block;
 
 public sealed class DecompressedBlock
 {

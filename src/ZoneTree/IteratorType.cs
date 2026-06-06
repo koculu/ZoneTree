@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree;
+﻿namespace ZoneTree;
 
 /// <summary>
 /// Available ZoneTree Iterator Types.

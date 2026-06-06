@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.AbstractFileStream;
+﻿namespace ZoneTree.AbstractFileStream;
 
 public sealed class LocalFileStreamProvider : IFileStreamProvider
 {

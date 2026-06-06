@@ -1,10 +1,10 @@
-﻿using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Serializers;
-using Tenray.ZoneTree.Transactional;
+﻿using ZoneTree.Comparers;
+using ZoneTree.Exceptions;
+using ZoneTree.Options;
+using ZoneTree.Serializers;
+using ZoneTree.Transactional;
 
-namespace Tenray.ZoneTree.UnitTests;
+namespace ZoneTree.UnitTests;
 
 public sealed class OptimisticTransactionTests
 {

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Concurrent;
-using Tenray.ZoneTree.PresetTypes;
-using Tenray.ZoneTree.Serializers;
+using ZoneTree.PresetTypes;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.UnitTests;
+namespace ZoneTree.UnitTests;
 
 public sealed class OpIndexTests
 {

@@ -1,11 +1,11 @@
-﻿using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Serializers;
-using Tenray.ZoneTree.WAL;
+﻿using ZoneTree.Comparers;
+using ZoneTree.Core;
+using ZoneTree.Exceptions;
+using ZoneTree.Options;
+using ZoneTree.Serializers;
+using ZoneTree.WAL;
 
-namespace Tenray.ZoneTree.Collections;
+namespace ZoneTree.Collections;
 
 /// <summary>
 /// Persistent Dictionary implementation that is combined 

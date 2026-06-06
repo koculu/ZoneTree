@@ -1,6 +1,6 @@
 ﻿using ZstdNet;
 
-namespace Tenray.ZoneTree.Compression;
+namespace ZoneTree.Compression;
 
 public static class ZstdDataCompression
 {

@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Collections.BTree.Lock;
+﻿namespace ZoneTree.Collections.BTree.Lock;
 
 public sealed class MonitorLock : ILocker
 {

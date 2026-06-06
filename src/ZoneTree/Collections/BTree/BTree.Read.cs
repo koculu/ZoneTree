@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Collections.BTree.Lock;
+﻿using ZoneTree.Collections.BTree.Lock;
 
-namespace Tenray.ZoneTree.Collections.BTree;
+namespace ZoneTree.Collections.BTree;
 
 /// <summary>
 /// In memory B+Tree.

@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Core;
+﻿namespace ZoneTree.Core;
 
 public interface IIncrementalIdProvider
 {

@@ -1,15 +1,15 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
-using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments;
-using Tenray.ZoneTree.Segments.Disk;
-using Tenray.ZoneTree.Segments.InMemory;
-using Tenray.ZoneTree.Segments.MultiPart;
-using Tenray.ZoneTree.Segments.NullDisk;
-using Tenray.ZoneTree.WAL;
+using ZoneTree.Exceptions;
+using ZoneTree.Options;
+using ZoneTree.Segments;
+using ZoneTree.Segments.Disk;
+using ZoneTree.Segments.InMemory;
+using ZoneTree.Segments.MultiPart;
+using ZoneTree.Segments.NullDisk;
+using ZoneTree.WAL;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed class ZoneTreeLoader<TKey, TValue>
 {

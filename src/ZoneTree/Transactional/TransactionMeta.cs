@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Tenray.ZoneTree.Transactional;
+namespace ZoneTree.Transactional;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct TransactionMeta : IEquatable<TransactionMeta>

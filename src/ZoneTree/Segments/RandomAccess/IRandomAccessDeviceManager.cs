@@ -1,7 +1,7 @@
-﻿using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Options;
+﻿using ZoneTree.AbstractFileStream;
+using ZoneTree.Options;
 
-namespace Tenray.ZoneTree.Segments.RandomAccess;
+namespace ZoneTree.Segments.RandomAccess;
 
 public interface IRandomAccessDeviceManager
 {

@@ -1,9 +1,9 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.BTree;
-using Tenray.ZoneTree.Collections.BTree.Lock;
-using Tenray.ZoneTree.Comparers;
+﻿using ZoneTree.Collections;
+using ZoneTree.Collections.BTree;
+using ZoneTree.Collections.BTree.Lock;
+using ZoneTree.Comparers;
 
-namespace Tenray.ZoneTree.UnitTests;
+namespace ZoneTree.UnitTests;
 
 public sealed class BTreeThreadSafetyTests
 {

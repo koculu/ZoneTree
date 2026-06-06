@@ -1,10 +1,10 @@
 ﻿using System;
-using Tenray.ZoneTree.Collections.BTree.Lock;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Serializers;
+using ZoneTree.Collections.BTree.Lock;
+using ZoneTree.Comparers;
+using ZoneTree.Options;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.UnitTests;
+namespace ZoneTree.UnitTests;
 
 public sealed class IteratorTests
 {

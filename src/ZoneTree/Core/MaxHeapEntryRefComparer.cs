@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Comparers;
+﻿using ZoneTree.Comparers;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed class MaxHeapEntryRefComparer<TKey, TValue> : IRefComparer<HeapEntry<TKey, TValue>>
 {

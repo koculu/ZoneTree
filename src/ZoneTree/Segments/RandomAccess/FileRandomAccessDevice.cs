@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Reflection.PortableExecutable;
-using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Segments.Block;
+using ZoneTree.AbstractFileStream;
+using ZoneTree.Segments.Block;
 
-namespace Tenray.ZoneTree.Segments.RandomAccess;
+namespace ZoneTree.Segments.RandomAccess;
 
 public sealed class FileRandomAccessDevice : IRandomAccessDevice
 {

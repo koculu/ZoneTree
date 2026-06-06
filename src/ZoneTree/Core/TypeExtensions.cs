@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public static class TypeExtensions
 {
@@ -10,17 +10,17 @@ public static class TypeExtensions
             return type.FullName;
         var builder = new StringBuilder();
         var typeName = type.Namespace + "." + type.Name;
-        int index = typeName.IndexOf('`');
+        int index = typeName.IndexOf('`', StringComparison.Ordinal);
         if (index > 0)
         {
-            builder.Append(typeName.Substring(0, index));
+            builder.Append(typeName.AsSpan(0, index));
         }
         else
         {
             builder.Append(typeName);
         }
 
-        builder.Append("<");
+        builder.Append('<');
         var genericArguments = type.GetGenericArguments();
         var len = genericArguments.Length;
         for (var i = 0; i < len; i++)
@@ -31,7 +31,7 @@ public static class TypeExtensions
             }
             builder.Append(genericArguments[i].SimplifiedFullName());
         }
-        builder.Append(">");
+        builder.Append('>');
         return builder.ToString();
     }
 }

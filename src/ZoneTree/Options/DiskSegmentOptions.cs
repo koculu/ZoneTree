@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Options;
+﻿namespace ZoneTree.Options;
 
 /// <summary>
 /// Represents the configuration options for disk segments in the ZoneTree.

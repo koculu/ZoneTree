@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Tenray.ZoneTree.AbstractFileStream;
+namespace ZoneTree.AbstractFileStream;
 
 /// <summary>
 /// Prevents partial write (e.g. power cut)

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public static class ZoneTreeInfo
 {

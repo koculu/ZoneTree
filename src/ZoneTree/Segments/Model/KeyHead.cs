@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Tenray.ZoneTree.Segments.Model;
+namespace ZoneTree.Segments.Model;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct KeyHead : IEquatable<KeyHead>

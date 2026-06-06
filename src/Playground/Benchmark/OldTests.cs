@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
-using Tenray.ZoneTree;
-using Tenray.ZoneTree.Options;
+using ZoneTree;
+using ZoneTree.Options;
 
 namespace Playground.Benchmark;
 

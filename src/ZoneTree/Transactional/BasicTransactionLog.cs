@@ -1,10 +1,10 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Serializers;
+﻿using ZoneTree.Collections;
+using ZoneTree.Comparers;
+using ZoneTree.Core;
+using ZoneTree.Options;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.Transactional;
+namespace ZoneTree.Transactional;
 
 public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TValue>, IDisposable
 {

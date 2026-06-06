@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree;
+﻿namespace ZoneTree;
 
 /// <summary>
 /// The enumeration for merge results.

@@ -1,11 +1,11 @@
 ﻿using System.Text;
-using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Exceptions.WAL;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Serializers;
+using ZoneTree.AbstractFileStream;
+using ZoneTree.Exceptions.WAL;
+using ZoneTree.Logger;
+using ZoneTree.Options;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.WAL;
+namespace ZoneTree.WAL;
 
 #pragma warning disable CA2213
 

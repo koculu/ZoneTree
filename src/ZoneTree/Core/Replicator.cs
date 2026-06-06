@@ -1,8 +1,8 @@
-﻿namespace Tenray.ZoneTree.Core;
+﻿namespace ZoneTree.Core;
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Tenray.ZoneTree.Collections;
+using ZoneTree.Collections;
 
 /// <summary>
 /// The <see cref="Replicator{TKey, TValue}"/> class provides asynchronous replication for 

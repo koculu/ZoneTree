@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Options;
+﻿namespace ZoneTree.Options;
 
 /// <summary>
 /// Defines the validation behavior 

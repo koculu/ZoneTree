@@ -1,13 +1,13 @@
 ﻿using System.Diagnostics;
-using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments;
-using Tenray.ZoneTree.Segments.Disk;
-using Tenray.ZoneTree.Segments.InMemory;
-using Tenray.ZoneTree.Segments.MultiPart;
-using Tenray.ZoneTree.Segments.NullDisk;
+using ZoneTree.Collections;
+using ZoneTree.Options;
+using ZoneTree.Segments;
+using ZoneTree.Segments.Disk;
+using ZoneTree.Segments.InMemory;
+using ZoneTree.Segments.MultiPart;
+using ZoneTree.Segments.NullDisk;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeMaintenance<TKey, TValue>
 {

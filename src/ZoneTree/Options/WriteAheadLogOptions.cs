@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.WAL;
+﻿using ZoneTree.WAL;
 
-namespace Tenray.ZoneTree.Options;
+namespace ZoneTree.Options;
 
 /// <summary>
 /// Write Ahead Log Options. The options will be used

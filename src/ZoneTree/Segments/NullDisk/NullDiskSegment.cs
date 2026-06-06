@@ -1,8 +1,8 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Segments.Block;
-using Tenray.ZoneTree.Segments.Disk;
+﻿using ZoneTree.Collections;
+using ZoneTree.Segments.Block;
+using ZoneTree.Segments.Disk;
 
-namespace Tenray.ZoneTree.Segments.NullDisk;
+namespace ZoneTree.Segments.NullDisk;
 
 public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {

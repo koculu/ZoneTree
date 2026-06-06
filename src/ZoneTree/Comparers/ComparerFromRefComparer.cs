@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace Tenray.ZoneTree.Comparers;
+namespace ZoneTree.Comparers;
 
 public sealed class ComparerFromRefComparer<TKey> : IComparer<TKey>
 {

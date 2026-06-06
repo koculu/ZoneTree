@@ -1,4 +1,4 @@
-namespace Tenray.ZoneTree.Comparers;
+namespace ZoneTree.Comparers;
 
 public sealed class Int16ComparerDescending : IRefComparer<short>
 {

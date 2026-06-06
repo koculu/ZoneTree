@@ -1,8 +1,8 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.BTree;
-using Tenray.ZoneTree.Core;
+﻿using ZoneTree.Collections;
+using ZoneTree.Collections.BTree;
+using ZoneTree.Core;
 
-namespace Tenray.ZoneTree.Segments;
+namespace ZoneTree.Segments;
 
 public interface IMutableSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>
 {

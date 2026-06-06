@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Segments.Block;
+﻿using ZoneTree.Segments.Block;
 
-namespace Tenray.ZoneTree.Segments.RandomAccess;
+namespace ZoneTree.Segments.RandomAccess;
 
 public interface IRandomAccessDevice : IDisposable
 {

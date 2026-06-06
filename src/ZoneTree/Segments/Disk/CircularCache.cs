@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Tenray.ZoneTree.Segments.Disk;
+namespace ZoneTree.Segments.Disk;
 
 public sealed class CircularCache<TDataType>
 {

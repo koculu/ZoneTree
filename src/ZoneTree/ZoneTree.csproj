@@ -17,7 +17,7 @@
     <RepositoryType>git</RepositoryType>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <RootNamespace>Tenray.ZoneTree</RootNamespace>
+    <RootNamespace>ZoneTree</RootNamespace>
     <Configurations>Debug;Release;ReleaseWithDoc</Configurations>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>

@@ -1,9 +1,9 @@
-﻿using Tenray.ZoneTree.Collections.TimSort;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Exceptions.WAL;
-using Tenray.ZoneTree.Logger;
+﻿using ZoneTree.Collections.TimSort;
+using ZoneTree.Comparers;
+using ZoneTree.Exceptions.WAL;
+using ZoneTree.Logger;
 
-namespace Tenray.ZoneTree.WAL;
+namespace ZoneTree.WAL;
 
 public static class WriteAheadLogEntryReader
 {

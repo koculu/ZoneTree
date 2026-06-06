@@ -1,9 +1,9 @@
-﻿using Tenray.ZoneTree.Collections;
-using Tenray.ZoneTree.Collections.BTree;
-using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Segments;
+﻿using ZoneTree.Collections;
+using ZoneTree.Collections.BTree;
+using ZoneTree.Exceptions;
+using ZoneTree.Segments;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZoneTreeMaintenance<TKey, TValue>
 {

@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public struct HeapEntry<TKey, TValue> : IEquatable<HeapEntry<TKey, TValue>>
 {

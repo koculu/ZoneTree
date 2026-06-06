@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Segments.Block;
+﻿using ZoneTree.Segments.Block;
 
-namespace Tenray.ZoneTree.Collections;
+namespace ZoneTree.Collections;
 
 public sealed class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TValue>
 {

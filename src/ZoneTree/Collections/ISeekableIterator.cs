@@ -1,4 +1,4 @@
-﻿namespace Tenray.ZoneTree.Collections;
+﻿namespace ZoneTree.Collections;
 
 public interface ISeekableIterator<TKey, TValue>
 {

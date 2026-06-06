@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace Tenray.ZoneTree.Collections;
+namespace ZoneTree.Collections;
 
 /// <summary>
 /// Special Queue for ZoneTree.

@@ -22,21 +22,21 @@ using System.Runtime.Intrinsics.X86;
     "CA1309: Use ordinal StringComparison",
     Justification = "Several string comparison types are supported by comparers.",
     Scope = "namespaceanddescendants",
-    Target = "Tenray.ZoneTree.Comparers")]
+    Target = "ZoneTree.Comparers")]
 
 [assembly: SuppressMessage(
     "\tUsage",
     "CA2213: Disposable fields should be disposed",
     Justification = "False warning: Device is disposed on ReleaseResources method.",
     Scope = "namespaceanddescendants",
-    Target = "Tenray.ZoneTree.Segments.DiskSegmentVariations")]
+    Target = "ZoneTree.Segments.DiskSegmentVariations")]
 
 [assembly: SuppressMessage(
     "\tUsage",
     "CA2213: Disposable fields should be disposed",
     Justification = "False warning: Device is disposed on ReleaseResources method.",
     Scope = "member",
-    Target = "Tenray.ZoneTree.Segments.Disk.DiskSegment.DataDevice")]
+    Target = "ZoneTree.Segments.Disk.DiskSegment.DataDevice")]
 
 [assembly: SuppressMessage(
     "Naming",

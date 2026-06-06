@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Tenray.ZoneTree.AbstractFileStream;
+namespace ZoneTree.AbstractFileStream;
 
 public sealed class InMemoryFileStream : MemoryStream, IFileStream
 {

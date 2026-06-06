@@ -1,5 +1,5 @@
 ﻿
-namespace Tenray.ZoneTree.Serializers;
+namespace ZoneTree.Serializers;
 
 public sealed class DecimalSerializer : ISerializer<decimal>
 {
