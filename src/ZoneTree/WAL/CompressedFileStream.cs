@@ -317,8 +317,8 @@ public sealed class CompressedFileStream : Stream, IDisposable
         _length = 0;
         FileStream.Position = MetaDataSize;
         var len = FileStream.Length;
-        var physicalPosition = MetaDataSize;
-        var lastBlockIndex = 0;
+        long physicalPosition = MetaDataSize;
+        var lastBlockIndex = -1;
         while (true)
         {
             if (physicalPosition == len)
@@ -342,7 +342,8 @@ public sealed class CompressedFileStream : Stream, IDisposable
             var blockSize =
                 BinarySerializerHelper.FromByteArray<int>(bytes, 2 * sizeof(int));
 
-            if (physicalPosition > len)
+            var blockEndPosition = physicalPosition + sizeof(int) * 3L + compressedBlockSize;
+            if (compressedBlockSize < 0 || blockSize < 0 || blockEndPosition > len)
             {
                 // truncates partially written compressed block.
                 // because the last block content is also written in tail block.
@@ -350,8 +351,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
                 FileStream.SetLength(blockStartPosition);
                 break;
             }
-            physicalPosition += sizeof(int) * 3;
-            physicalPosition += compressedBlockSize;
+            physicalPosition = blockEndPosition;
             FileStream.Position = physicalPosition;
             _length += blockSize;
             lastBlockIndex = blockIndex;
