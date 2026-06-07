@@ -449,7 +449,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
     public int ReleaseCircularValueCacheRecords()
     {
-        return CircularKeyCache.ReleaseInactiveCacheRecords();
+        return CircularValueCache.ReleaseInactiveCacheRecords();
     }
 
     public TKey GetKey(long index, BlockPin pin)
