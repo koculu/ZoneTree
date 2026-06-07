@@ -615,9 +615,9 @@ public sealed class CompressedFileStream : Stream, IDisposable
   public byte[] GetFileContent()
   {
     var currentPosition = FileStream.Position;
-    FileStream.Position = MetaDataSize;
+    FileStream.Position = 0;
     var bytes = new byte[FileStream.Length];
-    FileStream.Read(bytes);
+    FileStream.ReadFaster(bytes, 0, bytes.Length);
     FileStream.Position = currentPosition;
     return bytes;
   }
@@ -629,7 +629,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
       var tailBlock = TailBlock;
       var compressedBytes = tailBlock.Compress();
       var currentPosition = FileStream.Position;
-      FileStream.Position = MetaDataSize;
+      FileStream.Position = 0;
       var bytes = new byte[FileStream.Length + compressedBytes.Length + 3 * sizeof(int)];
       using var ms = new MemoryStream(bytes);
       using var bw = new BinaryWriter(ms);

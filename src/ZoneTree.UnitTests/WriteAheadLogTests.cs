@@ -192,6 +192,58 @@ public sealed class WriteAheadLogTests
         Assert.That(buffer[0], Is.EqualTo(tailBlock[2]));
     }
 
+    [Test]
+    public void CompressedFileStreamContentIncludingTailCanBeReopened()
+    {
+        var provider = new InMemoryFileStreamProvider();
+        var sourcePath = "CompressedFileStreamContentIncludingTailCanBeReopened.source.wal";
+        var restoredPath = "CompressedFileStreamContentIncludingTailCanBeReopened.restored.wal";
+        const int blockSize = 16;
+        var expected = Enumerable.Range(0, blockSize + 5)
+            .Select(x => (byte)x)
+            .ToArray();
+
+        byte[] exportedBytes;
+        using (var source = new CompressedFileStream(
+            new ConsoleLogger(),
+            provider,
+            sourcePath,
+            blockSize,
+            false,
+            0,
+            CompressionMethod.None,
+            0))
+        {
+            source.Write(expected, 0, expected.Length);
+            exportedBytes = source.GetFileContentIncludingTail();
+        }
+
+        WriteFile(provider, restoredPath, exportedBytes);
+
+        var actual = new byte[expected.Length];
+        int readLength;
+        long restoredLength;
+        using (var restored = new CompressedFileStream(
+            new ConsoleLogger(),
+            provider,
+            restoredPath,
+            blockSize,
+            false,
+            0,
+            CompressionMethod.None,
+            0))
+        {
+            restored.Seek(0, SeekOrigin.Begin);
+            readLength = restored.Read(actual, 0, actual.Length);
+            restoredLength = restored.Length;
+        }
+
+        Assert.That(exportedBytes[0], Is.EqualTo((byte)CompressionMethod.None));
+        Assert.That(restoredLength, Is.EqualTo(expected.Length));
+        Assert.That(readLength, Is.EqualTo(expected.Length));
+        Assert.That(actual, Is.EqualTo(expected));
+    }
+
     static void WriteFile(
         InMemoryFileStreamProvider provider,
         string path,
