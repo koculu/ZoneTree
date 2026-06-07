@@ -53,13 +53,12 @@ public sealed class LocalFileStream : Stream, IFileStream
         int totalRead = 0;
         while (totalRead < count)
         {
-            int read = FileStream.Read(buffer, offset, count);
+            int read = FileStream.Read(buffer, offset + totalRead, count - totalRead);
             if (read == 0)
             {
                 throw new EndOfStreamException();
             }
             totalRead += read;
-            offset += read;
         }
         return totalRead;
     }
