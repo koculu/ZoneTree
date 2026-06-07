@@ -105,12 +105,13 @@ public sealed class FixedSizeKeyDiskSegment<TKey, TValue> : DiskSegment<TKey, TV
             var value = ValueSerializer.Deserialize(sparseArrayDevice.GetBytes(offset, valueSize));
             offset += valueSize;
 
-            var index = BinarySerializerHelper.FromByteArray<int>(sparseArrayDevice.GetBytes(offset, sizeof(long)));
+            var index = BinarySerializerHelper.FromByteArray<long>(sparseArrayDevice.GetBytes(offset, sizeof(long)));
             offset += sizeof(long);
 
             var entry = new SparseArrayEntry<TKey, TValue>(key, value, index);
             sparseArray[i] = entry;
         }
+        SparseArray = sparseArray;
         sparseArrayDevice.Close();
     }
 
