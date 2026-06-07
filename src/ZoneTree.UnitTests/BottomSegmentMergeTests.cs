@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Reflection;
+using ZoneTree.Collections;
 using ZoneTree.AbstractFileStream;
 using ZoneTree.Comparers;
 using ZoneTree.Core;
@@ -137,6 +139,81 @@ public sealed class BottomSegmentMergeTests
     }
   }
 
+  [Test]
+  public void BottomMergeDoesNotApplySnapshotResultToChangedBottomIndexes()
+  {
+    var options = CreateSingleDiskBottomMergeOptions();
+    var idProvider = new IncrementalIdProvider();
+
+    var segmentAtOriginalIndexZero = CreatePartSegment(
+        options,
+        idProvider,
+        CreateRange(0, 10));
+    var firstMergedBottomSegment = CreatePartSegment(
+        options,
+        idProvider,
+        CreateRange(100, 10));
+    var lastMergedBottomSegment = CreatePartSegment(
+        options,
+        idProvider,
+        CreateRange(200, 10));
+    var concurrentlyAddedBottomSegment = CreatePartSegment(
+        options,
+        idProvider,
+        CreateRange(300, 10));
+    var mutableSegment = new MutableSegment<int, int>(
+        options,
+        idProvider.NextId(),
+        new IncrementalIdProvider());
+    var zoneTree = new ZoneTree<int, int>(
+        options,
+        new ZoneTreeMeta(),
+        Array.Empty<IReadOnlySegment<int, int>>(),
+        mutableSegment,
+        new NullDiskSegment<int, int>(),
+        [
+            segmentAtOriginalIndexZero,
+            firstMergedBottomSegment,
+            lastMergedBottomSegment
+        ],
+        idProvider.LastId);
+
+    var injected = false;
+    void InjectNewestBottomSegment(
+        IZoneTreeMaintenance<int, int> _,
+        IDiskSegment<int, int> __,
+        bool isBottomSegment)
+    {
+      if (!isBottomSegment || injected)
+        return;
+
+      injected = true;
+      InjectNewestBottomSegmentIntoQueue(zoneTree, concurrentlyAddedBottomSegment);
+    }
+
+    zoneTree.Maintenance.OnDiskSegmentCreated += InjectNewestBottomSegment;
+    try
+    {
+      zoneTree.Maintenance.StartBottomSegmentsMergeOperation(1, 2).Join();
+
+      Assert.That(injected, Is.True);
+      foreach (var key in ExpectedKeysAfterConcurrentBottomSegmentAdd())
+      {
+        Assert.That(
+            zoneTree.TryGet(key, out var value),
+            Is.True,
+            $"Key {key} was lost after bottom merge committed against changed indexes.");
+        Assert.That(value, Is.EqualTo(key));
+      }
+    }
+    finally
+    {
+      zoneTree.Maintenance.OnDiskSegmentCreated -= InjectNewestBottomSegment;
+      zoneTree.Dispose();
+      options.RandomAccessDeviceManager.DropStore();
+    }
+  }
+
   static ZoneTreeOptions<int, int> CreateMultiPartBottomMergeOptions()
   {
     var logger = new ConsoleLogger(LogLevel.Error);
@@ -159,6 +236,34 @@ public sealed class BottomSegmentMergeTests
         CompressionBlockSize = 1024,
         MinimumRecordCount = 1,
         MaximumRecordCount = 100,
+        DefaultSparseArrayStepSize = 0,
+      },
+    };
+    options.DisableDeletion();
+    options.Validate();
+    return options;
+  }
+
+  static ZoneTreeOptions<int, int> CreateSingleDiskBottomMergeOptions()
+  {
+    var logger = new ConsoleLogger(LogLevel.Error);
+    var options = new ZoneTreeOptions<int, int>
+    {
+      Comparer = new Int32ComparerAscending(),
+      KeySerializer = new Int32Serializer(),
+      ValueSerializer = new Int32Serializer(),
+      Logger = logger,
+      WriteAheadLogProvider = new NullWriteAheadLogProvider(),
+      RandomAccessDeviceManager = new RandomAccessDeviceManager(
+            logger,
+            new InMemoryFileStreamProvider(),
+            "data/ConcurrentBottomSegmentAddDuringBottomMerge"),
+      DiskSegmentOptions = new DiskSegmentOptions
+      {
+        DiskSegmentMode = DiskSegmentMode.SingleDiskSegment,
+        CompressionMethod = CompressionMethod.None,
+        CompressionLevel = 0,
+        CompressionBlockSize = 1024,
         DefaultSparseArrayStepSize = 0,
       },
     };
@@ -203,10 +308,33 @@ public sealed class BottomSegmentMergeTests
   static int[] CreateRange(int start, int count) =>
       Enumerable.Range(start, count).ToArray();
 
+  static void InjectNewestBottomSegmentIntoQueue(
+      ZoneTree<int, int> zoneTree,
+      IDiskSegment<int, int> bottomSegment)
+  {
+    var bottomSegments = zoneTree.Maintenance.BottomSegments;
+    var newBottomSegments = new[] { bottomSegment }
+        .Concat(bottomSegments)
+        .ToArray();
+    var newQueue =
+        new SingleProducerSingleConsumerQueue<IDiskSegment<int, int>>(
+            newBottomSegments.Reverse());
+    var field = typeof(ZoneTree<int, int>).GetField(
+        "BottomSegmentQueue",
+        BindingFlags.Instance | BindingFlags.NonPublic);
+    field.SetValue(zoneTree, newQueue);
+  }
+
   static IEnumerable<int> ExpectedKeysAfterPartialMultiPartMerge() =>
       Enumerable.Range(0, 10)
           .Concat(Enumerable.Range(50, 10))
           .Concat(Enumerable.Range(100, 10))
           .Concat(Enumerable.Range(150, 10))
           .Concat(Enumerable.Range(200, 10));
+
+  static IEnumerable<int> ExpectedKeysAfterConcurrentBottomSegmentAdd() =>
+      Enumerable.Range(0, 10)
+          .Concat(Enumerable.Range(100, 10))
+          .Concat(Enumerable.Range(200, 10))
+          .Concat(Enumerable.Range(300, 10));
 }
