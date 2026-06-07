@@ -138,7 +138,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
         var mergingSegments = new List<ISeekableIterator<TKey, TValue>>();
         mergingSegments.AddRange(readOnlySegmentsArray);
-        if (oldDiskSegment is not NullDiskSegment<TKey, TValue>)
+        var hasDiskSegment = oldDiskSegment is not NullDiskSegment<TKey, TValue>;
+        if (hasDiskSegment)
             mergingSegments.Add(oldDiskSegment.GetSeekableIterator());
 
         if (IsCancelMergeRequested)
@@ -154,7 +155,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
             Options.DiskSegmentOptions.DiskSegmentMode == DiskSegmentMode.MultiPartDiskSegment;
 
         var len = mergingSegments.Count;
-        var diskSegmentIndex = len - 1;
+        var diskSegmentIndex = hasDiskSegment ? len - 1 : -1;
 
         using IDiskSegmentCreator<TKey, TValue> diskSegmentCreator =
             enableMultiPartDiskSegment ?
@@ -199,9 +200,12 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
         var hasPrev = false;
         TKey prevKey = default;
 
-        var firstKeysOfEveryPart = oldDiskSegment.GetFirstKeysOfEveryPart();
-        var lastKeysOfEveryPart = oldDiskSegment.GetLastKeysOfEveryPart();
-        var lastValuesOfEveryPart = oldDiskSegment.GetLastValuesOfEveryPart();
+        var lastKeysOfEveryPart = hasDiskSegment ?
+            oldDiskSegment.GetLastKeysOfEveryPart() :
+            Array.Empty<TKey>();
+        var lastValuesOfEveryPart = hasDiskSegment ?
+            oldDiskSegment.GetLastValuesOfEveryPart() :
+            Array.Empty<TValue>();
         var diskSegmentMinimumRecordCount = Options.DiskSegmentOptions.MinimumRecordCount;
 
         var dropCount = 0;

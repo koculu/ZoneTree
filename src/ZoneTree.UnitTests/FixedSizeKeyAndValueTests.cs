@@ -35,6 +35,38 @@ public sealed class FixedSizeKeyAndValueTests
     }
 
     [Test]
+    public void FirstMultiPartMergeDoesNotTreatReadOnlySegmentAsDisk()
+    {
+        var dataPath = "data/FirstMultiPartMergeDoesNotTreatReadOnlySegmentAsDisk";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var data = new ZoneTreeFactory<int, int>()
+            .DisableDeletion()
+            .SetMutableSegmentMaxItemCount(100)
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureDiskSegmentOptions(options =>
+            {
+                options.DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
+                options.MinimumRecordCount = 2;
+                options.MaximumRecordCount = 3;
+            })
+            .OpenOrCreate();
+
+        for (var i = 0; i < 4; ++i)
+        {
+            data.Upsert(i, i);
+        }
+
+        data.Maintenance.MoveMutableSegmentForward();
+        data.Maintenance.StartMergeOperation().Join();
+
+        Assert.That(data.Maintenance.DiskSegment.GetPartCount(), Is.EqualTo(2));
+        data.Maintenance.Drop();
+    }
+
+    [Test]
     public void IntStringTreeTest()
     {
         var dataPath = "data/IntStringTreeTest";
