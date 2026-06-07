@@ -113,15 +113,16 @@ public sealed class CompressedFileStream : Stream, IDisposable
         CompressionLevel = compressionLevel;
         Logger = logger;
         FilePath = filePath;
+        BlockSize = blockSize;
         FileStream = fileStreamProvider.CreateFileStream(filePath,
             FileMode.OpenOrCreate,
             FileAccess.ReadWrite,
-            FileShare.None, BlockSize);
+            FileShare.None, blockSize);
 
         TailStream = fileStreamProvider.CreateFileStream(filePath + ".tail",
             FileMode.OpenOrCreate,
             FileAccess.ReadWrite,
-            FileShare.None, BlockSize);
+            FileShare.None, blockSize);
 
         BinaryReader = new BinaryReader(FileStream.ToStream(), Encoding.UTF8, true);
         BinaryWriter = new BinaryWriter(FileStream.ToStream(), Encoding.UTF8, true);
@@ -129,7 +130,6 @@ public sealed class CompressedFileStream : Stream, IDisposable
         BinaryTailReader = new BinaryReader(TailStream.ToStream(), Encoding.UTF8, true);
         BinaryTailWriter = new BinaryWriter(TailStream.ToStream(), Encoding.UTF8, true);
 
-        BlockSize = blockSize;
         if (FileStream.Length > 0)
         {
             CompressionMethod = ReadMetaData().CompressionMethod;
@@ -153,7 +153,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
             _length -= TailBlock.Length;
             Position -= TailBlock.Length;
             TailBlock = new DecompressedBlock(
-                lastBlockIndex + 1, BlockSize, CompressionMethod, CompressionLevel);
+                lastBlockIndex + 1, blockSize, CompressionMethod, CompressionLevel);
         }
         CurrentBlockPosition = 0;
         CurrentBlock = TailBlock;
