@@ -75,10 +75,9 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
     var bottomSegments = BottomSegmentQueue.ToLastInFirstArray();
 
-    var writeDeletedValues = from > 0;
-
     if (to >= bottomSegments.Count)
       to = bottomSegments.Count - 1;
+    var writeDeletedValues = to < bottomSegments.Count - 1;
 
     var selectedBottomSegments = bottomSegments
         .Skip(from)

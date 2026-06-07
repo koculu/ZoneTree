@@ -214,6 +214,62 @@ public sealed class BottomSegmentMergeTests
     }
   }
 
+  [Test]
+  public void BottomMergeKeepsTombstoneWhenOlderBottomSegmentRemains()
+  {
+    var options = CreateSingleDiskBottomMergeOptionsWithDeletion();
+    var idProvider = new IncrementalIdProvider();
+
+    var deleteBottomSegment = CreatePartSegmentFromEntries(
+        options,
+        idProvider,
+        (42, -1));
+    var firstMergedBottomSegment = CreatePartSegmentFromEntries(
+        options,
+        idProvider,
+        (50, 50));
+    var olderBottomSegment = CreatePartSegmentFromEntries(
+        options,
+        idProvider,
+        (42, 420),
+        (60, 60));
+    var mutableSegment = new MutableSegment<int, int>(
+        options,
+        idProvider.NextId(),
+        new IncrementalIdProvider());
+    var zoneTree = new ZoneTree<int, int>(
+        options,
+        new ZoneTreeMeta(),
+        Array.Empty<IReadOnlySegment<int, int>>(),
+        mutableSegment,
+        new NullDiskSegment<int, int>(),
+        [
+            deleteBottomSegment,
+            firstMergedBottomSegment,
+            olderBottomSegment
+        ],
+        idProvider.LastId);
+
+    try
+    {
+      zoneTree.Maintenance.StartBottomSegmentsMergeOperation(0, 1).Join();
+
+      Assert.That(
+          zoneTree.TryGet(42, out _),
+          Is.False,
+          "The tombstone for key 42 was dropped while an older bottom segment still had the key.");
+      Assert.That(zoneTree.TryGet(50, out var value50), Is.True);
+      Assert.That(value50, Is.EqualTo(50));
+      Assert.That(zoneTree.TryGet(60, out var value60), Is.True);
+      Assert.That(value60, Is.EqualTo(60));
+    }
+    finally
+    {
+      zoneTree.Dispose();
+      options.RandomAccessDeviceManager.DropStore();
+    }
+  }
+
   static ZoneTreeOptions<int, int> CreateMultiPartBottomMergeOptions()
   {
     var logger = new ConsoleLogger(LogLevel.Error);
@@ -240,6 +296,15 @@ public sealed class BottomSegmentMergeTests
       },
     };
     options.DisableDeletion();
+    options.Validate();
+    return options;
+  }
+
+  static ZoneTreeOptions<int, int> CreateSingleDiskBottomMergeOptionsWithDeletion()
+  {
+    var options = CreateSingleDiskBottomMergeOptions();
+    options.IsDeleted = (in int _, in int value) => value == -1;
+    options.MarkValueDeleted = (ref int value) => value = -1;
     options.Validate();
     return options;
   }
@@ -301,6 +366,19 @@ public sealed class BottomSegmentMergeTests
     foreach (var key in keys)
     {
       creator.Append(key, key, IteratorPosition.None);
+    }
+    return creator.CreateReadOnlyDiskSegment();
+  }
+
+  static IDiskSegment<int, int> CreatePartSegmentFromEntries(
+      ZoneTreeOptions<int, int> options,
+      IIncrementalIdProvider idProvider,
+      params (int Key, int Value)[] entries)
+  {
+    using var creator = new DiskSegmentCreator<int, int>(options, idProvider);
+    foreach (var entry in entries)
+    {
+      creator.Append(entry.Key, entry.Value, IteratorPosition.None);
     }
     return creator.CreateReadOnlyDiskSegment();
   }
