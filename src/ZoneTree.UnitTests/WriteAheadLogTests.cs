@@ -87,6 +87,41 @@ public sealed class WriteAheadLogTests
             Is.EqualTo(sizeof(byte) + 3 * sizeof(int) + block0.Length));
     }
 
+    [Test]
+    public void CompressedFileStreamSkipAcrossFullBlockIntoShortTail()
+    {
+        var provider = new InMemoryFileStreamProvider();
+        var filePath = "CompressedFileStreamSkipAcrossFullBlockIntoShortTail.wal";
+        const int blockSize = 16;
+        var block0 = Enumerable.Range(0, blockSize).Select(x => (byte)x).ToArray();
+        var tailBlock = Enumerable.Range(blockSize, 8).Select(x => (byte)x).ToArray();
+
+        WriteFile(provider, filePath, CreateMainFileWithSingleBlock(block0));
+        WriteFile(provider, filePath + ".tail", CreateTailFile(1, tailBlock));
+
+        var buffer = new byte[1];
+        int readLength;
+        long seekPosition;
+        using (var stream = new CompressedFileStream(
+            new ConsoleLogger(),
+            provider,
+            filePath,
+            blockSize,
+            false,
+            0,
+            CompressionMethod.None,
+            0))
+        {
+            stream.Seek(blockSize - 2, SeekOrigin.Begin);
+            seekPosition = stream.Seek(4, SeekOrigin.Current);
+            readLength = stream.Read(buffer, 0, buffer.Length);
+        }
+
+        Assert.That(seekPosition, Is.EqualTo(blockSize + 2));
+        Assert.That(readLength, Is.EqualTo(1));
+        Assert.That(buffer[0], Is.EqualTo(tailBlock[2]));
+    }
+
     static void WriteFile(
         InMemoryFileStreamProvider provider,
         string path,
@@ -98,6 +133,16 @@ public sealed class WriteAheadLogTests
             FileAccess.ReadWrite,
             FileShare.None);
         stream.Write(bytes, 0, bytes.Length);
+    }
+
+    static byte[] CreateMainFileWithSingleBlock(byte[] block)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+        writer.Write((byte)CompressionMethod.None);
+        WriteCompressedBlock(writer, 0, block, block.Length);
+        writer.Flush();
+        return stream.ToArray();
     }
 
     static byte[] CreateMainFileWithIncompleteSecondBlock(
