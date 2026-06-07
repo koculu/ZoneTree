@@ -12,7 +12,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 {
   public Thread StartBottomSegmentsMergeOperation(int fromIndex, int toIndex)
   {
-    if (fromIndex >= toIndex)
+    if (fromIndex < 0 || fromIndex >= toIndex)
     {
       throw new InvalidMergeRangeException(fromIndex, toIndex);
     }
@@ -155,7 +155,6 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     var hasPrev = false;
     TKey prevKey = default;
 
-    var firstKeysOfEveryPart = bottomDiskSegment.GetFirstKeysOfEveryPart();
     var lastKeysOfEveryPart = bottomDiskSegment.GetLastKeysOfEveryPart();
     var lastValuesOfEveryPart = bottomDiskSegment.GetLastValuesOfEveryPart();
     var diskSegmentMinimumRecordCount = Options.DiskSegmentOptions.MinimumRecordCount;
