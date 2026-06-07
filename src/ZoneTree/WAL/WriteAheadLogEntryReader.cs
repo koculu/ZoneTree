@@ -117,6 +117,7 @@ public static class WriteAheadLogEntryReader
             ++i;
         }
         stream.Seek(0, SeekOrigin.End);
+        result.MaximumOpIndex = maxOpIndex;
         if (sortByOpIndexes)
         {
             var len = opIndexes.Count;
@@ -132,7 +133,6 @@ public static class WriteAheadLogEntryReader
             }
             result.Keys = keys;
             result.Values = values;
-            result.MaximumOpIndex = maxOpIndex;
             return result;
         }
         result.Keys = keyList;

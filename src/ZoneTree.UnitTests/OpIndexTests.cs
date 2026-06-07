@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using ZoneTree.Options;
 using ZoneTree.PresetTypes;
 using ZoneTree.Serializers;
 
@@ -105,5 +106,120 @@ public sealed class OpIndexTests
         Assert.IsTrue(
             opIndexes.Order().ToArray()
             .SequenceEqual(Enumerable.Range(1, recordCount).Select(x => (long)x)));
+    }
+
+    [Test]
+    public void MaximumOpIndexCheckpointIsLoadedWhenMetaWalIsEmpty()
+    {
+        var dataPath = "data/MaximumOpIndexCheckpointIsLoadedWhenMetaWalIsEmpty";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+        const int recordCount = 64;
+
+        using (var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetDataDirectory(dataPath)
+            .SetMutableSegmentMaxItemCount(8)
+            .OpenOrCreate())
+        {
+            for (var i = 0; i < recordCount; ++i)
+            {
+                Assert.That(zoneTree.Upsert(i, i), Is.EqualTo(i + 1));
+            }
+
+            using var maintainer = zoneTree.CreateMaintainer();
+            maintainer.EvictToDisk();
+            maintainer.WaitForBackgroundThreads();
+            zoneTree.Maintenance.SaveMetaData();
+        }
+
+        using (var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetDataDirectory(dataPath)
+            .SetMutableSegmentMaxItemCount(8)
+            .Open())
+        {
+            Assert.That(zoneTree.Upsert(recordCount, recordCount), Is.EqualTo(recordCount + 1));
+            zoneTree.Maintenance.Drop();
+        }
+    }
+
+    [Test]
+    public void MaximumOpIndexIsLoadedFromMetaWalWhenMetadataCheckpointIsStale()
+    {
+        var dataPath = "data/MaximumOpIndexIsLoadedFromMetaWalWhenMetadataCheckpointIsStale";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+        const int checkpointRecordCount = 8;
+        const int recordCount = 16;
+
+        using (var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetDataDirectory(dataPath)
+            .SetMutableSegmentMaxItemCount(64)
+            .OpenOrCreate())
+        {
+            for (var i = 0; i < checkpointRecordCount; ++i)
+            {
+                Assert.That(zoneTree.Upsert(i, i), Is.EqualTo(i + 1));
+            }
+            zoneTree.Maintenance.SaveMetaData();
+
+            for (var i = checkpointRecordCount; i < recordCount; ++i)
+            {
+                Assert.That(zoneTree.Upsert(i, i), Is.EqualTo(i + 1));
+            }
+
+            using var maintainer = zoneTree.CreateMaintainer();
+            maintainer.EvictToDisk();
+            maintainer.WaitForBackgroundThreads();
+        }
+
+        using (var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetDataDirectory(dataPath)
+            .SetMutableSegmentMaxItemCount(64)
+            .Open())
+        {
+            Assert.That(zoneTree.Upsert(recordCount, recordCount), Is.EqualTo(recordCount + 1));
+            zoneTree.Maintenance.Drop();
+        }
+    }
+
+    [Test]
+    public void SingleSegmentGarbageCollectionDoesNotResetNextOpIndex()
+    {
+        var dataPath = "data/SingleSegmentGarbageCollectionDoesNotResetNextOpIndex";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+        const int key = 1;
+        const int recordCount = 16;
+
+        using (var zoneTree = new ZoneTreeFactory<int, int>()
+            .Configure(options => options.WriteAheadLogOptions.WriteAheadLogMode = WriteAheadLogMode.Sync)
+            .SetDataDirectory(dataPath)
+            .OpenOrCreate())
+        {
+            for (var i = 0; i < recordCount; ++i)
+            {
+                Assert.That(zoneTree.Upsert(key, i), Is.EqualTo(i + 1));
+            }
+        }
+
+        using (new ZoneTreeFactory<int, int>()
+            .Configure(options =>
+            {
+                options.EnableSingleSegmentGarbageCollection = true;
+                options.WriteAheadLogOptions.WriteAheadLogMode = WriteAheadLogMode.Sync;
+            })
+            .SetDataDirectory(dataPath)
+            .Open())
+        {
+        }
+
+        using (var zoneTree = new ZoneTreeFactory<int, int>()
+            .Configure(options => options.WriteAheadLogOptions.WriteAheadLogMode = WriteAheadLogMode.Sync)
+            .SetDataDirectory(dataPath)
+            .Open())
+        {
+            Assert.That(zoneTree.Upsert(key, recordCount), Is.GreaterThan(recordCount));
+            zoneTree.Maintenance.Drop();
+        }
     }
 }

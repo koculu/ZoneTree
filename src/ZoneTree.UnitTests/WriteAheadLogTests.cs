@@ -1,4 +1,6 @@
 using ZoneTree.AbstractFileStream;
+using ZoneTree.Collections;
+using ZoneTree.Comparers;
 using ZoneTree.Core;
 using ZoneTree.Exceptions;
 using ZoneTree.Logger;
@@ -38,6 +40,74 @@ public sealed class WriteAheadLogTests
         }
         Assert.That(result.MaximumOpIndex, Is.EqualTo(len-1));
         wal.Drop();
+    }
+
+    [Test]
+    public void WalReportsMaximumOpIndexWithoutSorting()
+    {
+        var filePath = "./WalReportsMaximumOpIndexWithoutSorting.wal";
+        if (File.Exists(filePath))
+            File.Delete(filePath);
+        var serializer = new UnicodeStringSerializer();
+        var wal = new SyncFileSystemWriteAheadLog<string, string>(
+            new ConsoleLogger(),
+            new LocalFileStreamProvider(),
+            serializer, serializer, filePath);
+
+        wal.Append("key0", "value0", 5);
+        wal.Append("key1", "value1", 2);
+        wal.Append("key2", "value2", 7);
+
+        var result = wal.ReadLogEntries(false, false, false);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Keys, Is.EqualTo(new[] { "key0", "key1", "key2" }));
+        Assert.That(result.Values, Is.EqualTo(new[] { "value0", "value1", "value2" }));
+        Assert.That(result.MaximumOpIndex, Is.EqualTo(7));
+        wal.Drop();
+    }
+
+    [Test]
+    public void DictionaryWithWalKeepsOpIndexAfterReload()
+    {
+        const string category = "DictionaryWithWalKeepsOpIndexAfterReload";
+        var provider = new InMemoryFileStreamProvider();
+        var walProvider = new WriteAheadLogProvider(new ConsoleLogger(), provider);
+        walProvider.InitCategory(category);
+        var options = new WriteAheadLogOptions
+        {
+            WriteAheadLogMode = WriteAheadLogMode.Sync
+        };
+
+        using (var dictionary = CreateDictionaryWithWal(
+            walProvider,
+            options,
+            category))
+        {
+            dictionary.Upsert(1, "old");
+        }
+
+        walProvider = new WriteAheadLogProvider(new ConsoleLogger(), provider);
+        walProvider.InitCategory(category);
+        using (var dictionary = CreateDictionaryWithWal(
+            walProvider,
+            options,
+            category))
+        {
+            dictionary.Upsert(1, "new");
+        }
+
+        walProvider = new WriteAheadLogProvider(new ConsoleLogger(), provider);
+        walProvider.InitCategory(category);
+        using (var dictionary = CreateDictionaryWithWal(
+            walProvider,
+            options,
+            category))
+        {
+            Assert.That(dictionary.TryGetValue(1, out var value), Is.True);
+            Assert.That(value, Is.EqualTo("new"));
+            dictionary.Drop();
+        }
     }
 
     [Test]
@@ -180,5 +250,32 @@ public sealed class WriteAheadLogTests
         writer.Write(block.Length);
         writer.Write(block.Length);
         writer.Write(block, 0, bytesToWrite);
+    }
+
+    static DictionaryWithWAL<int, string> CreateDictionaryWithWal(
+        WriteAheadLogProvider walProvider,
+        WriteAheadLogOptions options,
+        string category)
+    {
+        return new DictionaryWithWAL<int, string>(
+            0,
+            category,
+            walProvider,
+            options,
+            new Int32Serializer(),
+            new UnicodeStringSerializer(),
+            new Int32ComparerAscending(),
+            IsDeletedString,
+            MarkStringDeleted);
+    }
+
+    static bool IsDeletedString(in int key, in string value)
+    {
+        return value == null;
+    }
+
+    static void MarkStringDeleted(ref string value)
+    {
+        value = null;
     }
 }

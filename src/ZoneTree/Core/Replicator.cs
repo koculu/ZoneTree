@@ -73,7 +73,10 @@ public sealed class Replicator<TKey, TValue> : IDisposable
     /// </summary>
     /// <param name="key">The key of the element to be upserted.</param>
     /// <param name="value">The value of the element to be upserted.</param>
-    /// <param name="opIndex">The operation index associated with this upsert operation.</param>
+    /// <param name="opIndex">
+    /// The producer freshness token associated with this upsert. It is compared
+    /// only with the latest index stored for the same key.
+    /// </param>
     /// <remarks>
     /// The upsert operation ensures that the <see cref="LatestOpIndexes"/> is updated atomically.
     /// If the new operation index (<paramref name="opIndex"/>) is greater than or equal to the existing index,

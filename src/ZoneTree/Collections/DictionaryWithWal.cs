@@ -98,6 +98,8 @@ public sealed class DictionaryWithWAL<TKey, TValue> : IDisposable
             Dictionary.Remove(newKeys[i]);
             Dictionary.Add(newKeys[i], newValues[i]);
         }
+        if (result.MaximumOpIndex > 0)
+            IdProvider.SetNextId(result.MaximumOpIndex + 1);
         _logLength = Dictionary.Count;
     }
 

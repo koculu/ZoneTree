@@ -33,6 +33,16 @@ public sealed class ZoneTreeMeta
 
     public IReadOnlyList<long> BottomSegments { get; set; }
 
+    /// <summary>
+    /// The persisted producer high-water mark for operation indexes.
+    /// </summary>
+    /// <remarks>
+    /// This value is not a version of the whole database, segment tree, or merge
+    /// shape. Operation indexes are used by consumers such as replication to
+    /// compare updates for the same key and ignore stale writes. Persisting the
+    /// maximum issued index prevents a restarted producer from assigning a lower
+    /// index to a later write for that key.
+    /// </remarks>
     public long MaximumOpIndex { get; set; }
 
     [JsonIgnore]

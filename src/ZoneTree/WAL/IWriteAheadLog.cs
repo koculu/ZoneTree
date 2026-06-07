@@ -14,6 +14,16 @@ public interface IWriteAheadLog<TKey, TValue> : IDisposable
     /// </summary>
     int InitialLength { get; }
 
+    /// <summary>
+    /// Appends a key/value write with the operation index assigned by the
+    /// mutable segment.
+    /// </summary>
+    /// <param name="key">The key of the record.</param>
+    /// <param name="value">The value of the record.</param>
+    /// <param name="opIndex">
+    /// The producer freshness token for the write. Consumers compare this value
+    /// per key; it is not a database-wide shape or merge-order version.
+    /// </param>
     void Append(in TKey key, in TValue value, long opIndex);
 
     void Drop();
@@ -28,6 +38,12 @@ public interface IWriteAheadLog<TKey, TValue> : IDisposable
     /// with given keys and values.
     /// If enabled, appends current wal data to the incremental backup log.
     /// </summary>
+    /// <remarks>
+    /// Replacement writes a compacted state snapshot. Implementations are not
+    /// required to preserve the exact historical operation index of each
+    /// discarded WAL record. The owning tree must persist the operation-index
+    /// high-water mark before replacement can remove the WAL evidence of it.
+    /// </remarks>
     /// <param name="keys">new keys</param>
     /// <param name="values">new values</param>
     /// <param name="disableBackup">disable backup regardless of wal flag.</param>
