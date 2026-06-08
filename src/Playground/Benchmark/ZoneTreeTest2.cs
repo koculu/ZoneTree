@@ -1,7 +1,7 @@
 ﻿using Humanizer;
 using System.Diagnostics;
-using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Options;
+using ZoneTree.Core;
+using ZoneTree.Options;
 
 namespace Playground.Benchmark;
 

@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Options;
+﻿using ZoneTree.Options;
 
-namespace Tenray.ZoneTree.UnitTests;
+namespace ZoneTree.UnitTests;
 
 public sealed class MergeEmptySegmentsTest
 {

@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
-using Tenray.ZoneTree;
-using Tenray.ZoneTree.Collections.BTree;
-using Tenray.ZoneTree.Collections.BTree.Lock;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Serializers;
+using ZoneTree;
+using ZoneTree.Collections.BTree;
+using ZoneTree.Collections.BTree.Lock;
+using ZoneTree.Comparers;
+using ZoneTree.Core;
+using ZoneTree.Options;
+using ZoneTree.Serializers;
 
 namespace Playground;
 

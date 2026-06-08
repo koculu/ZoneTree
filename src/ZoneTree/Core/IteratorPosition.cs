@@ -1,9 +1,9 @@
-﻿namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public enum IteratorPosition
 {
-    None,
-    BeginningOfAPart,
-    MiddleOfAPart,
-    EndOfAPart
+  None,
+  BeginningOfAPart,
+  MiddleOfAPart,
+  EndOfAPart
 }

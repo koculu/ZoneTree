@@ -141,7 +141,7 @@ ZoneTree is designed for ease of use, allowing developers to integrate and utili
 ### Basic Usage
 
 ```csharp
-using Tenray.ZoneTree;
+using ZoneTree;
 
 using var zoneTree = new ZoneTreeFactory<int, string>()
     .OpenOrCreate();
@@ -152,9 +152,9 @@ zoneTree.Upsert(39, "Hello ZoneTree");
 ### Creating a Database
 
 ```csharp
-using Tenray.ZoneTree;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Serializers;
+using ZoneTree;
+using ZoneTree.Comparers;
+using ZoneTree.Serializers;
 
 var dataPath = "data/mydatabase";
 
@@ -185,8 +185,8 @@ Large-scale LSM Trees require periodic maintenance to ensure optimal performance
 **Example Usage:**
 
 ```csharp
-using Tenray.ZoneTree;
-using Tenray.ZoneTree.Maintenance;
+using ZoneTree;
+using ZoneTree.Maintenance;
 
 var dataPath = "data/mydatabase";
 
@@ -222,7 +222,7 @@ By default, ZoneTree assumes that **default values** indicate deletion. This beh
 In this example, `-1` is used as the deletion marker for integer values:
 
 ```csharp
-using Tenray.ZoneTree;
+using ZoneTree;
 
 using var zoneTree = new ZoneTreeFactory<int, int>()
     .SetIsDeletedDelegate((in int key, in int value) => value == -1)
@@ -239,7 +239,7 @@ For more control, define a custom structure to represent values and their deleti
 
 ```csharp
 using System.Runtime.InteropServices;
-using Tenray.ZoneTree;
+using ZoneTree;
 
 [StructLayout(LayoutKind.Sequential)]
 struct MyDeletableValueType
@@ -266,8 +266,8 @@ ZoneTree provides efficient mechanisms to iterate over data both **forward** and
 ### Forward and Backward Iteration
 
 ```csharp
-using Tenray.ZoneTree;
-using Tenray.ZoneTree.Collections;
+using ZoneTree;
+using ZoneTree.Collections;
 
 using var zoneTree = new ZoneTreeFactory<int, int>()
     .OpenOrCreate();
@@ -296,8 +296,8 @@ while (reverseIterator.Next())
 The `ZoneTreeIterator` supports the `Seek()` method to jump to any record with **O(log(n))** complexity, useful for prefix searches and range queries.
 
 ```csharp
-using Tenray.ZoneTree;
-using Tenray.ZoneTree.Collections;
+using ZoneTree;
+using ZoneTree.Collections;
 
 using var zoneTree = new ZoneTreeFactory<string, int>()
     .OpenOrCreate();
@@ -331,8 +331,8 @@ ZoneTree supports **Optimistic Transactions**, ensuring **ACID compliance** whil
 
 ```csharp
 using System.Threading.Tasks;
-using Tenray.ZoneTree;
-using Tenray.ZoneTree.Transaction;
+using ZoneTree;
+using ZoneTree.Transaction;
 
 using var zoneTree = new ZoneTreeFactory<int, int>()
     .OpenOrCreateTransactional();
@@ -361,8 +361,8 @@ await transaction.CommitAsync();
 ```csharp
 using System;
 using System.Threading;
-using Tenray.ZoneTree;
-using Tenray.ZoneTree.Transaction;
+using ZoneTree;
+using ZoneTree.Transaction;
 
 using var zoneTree = new ZoneTreeFactory<int, int>()
     .OpenOrCreateTransactional();
@@ -394,7 +394,7 @@ catch (TransactionAbortedException)
 ```csharp
 using System;
 using System.Threading.Tasks;
-using Tenray.ZoneTree.Transactional;
+using ZoneTree.Transactional;
 
 public async Task<bool> ExecuteTransactionWithRetryAsync(ZoneTreeFactory<int, int> zoneTreeFactory, int maxRetries = 3)
 {
@@ -499,13 +499,13 @@ For more information and detailed documentation, visit the [ZoneTree.FullTextSea
 
 Explore comprehensive guides and API references to get the most out of ZoneTree:
 
-- **[Introduction](https://tenray.io/docs/ZoneTree/guide/introduction.html)**
-- **[Quick Start Guide](https://tenray.io/docs/ZoneTree/guide/quick-start.html)**
-- **[API Documentation](https://tenray.io/docs/ZoneTree/api/Tenray.ZoneTree.html)**
-- **[Tuning ZoneTree](https://tenray.io/docs/ZoneTree/guide/tuning-disk-segment.html)**
-- **[Features Overview](https://tenray.io/docs/ZoneTree/guide/features.html)**
-- **[Terminology](https://tenray.io/docs/ZoneTree/guide/terminology.html)**
-- **[Performance Details](https://tenray.io/docs/ZoneTree/guide/performance.html)**
+- **[Introduction](https://zonetree.dev/docs/ZoneTree/guide/introduction.html)**
+- **[Quick Start Guide](https://zonetree.dev/docs/ZoneTree/guide/quick-start.html)**
+- **[API Documentation](https://zonetree.dev/docs/ZoneTree/api/ZoneTree.html)**
+- **[Tuning ZoneTree](https://zonetree.dev/docs/ZoneTree/guide/tuning-disk-segment.html)**
+- **[Features Overview](https://zonetree.dev/docs/ZoneTree/guide/features.html)**
+- **[Terminology](https://zonetree.dev/docs/ZoneTree/guide/terminology.html)**
+- **[Performance Details](https://zonetree.dev/docs/ZoneTree/guide/performance.html)**
 
 ---
 

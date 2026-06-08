@@ -1,9 +1,9 @@
-﻿namespace Tenray.ZoneTree.Comparers;
+namespace ZoneTree.Comparers;
 
 public sealed class UInt32ComparerDescending : IRefComparer<uint>
 {
-    public int Compare(in uint x, in uint y)
-    {
-        return y.CompareTo(x);
-    }
+  public int Compare(in uint x, in uint y)
+  {
+    return y.CompareTo(x);
+  }
 }

@@ -1,6 +1,6 @@
-﻿using Tenray.ZoneTree.Core;
+﻿using ZoneTree.Core;
 
-namespace Tenray.ZoneTree.UnitTests;
+namespace ZoneTree.UnitTests;
 
 public sealed class ReplicatorTests
 {

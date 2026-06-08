@@ -1,48 +1,48 @@
-﻿using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Options;
+using ZoneTree.AbstractFileStream;
+using ZoneTree.Options;
 
-namespace Tenray.ZoneTree.Segments.RandomAccess;
+namespace ZoneTree.Segments.RandomAccess;
 
 public interface IRandomAccessDeviceManager
 {
-    IFileStreamProvider FileStreamProvider { get; }
+  IFileStreamProvider FileStreamProvider { get; }
 
-    IRandomAccessDevice GetReadOnlyDevice(
-        long segmentId, string category, bool isCompressed,
-        int compressionBlockSize,
-        CompressionMethod compressionMethod,
-        int compressionLevel);
+  IRandomAccessDevice GetReadOnlyDevice(
+      long segmentId, string category, bool isCompressed,
+      int compressionBlockSize,
+      CompressionMethod compressionMethod,
+      int compressionLevel);
 
-    IRandomAccessDevice CreateWritableDevice(
-        long segmentId, string category, bool isCompressed,
-        int compressionBlockSize,
-        bool deleteIfExists, bool backupIfDelete,
-        CompressionMethod compressionMethod,
-        int compressionLevel);
+  IRandomAccessDevice CreateWritableDevice(
+      long segmentId, string category, bool isCompressed,
+      int compressionBlockSize,
+      bool deleteIfExists, bool backupIfDelete,
+      CompressionMethod compressionMethod,
+      int compressionLevel);
 
-    bool DeviceExists(long segmentId, string category, bool isCompressed);
+  bool DeviceExists(long segmentId, string category, bool isCompressed);
 
-    void DeleteDevice(long segmentId, string category, bool isCompressed);
+  void DeleteDevice(long segmentId, string category, bool isCompressed);
 
-    int DeviceCount { get; }
+  int DeviceCount { get; }
 
-    int ReadOnlyDeviceCount { get; }
+  int ReadOnlyDeviceCount { get; }
 
-    int WritableDeviceCount { get; }
+  int WritableDeviceCount { get; }
 
-    IReadOnlyList<IRandomAccessDevice> GetReadOnlyDevices();
+  IReadOnlyList<IRandomAccessDevice> GetReadOnlyDevices();
 
-    IReadOnlyList<IRandomAccessDevice> GetWritableDevices();
+  IReadOnlyList<IRandomAccessDevice> GetWritableDevices();
 
-    IReadOnlyList<IRandomAccessDevice> GetDevices();
+  IReadOnlyList<IRandomAccessDevice> GetDevices();
 
-    void CloseAllDevices();
+  void CloseAllDevices();
 
-    void RemoveReadOnlyDevice(long segmentId, string category);
+  void RemoveReadOnlyDevice(long segmentId, string category);
 
-    void RemoveWritableDevice(long segmentId, string category);
+  void RemoveWritableDevice(long segmentId, string category);
 
-    void DropStore();
+  void DropStore();
 
-    string GetFilePath(long segmentId, string category);
+  string GetFilePath(long segmentId, string category);
 }

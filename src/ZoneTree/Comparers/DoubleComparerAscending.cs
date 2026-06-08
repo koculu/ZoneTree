@@ -1,9 +1,9 @@
-﻿namespace Tenray.ZoneTree.Comparers;
+namespace ZoneTree.Comparers;
 
 public sealed class DoubleComparerAscending : IRefComparer<double>
 {
-    public int Compare(in double x, in double y)
-    {
-        return x.CompareTo(y);
-    }
+  public int Compare(in double x, in double y)
+  {
+    return x.CompareTo(y);
+  }
 }

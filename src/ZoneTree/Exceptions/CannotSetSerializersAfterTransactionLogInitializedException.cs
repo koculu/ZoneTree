@@ -1,9 +1,9 @@
-﻿namespace Tenray.ZoneTree.Exceptions;
+namespace ZoneTree.Exceptions;
 
 public sealed class CannotSetSerializersAfterTransactionLogInitializedException : ZoneTreeException
 {
-    public CannotSetSerializersAfterTransactionLogInitializedException()
-        : base($"Can not set serializers after the transaction log is initialized.")
-    {
-    }
+  public CannotSetSerializersAfterTransactionLogInitializedException()
+      : base($"Can not set serializers after the transaction log is initialized.")
+  {
+  }
 }

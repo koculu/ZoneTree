@@ -1,16 +1,16 @@
-﻿#undef USE_NODE_IDS
+#undef USE_NODE_IDS
 
-namespace Tenray.ZoneTree.Collections.BTree;
+namespace ZoneTree.Collections.BTree;
 
 public interface ILocker
 {
-    bool TryEnterWriteLock(int millisecondsTimeout);
+  bool TryEnterWriteLock(int millisecondsTimeout);
 
-    void WriteLock();
+  void WriteLock();
 
-    void WriteUnlock();
+  void WriteUnlock();
 
-    void ReadLock();
+  void ReadLock();
 
-    void ReadUnlock();
+  void ReadUnlock();
 }

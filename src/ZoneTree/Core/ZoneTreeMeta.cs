@@ -1,40 +1,50 @@
-﻿using System.Text.Json.Serialization;
-using Tenray.ZoneTree.Options;
+using System.Text.Json.Serialization;
+using ZoneTree.Options;
 
-namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed class ZoneTreeMeta
 {
-    public string Version { get; set; }
+  public string Version { get; set; }
 
-    public string ComparerType { get; set; }
+  public string ComparerType { get; set; }
 
-    public string KeyType { get; set; }
+  public string KeyType { get; set; }
 
-    public string ValueType { get; set; }
+  public string ValueType { get; set; }
 
-    public string KeySerializerType { get; set; }
+  public string KeySerializerType { get; set; }
 
-    public string ValueSerializerType { get; set; }
+  public string ValueSerializerType { get; set; }
 
-    public int MutableSegmentMaxItemCount { get; set; }
+  public int MutableSegmentMaxItemCount { get; set; }
 
-    public int DiskSegmentMaxItemCount { get; set; } = 20_000_000;
+  public int DiskSegmentMaxItemCount { get; set; } = 20_000_000;
 
-    public WriteAheadLogOptions WriteAheadLogOptions { get; set; }
+  public WriteAheadLogOptions WriteAheadLogOptions { get; set; }
 
-    public DiskSegmentOptions DiskSegmentOptions { get; set; }
+  public DiskSegmentOptions DiskSegmentOptions { get; set; }
 
-    public long MutableSegment { get; set; }
+  public long MutableSegment { get; set; }
 
-    public IReadOnlyList<long> ReadOnlySegments { get; set; }
+  public IReadOnlyList<long> ReadOnlySegments { get; set; }
 
-    public long DiskSegment { get; set; }
+  public long DiskSegment { get; set; }
 
-    public IReadOnlyList<long> BottomSegments { get; set; }
+  public IReadOnlyList<long> BottomSegments { get; set; }
 
-    public long MaximumOpIndex { get; set; }
+  /// <summary>
+  /// The persisted producer high-water mark for operation indexes.
+  /// </summary>
+  /// <remarks>
+  /// This value is not a version of the whole database, segment tree, or merge
+  /// shape. Operation indexes are used by consumers such as replication to
+  /// compare updates for the same key and ignore stale writes. Persisting the
+  /// maximum issued index prevents a restarted producer from assigning a lower
+  /// index to a later write for that key.
+  /// </remarks>
+  public long MaximumOpIndex { get; set; }
 
-    [JsonIgnore]
-    public bool HasDiskSegment => DiskSegment != 0 || BottomSegments?.Count > 0;
+  [JsonIgnore]
+  public bool HasDiskSegment => DiskSegment != 0 || BottomSegments?.Count > 0;
 }

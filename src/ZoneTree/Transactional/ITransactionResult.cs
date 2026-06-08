@@ -1,8 +1,8 @@
-﻿namespace Tenray.ZoneTree.Transactional;
+namespace ZoneTree.Transactional;
 
 public interface ITransactionResult
 {
-    public bool IsAborted { get; }
+  public bool IsAborted { get; }
 
-    public bool Succeeded { get; }
+  public bool Succeeded { get; }
 }

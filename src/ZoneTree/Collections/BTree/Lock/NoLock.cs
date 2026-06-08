@@ -1,31 +1,31 @@
-﻿namespace Tenray.ZoneTree.Collections.BTree.Lock;
+namespace ZoneTree.Collections.BTree.Lock;
 
 public sealed class NoLock : ILocker
 {
-    public readonly static NoLock Instance = new();
+  public readonly static NoLock Instance = new();
 
-    NoLock()
-    {
-    }
+  NoLock()
+  {
+  }
 
-    public void WriteLock()
-    {
-    }
+  public void WriteLock()
+  {
+  }
 
-    public void WriteUnlock()
-    {
-    }
+  public void WriteUnlock()
+  {
+  }
 
-    public void ReadLock()
-    {
-    }
+  public void ReadLock()
+  {
+  }
 
-    public void ReadUnlock()
-    {
-    }
+  public void ReadUnlock()
+  {
+  }
 
-    public bool TryEnterWriteLock(int millisecondsTimeout)
-    {
-        return true;
-    }
+  public bool TryEnterWriteLock(int millisecondsTimeout)
+  {
+    return true;
+  }
 }

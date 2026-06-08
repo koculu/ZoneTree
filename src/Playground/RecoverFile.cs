@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics;
-using Tenray.ZoneTree;
-using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Core;
-using Tenray.ZoneTree.Logger;
-using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Segments.Disk;
-using Tenray.ZoneTree.Segments.RandomAccess;
-using Tenray.ZoneTree.Serializers;
-using Tenray.ZoneTree.WAL;
+using ZoneTree;
+using ZoneTree.AbstractFileStream;
+using ZoneTree.Comparers;
+using ZoneTree.Core;
+using ZoneTree.Logger;
+using ZoneTree.Options;
+using ZoneTree.Segments.Disk;
+using ZoneTree.Segments.RandomAccess;
+using ZoneTree.Serializers;
+using ZoneTree.WAL;
 
 namespace Playground;
 

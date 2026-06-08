@@ -1,18 +1,18 @@
-﻿namespace Tenray.ZoneTree.Core;
+namespace ZoneTree.Core;
 
 public sealed class IncrementalIdProvider : IIncrementalIdProvider
 {
-    long lastId;
+  long lastId;
 
-    public long LastId => Volatile.Read(ref lastId);
+  public long LastId => Volatile.Read(ref lastId);
 
-    public long NextId()
-    {
-        return Interlocked.Increment(ref lastId);
-    }
+  public long NextId()
+  {
+    return Interlocked.Increment(ref lastId);
+  }
 
-    public void SetNextId(long id)
-    {
-        Interlocked.Exchange(ref lastId, id - 1);
-    }
+  public void SetNextId(long id)
+  {
+    Interlocked.Exchange(ref lastId, id - 1);
+  }
 }

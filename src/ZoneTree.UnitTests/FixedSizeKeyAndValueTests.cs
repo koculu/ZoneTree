@@ -1,7 +1,7 @@
-﻿using Tenray.ZoneTree.Options;
-using Tenray.ZoneTree.Serializers;
+﻿using ZoneTree.Options;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.UnitTests;
+namespace ZoneTree.UnitTests;
 
 public sealed class FixedSizeKeyAndValueTests
 {
@@ -31,6 +31,38 @@ public sealed class FixedSizeKeyAndValueTests
             Assert.That(v, Is.EqualTo(i + i));
             Assert.That(data.ContainsKey(i), Is.True);
         }
+        data.Maintenance.Drop();
+    }
+
+    [Test]
+    public void FirstMultiPartMergeDoesNotTreatReadOnlySegmentAsDisk()
+    {
+        var dataPath = "data/FirstMultiPartMergeDoesNotTreatReadOnlySegmentAsDisk";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var data = new ZoneTreeFactory<int, int>()
+            .DisableDeletion()
+            .SetMutableSegmentMaxItemCount(100)
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .ConfigureDiskSegmentOptions(options =>
+            {
+                options.DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
+                options.MinimumRecordCount = 2;
+                options.MaximumRecordCount = 3;
+            })
+            .OpenOrCreate();
+
+        for (var i = 0; i < 4; ++i)
+        {
+            data.Upsert(i, i);
+        }
+
+        data.Maintenance.MoveMutableSegmentForward();
+        data.Maintenance.StartMergeOperation().Join();
+
+        Assert.That(data.Maintenance.DiskSegment.GetPartCount(), Is.EqualTo(2));
         data.Maintenance.Drop();
     }
 

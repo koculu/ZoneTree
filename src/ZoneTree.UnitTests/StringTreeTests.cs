@@ -1,11 +1,11 @@
 ﻿using Newtonsoft.Json.Linq;
-using Tenray.ZoneTree.AbstractFileStream;
-using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.Exceptions;
-using Tenray.ZoneTree.Serializers;
-using Tenray.ZoneTree.WAL;
+using ZoneTree.AbstractFileStream;
+using ZoneTree.Comparers;
+using ZoneTree.Exceptions;
+using ZoneTree.Serializers;
+using ZoneTree.WAL;
 
-namespace Tenray.ZoneTree.UnitTests;
+namespace ZoneTree.UnitTests;
 
 public sealed class StringTreeTests
 {

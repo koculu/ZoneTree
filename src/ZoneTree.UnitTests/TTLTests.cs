@@ -1,8 +1,8 @@
-﻿using Tenray.ZoneTree.Comparers;
-using Tenray.ZoneTree.PresetTypes;
-using Tenray.ZoneTree.Serializers;
+﻿using ZoneTree.Comparers;
+using ZoneTree.PresetTypes;
+using ZoneTree.Serializers;
 
-namespace Tenray.ZoneTree.UnitTests;
+namespace ZoneTree.UnitTests;
 
 public sealed class TTLTests
 {
