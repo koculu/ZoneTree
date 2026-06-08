@@ -133,6 +133,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
         if (NextCreator.Length == 0)
         {
             NextCreator.DropDiskSegment();
+            NextCreator = null;
         }
         else
         {
@@ -140,6 +141,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
             PartValues.Add(LastAppendedValue);
             var part = NextCreator.CreateReadOnlyDiskSegment();
             Parts.Add(part);
+            NextCreator = null;
         }
 
         WriteMultiDiskSegment();
@@ -238,18 +240,31 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
                 continue;
             part.Drop();
         }
-        using var multiDevice = Options.RandomAccessDeviceManager
-            .GetReadOnlyDevice(
-                SegmentId,
-                DiskSegmentConstants.MultiPartDiskSegmentCategory,
-                isCompressed: false,
-                compressionBlockSize: 0,
-                MultiPartDiskSegment<TKey, TValue>.MultiPartHeaderCompressionMethod,
-                MultiPartDiskSegment<TKey, TValue>.MultiPartHeaderCompressionLevel);
+
+        NextCreator?.DropDiskSegment();
+        NextCreator = null;
+
+        var randomAccessDeviceManager = Options.RandomAccessDeviceManager;
+        if (!randomAccessDeviceManager.DeviceExists(
+            SegmentId,
+            DiskSegmentConstants.MultiPartDiskSegmentCategory,
+            isCompressed: false))
+        {
+            return;
+        }
+
+        using var multiDevice = randomAccessDeviceManager.GetReadOnlyDevice(
+            SegmentId,
+            DiskSegmentConstants.MultiPartDiskSegmentCategory,
+            isCompressed: false,
+            compressionBlockSize: 0,
+            MultiPartDiskSegment<TKey, TValue>.MultiPartHeaderCompressionMethod,
+            MultiPartDiskSegment<TKey, TValue>.MultiPartHeaderCompressionLevel);
 
         multiDevice.Delete();
-        Options.RandomAccessDeviceManager
-            .RemoveReadOnlyDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory);
+        randomAccessDeviceManager.RemoveReadOnlyDevice(
+            SegmentId,
+            DiskSegmentConstants.MultiPartDiskSegmentCategory);
     }
 
     public void Dispose()

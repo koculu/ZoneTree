@@ -270,7 +270,51 @@ public sealed class BottomSegmentMergeTests
     }
   }
 
-  static ZoneTreeOptions<int, int> CreateMultiPartBottomMergeOptions()
+  [Test]
+  public void MultiPartCreatorDropBeforeHeaderIsWrittenDropsPendingPart()
+  {
+    var options = CreateMultiPartBottomMergeOptions(
+        "data/MultiPartCreatorDropBeforeHeaderIsWrittenDropsPendingPart");
+    var idProvider = new IncrementalIdProvider();
+    try
+    {
+      using var creator = new MultiPartDiskSegmentCreator<int, int>(
+          options,
+          idProvider);
+
+      creator.Append(1, 1, IteratorPosition.None);
+
+      Assert.That(
+          options.RandomAccessDeviceManager.DeviceExists(
+              2,
+              DiskSegmentConstants.DataCategory,
+              isCompressed: true),
+          Is.True);
+
+      Assert.DoesNotThrow(() => creator.DropDiskSegment());
+
+      Assert.That(
+          options.RandomAccessDeviceManager.DeviceExists(
+              1,
+              DiskSegmentConstants.MultiPartDiskSegmentCategory,
+              isCompressed: false),
+          Is.False);
+      Assert.That(
+          options.RandomAccessDeviceManager.DeviceExists(
+              2,
+              DiskSegmentConstants.DataCategory,
+              isCompressed: true),
+          Is.False);
+      Assert.That(options.RandomAccessDeviceManager.DeviceCount, Is.EqualTo(0));
+    }
+    finally
+    {
+      options.RandomAccessDeviceManager.DropStore();
+    }
+  }
+
+  static ZoneTreeOptions<int, int> CreateMultiPartBottomMergeOptions(
+      string dataDirectory = "data/PartialMultiPartBottomMerge")
   {
     var logger = new ConsoleLogger(LogLevel.Error);
     var options = new ZoneTreeOptions<int, int>
@@ -283,7 +327,7 @@ public sealed class BottomSegmentMergeTests
       RandomAccessDeviceManager = new RandomAccessDeviceManager(
             logger,
             new InMemoryFileStreamProvider(),
-            "data/PartialMultiPartBottomMerge"),
+            dataDirectory),
       DiskSegmentOptions = new DiskSegmentOptions
       {
         DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment,
