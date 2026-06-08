@@ -26,7 +26,11 @@ Comparers define key order. They affect:
 * disk segment layout,
 * merge behavior.
 
-Choose comparers before creating a database. Changing comparer semantics for an existing database changes the meaning of its stored order.
+Choose comparers before creating a database. ZoneTree stores the comparer type in metadata and validates it when opening an existing database.
+
+Changing comparer semantics for an existing database is not a safe in-place change because persisted segments and indexes were written in the old order. This includes changing comparison logic inside the same custom comparer type.
+
+To change ordering, create a new ZoneTree with the new comparer or key encoding and rebuild/copy the data.
 
 ## Example
 

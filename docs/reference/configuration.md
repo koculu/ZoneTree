@@ -35,6 +35,8 @@ Common methods:
 
 Set serializers, comparers, deletion delegates, and storage providers before opening the tree. Serializers cannot be changed after the WAL provider or transaction log has been initialized.
 
+Comparer semantics are part of the persisted keyspace. ZoneTree stores the comparer type in metadata and validates it on open, but a custom comparer with the same type can still become incompatible if its comparison behavior changes. Create a new ZoneTree and rebuild/copy data when you need a different order.
+
 ## Default Profile
 
 ZoneTree defaults are designed as a practical general-purpose profile. Start with them, then tune after measuring the actual workload.
