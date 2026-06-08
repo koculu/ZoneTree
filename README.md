@@ -338,9 +338,6 @@ Repository:
 Official documentation:
 
 * [zonetree.dev](https://zonetree.dev)
-* [Quick start](https://zonetree.dev/docs/ZoneTree/guide/quick-start.html)
-* [API reference](https://zonetree.dev/docs/ZoneTree/api/ZoneTree.html)
-* [Performance](https://zonetree.dev/docs/ZoneTree/guide/performance.html)
 
 ---
 
