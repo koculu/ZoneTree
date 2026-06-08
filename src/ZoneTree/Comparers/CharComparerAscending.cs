@@ -1,9 +1,9 @@
-﻿namespace ZoneTree.Comparers;
+namespace ZoneTree.Comparers;
 
 public sealed class CharComparerAscending : IRefComparer<char>
 {
-    public int Compare(in char x, in char y)
-    {
-        return x.CompareTo(y);
-    }
+  public int Compare(in char x, in char y)
+  {
+    return x.CompareTo(y);
+  }
 }

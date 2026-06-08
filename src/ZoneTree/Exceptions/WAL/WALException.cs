@@ -1,8 +1,8 @@
-﻿namespace ZoneTree.Exceptions.WAL;
+namespace ZoneTree.Exceptions.WAL;
 
 public sealed class WALException : ZoneTreeException
 {
-    public WALException()
-    {
-    }
+  public WALException()
+  {
+  }
 }

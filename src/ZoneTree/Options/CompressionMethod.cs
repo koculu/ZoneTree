@@ -1,4 +1,4 @@
-﻿namespace ZoneTree.Options;
+namespace ZoneTree.Options;
 
 /// <summary>
 /// Available compression methods.
@@ -8,28 +8,28 @@
 /// </remarks>
 public enum CompressionMethod : byte
 {
-    /// <summary>
-    /// LZ4 algorithm.
-    /// </summary>
-    LZ4 = 0,
+  /// <summary>
+  /// LZ4 algorithm.
+  /// </summary>
+  LZ4 = 0,
 
-    /// <summary>
-    /// ZStd algorithm.
-    /// </summary>
-    Zstd = 1,
+  /// <summary>
+  /// ZStd algorithm.
+  /// </summary>
+  Zstd = 1,
 
-    /// <summary>
-    /// Brotli algorithm.
-    /// </summary>
-    Brotli = 2,
+  /// <summary>
+  /// Brotli algorithm.
+  /// </summary>
+  Brotli = 2,
 
-    /// <summary>
-    /// Gzip algorithm.
-    /// </summary>
-    Gzip = 3,
+  /// <summary>
+  /// Gzip algorithm.
+  /// </summary>
+  Gzip = 3,
 
-    /// <summary>
-    /// No compression.
-    /// </summary>
-    None = 4,
+  /// <summary>
+  /// No compression.
+  /// </summary>
+  None = 4,
 }

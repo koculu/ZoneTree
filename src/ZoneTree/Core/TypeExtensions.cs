@@ -1,37 +1,37 @@
-﻿using System.Text;
+using System.Text;
 
 namespace ZoneTree.Core;
 
 public static class TypeExtensions
 {
-    public static string SimplifiedFullName(this Type type)
+  public static string SimplifiedFullName(this Type type)
+  {
+    if (!type.IsGenericType)
+      return type.FullName;
+    var builder = new StringBuilder();
+    var typeName = type.Namespace + "." + type.Name;
+    int index = typeName.IndexOf('`', StringComparison.Ordinal);
+    if (index > 0)
     {
-        if (!type.IsGenericType)
-            return type.FullName;
-        var builder = new StringBuilder();
-        var typeName = type.Namespace + "." + type.Name;
-        int index = typeName.IndexOf('`', StringComparison.Ordinal);
-        if (index > 0)
-        {
-            builder.Append(typeName.AsSpan(0, index));
-        }
-        else
-        {
-            builder.Append(typeName);
-        }
-
-        builder.Append('<');
-        var genericArguments = type.GetGenericArguments();
-        var len = genericArguments.Length;
-        for (var i = 0; i < len; i++)
-        {
-            if (i > 0)
-            {
-                builder.Append(", ");
-            }
-            builder.Append(genericArguments[i].SimplifiedFullName());
-        }
-        builder.Append('>');
-        return builder.ToString();
+      builder.Append(typeName.AsSpan(0, index));
     }
+    else
+    {
+      builder.Append(typeName);
+    }
+
+    builder.Append('<');
+    var genericArguments = type.GetGenericArguments();
+    var len = genericArguments.Length;
+    for (var i = 0; i < len; i++)
+    {
+      if (i > 0)
+      {
+        builder.Append(", ");
+      }
+      builder.Append(genericArguments[i].SimplifiedFullName());
+    }
+    builder.Append('>');
+    return builder.ToString();
+  }
 }

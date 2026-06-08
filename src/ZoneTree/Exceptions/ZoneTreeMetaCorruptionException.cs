@@ -1,9 +1,9 @@
-﻿namespace ZoneTree.Exceptions;
+namespace ZoneTree.Exceptions;
 
 public sealed class ZoneTreeMetaCorruptionException : ZoneTreeException
 {
-    public ZoneTreeMetaCorruptionException()
-        : base($"Tree meta data is corrupted. Recovery is required.")
-    {
-    }
+  public ZoneTreeMetaCorruptionException()
+      : base($"Tree meta data is corrupted. Recovery is required.")
+  {
+  }
 }

@@ -1,8 +1,8 @@
-﻿namespace ZoneTree.Transactional;
+namespace ZoneTree.Transactional;
 
 public enum TransactionState
 {
-    Uncommitted,
-    Committed,
-    Aborted
+  Uncommitted,
+  Committed,
+  Aborted
 }

@@ -10,18 +10,18 @@ namespace ZoneTree.Core;
 /// </remarks>
 public interface IIncrementalIdProvider
 {
-    /// <summary>
-    /// Returns the next id in the sequence.
-    /// </summary>
-    long NextId();
+  /// <summary>
+  /// Returns the next id in the sequence.
+  /// </summary>
+  long NextId();
 
-    /// <summary>
-    /// Sets the next id that will be returned by <see cref="NextId"/>.
-    /// </summary>
-    void SetNextId(long id);
+  /// <summary>
+  /// Sets the next id that will be returned by <see cref="NextId"/>.
+  /// </summary>
+  void SetNextId(long id);
 
-    /// <summary>
-    /// The last id returned by <see cref="NextId"/>.
-    /// </summary>
-    long LastId { get; }
+  /// <summary>
+  /// The last id returned by <see cref="NextId"/>.
+  /// </summary>
+  long LastId { get; }
 }

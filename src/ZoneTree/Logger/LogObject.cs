@@ -1,4 +1,4 @@
-﻿namespace ZoneTree.Logger;
+namespace ZoneTree.Logger;
 
 /// <summary>
 /// Abstract LogObject.

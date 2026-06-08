@@ -1,9 +1,9 @@
-﻿namespace ZoneTree.Logger;
+namespace ZoneTree.Logger;
 
 public enum LogLevel
 {
-    Trace,
-    Info,
-    Warning,
-    Error
+  Trace,
+  Info,
+  Warning,
+  Error
 }

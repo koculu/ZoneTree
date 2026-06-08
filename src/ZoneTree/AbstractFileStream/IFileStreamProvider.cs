@@ -1,4 +1,4 @@
-﻿namespace ZoneTree.AbstractFileStream;
+namespace ZoneTree.AbstractFileStream;
 
 /// <summary>
 /// Abstraction over FileStream to make it easy to integrate with
@@ -6,36 +6,36 @@
 /// </summary>
 public interface IFileStreamProvider
 {
-    IFileStream CreateFileStream(
-        string path,
-        FileMode mode,
-        FileAccess access,
-        FileShare share,
-        int bufferSize = 4096,
-        FileOptions options = FileOptions.None);
+  IFileStream CreateFileStream(
+      string path,
+      FileMode mode,
+      FileAccess access,
+      FileShare share,
+      int bufferSize = 4096,
+      FileOptions options = FileOptions.None);
 
-    bool FileExists(string path);
+  bool FileExists(string path);
 
-    bool DirectoryExists(string path);
+  bool DirectoryExists(string path);
 
-    void CreateDirectory(string path);
+  void CreateDirectory(string path);
 
-    void DeleteFile(string path);
+  void DeleteFile(string path);
 
-    void DeleteDirectory(string path, bool recursive);
+  void DeleteDirectory(string path, bool recursive);
 
-    string ReadAllText(string path);
+  string ReadAllText(string path);
 
-    byte[] ReadAllBytes(string path);
+  byte[] ReadAllBytes(string path);
 
-    void Replace(
-        string sourceFileName,
-        string destinationFileName,
-        string destinationBackupFileName);
+  void Replace(
+      string sourceFileName,
+      string destinationFileName,
+      string destinationBackupFileName);
 
-    DurableFileWriter GetDurableFileWriter();
+  DurableFileWriter GetDurableFileWriter();
 
-    IReadOnlyList<string> GetDirectories(string path);
+  IReadOnlyList<string> GetDirectories(string path);
 
-    string CombinePaths(string path1, string path2);
+  string CombinePaths(string path1, string path2);
 }

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using ZoneTree.Collections;
 using ZoneTree.Exceptions;
 using ZoneTree.Options;

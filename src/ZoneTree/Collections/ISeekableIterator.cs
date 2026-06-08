@@ -1,32 +1,32 @@
-﻿namespace ZoneTree.Collections;
+namespace ZoneTree.Collections;
 
 public interface ISeekableIterator<TKey, TValue>
 {
-    bool SeekBegin();
+  bool SeekBegin();
 
-    bool SeekEnd();
+  bool SeekEnd();
 
-    bool SeekToLastSmallerOrEqualElement(in TKey key);
+  bool SeekToLastSmallerOrEqualElement(in TKey key);
 
-    bool SeekToFirstGreaterOrEqualElement(in TKey key);
+  bool SeekToFirstGreaterOrEqualElement(in TKey key);
 
-    bool Next();
+  bool Next();
 
-    bool Prev();
+  bool Prev();
 
-    bool HasCurrent { get; }
+  bool HasCurrent { get; }
 
-    TKey CurrentKey { get; }
+  TKey CurrentKey { get; }
 
-    TValue CurrentValue { get; }
+  TValue CurrentValue { get; }
 
-    void Skip(long offset);
+  void Skip(long offset);
 
-    bool IsBeginningOfAPart { get; }
+  bool IsBeginningOfAPart { get; }
 
-    bool IsEndOfAPart { get; }
+  bool IsEndOfAPart { get; }
 
-    int GetPartIndex();
+  int GetPartIndex();
 
-    bool IsFullyFrozen { get; }
+  bool IsFullyFrozen { get; }
 }

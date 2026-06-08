@@ -1,24 +1,24 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace ZoneTree.Core;
 
 public static class ZoneTreeInfo
 {
-    static Version Version;
+  static Version Version;
 
-    /// <summary>
-    /// Gets ZoneTree Product Version
-    /// </summary>
-    /// <returns></returns>
-    public static Version ProductVersion
+  /// <summary>
+  /// Gets ZoneTree Product Version
+  /// </summary>
+  /// <returns></returns>
+  public static Version ProductVersion
+  {
+    get
     {
-        get
-        {
-            if (Version != null)
-                return Version;
-            Version = Assembly.GetExecutingAssembly().GetName().Version;
-            return Version;
-        }
+      if (Version != null)
+        return Version;
+      Version = Assembly.GetExecutingAssembly().GetName().Version;
+      return Version;
     }
+  }
 }

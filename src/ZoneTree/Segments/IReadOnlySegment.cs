@@ -1,30 +1,30 @@
-﻿using ZoneTree.Collections;
+using ZoneTree.Collections;
 
 namespace ZoneTree.Segments;
 
 public interface IReadOnlySegment<TKey, TValue>
 {
-    long SegmentId { get; }
+  long SegmentId { get; }
 
-    long Length { get; }
+  long Length { get; }
 
-    long MaximumOpIndex { get; }
+  long MaximumOpIndex { get; }
 
-    bool ContainsKey(in TKey key);
+  bool ContainsKey(in TKey key);
 
-    bool TryGet(in TKey key, out TValue value);
+  bool TryGet(in TKey key, out TValue value);
 
-    void Drop();
+  void Drop();
 
-    void ReleaseResources();
+  void ReleaseResources();
 
-    IIndexedReader<TKey, TValue> GetIndexedReader();
+  IIndexedReader<TKey, TValue> GetIndexedReader();
 
-    ISeekableIterator<TKey, TValue> GetSeekableIterator(bool contributeToTheBlockCache = false);
+  ISeekableIterator<TKey, TValue> GetSeekableIterator(bool contributeToTheBlockCache = false);
 
-    /// <summary>
-    /// This flag indicates that the readonly segment has completed all writes
-    /// and is guaranteed to be frozen.
-    /// </summary>
-    bool IsFullyFrozen { get; }
+  /// <summary>
+  /// This flag indicates that the readonly segment has completed all writes
+  /// and is guaranteed to be frozen.
+  /// </summary>
+  bool IsFullyFrozen { get; }
 }

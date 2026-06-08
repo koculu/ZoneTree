@@ -1,12 +1,12 @@
-﻿namespace ZoneTree.Exceptions;
+namespace ZoneTree.Exceptions;
 
 public sealed class TransactionAlreadyCommittedException : ZoneTreeException
 {
-    public TransactionAlreadyCommittedException(long transactionId)
-        : base($"Transaction is already committed. Transaction Id: {transactionId}")
-    {
-        TransactionId = transactionId;
-    }
+  public TransactionAlreadyCommittedException(long transactionId)
+      : base($"Transaction is already committed. Transaction Id: {transactionId}")
+  {
+    TransactionId = transactionId;
+  }
 
-    public long TransactionId { get; }
+  public long TransactionId { get; }
 }

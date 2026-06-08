@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using ZoneTree.Exceptions;
 using ZoneTree.Core;
 using ZoneTree.Serializers;

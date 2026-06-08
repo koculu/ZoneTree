@@ -1,24 +1,24 @@
-﻿using ZoneTree.Core;
+using ZoneTree.Core;
 
 namespace ZoneTree.Segments.Disk;
 
 public interface IDiskSegmentCreator<TKey, TValue> : IDisposable
 {
-    bool CanSkipCurrentPart { get; }
+  bool CanSkipCurrentPart { get; }
 
-    HashSet<long> AppendedPartSegmentIds { get; }
+  HashSet<long> AppendedPartSegmentIds { get; }
 
-    void Append(TKey key, TValue value, IteratorPosition iteratorPosition);
-    
-    void Append(
-        IDiskSegment<TKey, TValue> part,
-        TKey key1,
-        TKey key2,
-        TValue value1,
-        TValue value2);
+  void Append(TKey key, TValue value, IteratorPosition iteratorPosition);
 
-    IDiskSegment<TKey, TValue> CreateReadOnlyDiskSegment();
+  void Append(
+      IDiskSegment<TKey, TValue> part,
+      TKey key1,
+      TKey key2,
+      TValue value1,
+      TValue value2);
 
-    void DropDiskSegment();
+  IDiskSegment<TKey, TValue> CreateReadOnlyDiskSegment();
+
+  void DropDiskSegment();
 
 }

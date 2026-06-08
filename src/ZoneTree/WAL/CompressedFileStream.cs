@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using ZoneTree.AbstractFileStream;
 using ZoneTree.Logger;
 using ZoneTree.Options;

@@ -1,8 +1,8 @@
-﻿namespace ZoneTree.Exceptions;
+namespace ZoneTree.Exceptions;
 
 public class ZoneTreeException : Exception
 {
-    public ZoneTreeException(string message = null, Exception innerException = null) : base(message, innerException)
-    {
-    }
+  public ZoneTreeException(string message = null, Exception innerException = null) : base(message, innerException)
+  {
+  }
 }

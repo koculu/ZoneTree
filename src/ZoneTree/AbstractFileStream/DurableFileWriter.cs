@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 namespace ZoneTree.AbstractFileStream;
 
@@ -25,90 +25,90 @@ namespace ZoneTree.AbstractFileStream;
 /// </summary>
 public sealed class DurableFileWriter
 {
-    const string TempFileExtension = ".tmp";
+  const string TempFileExtension = ".tmp";
 
-    const string BackupFileExtension = ".backup";
+  const string BackupFileExtension = ".backup";
 
-    readonly IFileStreamProvider FileStreamProvider;
+  readonly IFileStreamProvider FileStreamProvider;
 
-    public DurableFileWriter(IFileStreamProvider fileStreamProvider)
-    {
-        FileStreamProvider = fileStreamProvider;
-    }
+  public DurableFileWriter(IFileStreamProvider fileStreamProvider)
+  {
+    FileStreamProvider = fileStreamProvider;
+  }
 
-    public string ReadAllTextFromBackup(
-        string path)
-    {
-        var backupPath = path + BackupFileExtension;
-        return FileStreamProvider.ReadAllText(backupPath);
-    }
+  public string ReadAllTextFromBackup(
+      string path)
+  {
+    var backupPath = path + BackupFileExtension;
+    return FileStreamProvider.ReadAllText(backupPath);
+  }
 
-    public byte[] ReadAllBytesFromBackup(string path)
-    {
-        var backupPath = path + BackupFileExtension;
-        return FileStreamProvider.ReadAllBytes(backupPath);
-    }
+  public byte[] ReadAllBytesFromBackup(string path)
+  {
+    var backupPath = path + BackupFileExtension;
+    return FileStreamProvider.ReadAllBytes(backupPath);
+  }
 
-    public void WriteAllTextWithBackup(string path, string text)
-    {
-        var tempPath = path + TempFileExtension;
-        var backupPath = path + BackupFileExtension;
-        if (FileStreamProvider.FileExists(backupPath))
-            FileStreamProvider.DeleteFile(backupPath);
-        WriteTextInternal(text, tempPath);
+  public void WriteAllTextWithBackup(string path, string text)
+  {
+    var tempPath = path + TempFileExtension;
+    var backupPath = path + BackupFileExtension;
+    if (FileStreamProvider.FileExists(backupPath))
+      FileStreamProvider.DeleteFile(backupPath);
+    WriteTextInternal(text, tempPath);
 
-        FileStreamProvider.Replace(tempPath, path, backupPath);
-    }
+    FileStreamProvider.Replace(tempPath, path, backupPath);
+  }
 
-    public string ReadAllText(string file)
-    {
-        return FileStreamProvider.ReadAllText(file);
-    }
+  public string ReadAllText(string file)
+  {
+    return FileStreamProvider.ReadAllText(file);
+  }
 
-    public byte[] ReadAllBytes(string file)
-    {
-        return FileStreamProvider.ReadAllBytes(file);
-    }
+  public byte[] ReadAllBytes(string file)
+  {
+    return FileStreamProvider.ReadAllBytes(file);
+  }
 
-    public void WriteAllBytesWithBackup(string path, byte[] bytes)
-    {
-        var tempPath = path + TempFileExtension;
-        var backupPath = path + BackupFileExtension;
-        if (FileStreamProvider.FileExists(backupPath))
-            FileStreamProvider.DeleteFile(backupPath);
-        WriteBytesInternal(bytes, tempPath);
-        FileStreamProvider.Replace(tempPath, path, backupPath);
-    }
+  public void WriteAllBytesWithBackup(string path, byte[] bytes)
+  {
+    var tempPath = path + TempFileExtension;
+    var backupPath = path + BackupFileExtension;
+    if (FileStreamProvider.FileExists(backupPath))
+      FileStreamProvider.DeleteFile(backupPath);
+    WriteBytesInternal(bytes, tempPath);
+    FileStreamProvider.Replace(tempPath, path, backupPath);
+  }
 
-    public void WriteAllText(string path, string text)
-    {
-        var tempPath = path + TempFileExtension;
-        WriteTextInternal(text, tempPath);
-        FileStreamProvider.Replace(tempPath, path, null);
-    }
+  public void WriteAllText(string path, string text)
+  {
+    var tempPath = path + TempFileExtension;
+    WriteTextInternal(text, tempPath);
+    FileStreamProvider.Replace(tempPath, path, null);
+  }
 
-    public void WriteAllBytes(string path, byte[] bytes)
-    {
-        var tempPath = path + TempFileExtension;
-        WriteBytesInternal(bytes, tempPath);
-        FileStreamProvider.Replace(tempPath, path, null);
-    }
+  public void WriteAllBytes(string path, byte[] bytes)
+  {
+    var tempPath = path + TempFileExtension;
+    WriteBytesInternal(bytes, tempPath);
+    FileStreamProvider.Replace(tempPath, path, null);
+  }
 
-    void WriteBytesInternal(byte[] bytes, string path)
-    {
-        using var tempFile = FileStreamProvider.CreateFileStream(
-                        path,
-                        FileMode.OpenOrCreate,
-                        FileAccess.Write,
-                        FileShare.None);
-        tempFile.Write(bytes, 0, bytes.Length);
-        tempFile.Flush(true);
-        tempFile.Close();
-    }
+  void WriteBytesInternal(byte[] bytes, string path)
+  {
+    using var tempFile = FileStreamProvider.CreateFileStream(
+                    path,
+                    FileMode.OpenOrCreate,
+                    FileAccess.Write,
+                    FileShare.None);
+    tempFile.Write(bytes, 0, bytes.Length);
+    tempFile.Flush(true);
+    tempFile.Close();
+  }
 
-    void WriteTextInternal(string text, string path)
-    {
-        var bytes = Encoding.UTF8.GetBytes(text);
-        WriteBytesInternal(bytes, path);
-    }
+  void WriteTextInternal(string text, string path)
+  {
+    var bytes = Encoding.UTF8.GetBytes(text);
+    WriteBytesInternal(bytes, path);
+  }
 }

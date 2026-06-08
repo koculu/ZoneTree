@@ -1,12 +1,12 @@
-﻿namespace ZoneTree.Segments.Disk;
+namespace ZoneTree.Segments.Disk;
 
 public static class DiskSegmentConstants
 {
-    public const string DataHeaderCategory = ".head";
+  public const string DataHeaderCategory = ".head";
 
-    public const string DataCategory = ".data";
+  public const string DataCategory = ".data";
 
-    public const string MultiPartDiskSegmentCategory = ".multi";
+  public const string MultiPartDiskSegmentCategory = ".multi";
 
-    public const string SparseArrayCategory = ".sparse";
+  public const string SparseArrayCategory = ".sparse";
 }

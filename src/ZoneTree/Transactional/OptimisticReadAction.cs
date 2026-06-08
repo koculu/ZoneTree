@@ -1,7 +1,7 @@
-﻿namespace ZoneTree.Transactional;
+namespace ZoneTree.Transactional;
 
 public enum OptimisticReadAction
 {
-    Read,
-    Abort
+  Read,
+  Abort
 }

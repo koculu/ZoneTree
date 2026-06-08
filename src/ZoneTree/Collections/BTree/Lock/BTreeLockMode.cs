@@ -1,4 +1,4 @@
-﻿namespace ZoneTree.Collections.BTree.Lock;
+namespace ZoneTree.Collections.BTree.Lock;
 
 /// <summary>
 /// Available BTree lock modes.
@@ -16,30 +16,30 @@
 /// </remarks>
 public enum BTreeLockMode
 {
-    /// <summary>
-    /// There is no locking at all.
-    /// This mode is not thread-safe.
-    /// Use it only if you are going to insert and read from single thread.
-    /// </summary>
-    NoLock,
+  /// <summary>
+  /// There is no locking at all.
+  /// This mode is not thread-safe.
+  /// Use it only if you are going to insert and read from single thread.
+  /// </summary>
+  NoLock,
 
-    /// <summary>
-    /// Top level monitor lock.
-    /// </summary>
-    TopLevelMonitor,
+  /// <summary>
+  /// Top level monitor lock.
+  /// </summary>
+  TopLevelMonitor,
 
-    /// <summary>
-    /// Top level reader-writer lock.
-    /// </summary>
-    TopLevelReaderWriter,
+  /// <summary>
+  /// Top level reader-writer lock.
+  /// </summary>
+  TopLevelReaderWriter,
 
-    /// <summary>
-    /// Nodel level monitor lock.
-    /// </summary>
-    NodeLevelMonitor,
+  /// <summary>
+  /// Nodel level monitor lock.
+  /// </summary>
+  NodeLevelMonitor,
 
-    /// <summary>
-    /// Node level reader-writer lock.
-    /// </summary>
-    NodeLevelReaderWriter
+  /// <summary>
+  /// Node level reader-writer lock.
+  /// </summary>
+  NodeLevelReaderWriter
 }
