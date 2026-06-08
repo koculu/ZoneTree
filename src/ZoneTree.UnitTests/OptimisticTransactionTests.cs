@@ -161,6 +161,34 @@ public sealed class OptimisticTransactionTests
         zoneTree.Maintenance.Drop();
     }
 
+    [Test]
+    public void AutoCommitIncrementalHistoryKeepsPreviousWriteStamp()
+    {
+        var dataPath = "data/AutoCommitIncrementalHistoryKeepsPreviousWriteStamp";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        var transactionLog = new CapturingTransactionLog();
+        using var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
+            .SetMarkValueDeletedDelegate((ref int value) => value = -1)
+            .ConfigureWriteAheadLogOptions(x => x.EnableIncrementalBackup = true)
+            .SetTransactionLog(_ => transactionLog)
+            .OpenOrCreateTransactional();
+
+        zoneTree.UpsertAutoCommit(7, 11);
+        zoneTree.UpsertAutoCommit(7, 13);
+        zoneTree.DeleteAutoCommit(7);
+
+        Assert.That(transactionLog.HistoryRecords.Count, Is.EqualTo(3));
+        Assert.That(transactionLog.HistoryRecords[0].Value.Value2, Is.EqualTo(0));
+        Assert.That(transactionLog.HistoryRecords[1].Value.Value2, Is.EqualTo(1));
+        Assert.That(transactionLog.HistoryRecords[2].Value.Value2, Is.EqualTo(2));
+        zoneTree.Maintenance.Drop();
+    }
+
     [TestCase(0)]
     [TestCase(100000)]
     public void TransactionLogCompactionTest(int compactionThreshold)
@@ -277,5 +305,106 @@ public sealed class OptimisticTransactionTests
         Assert.That(zoneTree.PrepareAndCommitNoThrow(tx2).IsAborted, Is.True);
 
         zoneTree.Maintenance.Drop();
+    }
+
+    sealed class CapturingTransactionLog : ITransactionLog<int, int>
+    {
+        long nextTransactionId;
+
+        readonly Dictionary<long, TransactionState> TransactionStates = new();
+
+        readonly Dictionary<int, ReadWriteStamp> ReadWriteStamps = new();
+
+        public List<(long TransactionId, int Key, CombinedValue<int, long> Value)> HistoryRecords { get; } = new();
+
+        public int CompactionThreshold { get; set; }
+
+        public int TransactionCount => TransactionStates.Count;
+
+        public IReadOnlyList<long> TransactionIds => TransactionStates.Keys.ToArray();
+
+        public IReadOnlyList<long> UncommittedTransactionIds => TransactionStates
+            .Where(x => x.Value == TransactionState.Uncommitted)
+            .Select(x => x.Key)
+            .ToArray();
+
+        public long GetNextTransactionId()
+        {
+            return ++nextTransactionId;
+        }
+
+        public void TransactionStarted(long transactionId)
+        {
+            TransactionStates[transactionId] = TransactionState.Uncommitted;
+        }
+
+        public void TransactionCommitted(long transactionId)
+        {
+            TransactionStates[transactionId] = TransactionState.Committed;
+        }
+
+        public void TransactionAborted(long transactionId)
+        {
+            TransactionStates[transactionId] = TransactionState.Aborted;
+        }
+
+        public TransactionState GetTransactionState(long transactionId)
+        {
+            return TransactionStates.TryGetValue(transactionId, out var state) ?
+                state :
+                TransactionState.Committed;
+        }
+
+        public TransactionMeta GetTransactionMeta(long transactionId)
+        {
+            return new TransactionMeta
+            {
+                State = GetTransactionState(transactionId)
+            };
+        }
+
+        public void AddDependency(long src, long dest)
+        {
+        }
+
+        public IReadOnlyList<long> GetDependencyList(long transactionId)
+        {
+            return Array.Empty<long>();
+        }
+
+        public void AddHistoryRecord(
+            long transactionId,
+            int key,
+            CombinedValue<int, long> combinedValue)
+        {
+            HistoryRecords.Add((transactionId, key, combinedValue));
+        }
+
+        public IDictionary<int, CombinedValue<int, long>> GetHistory(long transactionId)
+        {
+            return HistoryRecords
+                .Where(x => x.TransactionId == transactionId)
+                .ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        public bool TryGetReadWriteStamp(in int key, out ReadWriteStamp readWriteStamp)
+        {
+            return ReadWriteStamps.TryGetValue(key, out readWriteStamp);
+        }
+
+        public bool AddOrUpdateReadWriteStamp(in int key, in ReadWriteStamp readWriteStamp)
+        {
+            ReadWriteStamps[key] = readWriteStamp;
+            return true;
+        }
+
+        public IReadOnlyList<long> GetUncommittedTransactionIdsBefore(DateTime dateTime)
+        {
+            return UncommittedTransactionIds;
+        }
+
+        public void Dispose()
+        {
+        }
     }
 }
