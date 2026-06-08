@@ -82,6 +82,11 @@ public interface IZoneTree<TKey, TValue> : IDisposable
   /// Tries to get the value of the given key and
   /// updates the value atomically using value updater if found any.
   /// </summary>
+  /// <remarks>
+  /// Atomic methods are synchronized with other atomic methods across LSM-tree segments.
+  /// Use them when the new value depends on the current value. For simple inserts
+  /// or replacements, prefer <see cref="Upsert(in TKey, in TValue)"/> because it is faster.
+  /// </remarks>
   /// <param name="key">The key of the element.</param>
   /// <param name="value">The value of the element associated with the key.</param>
   /// <param name="valueUpdater">The delegate function that updates the value.</param>
@@ -128,7 +133,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
       OperationResultDelegate<TValue> result = null);
 
   /// <summary>
-  /// Attempts to add or update the specified key and value atomically across LSM-Tree segments and calls the result delegate atomically.    
+  /// Attempts to add or update the specified key and value atomically across LSM-Tree segments and calls the result delegate atomically.
   /// valueAdder can be called one or more times.
   /// valueUpdater can be called one or more times.
   /// </summary>
@@ -156,37 +161,37 @@ public interface IZoneTree<TKey, TValue> : IDisposable
   /// Adds or updates the specified key/value pair.
   /// </summary>
   /// <remarks>
-  /// This is a thread-safe method, but it is not sycnhronized 
+  /// This is a thread-safe method, but it is not synchronized
   /// with other atomic add/update/upsert methods.
   /// Using the Upsert method in parallel to atomic methods breaks the atomicity
   /// of the atomic methods.
-  /// 
-  /// For example: 
+  ///
+  /// For example:
   /// TryAtomicAddOrUpdate(key) does the following 3 things
   /// within lock to preserve atomicity across segments of LSM-Tree.
   ///  1. tries to get the value of the key
   ///  2. if it can find the key, it updates the value
   ///  3. if it cannot find the key, inserts the new key/value
-  ///  
+  ///
   /// All atomic methods respect this order using the same lock.
-  /// 
+  ///
   /// The Upsert method does not respect to the atomicity of atomic methods,
   /// because it does upsert without lock.
-  /// 
+  ///
   /// On the other hand,
   /// the Upsert method is atomic in the mutable segment scope but not across all segments.
   /// This makes Upsert method thread-safe.
-  /// 
+  ///
   /// This is the fastest add or update function.
-  /// </remarks>    
+  /// </remarks>
   /// <param name="key">The key of the element to upsert.</param>
   /// <param name="value">The value of the element to upsert.</param>
-  /// <returns>The per-key freshness token assigned to the write.</returns>
+  /// <returns>The operation index. It can be used to distrubute the operations in stable order.</returns>
   long Upsert(in TKey key, in TValue value);
 
   /// <summary>
   /// Adds or updates the specified key with a value getter.
-  /// Value getter receives the operation index as an argument. 
+  /// Value getter receives the operation index as an argument.
   /// It is useful when the user wants to save the operation index into the record.
   /// </summary>
   /// <param name="key">The key of the element to upsert.</param>
@@ -233,27 +238,27 @@ public interface IZoneTree<TKey, TValue> : IDisposable
   /// <summary>
   /// Creates an iterator that enables scanning of the entire database.
   /// </summary>
-  /// 
+  ///
   /// <remarks>
   /// The iterator might or might not retrieve newly inserted elements.
   /// This depends on the iterator's internal segment iterator positions.
-  /// 
+  ///
   /// If the newly inserted or deleted key is after the internal segment iterator position,
   /// the new data is included in the iteration.
-  /// 
+  ///
   /// Iterators are lightweight.
   /// Create them when you need and dispose them when you dont need.
   /// Iterators acquire locks on the disk segment and prevents its disposal.
-  /// 
+  ///
   /// Use snapshot iterators for consistent view by ignoring new writes.
   /// </remarks>
-  /// 
+  ///
   /// <param name="iteratorType">Defines iterator type.</param>
-  /// <param name="includeDeletedRecords">if true the iterator retrieves 
+  /// <param name="includeDeletedRecords">if true the iterator retrieves
   /// the deleted and normal records.</param>
-  /// <param name="contributeToTheBlockCache">if true the iterator disk segment reads 
+  /// <param name="contributeToTheBlockCache">if true the iterator disk segment reads
   /// contributes to the block cache.</param>
-  /// 
+  ///
   /// <returns>ZoneTree Iterator</returns>
   IZoneTreeIterator<TKey, TValue> CreateIterator(
       IteratorType iteratorType = IteratorType.AutoRefresh,
@@ -263,18 +268,18 @@ public interface IZoneTree<TKey, TValue> : IDisposable
   /// <summary>
   /// Creates a reverse iterator that enables scanning of the entire database.
   /// </summary>
-  /// 
+  ///
   /// <remarks>
   /// ZoneTree iterator direction does not hurt performance.
   /// Forward and backward iterator's performances are equal.
   /// </remarks>
-  /// 
+  ///
   /// <param name="iteratorType">Defines iterator type.</param>
-  /// <param name="includeDeletedRecords">if true the iterator retrieves 
+  /// <param name="includeDeletedRecords">if true the iterator retrieves
   /// the deleted and normal records.</param>
-  /// <param name="contributeToTheBlockCache">if true the iterator disk segment reads 
+  /// <param name="contributeToTheBlockCache">if true the iterator disk segment reads
   /// contributes to the block cache</param>
-  /// 
+  ///
   /// <returns>ZoneTree Iterator</returns>
   IZoneTreeIterator<TKey, TValue> CreateReverseIterator(
       IteratorType iteratorType = IteratorType.AutoRefresh,
