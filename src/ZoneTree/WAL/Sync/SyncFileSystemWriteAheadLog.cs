@@ -146,7 +146,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
                             FileStream.Seek(0, SeekOrigin.Begin);
                             var existingLength = FileStream.Length;
                             var bytes = new byte[existingLength];
-                            FileStream.Read(bytes);
+                            FileStream.ReadFaster(bytes, 0, bytes.Length);
                             return bytes;
                         });
             }
