@@ -292,7 +292,7 @@ Performance depends on workload and configuration, including:
 
 See the benchmark results:
 
-* [BenchmarkForAllModes.txt](src/Playground/BenchmarkForAllModes.txt)
+* [BenchmarkForAllModes.txt](https://github.com/koculu/ZoneTree/blob/main/src/Playground/BenchmarkForAllModes.txt)
 
 Benchmark results vary with data shape, configuration, and hardware. Review the full benchmark file for details.
 
@@ -336,6 +336,13 @@ Repository:
 
 Official documentation:
 
+* [Docs home](https://github.com/koculu/ZoneTree/tree/main/docs)
+* [Getting started](https://github.com/koculu/ZoneTree/blob/main/docs/getting-started.md)
+* [Reads and writes](https://github.com/koculu/ZoneTree/blob/main/docs/usage/reads-and-writes.md)
+* [Value mutability](https://github.com/koculu/ZoneTree/blob/main/docs/concepts/value-mutability.md)
+* [Memory usage](https://github.com/koculu/ZoneTree/blob/main/docs/storage/memory-usage.md)
+* [WAL modes](https://github.com/koculu/ZoneTree/blob/main/docs/durability/wal-modes.md)
+* [Production checklist](https://github.com/koculu/ZoneTree/blob/main/docs/operations/production-checklist.md)
 * [zonetree.dev](https://zonetree.dev)
 
 ---

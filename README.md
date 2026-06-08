@@ -337,6 +337,13 @@ Repository:
 
 Official documentation:
 
+* [Docs home](docs/README.md)
+* [Getting started](docs/getting-started.md)
+* [Reads and writes](docs/usage/reads-and-writes.md)
+* [Value mutability](docs/concepts/value-mutability.md)
+* [Memory usage](docs/storage/memory-usage.md)
+* [WAL modes](docs/durability/wal-modes.md)
+* [Production checklist](docs/operations/production-checklist.md)
 * [zonetree.dev](https://zonetree.dev)
 
 ---
