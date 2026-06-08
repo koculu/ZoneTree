@@ -189,6 +189,32 @@ public sealed class OptimisticTransactionTests
         zoneTree.Maintenance.Drop();
     }
 
+    [Test]
+    public void RollbackKeepsOriginalHistoryWhenTransactionWritesSameKeyTwice()
+    {
+        var dataPath = "data/RollbackKeepsOriginalHistoryWhenTransactionWritesSameKeyTwice";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
+
+        using var zoneTree = new ZoneTreeFactory<int, int>()
+            .SetDataDirectory(dataPath)
+            .SetWriteAheadLogDirectory(dataPath)
+            .SetIsDeletedDelegate((in int key, in int value) => value == -1)
+            .SetMarkValueDeletedDelegate((ref int value) => value = -1)
+            .OpenOrCreateTransactional();
+
+        zoneTree.UpsertAutoCommit(7, 10);
+        var tx = zoneTree.BeginTransaction();
+        zoneTree.Upsert(tx, 7, 11);
+        zoneTree.Upsert(tx, 7, 12);
+
+        zoneTree.Rollback(tx);
+
+        Assert.That(zoneTree.ReadCommittedTryGet(7, out var value), Is.True);
+        Assert.That(value, Is.EqualTo(10));
+        zoneTree.Maintenance.Drop();
+    }
+
     [TestCase(0)]
     [TestCase(100000)]
     public void TransactionLogCompactionTest(int compactionThreshold)

@@ -75,6 +75,9 @@ public sealed class OptimisticTransaction<TKey, TValue>
         if (readWriteStamp.WriteStamp > TransactionId)
             return OptimisticWriteAction.SkipWrite;
 
+        if (readWriteStamp.WriteStamp == TransactionId)
+            return OptimisticWriteAction.Write;
+
         var value = oldValue;
         if (!hasOldValue)
             Options.MarkValueDeleted(ref value);
