@@ -6,8 +6,9 @@ Use this checklist before putting ZoneTree behind production traffic.
 
 * Choose the data directory intentionally.
 * Ensure the storage volume has enough free space.
-* Decide whether the data is source-of-truth or rebuildable.
-* Choose WAL mode based on that decision.
+* Start with the default async compressed WAL for persistent data.
+* Use sync WAL modes only when synchronous WAL acknowledgment is required.
+* Use `No WAL` only for cache, temporary, or intentionally rebuildable data.
 * Choose disk segment mode based on database size and operational file-size needs.
 * Tune sparse array and cache settings only after measuring read behavior.
 * Plan backup and restore.

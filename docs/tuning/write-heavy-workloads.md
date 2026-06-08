@@ -13,6 +13,16 @@ Tune:
 * compression,
 * serializers.
 
+## Symptom Guide
+
+| Symptom | Likely pressure | First actions |
+| --- | --- | --- |
+| Process memory grows during heavy writes | mutable or read-only in-memory segments are too large | lower `MutableSegmentMaxItemCount`; keep a maintainer alive; check value size |
+| Many read-only segments accumulate | maintenance is not keeping up | start/keep `CreateMaintainer`; lower mutable segment size; inspect merge duration |
+| Writes are slower than expected | WAL mode, serializer cost, compression, storage latency | use `Upsert`; avoid unnecessary atomic/transaction APIs; benchmark WAL modes |
+| Merge takes too long | disk IO, compression, large values, large segment size | reduce value size; tune compression; review disk segment sizing |
+| WAL files grow | mutable segments are not being merged/compacted, or transaction logs retain history | keep maintenance healthy; review transaction cleanup and backup settings |
+
 ## Use The Fast Path
 
 Use `Upsert` for simple writes. Avoid transactions or atomic methods unless the correctness rule requires them.
@@ -29,9 +39,9 @@ Large values should use a lower `MutableSegmentMaxItemCount`.
 
 ## WAL Mode
 
-If data can be rebuilt, `No WAL` or async WAL modes can deliver higher throughput.
+The default async compressed WAL is usually the right starting point for write-heavy workloads. It keeps WAL protection enabled while allowing very high throughput through background WAL writes and compression.
 
-If data cannot be rebuilt, choose stronger WAL durability and tune around it.
+Use sync WAL modes only when the application needs synchronous WAL acknowledgment. Use `No WAL` only for cache, temporary, or intentionally rebuildable data.
 
 ## Maintenance Throughput
 
@@ -42,6 +52,13 @@ If read-only in-memory segments accumulate, maintenance is not keeping up. Consi
 * reducing compression cost,
 * checking storage bandwidth,
 * reducing value size.
+
+```csharp
+using var maintainer = zoneTree.CreateMaintainer();
+
+maintainer.MaximumReadOnlySegmentCount = 32;
+maintainer.ThresholdForMergeOperationStart = 500_000;
+```
 
 ## Disk Segment Shape
 

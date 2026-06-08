@@ -43,3 +43,12 @@ Test disk segment and WAL compression with representative data.
 ## Merge Cost
 
 Large values increase merge IO and temporary buffer pressure. Watch maintenance duration and storage throughput.
+
+## Symptom Guide
+
+| Symptom | Likely pressure | First actions |
+| --- | --- | --- |
+| Memory grows quickly during inserts | too many large values in the mutable segment | lower `MutableSegmentMaxItemCount` |
+| Merges are slow | large payloads are being repeatedly rewritten | reduce value size, store pointers/content addresses, tune compression |
+| WAL files are large | values are large or poorly compressible | test compressed WAL modes with real payloads |
+| Random reads are expensive | large compressed blocks or large serialized values | tune compression block size; consider splitting metadata from payload |

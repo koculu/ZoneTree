@@ -160,7 +160,7 @@ zoneTree.Upsert(tx, 2, "second");
 
 var result = zoneTree.PrepareAndCommit(tx);
 
-Console.WriteLine(result);
+Console.WriteLine(result.Result);
 ```
 
 Use transactions when your data model requires coordination across multiple keys. For simple high-throughput writes, the non-transactional API is usually the better path.
@@ -246,14 +246,14 @@ For read-heavy workloads, memory is mostly shaped by cache behavior and the acti
 
 ZoneTree persists data through disk segments and write-ahead logs. Recent writes enter the mutable segment and are protected according to the configured WAL mode. Maintenance later moves and merges data into disk segments.
 
-Choose the WAL mode based on what the data means to your application.
+ZoneTree uses async compressed WAL by default. It is the recommended starting point for most persistent databases because it keeps WAL protection enabled while preserving very high write throughput.
 
 | Need | Consider |
 | --- | --- |
-| Strongest ZoneTree WAL durability | Sync WAL |
-| Strong durability with compressed WAL files | Sync compressed WAL |
-| Very high write throughput with background WAL writes | Async compressed WAL |
-| Rebuildable/cache data | No WAL |
+| Default safe high-throughput WAL mode | Async compressed WAL |
+| Synchronous compressed WAL acknowledgment | Sync compressed WAL |
+| Simplest synchronous WAL path | Sync WAL |
+| Intentional no-WAL boundary for cache/temp/rebuildable data | No WAL |
 
 Disk segments can also use compression and different segment layouts. These options help tune disk space, read patterns, merge behavior, and file-size boundaries.
 

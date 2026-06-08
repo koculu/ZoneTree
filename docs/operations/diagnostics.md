@@ -6,10 +6,14 @@ ZoneTree exposes enough operational shape to build diagnostics around memory, ma
 
 Track:
 
-* mutable segment record count,
-* read-only segment count,
-* disk segment size,
-* bottom segment count,
+* `zoneTree.Maintenance.MutableSegmentRecordCount`,
+* `zoneTree.Maintenance.ReadOnlySegmentsCount`,
+* `zoneTree.Maintenance.ReadOnlySegmentsRecordCount`,
+* `zoneTree.Maintenance.InMemoryRecordCount`,
+* `zoneTree.Maintenance.TotalRecordCount`,
+* `zoneTree.Maintenance.IsMerging`,
+* `zoneTree.Maintenance.IsBottomSegmentsMerging`,
+* `zoneTree.Maintenance.BottomSegments.Count`,
 * merge start/end,
 * WAL size,
 * backup duration,
@@ -20,9 +24,47 @@ Track:
 
 Maintenance events can be used to observe segment lifecycle. They are useful for logs, metrics, and operational dashboards.
 
+Useful events include:
+
+* `OnMutableSegmentMovedForward`,
+* `OnMergeOperationStarted`,
+* `OnMergeOperationEnded`,
+* `OnBottomSegmentsMergeOperationStarted`,
+* `OnBottomSegmentsMergeOperationEnded`,
+* `OnDiskSegmentCreated`,
+* `OnDiskSegmentActivated`,
+* `OnCanNotDropReadOnlySegment`,
+* `OnCanNotDropDiskSegment`,
+* `OnCanNotDropDiskSegmentCreator`.
+
+Example:
+
+```csharp
+zoneTree.Maintenance.OnMergeOperationEnded += (_, result) =>
+{
+    Console.WriteLine($"Merge ended: {result}");
+};
+
+zoneTree.Maintenance.OnMutableSegmentMovedForward += tree =>
+{
+    Console.WriteLine(
+        $"Read-only segments: {tree.ReadOnlySegmentsCount}, " +
+        $"in-memory records: {tree.InMemoryRecordCount}");
+};
+```
+
 ## Logs
 
 Configure logging according to your application needs.
+
+```csharp
+using ZoneTree.Logger;
+
+using var zoneTree = new ZoneTreeFactory<int, string>()
+    .SetDataDirectory("data/app")
+    .SetLogger(new ConsoleLogger(LogLevel.Info))
+    .OpenOrCreate();
+```
 
 For production systems, capture:
 

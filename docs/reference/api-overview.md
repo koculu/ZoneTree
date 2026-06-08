@@ -17,6 +17,8 @@ Important methods:
 * `CreateIterator`
 * `CreateReverseIterator`
 * `CreateMaintainer`
+* `Count`
+* `CountFullScan`
 
 ## Atomic Methods
 
@@ -38,10 +40,16 @@ Transactional trees coordinate multi-key changes.
 
 Important areas:
 
-* begin transaction,
-* read/write with transaction id,
-* prepare,
-* commit,
+* `BeginTransaction`
+* `BeginFluentTransaction`
+* read/write with transaction id
+* `Prepare`
+* `PrepareAndCommit`
+* `Commit`
+* `Rollback`
+* `ReadCommittedTryGet`
+* `UpsertAutoCommit`
+* `DeleteAutoCommit`
 * exceptionless transaction APIs,
 * fluent transaction APIs.
 
@@ -51,8 +59,37 @@ Maintenance APIs expose segment lifecycle operations and events.
 
 Use the maintainer for standard background maintenance. Use low-level maintenance APIs when building custom storage services.
 
+Important metrics:
+
+* `MutableSegmentRecordCount`
+* `ReadOnlySegmentsCount`
+* `ReadOnlySegmentsRecordCount`
+* `InMemoryRecordCount`
+* `TotalRecordCount`
+* `IsMerging`
+* `IsBottomSegmentsMerging`
+
+Important operations:
+
+* `MoveMutableSegmentForward`
+* `StartMergeOperation`
+* `StartBottomSegmentsMergeOperation`
+* `SaveMetaData`
+* `ReleaseReadBuffers`
+* `ReleaseCircularKeyCacheRecords`
+* `ReleaseCircularValueCacheRecords`
+
 ## Iterators
 
 Iterators scan in key order or reverse key order. Use `Seek` for range scans.
 
 Dispose iterators promptly.
+
+Iterator options:
+
+* `IteratorType.AutoRefresh`
+* `IteratorType.NoRefresh`
+* `IteratorType.Snapshot`
+* `IteratorType.ReadOnlyRegion`
+* `includeDeletedRecords`
+* `contributeToTheBlockCache`

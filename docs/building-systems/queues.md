@@ -31,6 +31,42 @@ counter:queueName -> nextSequence
 
 Use atomic read-modify-write for the counter key while queue payload records use normal `Upsert`.
 
+```csharp
+long sequence = 0;
+
+sequenceTree.TryAtomicAddOrUpdate(
+    "counter:orders",
+    valueToAdd: 1L,
+    valueUpdater: (ref long value) =>
+    {
+        value++;
+        return true;
+    },
+    result: (in long value, long opIndex, OperationResult result) =>
+    {
+        sequence = value;
+    });
+
+var key = $"orders:{sequence:D20}";
+payloadTree.Upsert(key, payload);
+```
+
+Consumers can seek to the last acknowledged sequence and iterate forward:
+
+```csharp
+using var iterator = payloadTree.CreateIterator();
+
+iterator.Seek($"orders:{nextSequence:D20}");
+
+while (iterator.Next())
+{
+    if (!iterator.CurrentKey.StartsWith("orders:", StringComparison.Ordinal))
+        break;
+
+    Process(iterator.CurrentValue);
+}
+```
+
 ## Retention
 
 Use deletion markers or TTL-style values for retention. Maintenance and compaction remove obsolete records later.

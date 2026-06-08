@@ -84,6 +84,8 @@ Atomic update delegates receive a local `TValue` variable by `ref`. They are des
 
 For value types, this is straightforward. For mutable reference types, in-place mutation is valid when the delegate commits by returning `true`.
 
+This is different from normal reads. A value returned by `TryGet` should be treated as a snapshot. An atomic updater delegate is the controlled place where the current value can be changed as part of a ZoneTree write.
+
 The caveat is cancellation. Returning `false` tells ZoneTree not to write the local value back. If the delegate mutates a shared reference object first and then returns `false`, that object may already have changed in memory.
 
 Avoid mutating before the commit decision:

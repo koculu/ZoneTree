@@ -20,9 +20,28 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
 using var maintainer = zoneTree.CreateMaintainer();
 ```
 
+The default maintainer starts a periodic inactive-cache cleanup job and listens to segment lifecycle events. It starts merge work when read-only segments cross configured thresholds.
+
+Useful settings:
+
+```csharp
+maintainer.MaximumReadOnlySegmentCount = 32;
+maintainer.ThresholdForMergeOperationStart = 500_000;
+maintainer.EnableJobForCleaningInactiveCaches = true;
+maintainer.BlockCacheLifeTime = TimeSpan.FromMinutes(1);
+maintainer.InactiveBlockCacheCleanupInterval = TimeSpan.FromSeconds(30);
+```
+
 Before shutdown, wait for background work if needed:
 
 ```csharp
+maintainer.WaitForBackgroundThreads();
+```
+
+To move current in-memory data toward disk on demand:
+
+```csharp
+maintainer.EvictToDisk();
 maintainer.WaitForBackgroundThreads();
 ```
 
@@ -36,6 +55,15 @@ Manual control is useful when:
 * you are building a storage service with its own scheduler,
 * you need predictable resource usage,
 * you want to coordinate maintenance with backups.
+
+Core maintenance operations include:
+
+* `MoveMutableSegmentForward`,
+* `StartMergeOperation`,
+* `StartBottomSegmentsMergeOperation`,
+* `TryCancelMergeOperation`,
+* `TryCancelBottomSegmentsMergeOperation`,
+* `SaveMetaData`.
 
 ## Memory And Maintenance
 

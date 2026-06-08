@@ -22,6 +22,16 @@ Random reads over a huge keyspace rely more heavily on disk and sparse index eff
 
 See [read-path caching](../storage/read-path-caching.md).
 
+## Symptom Guide
+
+| Symptom | Likely pressure | First actions |
+| --- | --- | --- |
+| Point reads slow down | too many segments, sparse index density, cold disk cache | keep maintenance active; tune `DefaultSparseArrayStepSize`; review cache sizes |
+| Range scans disturb hot reads | one-off scans contribute to cache pressure | keep iterator `contributeToTheBlockCache` disabled for one-off scans |
+| Repeated hot-key reads hit disk too often | key/value circular caches too small or short-lived | increase `KeyCacheSize`, `ValueCacheSize`, or cache lifetimes |
+| Latest-first reads are awkward | key layout or iterator direction is mismatched | use `CreateReverseIterator` or encode descending keys intentionally |
+| Scans keep old files alive | long-lived iterators pin segments | dispose iterators promptly and keep scan scopes short |
+
 ## Segment Count
 
 Too many segments can increase read amplification. Maintenance and merge behavior help keep the read path efficient.

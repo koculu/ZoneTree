@@ -22,11 +22,31 @@ Partitioning helps control:
 * tenant isolation,
 * operational blast radius.
 
+```csharp
+var tenantTree = new ZoneTreeFactory<string, byte[]>()
+    .SetDataDirectory($"data/tenant-{tenantId}")
+    .OpenOrCreate();
+```
+
+Use partitions when you want independent maintenance, backup, restore, or placement decisions. Do not partition only because the API supports it; partition when there is an operational boundary.
+
 ## Replication
 
 Replication can be built above ZoneTree with application-level logs, WAL-derived streams, operation indexes, or domain events.
 
 Operation indexes are useful as per-key freshness tokens. They are not a global distributed clock.
+
+For replication, include enough metadata in your operation stream to make replay idempotent:
+
+```text
+partitionId
+key
+value or deletion marker
+opIndex
+source node
+```
+
+On replay, compare operation indexes only for the same key. For unrelated keys, use your replication layer's ordering and conflict rules.
 
 ## Consistency
 

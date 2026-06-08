@@ -21,6 +21,18 @@ Before tuning, identify whether the workload is dominated by:
 
 `SingleDiskSegment` can be appropriate for smaller databases where one segment file is easier to manage.
 
+```csharp
+using ZoneTree.Options;
+
+using var zoneTree = new ZoneTreeFactory<int, string>()
+    .SetDataDirectory("data/app")
+    .ConfigureDiskSegmentOptions(options =>
+    {
+        options.DiskSegmentMode = DiskSegmentMode.MultiPartDiskSegment;
+    })
+    .OpenOrCreate();
+```
+
 ## Minimum And Maximum Record Count
 
 For multipart disk segments:
@@ -44,6 +56,16 @@ Trade-off:
 
 Use a lower step size when point lookups and seeks dominate. Use a higher step size when memory pressure matters more.
 
+```csharp
+using var zoneTree = new ZoneTreeFactory<int, string>()
+    .SetDataDirectory("data/app")
+    .ConfigureDiskSegmentOptions(options =>
+    {
+        options.DefaultSparseArrayStepSize = 512;
+    })
+    .OpenOrCreate();
+```
+
 ## Fixed-Size Layouts
 
 When keys and values are small unmanaged structs, ZoneTree can use fixed-size disk segment layouts. This can reduce metadata overhead and simplify disk access.
@@ -66,6 +88,19 @@ Tune:
 * iterator cache contribution
 
 Read-heavy hot-key workloads may benefit from larger caches. One-off scans may be better when they do not pollute block cache.
+
+```csharp
+using var zoneTree = new ZoneTreeFactory<int, string>()
+    .SetDataDirectory("data/app")
+    .ConfigureDiskSegmentOptions(options =>
+    {
+        options.KeyCacheSize = 4096;
+        options.ValueCacheSize = 4096;
+        options.KeyCacheRecordLifeTimeInMillisecond = 30_000;
+        options.ValueCacheRecordLifeTimeInMillisecond = 30_000;
+    })
+    .OpenOrCreate();
+```
 
 ## Practical Defaults
 

@@ -43,3 +43,16 @@ Synthetic insert rates are useful, but large systems are shaped by the full work
 * compaction,
 * backup/restore,
 * restart time.
+
+## Operational Pattern
+
+For billion-record systems, keep the storage shape observable:
+
+* track mutable and read-only record counts,
+* track bottom segment count,
+* track merge duration,
+* keep iterator lifetimes short,
+* test restart time with realistic WAL sizes,
+* rehearse backup and restore before production.
+
+Use multiple ZoneTrees when separate tenants, partitions, time buckets, or index families need independent maintenance and backup boundaries.
