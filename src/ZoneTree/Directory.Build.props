@@ -5,15 +5,14 @@
     <Authors>Ahmed Yasin Koculu</Authors>
     <PackageId>ZoneTree</PackageId>
     <Title>ZoneTree</Title>
-    <ProductVersion>1.8.7.0</ProductVersion>
-    <Version>1.8.7.0</Version>
-    <Authors>Ahmed Yasin Koculu</Authors>
+    <ProductVersion>1.8.8.0</ProductVersion>
+    <Version>1.8.8.0</Version>
     <AssemblyTitle>ZoneTree</AssemblyTitle>
-    <Description>ZoneTree is a persistent, high-performance, transactional, ACID-compliant ordered key-value database for NET. It can operate in memory or on local/cloud storage.</Description>
-    <Summmary>
-      ZoneTree is a persistent, high-performance, transactional, ACID-compliant ordered key-value database for NET. It can operate in memory or on local/cloud storage.
-    </Summmary>
-    <PackageTags>high-performance, database, consistency, persistence, iterator, binary-tree, durability, isolation, key-value-database, atomicity, lsm-tree, key-value-store</PackageTags>
+    <Description>ZoneTree is a persistent, high-performance, transactional, ACID-compliant ordered key-value database and LSM-tree storage engine for .NET.</Description>
+    <Summary>
+      ZoneTree is a persistent, high-performance, transactional, ACID-compliant ordered key-value database and LSM-tree storage engine for .NET.
+    </Summary>
+    <PackageTags>high-performance, database, consistency, persistence, iterator, binary-tree, durability, isolation, key-value-database, atomicity, lsm-tree, key-value-store, storage-engine, wal, ordered-key-value, dotnet, transactions</PackageTags>
     <ReleaseNotes></ReleaseNotes>
     <Company>koculu</Company>
 
