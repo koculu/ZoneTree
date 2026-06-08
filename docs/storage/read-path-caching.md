@@ -13,7 +13,7 @@ Disk segment options include circular caches for keys and values:
 
 These caches are checked before deeper block access during lookups and searches. They are useful when recent keys or values are repeatedly touched.
 
-Larger caches can reduce repeated reads but use more memory. Smaller caches keep memory lower but may increase disk/block access.
+The default key and value cache sizes are `1024` records each. Larger caches can reduce repeated reads but use more memory. Smaller caches keep memory lower but may increase disk/block access.
 
 ## Block Cache
 
@@ -30,6 +30,8 @@ Use cache contribution when scans represent a useful working set that will be re
 ## Cache Lifetime
 
 Record lifetime options help keep circular caches from holding stale entries longer than intended.
+
+The default key and value cache record lifetime is `10 seconds`.
 
 Tune cache lifetime based on access pattern:
 

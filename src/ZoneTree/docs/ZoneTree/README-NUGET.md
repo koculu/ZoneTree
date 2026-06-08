@@ -225,7 +225,7 @@ ZoneTree is designed for datasets larger than memory. It does not need to load t
 
 Memory usage mainly comes from the active mutable segment, frozen in-memory segments waiting for merge, disk block cache, sparse indexes, iterators that pin active segments, and temporary buffers used during merge or WAL processing.
 
-The most important write-side memory control is the mutable segment size. By default, ZoneTree starts moving a mutable segment toward disk after 1 million records. This is a good default for small keys and values, but applications storing large strings, documents, or payload objects should lower the mutable segment record limit to keep memory usage predictable.
+The most important write-side memory control is the mutable segment size. By default, ZoneTree starts moving a mutable segment toward disk after `1_000_000` records. This is a good default for small keys and values, but applications storing large strings, documents, or payload objects should lower the mutable segment record limit to keep memory usage predictable.
 
 ZoneTree is built as a native .NET storage engine and uses the .NET garbage collector as part of its design. The GC is highly optimized for modern application workloads and helps keep ZoneTree simple, safe, and fast without requiring manual memory management.
 

@@ -35,11 +35,45 @@ Common methods:
 
 Set serializers, comparers, deletion delegates, and storage providers before opening the tree. Serializers cannot be changed after the WAL provider or transaction log has been initialized.
 
+## Default Profile
+
+ZoneTree defaults are designed as a practical general-purpose profile. Start with them, then tune after measuring the actual workload.
+
+| Area | Default |
+| --- | --- |
+| Mutable segment max item count | `1_000_000` records |
+| Disk segment max item count | `20_000_000` records |
+| BTree lock mode | `NodeLevelMonitor` |
+| BTree node size | `128` |
+| BTree leaf size | `128` |
+| WAL mode | `AsyncCompressed` |
+| WAL compression block size | `256 KB` |
+| WAL compression | `LZ4`, fastest level |
+| Async compressed WAL empty queue poll interval | `100 ms` |
+| Sync compressed WAL tail writer | enabled |
+| Sync compressed WAL tail writer interval | `500 ms` |
+| Disk segment mode | `MultiPartDiskSegment` |
+| Disk segment compression block size | `4 MB` |
+| Disk segment compression | `LZ4`, fastest level |
+| Multipart minimum record count | `1_500_000` records |
+| Multipart maximum record count | `3_000_000` records |
+| Key cache size | `1024` records |
+| Value cache size | `1024` records |
+| Key cache lifetime | `10 seconds` |
+| Value cache lifetime | `10 seconds` |
+| Default sparse array step size | `1024` |
+| Maintainer maximum read-only segment count | `64` |
+| Maintainer merge record threshold | `0` records |
+| Maintainer block cache lifetime | `1 minute` |
+| Maintainer inactive cache cleanup interval | `30 seconds` |
+| Maintainer inactive cache cleanup job from `CreateMaintainer()` | enabled |
+| Console logger level | `Warning` |
+
 ## Memory
 
 `MutableSegmentMaxItemCount` controls when the active mutable segment is moved forward.
 
-Lower this for large values. Raise it only when memory budget and maintenance behavior are understood.
+The default is `1_000_000` records. This is a good starting point for small keys and values. Lower it for large values. Raise it only when memory budget and maintenance behavior are understood.
 
 ## Disk
 
@@ -63,6 +97,8 @@ Important options:
 | `KeyCacheRecordLifeTimeInMillisecond` | key cache record lifetime |
 | `ValueCacheRecordLifeTimeInMillisecond` | value cache record lifetime |
 
+The default disk profile uses multipart disk segments, `20_000_000` as the disk segment max item count, `1_500_000` to `3_000_000` records per multipart part, `4 MB` disk compression blocks, LZ4 fastest compression, `1024` sparse array step size, and `1024` key/value cache entries with `10 second` lifetimes.
+
 ## WAL
 
 WAL options control durability, compression, and backup behavior.
@@ -77,7 +113,6 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
     .ConfigureWriteAheadLogOptions(options =>
     {
         options.WriteAheadLogMode = WriteAheadLogMode.AsyncCompressed;
-        options.EnableIncrementalBackup = true;
     })
     .OpenOrCreate();
 ```
@@ -95,6 +130,36 @@ Important WAL options:
 | `EnableIncrementalBackup` | preserves WAL content during WAL replacement/compaction |
 
 Use sync modes when the application specifically needs synchronous WAL acknowledgment. Use `No WAL` only for cache, temporary, or intentionally rebuildable data.
+
+The default WAL profile uses async compressed WAL, `256 KB` compression blocks, LZ4 fastest compression, and a `100 ms` async empty-queue poll interval.
+
+Incremental backup is disabled by default. Enable it only when you intentionally need WAL history preserved during WAL replacement or compaction.
+
+```csharp
+using var zoneTree = new ZoneTreeFactory<int, string>()
+    .SetDataDirectory("data/app")
+    .ConfigureWriteAheadLogOptions(options =>
+    {
+        options.EnableIncrementalBackup = true;
+    })
+    .OpenOrCreate();
+```
+
+## Maintenance
+
+The maintainer controls background merge work and inactive cache cleanup.
+
+The maintainer created by `zoneTree.CreateMaintainer()` uses these defaults:
+
+| Option | Default |
+| --- | --- |
+| `MaximumReadOnlySegmentCount` | `64` |
+| `ThresholdForMergeOperationStart` | `0` records |
+| `BlockCacheLifeTime` | `1 minute` |
+| `InactiveBlockCacheCleanupInterval` | `30 seconds` |
+| inactive-cache cleanup job | enabled |
+
+`EnableJobForCleaningInactiveCaches` is `false` on a raw maintainer instance before the timer is started, but the normal `CreateMaintainer()` path starts the cleanup job by default.
 
 ## Deletion
 

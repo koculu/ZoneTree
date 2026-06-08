@@ -40,6 +40,8 @@ ZoneTree supports two disk segment modes:
 
 ## Segment Size
 
+The default high-level disk segment max item count is `20_000_000` records. With multipart disk segments, the default physical part targets are `1_500_000` to `3_000_000` records per part.
+
 Disk segment sizing affects:
 
 * merge cost,
@@ -57,15 +59,21 @@ Disk segments use sparse indexing to avoid loading all keys into memory. Sparse 
 
 `DefaultSparseArrayStepSize` controls the default sparse array density. A smaller step gives more index entries and can improve positioning at the cost of memory. A larger step reduces memory but may require more local search. Setting it to `0` disables default sparse array creation/loading.
 
+The default sparse array step size is `1024`.
+
 ## Compression
 
 Disk segments can use block-based compression to reduce storage footprint while preserving random access at the block level. Compression changes CPU, IO, and cache trade-offs.
+
+The default disk compression profile uses LZ4 fastest compression with `4 MB` blocks.
 
 See [compression](compression.md).
 
 ## Read Path Caches
 
 Disk segments use caches to reduce repeated disk work. ZoneTree includes circular key/value caches and block cache behavior for disk reads.
+
+The default circular key and value caches each hold `1024` records with a `10 second` record lifetime.
 
 See [read-path caching](read-path-caching.md).
 

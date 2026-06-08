@@ -35,6 +35,8 @@ zoneTree.Upsert(key, value);
 
 Larger mutable segments can improve write batching and reduce merge frequency, but they use more memory.
 
+The default mutable segment limit is `1_000_000` records. That is a good general-purpose default for compact values. For large strings, JSON documents, or object payloads, tune it by expected byte size instead of treating `1_000_000` records as a memory budget.
+
 Large values should use a lower `MutableSegmentMaxItemCount`.
 
 ## WAL Mode
@@ -63,5 +65,7 @@ maintainer.ThresholdForMergeOperationStart = 500_000;
 ## Disk Segment Shape
 
 For very large write-heavy databases, multipart disk segments help keep physical segment files manageable. Tune disk part sizes only after observing merge duration, file count, backup behavior, and read latency.
+
+The default disk segment max item count is `20_000_000` records. Multipart disk segments target `1_500_000` to `3_000_000` records per part by default.
 
 See [disk segment tuning](disk-segments.md).

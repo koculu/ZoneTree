@@ -40,6 +40,8 @@ For multipart disk segments:
 * `MinimumRecordCount` controls the lower target size for a part,
 * `MaximumRecordCount` controls the upper target size for a part.
 
+The defaults are `1_500_000` and `3_000_000` records. The higher-level `DiskSegmentMaxItemCount` default is `20_000_000` records.
+
 Larger parts mean fewer files and potentially better sequential behavior. Smaller parts can reduce operational file-size pressure and make part-level reuse more flexible.
 
 ## Sparse Array Step Size
@@ -55,6 +57,8 @@ Trade-off:
 | `0` | disables default sparse array creation/loading |
 
 Use a lower step size when point lookups and seeks dominate. Use a higher step size when memory pressure matters more.
+
+The default step size is `1024`.
 
 ```csharp
 using var zoneTree = new ZoneTreeFactory<int, string>()
@@ -76,6 +80,8 @@ For variable-length values such as strings and byte arrays, ZoneTree uses layout
 
 `CompressionBlockSize` affects disk compression and random-access behavior.
 
+The default disk compression block size is `4 MB`, using LZ4 fastest compression.
+
 Larger blocks often compress better but can make small random reads more expensive. Smaller blocks can improve random read granularity but may reduce compression ratio.
 
 ## Cache Settings
@@ -88,6 +94,8 @@ Tune:
 * iterator cache contribution
 
 Read-heavy hot-key workloads may benefit from larger caches. One-off scans may be better when they do not pollute block cache.
+
+The default key and value cache sizes are `1024` records each, with `10 second` record lifetimes.
 
 ```csharp
 using var zoneTree = new ZoneTreeFactory<int, string>()

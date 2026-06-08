@@ -4,6 +4,8 @@ ZoneTree protects recent writes with a write-ahead log according to the configur
 
 The default mode is `AsyncCompressed`. It is the normal starting point for most applications: WAL protection stays enabled, records are compressed, and writes can remain very fast because WAL work is handled through a background path.
 
+The default WAL compression profile uses LZ4 fastest compression with `256 KB` blocks. The async writer checks an empty queue every `100 ms`.
+
 ## Choosing A Mode
 
 | Need | Consider |
@@ -24,6 +26,8 @@ Use it when you want the simplest synchronous WAL path and can accept lower thro
 Sync compressed WAL stores log records in compressed form. It balances durability and smaller WAL files with compression overhead.
 
 Use it when WAL size matters and you want synchronous WAL acknowledgment.
+
+In sync-compressed mode, the tail writer job is enabled by default and runs every `500 ms`.
 
 ## Async Compressed WAL
 

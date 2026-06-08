@@ -23,7 +23,7 @@ See [value mutability](../concepts/value-mutability.md).
 
 The most important write-side memory control is `MutableSegmentMaxItemCount`.
 
-By default, ZoneTree starts moving a mutable segment toward disk after 1 million records. This is a good default for small keys and values. For large strings, documents, or payload objects, lower the limit.
+By default, ZoneTree starts moving a mutable segment toward disk after `1_000_000` records. This is a good default for small keys and values. For large strings, documents, or payload objects, lower the limit because record count and byte size are very different things.
 
 ```csharp
 using var zoneTree = new ZoneTreeFactory<int, string>()

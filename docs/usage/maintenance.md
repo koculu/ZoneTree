@@ -20,7 +20,19 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
 using var maintainer = zoneTree.CreateMaintainer();
 ```
 
-The default maintainer starts a periodic inactive-cache cleanup job and listens to segment lifecycle events. It starts merge work when read-only segments cross configured thresholds.
+The maintainer created by `zoneTree.CreateMaintainer()` starts a periodic inactive-cache cleanup job and listens to segment lifecycle events. It starts merge work when read-only segments cross configured thresholds.
+
+Default maintainer settings:
+
+| Setting | Default |
+| --- | --- |
+| `MaximumReadOnlySegmentCount` | `64` |
+| `ThresholdForMergeOperationStart` | `0` records |
+| `BlockCacheLifeTime` | `1 minute` |
+| `InactiveBlockCacheCleanupInterval` | `30 seconds` |
+| inactive-cache cleanup job from `CreateMaintainer()` | enabled |
+
+`EnableJobForCleaningInactiveCaches` is `false` on a raw maintainer instance before the timer starts. The usual `zoneTree.CreateMaintainer()` path starts the cleanup job by default.
 
 Useful settings:
 
