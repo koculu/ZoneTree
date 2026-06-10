@@ -29,13 +29,13 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
 
   /// <summary>
   /// Increments the iterator reader counter
-  /// to ensure that disk segment stays alive 
+  /// to ensure that disk segment stays alive
   /// until all iterators call DetachIterator.
   /// </summary>
   void AttachIterator();
 
   /// <summary>
-  /// Decrements the iterator reader counter. 
+  /// Decrements the iterator reader counter.
   /// When there is no attached iterator remaining and
   /// the drop is already requested,
   /// calls Drop().
@@ -80,7 +80,7 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
 
   /// <summary>
   /// Exceptions occurs in delayed drops (eg: iterators delays segment drops)
-  /// are being reported to the IZoneTreeMaintenance interface events 
+  /// are being reported to the IZoneTreeMaintenance interface events
   /// through this delegate.
   /// This is for internal usage.
   /// </summary>
@@ -100,8 +100,14 @@ public interface IDiskSegment<TKey, TValue> : IReadOnlySegment<TKey, TValue>, II
   int GetPartCount();
 
   /// <summary>
+  /// Returns all physical files that belong to this disk segment.
+  /// Multipart segments include their descriptor and all part files.
+  /// </summary>
+  DiskSegmentFile[] GetFiles();
+
+  /// <summary>
   /// Drops all sectors of the segment except those in the specified exclusion list.
-  /// </summary> 
+  /// </summary>
   /// <param name="excludedPartIds">A set of part IDs to exclude from dropping.</param>
   void Drop(HashSet<long> excludedPartIds);
 

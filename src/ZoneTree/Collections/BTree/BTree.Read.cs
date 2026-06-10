@@ -209,7 +209,7 @@ public sealed partial class BTree<TKey, TValue>
       leafs.Enqueue(leafRoot);
     else
       queue.Enqueue(newRoot);
-    while (queue.Any())
+    while (queue.Count > 0)
     {
       var node = queue.Dequeue();
       var children = node.Children;
@@ -228,7 +228,7 @@ public sealed partial class BTree<TKey, TValue>
     }
     var leaf = leafs.Dequeue();
     var first = leaf;
-    while (leafs.Any())
+    while (leafs.Count > 0)
     {
       var next = leafs.Dequeue();
       leaf.Next = next;
@@ -257,7 +257,7 @@ public sealed partial class BTree<TKey, TValue>
       leafs.Enqueue(leafRoot);
     else
       queue.Enqueue(root);
-    while (queue.Any())
+    while (queue.Count > 0)
     {
       var node = queue.Dequeue();
       var children = node.Children;
@@ -275,7 +275,7 @@ public sealed partial class BTree<TKey, TValue>
       }
     }
     var leaf = leafs.Dequeue();
-    while (leafs.Any())
+    while (leafs.Count > 0)
     {
       var next = leafs.Dequeue();
       if (leaf == next)

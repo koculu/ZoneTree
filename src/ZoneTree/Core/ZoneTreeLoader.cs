@@ -275,12 +275,6 @@ public sealed class ZoneTreeLoader<TKey, TValue>
       DiskSegment = new NullDiskSegment<TKey, TValue>();
       return;
     }
-    if (Options.RandomAccessDeviceManager
-        .DeviceExists(segmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory, false))
-    {
-      DiskSegment = new MultiPartDiskSegment<TKey, TValue>(segmentId, Options);
-      return;
-    }
     DiskSegment = DiskSegmentFactory.CreateDiskSegment(segmentId, Options);
   }
 
@@ -291,18 +285,8 @@ public sealed class ZoneTreeLoader<TKey, TValue>
 
     Parallel.ForEach(segments, (segmentId) =>
     {
-      if (Options.RandomAccessDeviceManager
-              .DeviceExists(segmentId,
-                  DiskSegmentConstants.MultiPartDiskSegmentCategory, false))
-      {
-        var ds = new MultiPartDiskSegment<TKey, TValue>(segmentId, Options);
-        map.AddOrUpdate(segmentId, ds, (_, _) => ds);
-      }
-      else
-      {
-        var ds = DiskSegmentFactory.CreateDiskSegment(segmentId, Options);
-        map.AddOrUpdate(segmentId, ds, (_, _) => ds);
-      }
+      var ds = DiskSegmentFactory.CreateDiskSegment(segmentId, Options);
+      map.AddOrUpdate(segmentId, ds, (_, _) => ds);
     });
     BottomSegments = segments.Select(x => map[x]).ToArray();
   }

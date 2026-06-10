@@ -132,6 +132,11 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
   public int GetPartCount() => 0;
 
+  public DiskSegmentFile[] GetFiles()
+  {
+    return [];
+  }
+
   public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray)
   {
   }
@@ -156,4 +161,3 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     throw new IndexOutOfRangeException();
   }
 }
-

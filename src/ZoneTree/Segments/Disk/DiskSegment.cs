@@ -440,6 +440,43 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
   public int GetPartCount() => 0;
 
+  public DiskSegmentFile[] GetFiles()
+  {
+    var files = new List<DiskSegmentFile>();
+    AddFileIfExists(files, DiskSegmentConstants.DataHeaderCategory);
+    AddFileIfExists(files, DiskSegmentConstants.DataCategory);
+    AddFileIfExists(files, DiskSegmentConstants.SparseArrayCategory);
+    return [.. files];
+  }
+
+  void AddFileIfExists(
+      List<DiskSegmentFile> files,
+      string category)
+  {
+    AddFileIfExists(files, category, false);
+    AddFileIfExists(files, category, true);
+  }
+
+  void AddFileIfExists(
+      List<DiskSegmentFile> files,
+      string category,
+      bool isCompressed)
+  {
+    var deviceManager = Options.RandomAccessDeviceManager;
+    if (!deviceManager.DeviceExists(SegmentId, category, isCompressed))
+      return;
+
+    var path = deviceManager.GetFilePath(SegmentId, category);
+    if (isCompressed)
+      path += ".z";
+
+    files.Add(new DiskSegmentFile(
+        SegmentId,
+        path,
+        System.IO.Path.GetFileName(path),
+        Length));
+  }
+
   abstract public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray);
 
   public int ReleaseCircularKeyCacheRecords()
