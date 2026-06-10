@@ -4,8 +4,12 @@ namespace ZoneTree.AbstractFileStream;
 
 public sealed class InMemoryFileStreamProvider : IFileStreamProvider
 {
-  readonly Dictionary<string, byte[]> Files = new();
-  readonly HashSet<string> Directories = new();
+  readonly Dictionary<string, byte[]> Files = [];
+
+  readonly HashSet<string> Directories = [];
+
+
+  readonly Lock SyncRoot = new();
 
   public IFileStream CreateFileStream(
       string path,
@@ -15,7 +19,7 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
       int bufferSize = 4096,
       FileOptions options = FileOptions.None)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (!Files.ContainsKey(path))
       {
@@ -45,32 +49,32 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
 
   public bool FileExists(string path)
   {
-    lock (this) return Files.ContainsKey(path);
+    lock (SyncRoot) return Files.ContainsKey(path);
   }
 
   public bool DirectoryExists(string path)
   {
-    lock (this) return Directories.Contains(path);
+    lock (SyncRoot) return Directories.Contains(path);
   }
 
   public void CreateDirectory(string path)
   {
-    lock (this) Directories.Add(path);
+    lock (SyncRoot) Directories.Add(path);
   }
 
   public void DeleteFile(string path)
   {
-    lock (this) Files.Remove(path);
+    lock (SyncRoot) Files.Remove(path);
   }
 
   public void DeleteDirectory(string path, bool recursive)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       Directories.Remove(path);
       if (recursive)
       {
-        var toRemove = Files.Keys.Where(x => x.StartsWith(path)).ToList();
+        var toRemove = Files.Keys.Where(x => x.StartsWith(path, StringComparison.Ordinal)).ToList();
         foreach (var f in toRemove)
           Files.Remove(f);
       }
@@ -79,12 +83,12 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
 
   public string ReadAllText(string path)
   {
-    lock (this) return Encoding.UTF8.GetString(Files[path]);
+    lock (SyncRoot) return Encoding.UTF8.GetString(Files[path]);
   }
 
   public byte[] ReadAllBytes(string path)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var b = Files[path];
       var copy = new byte[b.Length];
@@ -98,13 +102,18 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
       string destinationFileName,
       string destinationBackupFileName)
   {
-    lock (this)
+    lock (SyncRoot)
     {
-      if (destinationBackupFileName != null && Files.ContainsKey(destinationFileName))
+      if (destinationBackupFileName != null &&
+          Files.TryGetValue(destinationFileName, out var destinationBytes))
       {
-        Files[destinationBackupFileName] = Files[destinationFileName];
+        Files[destinationBackupFileName] = destinationBytes;
       }
-      Files[destinationFileName] = Files.ContainsKey(sourceFileName) ? Files[sourceFileName] : Array.Empty<byte>();
+
+      Files[destinationFileName] = Files.TryGetValue(sourceFileName, out var sourceBytes)
+        ? sourceBytes
+        : [];
+
       Files.Remove(sourceFileName);
     }
   }
@@ -116,9 +125,9 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
 
   public IReadOnlyList<string> GetDirectories(string path)
   {
-    lock (this)
+    lock (SyncRoot)
     {
-      return Directories.Where(x => x.StartsWith(path)).ToArray();
+      return Directories.Where(x => x.StartsWith(path, StringComparison.Ordinal)).ToArray();
     }
   }
 
@@ -129,7 +138,7 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
 
   internal void UpdateFile(string path, byte[] data)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       Files[path] = data;
     }

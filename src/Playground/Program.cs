@@ -1,4 +1,4 @@
-﻿using Playground;
+using Playground;
 using Playground.Benchmark;
 using ZoneTree.Logger;
 using ZoneTree.Options;

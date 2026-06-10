@@ -25,7 +25,7 @@ public sealed class ZoneTreeLoader<TKey, TValue>
 
   IMutableSegment<TKey, TValue> MutableSegment { get; set; }
 
-  IReadOnlyList<IReadOnlySegment<TKey, TValue>> ReadOnlySegments;
+  IReadOnlySegment<TKey, TValue>[] ReadOnlySegments;
 
   IDiskSegment<TKey, TValue> DiskSegment { get; set; }
 
@@ -314,7 +314,7 @@ public sealed class ZoneTreeLoader<TKey, TValue>
     LoadZoneTreeMetaWAL();
     SetMaximumId();
     var maximumOpIndex = Math.Max(ZoneTreeMeta.MaximumOpIndex, LoadReadOnlySegments());
-    bool collectGarbage = Options.EnableSingleSegmentGarbageCollection && !ZoneTreeMeta.HasDiskSegment && ReadOnlySegments.Count == 0;
+    bool collectGarbage = Options.EnableSingleSegmentGarbageCollection && !ZoneTreeMeta.HasDiskSegment && ReadOnlySegments.Length == 0;
     var mutableSegmentWal = LoadMutableSegment(maximumOpIndex, collectGarbage);
     SaveMaximumOpIndex(MutableSegment.OpIndexProvider.LastId);
     if (collectGarbage)

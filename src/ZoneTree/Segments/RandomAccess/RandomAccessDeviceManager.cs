@@ -6,6 +6,8 @@ namespace ZoneTree.Segments.RandomAccess;
 
 public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 {
+  readonly Lock SyncRoot = new();
+
   public ILogger Logger { get; }
 
   public IFileStreamProvider FileStreamProvider { get; }
@@ -35,7 +37,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
   public void CloseAllDevices()
   {
-    lock (this)
+    lock (SyncRoot)
     {
       foreach (var device in ReadOnlyDevices.Values)
       {
@@ -55,7 +57,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
       CompressionMethod compressionMethod,
       int compressionLevel)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var key = GetDeviceKey(segmentId, category);
       if (WritableDevices.ContainsKey(key))
@@ -119,7 +121,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
       CompressionMethod compressionMethod,
       int compressionLevel)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var key = GetDeviceKey(segmentId, category);
       if (ReadOnlyDevices.TryGetValue(key, out var device))
@@ -163,7 +165,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
   public IReadOnlyList<IRandomAccessDevice> GetReadOnlyDevices()
   {
-    lock (this)
+    lock (SyncRoot)
     {
       return ReadOnlyDevices.Values.ToArray();
     }
@@ -171,7 +173,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
   public IReadOnlyList<IRandomAccessDevice> GetWritableDevices()
   {
-    lock (this)
+    lock (SyncRoot)
     {
       return WritableDevices.Values.ToArray();
     }
@@ -179,7 +181,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
   public void RemoveReadOnlyDevice(long segmentId, string category)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var key = GetDeviceKey(segmentId, category);
       ReadOnlyDevices.Remove(key);
@@ -188,7 +190,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
   public void RemoveWritableDevice(long segmentId, string category)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var key = GetDeviceKey(segmentId, category);
       WritableDevices.Remove(key);
@@ -197,7 +199,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
   public bool DeviceExists(long segmentId, string category, bool isCompressed)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var filePath = GetFilePath(segmentId, category);
       if (isCompressed) filePath += ".z";
@@ -207,7 +209,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
   public void DeleteDevice(long segmentId, string category, bool isCompressed)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var filePath = GetFilePath(segmentId, category);
       if (isCompressed) filePath += ".z";
@@ -218,7 +220,7 @@ public sealed class RandomAccessDeviceManager : IRandomAccessDeviceManager
 
   public void DropStore()
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (FileStreamProvider.DirectoryExists(DataDirectory))
         FileStreamProvider.DeleteDirectory(DataDirectory, true);

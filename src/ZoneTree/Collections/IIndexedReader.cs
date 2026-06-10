@@ -10,9 +10,9 @@ public interface IIndexedReader<TKey, TValue>
 
   TValue GetValue(long index);
 
-  TKey GetKey(long index, BlockPin pin);
+  TKey GetKey(long index, BlockPin blockPin);
 
-  TValue GetValue(long index, BlockPin pin);
+  TValue GetValue(long index, BlockPin blockPin);
 
   long GetLastSmallerOrEqualPosition(in TKey key);
 

@@ -1,4 +1,4 @@
-﻿using Humanizer;
+using Humanizer;
 using System.Diagnostics;
 using ZoneTree;
 using ZoneTree.Core;
@@ -13,94 +13,94 @@ namespace Playground.Benchmark;
 /// </summary>
 public sealed class StevesChallenge : ZoneTreeTestBase<Memory<byte>, Memory<byte>>
 {
-    const string FolderName = "-byte-byte";
+  const string FolderName = "-byte-byte";
 
-    public override string DataPath =>
-        RootPath + WALMode + "-" + Count.ToHuman()
-            + "_" + CompressionMethod + "_"
-            + FolderName;
+  public override string DataPath =>
+      RootPath + WALMode + "-" + Count.ToHuman()
+          + "_" + CompressionMethod + "_"
+          + FolderName;
 
-    volatile int Throttle = 0;
+  volatile int Throttle = 0;
 
-    public void Insert(IStatsCollector stats)
+  public void Insert(IStatsCollector stats)
+  {
+    stats.Name = "Insert";
+    AddOptions(stats);
+    var count = Count;
+    stats.LogWithColor(GetLabel("Insert <byte-byte>"), ConsoleColor.Cyan);
+
+    if (TestConfig.RecreateDatabases && Directory.Exists(DataPath))
+      Directory.Delete(DataPath, true);
+
+    stats.RestartStopwatch();
+
+    using var zoneTree = OpenOrCreateZoneTree();
+    using var maintainer = CreateMaintainer(zoneTree);
+    stats.AddStage("Loaded In");
+    var random = new Random(0);
+
+    var cts = new CancellationTokenSource();
+    Task.Factory.StartNew(async () =>
     {
-        stats.Name = "Insert";
-        AddOptions(stats);
-        var count = Count;
-        stats.LogWithColor(GetLabel("Insert <byte-byte>"), ConsoleColor.Cyan);
-
-        if (TestConfig.RecreateDatabases && Directory.Exists(DataPath))
-            Directory.Delete(DataPath, true);
-
-        stats.RestartStopwatch();
-
-        using var zoneTree = OpenOrCreateZoneTree();
-        using var maintainer = CreateMaintainer(zoneTree);
-        stats.AddStage("Loaded In");
-        var random = new Random(0);
-
-        var cts = new CancellationTokenSource();
-        Task.Factory.StartNew(async () =>
-        {
-            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
-            while (await timer.WaitForNextTickAsync(cts.Token))
-            {
-                if (cts.IsCancellationRequested)
-                    break;
-                if (zoneTree.Maintenance.ReadOnlySegmentsCount > 60)
-                    Throttle = 100;
-                else
-                    Throttle = 0;
-            }
-        });
-        for (var x = 0; x < count; ++x)
-        {
-            if (Throttle > 0)
-                Thread.Sleep(Throttle);
-            var bytes = new byte[random.Next(1, 16)];
-            random.NextBytes(bytes);
-            zoneTree.Upsert(bytes, bytes);
-            if (x > 0 && x % 10_000_000 == 0)
-                stats.AddStage(x / 10_000_000 + " x 10M", ConsoleColor.DarkGray, false);
-        }
-        stats.AddStage("Inserted In", ConsoleColor.Green);
-        cts.Cancel();
-
-        if (WALMode == WriteAheadLogMode.None)
-        {
-            zoneTree.Maintenance.MoveMutableSegmentForward();
-            zoneTree.Maintenance.StartMergeOperation()?.Join();
-        }
-        maintainer.WaitForBackgroundThreads();
-
-        stats.AddStage("Merged In", ConsoleColor.DarkCyan);
-    }
-
-    public void Iterate(IStatsCollector stats)
+      using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+      while (await timer.WaitForNextTickAsync(cts.Token))
+      {
+        if (cts.IsCancellationRequested)
+          break;
+        if (zoneTree.Maintenance.ReadOnlySegmentsCount > 60)
+          Throttle = 100;
+        else
+          Throttle = 0;
+      }
+    });
+    for (var x = 0; x < count; ++x)
     {
-        stats.Name = "Iterate";
-        var count = Count;
-        stats.LogWithColor(GetLabel("Iterate <byte-byte>"), ConsoleColor.Cyan);
-        stats.RestartStopwatch();
-
-        using var zoneTree = OpenOrCreateZoneTree();
-        using var maintainer = CreateMaintainer(zoneTree);
-
-        stats.AddStage("Loaded in", ConsoleColor.DarkYellow);
-
-        var off = 0;
-        using var iterator = zoneTree.CreateIterator();
-        while (iterator.Next())
-        {
-            ++off;
-        }
-        if (off != count)
-            Console.WriteLine($"total records. {off}");
-
-        stats.AddStage(
-            "Iterated in",
-            ConsoleColor.Green);
-        maintainer.WaitForBackgroundThreads();
+      if (Throttle > 0)
+        Thread.Sleep(Throttle);
+      var bytes = new byte[random.Next(1, 16)];
+      random.NextBytes(bytes);
+      zoneTree.Upsert(bytes, bytes);
+      if (x > 0 && x % 10_000_000 == 0)
+        stats.AddStage(x / 10_000_000 + " x 10M", ConsoleColor.DarkGray, false);
     }
+    stats.AddStage("Inserted In", ConsoleColor.Green);
+    cts.Cancel();
+
+    if (WALMode == WriteAheadLogMode.None)
+    {
+      zoneTree.Maintenance.MoveMutableSegmentForward();
+      zoneTree.Maintenance.StartMergeOperation()?.Join();
+    }
+    maintainer.WaitForBackgroundThreads();
+
+    stats.AddStage("Merged In", ConsoleColor.DarkCyan);
+  }
+
+  public void Iterate(IStatsCollector stats)
+  {
+    stats.Name = "Iterate";
+    var count = Count;
+    stats.LogWithColor(GetLabel("Iterate <byte-byte>"), ConsoleColor.Cyan);
+    stats.RestartStopwatch();
+
+    using var zoneTree = OpenOrCreateZoneTree();
+    using var maintainer = CreateMaintainer(zoneTree);
+
+    stats.AddStage("Loaded in", ConsoleColor.DarkYellow);
+
+    var off = 0;
+    using var iterator = zoneTree.CreateIterator();
+    while (iterator.Next())
+    {
+      ++off;
+    }
+    if (off != count)
+      Console.WriteLine($"total records. {off}");
+
+    stats.AddStage(
+        "Iterated in",
+        ConsoleColor.Green);
+    maintainer.WaitForBackgroundThreads();
+  }
 
 }

@@ -151,12 +151,12 @@ public sealed class NullDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     return 0;
   }
 
-  public TKey GetKey(long index, BlockPin pin)
+  public TKey GetKey(long index, BlockPin blockPin)
   {
     throw new IndexOutOfRangeException();
   }
 
-  public TValue GetValue(long index, BlockPin pin)
+  public TValue GetValue(long index, BlockPin blockPin)
   {
     throw new IndexOutOfRangeException();
   }

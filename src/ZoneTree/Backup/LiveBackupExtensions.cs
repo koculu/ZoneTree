@@ -9,8 +9,7 @@ public static class LiveBackupExtensions
       this IZoneTree<TKey, TValue> zoneTree,
       string directory)
   {
-    if (zoneTree == null)
-      throw new ArgumentNullException(nameof(zoneTree));
+    ArgumentNullException.ThrowIfNull(zoneTree);
 
     return new LiveBackup<TKey, TValue>(
         zoneTree,
@@ -27,8 +26,7 @@ public static class LiveBackupExtensions
       this IZoneTree<TKey, TValue> zoneTree,
       LocalLiveBackupOptions localOptions)
   {
-    if (zoneTree == null)
-      throw new ArgumentNullException(nameof(zoneTree));
+    ArgumentNullException.ThrowIfNull(zoneTree);
 
     return new LiveBackup<TKey, TValue>(
         zoneTree,
@@ -45,8 +43,7 @@ public static class LiveBackupExtensions
       this IZoneTree<TKey, TValue> zoneTree,
       ILiveBackupStore store)
   {
-    if (zoneTree == null)
-      throw new ArgumentNullException(nameof(zoneTree));
+    ArgumentNullException.ThrowIfNull(zoneTree);
 
     return new LiveBackup<TKey, TValue>(
         zoneTree,
@@ -60,8 +57,7 @@ public static class LiveBackupExtensions
       this IZoneTree<TKey, TValue> zoneTree,
       LiveBackupOptions options)
   {
-    if (zoneTree == null)
-      throw new ArgumentNullException(nameof(zoneTree));
+    ArgumentNullException.ThrowIfNull(zoneTree);
 
     return new LiveBackup<TKey, TValue>(zoneTree, options);
   }

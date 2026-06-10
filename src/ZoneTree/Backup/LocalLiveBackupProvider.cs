@@ -26,7 +26,7 @@ public sealed class LocalLiveBackupProvider
     WriteIndented = true
   };
 
-  readonly object SyncRoot = new();
+  readonly Lock SyncRoot = new();
 
   readonly Dictionary<long, LocalLiveBackupGenerationCatalog> ActiveGenerations = [];
 
@@ -54,8 +54,7 @@ public sealed class LocalLiveBackupProvider
   public LocalLiveBackupProvider(
       LocalLiveBackupOptions options)
   {
-    if (options == null)
-      throw new ArgumentNullException(nameof(options));
+    ArgumentNullException.ThrowIfNull(options);
     options.Normalize();
     if (string.IsNullOrWhiteSpace(options.Directory))
       throw new ArgumentException(
@@ -115,8 +114,7 @@ public sealed class LocalLiveBackupProvider
       LiveBackupFile file,
       CancellationToken cancellationToken)
   {
-    if (file == null)
-      throw new ArgumentNullException(nameof(file));
+    ArgumentNullException.ThrowIfNull(file);
     cancellationToken.ThrowIfCancellationRequested();
     return Task.FromResult<Stream>(new FileStream(
         GetFullPath(GetSegmentBackupPath(file.FileName)),
@@ -131,8 +129,7 @@ public sealed class LocalLiveBackupProvider
       LiveBackupRecordBatch batch,
       CancellationToken cancellationToken)
   {
-    if (batch == null)
-      throw new ArgumentNullException(nameof(batch));
+    ArgumentNullException.ThrowIfNull(batch);
     cancellationToken.ThrowIfCancellationRequested();
     return Task.FromResult<Stream>(new FileStream(
         GetFullPath(GetRecordBatchBackupPath(batch.BatchId)),
@@ -179,8 +176,7 @@ public sealed class LocalLiveBackupProvider
       CancellationToken cancellationToken)
   {
     cancellationToken.ThrowIfCancellationRequested();
-    if (file == null)
-      throw new ArgumentNullException(nameof(file));
+    ArgumentNullException.ThrowIfNull(file);
 
     var mustUpload = false;
     lock (SyncRoot)
@@ -208,10 +204,8 @@ public sealed class LocalLiveBackupProvider
       Stream source,
       CancellationToken cancellationToken)
   {
-    if (file == null)
-      throw new ArgumentNullException(nameof(file));
-    if (source == null)
-      throw new ArgumentNullException(nameof(source));
+    ArgumentNullException.ThrowIfNull(file);
+    ArgumentNullException.ThrowIfNull(source);
 
     var backupFile = CreateCatalogFile(
         file,
@@ -237,8 +231,7 @@ public sealed class LocalLiveBackupProvider
       LiveBackupRecordBatch batch,
       CancellationToken cancellationToken)
   {
-    if (batch == null)
-      throw new ArgumentNullException(nameof(batch));
+    ArgumentNullException.ThrowIfNull(batch);
 
     cancellationToken.ThrowIfCancellationRequested();
     var recordBatch = new LocalLiveBackupRecordBatch
@@ -646,7 +639,7 @@ public sealed class LocalLiveBackupProvider
 
   sealed class LocalRecordBatchWriter : ILiveBackupRecordWriter
   {
-    readonly ILiveBackupRecordWriter Writer;
+    readonly LiveBackupRecordBatchWriter Writer;
 
     readonly LiveBackupRecordBatch SourceBatch;
 
@@ -719,9 +712,12 @@ public sealed class LocalLiveBackupGenerationCatalog
 
   public string StartedAtUtc { get; set; }
 
-  public List<long> SegmentIds { get; set; } = new();
+  [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1002:Do not expose generic lists", Justification = "Performance matters more. List is stable for years.")]
+  public List<long> SegmentIds { get; } = [];
 
-  public List<LocalLiveBackupFile> Files { get; set; } = new();
+  [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1002:Do not expose generic lists", Justification = "Performance matters more. List is stable for years.")]
+  [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "Probably, but we need to make it writable now.")]
+  public List<LocalLiveBackupFile> Files { get; set; } = [];
 
   public LocalLiveBackupRecordBatch RecordBatch { get; set; }
 }

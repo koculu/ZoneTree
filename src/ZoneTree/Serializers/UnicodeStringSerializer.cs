@@ -11,7 +11,7 @@ public sealed class UnicodeStringSerializer : ISerializer<string>
     return Encoding.Unicode.GetString(bytes.Span);
   }
 
-  public string Deserialize(Span<byte> bytes)
+  public static string Deserialize(Span<byte> bytes)
   {
     if (bytes.Length == 1)
       return null;

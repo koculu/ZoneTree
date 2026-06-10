@@ -4,7 +4,7 @@
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net10.0;net9.0</TargetFrameworks>
     <LangVersion>14.0</LangVersion>
     <RepositoryUrl>https://github.com/koculu/ZoneTree</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

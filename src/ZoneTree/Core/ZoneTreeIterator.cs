@@ -8,6 +8,8 @@ namespace ZoneTree.Core;
 
 public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TValue>
 {
+  readonly Lock SyncRoot = new();
+
   readonly ZoneTree<TKey, TValue> ZoneTree;
 
   readonly IRefComparer<HeapEntry<TKey, TValue>> HeapEntryComparer;
@@ -209,7 +211,7 @@ public sealed class ZoneTreeIterator<TKey, TValue> : IZoneTreeIterator<TKey, TVa
 
   void DetachFromDiskSegments()
   {
-    lock (this)
+    lock (SyncRoot)
     {
       DiskSegment?.DetachIterator();
       DiskSegment = null;

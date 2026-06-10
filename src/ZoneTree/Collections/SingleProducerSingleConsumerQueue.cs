@@ -4,12 +4,12 @@ namespace ZoneTree.Collections;
 
 /// <summary>
 /// Special Queue for ZoneTree.
-/// 1. SingleProducerSingleConsumerQueue is 
+/// 1. SingleProducerSingleConsumerQueue is
 ///   - thread-safe for single producer and single consumer.
 ///   - thread safe for many readers / enumerations
 /// 2. enquue method uses lock when it is full which makes it almost lock-free for inserts.
 /// 3. dequeue uses lock but the producer almost never hit the lock.
-/// 4. Despite this is a FIFO Queue, the enumerator is in LIFO order 
+/// 4. Despite this is a FIFO Queue, the enumerator is in LIFO order
 /// to optimize record lookup at TryGetFromReadonlySegments.
 /// Enqueue/Dequeue items in FIFO order: i1,i2,i3,i4
 /// Enumeration in LIFO order: i4,i3,i2,i1
@@ -58,7 +58,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
       End = end;
     }
 
-    public IReadOnlyList<TQueueItem> ToFirstInFirstArray()
+    public List<TQueueItem> ToFirstInFirstArray()
     {
       var items = Items;
       var size = items.Length;
@@ -74,7 +74,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
       return list;
     }
 
-    public IReadOnlyList<TQueueItem> ToLastInFirstArray()
+    public List<TQueueItem> ToLastInFirstArray()
     {
       var items = Items;
       var size = items.Length;
@@ -90,6 +90,8 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
       return list;
     }
   }
+
+  readonly Lock SyncRoot = new();
 
   public int Length => Chunk.ItemsCount;
 
@@ -122,7 +124,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
     {
       // queue is full or was full.
       // lock frequency of enqueue is almost zero due to the exponential size increase.
-      lock (this)
+      lock (SyncRoot)
       {
         var newItems = new TQueueItem[size * 2];
         Array.Copy(items, newItems, size);
@@ -154,7 +156,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
     if (item == null)
       return false;
 
-    lock (this)
+    lock (SyncRoot)
     {
       if (!ReferenceEquals(chunk, Chunk))
       {
@@ -168,9 +170,17 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
     return true;
   }
 
-  public IReadOnlyList<TQueueItem> ToLastInFirstArray() => Chunk.ToLastInFirstArray();
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1002:Do not expose generic lists",
+    Justification = "List<T> is intentionally exposed here to avoid extra allocation and preserve the concrete return type.")]
+  public List<TQueueItem> ToLastInFirstArray() => Chunk.ToLastInFirstArray();
 
-  public IReadOnlyList<TQueueItem> ToFirstInFirstArray() => Chunk.ToFirstInFirstArray();
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+      "Design",
+      "CA1002:Do not expose generic lists",
+      Justification = "List<T> is intentionally exposed here to avoid extra allocation and preserve the concrete return type.")]
+  public List<TQueueItem> ToFirstInFirstArray() => Chunk.ToFirstInFirstArray();
 
   sealed class LastInFirstEnumerator : IEnumerator<TQueueItem>
   {

@@ -43,8 +43,7 @@ public sealed class LiveBackupSchedule
   /// </summary>
   public static LiveBackupSchedule Every(TimeSpan interval)
   {
-    if (interval <= TimeSpan.Zero)
-      throw new ArgumentOutOfRangeException(nameof(interval));
+    ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(interval, TimeSpan.Zero);
 
     return new LiveBackupSchedule(
         LiveBackupScheduleKind.Every,
@@ -156,8 +155,7 @@ public sealed class LiveBackupSchedule
 
   static TimeOnly[] NormalizeDailyTimes(TimeOnly[] utcTimes)
   {
-    if (utcTimes == null)
-      throw new ArgumentNullException(nameof(utcTimes));
+    ArgumentNullException.ThrowIfNull(utcTimes);
     var times = utcTimes
         .Distinct()
         .OrderBy(x => x)
@@ -172,8 +170,7 @@ public sealed class LiveBackupSchedule
   static LiveBackupWeeklyTime[] NormalizeWeeklyTimes(
       LiveBackupWeeklyTime[] utcTimes)
   {
-    if (utcTimes == null)
-      throw new ArgumentNullException(nameof(utcTimes));
+    ArgumentNullException.ThrowIfNull(utcTimes);
     var times = utcTimes
         .Distinct()
         .OrderBy(x => x.DayOfWeek)

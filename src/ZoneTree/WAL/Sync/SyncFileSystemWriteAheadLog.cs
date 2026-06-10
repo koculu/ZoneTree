@@ -13,6 +13,8 @@ namespace ZoneTree.WAL;
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
 public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
+  readonly Lock SyncRoot = new();
+
   readonly ILogger Logger;
 
   volatile bool IsDisposed;
@@ -66,7 +68,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
   {
     var keyBytes = KeySerializer.Serialize(key);
     var valueBytes = ValueSerializer.Serialize(value);
-    lock (this)
+    lock (SyncRoot)
     {
       LogEntry.AppendLogEntry(BinaryWriter, keyBytes, valueBytes, opIndex);
     }
@@ -74,7 +76,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
   public void Drop()
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (!IsDisposed)
       {
@@ -114,7 +116,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
   {
     if (IsDisposed)
       return;
-    lock (this)
+    lock (SyncRoot)
     {
       if (IsDisposed)
         return;
@@ -132,7 +134,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
   public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values, bool disableBackup)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (!disableBackup && EnableIncrementalBackup)
       {
@@ -233,7 +235,7 @@ public sealed class SyncFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<T
 
   public void TruncateIncompleteTailRecord(IncompleteTailRecordFoundException incompleteTailException)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       FileStream.SetLength(incompleteTailException.RecordPosition);
     }

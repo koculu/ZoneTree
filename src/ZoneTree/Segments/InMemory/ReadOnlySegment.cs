@@ -125,12 +125,12 @@ public sealed class ReadOnlySegment<TKey, TValue> : IReadOnlySegment<TKey, TValu
 
   public int GetPartIndex(long index) => -1;
 
-  public TKey GetKey(long index, BlockPin pin)
+  public TKey GetKey(long index, BlockPin blockPin)
   {
     return SortedKeys[(int)index];
   }
 
-  public TValue GetValue(long index, BlockPin pin)
+  public TValue GetValue(long index, BlockPin blockPin)
   {
     return SortedValues[(int)index];
   }

@@ -19,38 +19,38 @@ namespace Playground.InMemoryTreeBenchmark;
     HardwareCounter.Timer)]*/
 public class ParallelMassiveInsertTests
 {
-    readonly int Count = 3_000_000;
-    readonly bool Shuffled = true;
+  readonly int Count = 3_000_000;
+  readonly bool Shuffled = true;
 
-    static readonly BTreeLockMode BTreeLockMode = BTreeLockMode.NodeLevelMonitor;
+  static readonly BTreeLockMode BTreeLockMode = BTreeLockMode.NodeLevelMonitor;
 
-    [GlobalSetup]
-    public void Setup()
+  [GlobalSetup]
+  public void Setup()
+  {
+    Data = Shuffled ?
+        RandomLongInserts.GetRandomArray(Count) :
+        RandomLongInserts.GetSortedArray(Count);
+  }
+
+  public long[] Data = Array.Empty<long>();
+
+  [Benchmark]
+  public void Parallel_BTree() => MassiveInsertsAndReadsBTree();
+
+  public void MassiveInsertsAndReadsBTree()
+  {
+    var tree = new BTree<long, long>(new Int64ComparerAscending(), BTreeLockMode);
+    var task1 = Parallel.ForEachAsync(Enumerable.Range(0, Count), (i, t) =>
     {
-        Data = Shuffled ?
-            RandomLongInserts.GetRandomArray(Count) :
-            RandomLongInserts.GetSortedArray(Count);
-    }
-
-    public long[] Data = Array.Empty<long>();
-
-    [Benchmark]
-    public void Parallel_BTree() => MassiveInsertsAndReadsBTree();
-
-    public void MassiveInsertsAndReadsBTree()
+      tree.TryInsert(i, i, out _);
+      return ValueTask.CompletedTask;
+    });
+    var task2 = Parallel.ForEachAsync(Enumerable.Range(0, Count), (i, t) =>
     {
-        var tree = new BTree<long, long>(new Int64ComparerAscending(), BTreeLockMode);
-        var task1 = Parallel.ForEachAsync(Enumerable.Range(0, Count), (i, t) =>
-        {
-            tree.TryInsert(i, i, out _);
-            return ValueTask.CompletedTask;
-        });
-        var task2 = Parallel.ForEachAsync(Enumerable.Range(0, Count), (i, t) =>
-        {
-            tree.TryGetValue(i, out var j);
-            return ValueTask.CompletedTask;
-        });
-        task1.Wait();
-        task2.Wait();
-    }
+      tree.TryGetValue(i, out var j);
+      return ValueTask.CompletedTask;
+    });
+    task1.Wait();
+    task2.Wait();
+  }
 }

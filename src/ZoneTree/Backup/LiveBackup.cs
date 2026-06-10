@@ -30,6 +30,7 @@ public sealed class LiveBackup<TKey, TValue> : IDisposable
 
   TaskCompletionSource<bool> StateChanged = CreateTaskSource();
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "SchedulerCancellation is dispsed correctly.")]
   CancellationTokenSource SchedulerCancellation;
 
   int RunningSchedulerCount;
@@ -482,17 +483,26 @@ public sealed class LiveBackup<TKey, TValue> : IDisposable
     if (files.Length == 0)
       return;
 
-    foreach (var file in files)
-    {
-      if (await Store.UseSegmentAsync(
-          generationId,
-          file,
-          cancellationToken).ConfigureAwait(false))
-        await CopySegmentFileAsync(
-            file,
+    await Parallel.ForEachAsync(
+      files,
+      new ParallelOptions
+      {
+        CancellationToken = cancellationToken,
+        MaxDegreeOfParallelism = Options.MaxConcurrentFileTransfers
+      },
+      async (file, ct) =>
+      {
+        if (await Store.UseSegmentAsync(
             generationId,
-            cancellationToken).ConfigureAwait(false);
-    }
+            file,
+            ct))
+        {
+          await CopySegmentFileAsync(
+              file,
+              generationId,
+              ct);
+        }
+      });
   }
 
   DiskSegmentFile[] GetExistingSegmentFiles(

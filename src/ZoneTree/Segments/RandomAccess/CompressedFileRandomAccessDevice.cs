@@ -13,6 +13,8 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
 {
   const int MetaDataSize = 5;
 
+  readonly Lock SyncRoot = new();
+
   readonly IFileStreamProvider FileStreamProvider;
 
   readonly int BlockSize;
@@ -326,7 +328,7 @@ public sealed class CompressedFileRandomAccessDevice : IRandomAccessDevice
     var compressedBytes = pool.Rent(compressedLength);
     try
     {
-      lock (this)
+      lock (SyncRoot)
       {
         FileStream.Position = blockPositionInFile;
         FileStream.ReadFaster(compressedBytes, 0, compressedLength);

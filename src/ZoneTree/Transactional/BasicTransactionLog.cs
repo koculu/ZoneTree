@@ -16,6 +16,8 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
   const string TxReadWriteStampCategory = "txs";
 
+  readonly Lock SyncRoot = new();
+
   readonly IncrementalIdProvider IncrementalIdProvider = new();
 
   readonly DictionaryWithWAL<long, TransactionMeta> Transactions;
@@ -32,7 +34,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
   {
     get
     {
-      lock (this)
+      lock (SyncRoot)
       {
         return Transactions.Length;
       }
@@ -43,7 +45,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
   {
     get
     {
-      lock (this)
+      lock (SyncRoot)
       {
         return Transactions.Keys;
       }
@@ -54,7 +56,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
   {
     get
     {
-      lock (this)
+      lock (SyncRoot)
       {
         var transactionIds = Transactions.Keys;
         return TransactionIds.Where(x =>
@@ -129,7 +131,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
   public TransactionMeta GetTransactionMeta(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (Transactions.TryGetValue(transactionId, out var transactionMeta))
         return transactionMeta;
@@ -139,7 +141,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
   public TransactionState GetTransactionState(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (Transactions.TryGetValue(transactionId, out var transactionMeta))
         return transactionMeta.State;
@@ -151,7 +153,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
   public void TransactionAborted(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       Transactions.TryGetValue(transactionId, out var transactionMeta);
       transactionMeta.EndedAt = DateTime.UtcNow.Ticks;
@@ -166,7 +168,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
   public void TransactionCommitted(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       Transactions.TryGetValue(transactionId, out var transactionMeta);
       transactionMeta.EndedAt = DateTime.UtcNow.Ticks;
@@ -180,7 +182,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
   public void TransactionStarted(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (Transactions.LogLength > CompactionThreshold)
         CompactTransactionLog();
@@ -200,7 +202,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
   {
     if (src == dest)
       return;
-    lock (this)
+    lock (SyncRoot)
     {
       DependencyTable.Upsert(src, dest, false);
     }
@@ -208,7 +210,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
   public void AddHistoryRecord(long transactionId, TKey key, CombinedValue<TValue, long> combinedValue)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       HistoryTable.Upsert(transactionId, key, combinedValue);
     }
@@ -216,7 +218,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
   public IDictionary<TKey, CombinedValue<TValue, long>> GetHistory(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (HistoryTable.TryGetDictionary(transactionId, out var history))
         return history;
@@ -226,7 +228,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
   public IReadOnlyList<long> GetDependencyList(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (DependencyTable.TryGetDictionary(transactionId, out var dic))
         return dic.Keys.ToArray();
@@ -259,7 +261,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
   public void CompactTransactionLog()
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var aborted = new List<long>();
       var uncommitted = new List<long>();
@@ -275,7 +277,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
       // Transaction Log compaction strategy:
 
       // Phase 1: delete all unnecessary transaction data from memory.
-      // Phase 2: compact write ahead logs to reduce the size of wal. 
+      // Phase 2: compact write ahead logs to reduce the size of wal.
       // First phase improves the speed of transactions.
       // Second phase improves the loading speed of the transaction log.
 
@@ -300,7 +302,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
       // Because read stamp is required to abort transactions in write stage.
       DeleteCommittedAndCollectAbortedAndUncommittedTransactions(aborted, uncommitted);
 
-      // 2. We can delete aborted transaction states with the following condition: 
+      // 2. We can delete aborted transaction states with the following condition:
       // There isn't any uncommitted transaction that depends on the aborted one.
       // Because we need a lookup to the aborted transaction state to abort
       // the uncommitted transaction that depends on the aborted one.
@@ -308,14 +310,14 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
 
       // 3. We can delete the entire history of
       // the aborted and committed transactions.
-      // Because we require the history just 
+      // Because we require the history just
       // for the rollback operation of uncommitted transactions.
       // Committed and aborted transactions can not be rollbacked at all.
       DeleteHistoryOfAbortedAndCommittedTransactions();
 
       // 4. We can delete all aborted transactions read-write stamps.
       // we can delete committed transaction read-write stamps
-      // up to the first uncommitted transaction id to not to break the skip write rule.            
+      // up to the first uncommitted transaction id to not to break the skip write rule.
       // Because the Rollback operation depends
       // on equality of uncommitted transaction write stamps.
       // rollback cancel condition: readWriteStamp.WriteStamp != uncommittedTransactionId
@@ -442,7 +444,7 @@ public sealed class BasicTransactionLog<TKey, TValue> : ITransactionLog<TKey, TV
   public IReadOnlyList<long> GetUncommittedTransactionIdsBefore(DateTime dateTime)
   {
     var ticks = dateTime.Ticks;
-    lock (this)
+    lock (SyncRoot)
     {
       var transactionIds = Transactions.Keys;
       return TransactionIds.Where(x =>
