@@ -15,24 +15,24 @@ namespace Playground.InMemoryTreeBenchmark;
     HardwareCounter.Timer)]
 public class BigKeyTreeBenchmark
 {
-    readonly int Count = 1_000_000;
-    readonly bool Shuffled = true;
+  readonly int Count = 1_000_000;
+  readonly bool Shuffled = true;
 
-    [GlobalSetup]
-    public void Setup()
-    {
-        Data = Shuffled ?
-            RandomBigInserts.GetRandomArray(Count) :
-            RandomBigInserts.GetSortedArray(Count);
-    }
+  [GlobalSetup]
+  public void Setup()
+  {
+    Data = Shuffled ?
+        RandomBigInserts.GetRandomArray(Count) :
+        RandomBigInserts.GetSortedArray(Count);
+  }
 
 
-    BigKey[] Data = Array.Empty<BigKey>();
+  BigKey[] Data = Array.Empty<BigKey>();
 
-    [Benchmark]
-    public void InsertBTree() => RandomBigInserts.InsertBTree(Data);
+  [Benchmark]
+  public void InsertBTree() => RandomBigInserts.InsertBTree(Data);
 
-    [Benchmark]
-    public void InsertSortedDictionary() => RandomBigInserts.InsertSortedDictionary(Data);
+  [Benchmark]
+  public void InsertSortedDictionary() => RandomBigInserts.InsertSortedDictionary(Data);
 
 }

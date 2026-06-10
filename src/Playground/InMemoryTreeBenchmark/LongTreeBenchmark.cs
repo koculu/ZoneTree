@@ -15,23 +15,23 @@ namespace Playground.InMemoryTreeBenchmark;
     HardwareCounter.Timer)]
 public class LongTreeBenchmark
 {
-    readonly int Count = 1_000_000;
-    readonly bool Shuffled = true;
+  readonly int Count = 1_000_000;
+  readonly bool Shuffled = true;
 
-    [GlobalSetup]
-    public void Setup()
-    {
-        Data = Shuffled ?
-            RandomLongInserts.GetRandomArray(Count) :
-            RandomLongInserts.GetSortedArray(Count);
-    }
+  [GlobalSetup]
+  public void Setup()
+  {
+    Data = Shuffled ?
+        RandomLongInserts.GetRandomArray(Count) :
+        RandomLongInserts.GetSortedArray(Count);
+  }
 
-    long[] Data = Array.Empty<long>();
+  long[] Data = Array.Empty<long>();
 
-    [Benchmark]
-    public void InsertBTree() => RandomLongInserts.InsertBTree(Data);
+  [Benchmark]
+  public void InsertBTree() => RandomLongInserts.InsertBTree(Data);
 
-    [Benchmark]
-    public void InsertSortedDictionary() => RandomLongInserts.InsertSortedDictionary(Data);
+  [Benchmark]
+  public void InsertSortedDictionary() => RandomLongInserts.InsertSortedDictionary(Data);
 
 }

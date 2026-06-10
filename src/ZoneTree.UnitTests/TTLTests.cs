@@ -1,4 +1,4 @@
-﻿using ZoneTree.Comparers;
+using ZoneTree.Comparers;
 using ZoneTree.PresetTypes;
 using ZoneTree.Serializers;
 
@@ -6,48 +6,48 @@ namespace ZoneTree.UnitTests;
 
 public sealed class TTLTests
 {
-    [Test]
-    public void TestTTL()
-    {
-        var dataPath = "data/TestTTL";
-        if (Directory.Exists(dataPath))
-            Directory.Delete(dataPath, true);
+  [Test]
+  public void TestTTL()
+  {
+    var dataPath = "data/TestTTL";
+    if (Directory.Exists(dataPath))
+      Directory.Delete(dataPath, true);
 
-        using var zoneTree = new ZoneTreeFactory<int, TTLValue<int>>()
-            .SetDataDirectory(dataPath)
-            .SetWriteAheadLogDirectory(dataPath)
-            .SetValueSerializer(new StructSerializer<TTLValue<int>>())
-            .SetIsDeletedDelegate((in int key, in TTLValue<int> value) => value.IsExpired)
-            .SetMarkValueDeletedDelegate(void (ref TTLValue<int> value) => value.Expire())
-            .OpenOrCreate();
+    using var zoneTree = new ZoneTreeFactory<int, TTLValue<int>>()
+        .SetDataDirectory(dataPath)
+        .SetWriteAheadLogDirectory(dataPath)
+        .SetValueSerializer(new StructSerializer<TTLValue<int>>())
+        .SetIsDeletedDelegate((in int key, in TTLValue<int> value) => value.IsExpired)
+        .SetMarkValueDeletedDelegate(void (ref TTLValue<int> value) => value.Expire())
+        .OpenOrCreate();
 
-        zoneTree.Upsert(5, new TTLValue<int>(99, DateTime.UtcNow.AddMilliseconds(300)));
-        var f1 = zoneTree.TryGet(5, out var v1);
-        Thread.Sleep(300);
-        var f2 = zoneTree.TryGet(5, out var v2);
+    zoneTree.Upsert(5, new TTLValue<int>(99, DateTime.UtcNow.AddMilliseconds(300)));
+    var f1 = zoneTree.TryGet(5, out var v1);
+    Thread.Sleep(300);
+    var f2 = zoneTree.TryGet(5, out var v2);
 
-        Assert.That(f1, Is.True);
-        Assert.That(f2, Is.False);
+    Assert.That(f1, Is.True);
+    Assert.That(f2, Is.False);
 
-        zoneTree.Upsert(5, new TTLValue<int>(99, DateTime.UtcNow.AddMilliseconds(300)));
-        Thread.Sleep(150);
-        f1 = zoneTree.TryGetAndUpdate(
-            5,
-            out v1,
-            bool (ref TTLValue<int> v) =>
-                v.SlideExpiration(TimeSpan.FromMilliseconds(300)),
-            out _);
-        Thread.Sleep(450); // initial expiration (300) + slided expiration (300) - Thread.Sleep(150)
-        f2 = zoneTree.TryGetAndUpdate(
-            5,
-            out v2,
-            bool (ref TTLValue<int> v) =>
-                v.SlideExpiration(TimeSpan.FromMilliseconds(300)),
-            out _);
+    zoneTree.Upsert(5, new TTLValue<int>(99, DateTime.UtcNow.AddMilliseconds(300)));
+    Thread.Sleep(150);
+    f1 = zoneTree.TryGetAndUpdate(
+        5,
+        out v1,
+        bool (ref TTLValue<int> v) =>
+            v.SlideExpiration(TimeSpan.FromMilliseconds(300)),
+        out _);
+    Thread.Sleep(450); // initial expiration (300) + slided expiration (300) - Thread.Sleep(150)
+    f2 = zoneTree.TryGetAndUpdate(
+        5,
+        out v2,
+        bool (ref TTLValue<int> v) =>
+            v.SlideExpiration(TimeSpan.FromMilliseconds(300)),
+        out _);
 
-        Assert.That(f1, Is.True);
-        Assert.That(f2, Is.False);
+    Assert.That(f1, Is.True);
+    Assert.That(f2, Is.False);
 
-        zoneTree.Maintenance.Drop();
-    }
+    zoneTree.Maintenance.Drop();
+  }
 }

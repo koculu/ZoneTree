@@ -15,24 +15,24 @@ namespace Playground.InMemoryTreeBenchmark;
     HardwareCounter.Timer)]
 public class IntTreeBenchmark
 {
-    readonly int Count = 1_000_000;
-    readonly bool Shuffled = true;
+  readonly int Count = 1_000_000;
+  readonly bool Shuffled = true;
 
-    [GlobalSetup]
-    public void Setup()
-    {
-        Data = Shuffled ?
-            RandomIntInserts.GetRandomArray(Count) : 
-            RandomIntInserts.GetSortedArray(Count);
-    }
+  [GlobalSetup]
+  public void Setup()
+  {
+    Data = Shuffled ?
+        RandomIntInserts.GetRandomArray(Count) :
+        RandomIntInserts.GetSortedArray(Count);
+  }
 
 
-    int[] Data = Array.Empty<int>();
+  int[] Data = Array.Empty<int>();
 
-    [Benchmark]
-    public void InsertBTree() => RandomIntInserts.InsertBTree(Data);
+  [Benchmark]
+  public void InsertBTree() => RandomIntInserts.InsertBTree(Data);
 
-    [Benchmark]
-    public void InsertSortedDictionary() => RandomIntInserts.InsertSortedDictionary(Data);
+  [Benchmark]
+  public void InsertSortedDictionary() => RandomIntInserts.InsertSortedDictionary(Data);
 
 }

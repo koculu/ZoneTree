@@ -1,34 +1,34 @@
-﻿namespace Playground.Benchmark;
+namespace Playground.Benchmark;
 
 public interface IStatsCollector
 {
-    public string Section { get; }
+  public string Section { get; }
 
-    string Name { get; set; }
+  string Name { get; set; }
 
-    IDictionary<string, object> Options { get; }
+  IDictionary<string, object> Options { get; }
 
-    IDictionary<string, object> AdditionalStats { get; }
+  IDictionary<string, object> AdditionalStats { get; }
 
-    StageMap Stages { get; }
+  StageMap Stages { get; }
 
-    long MemoryUsageAtBegin { get; }
+  long MemoryUsageAtBegin { get; }
 
-    long MemoryUsageAtEnd { get; }
+  long MemoryUsageAtEnd { get; }
 
-    void AddStage(string name, ConsoleColor color = ConsoleColor.DarkYellow, bool restart = true);
+  void AddStage(string name, ConsoleColor color = ConsoleColor.DarkYellow, bool restart = true);
 
-    void SetOption(string key, object value);
+  void SetOption(string key, object value);
 
-    void AddAdditionalStats(string name, object additionalStats, ConsoleColor color = ConsoleColor.DarkYellow);
+  void AddAdditionalStats(string name, object additionalStats, ConsoleColor color = ConsoleColor.DarkYellow);
 
-    void RestartStopwatch();
+  void RestartStopwatch();
 
-    string ToJson();
+  string ToJson();
 
-    void LogLine();
+  void LogLine();
 
-    void LogWithColor(string msg, ConsoleColor color, bool newLine = true);
-    
-    void LogWithColor(string key, object value, ConsoleColor color);
+  void LogWithColor(string msg, ConsoleColor color, bool newLine = true);
+
+  void LogWithColor(string key, object value, ConsoleColor color);
 }

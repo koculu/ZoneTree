@@ -1,4 +1,4 @@
-﻿using Humanizer;
+using Humanizer;
 using System.Diagnostics;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -8,105 +8,105 @@ namespace Playground.Benchmark;
 
 public sealed class StatsCollector : IStatsCollector
 {
-    public string Section { get; }
+  public string Section { get; }
 
-    public Stopwatch Stopwatch { get; }
-    
-    public string Name { get; set; }
+  public Stopwatch Stopwatch { get; }
 
-    public long MemoryUsageAtBegin { get; set; }
+  public string Name { get; set; }
 
-    public long MemoryUsageAtEnd { get; set; }
+  public long MemoryUsageAtBegin { get; set; }
 
-    public IDictionary<string, object> Options { get; } = new Dictionary<string, object>();
+  public long MemoryUsageAtEnd { get; set; }
 
-    public StageMap Stages { get; } = new();
+  public IDictionary<string, object> Options { get; } = new Dictionary<string, object>();
 
-    public IDictionary<string, object> AdditionalStats { get; } = new Dictionary<string, object>();
+  public StageMap Stages { get; } = new();
 
-    public StatsCollector(string section)
+  public IDictionary<string, object> AdditionalStats { get; } = new Dictionary<string, object>();
+
+  public StatsCollector(string section)
+  {
+    Stopwatch = new Stopwatch();
+    Stopwatch.Start();
+    MemoryUsageAtBegin = GC.GetTotalMemory(true);
+    LogLine();
+    LogWithColor("Memory At Begin",
+        MemoryUsageAtBegin.Bytes().Humanize(),
+        ConsoleColor.DarkYellow);
+    Section = section ?? "DefaultJob";
+  }
+
+  public StatsCollector()
+  {
+  }
+
+  public void End()
+  {
+    Stopwatch.Stop();
+  }
+
+  public void AddStage(string name, ConsoleColor color = ConsoleColor.DarkYellow, bool restart = true)
+  {
+    var stage = new Stage
     {
-        Stopwatch = new Stopwatch();
-        Stopwatch.Start();
-        MemoryUsageAtBegin = GC.GetTotalMemory(true);
-        LogLine();
-        LogWithColor("Memory At Begin", 
-            MemoryUsageAtBegin.Bytes().Humanize(),
-            ConsoleColor.DarkYellow);
-        Section = section ?? "DefaultJob";
-    }
+      Name = name,
+      ElapsedMilliseconds = Stopwatch.ElapsedMilliseconds
+    };
+    LogWithColor(
+        name,
+        stage.ElapsedMilliseconds,
+        color);
+    Stages.Add(name, stage);
+    if (restart)
+      Stopwatch.Restart();
+  }
 
-    public StatsCollector()
-    {
-    }
+  public void SetOption(string key, object value)
+  {
+    Options.Add(key, value);
+  }
 
-    public void End()
-    {
-        Stopwatch.Stop();
-    }
+  public void AddAdditionalStats(string name, object additionalStats, ConsoleColor color = ConsoleColor.DarkYellow)
+  {
+    AdditionalStats.Add(name, additionalStats);
+    LogWithColor(
+        name,
+        additionalStats?.ToString(),
+        color);
+  }
 
-    public void AddStage(string name, ConsoleColor color = ConsoleColor.DarkYellow, bool restart = true)
-    {
-        var stage = new Stage
-        {
-            Name = name,
-            ElapsedMilliseconds = Stopwatch.ElapsedMilliseconds
-        };
-        LogWithColor(
-            name,
-            stage.ElapsedMilliseconds,
-            color);
-        Stages.Add(name, stage);
-        if (restart)
-            Stopwatch.Restart();
-    }
+  public string ToJson()
+  {
+    return JsonSerializer.Serialize(this, Benchmark.GetJSONOptions());
+  }
 
-    public void SetOption(string key, object value)
-    {
-        Options.Add(key, value);
-    }
+  public void RestartStopwatch()
+  {
+    Stopwatch.Restart();
+  }
 
-    public void AddAdditionalStats(string name, object additionalStats, ConsoleColor color = ConsoleColor.DarkYellow)
-    {
-        AdditionalStats.Add(name, additionalStats);
-        LogWithColor(
-            name,
-            additionalStats?.ToString(),
-            color);
-    }
+  public void LogLine()
+  {
+    Console.WriteLine("----------------------------------");
+  }
 
-    public string ToJson()
-    {
-        return JsonSerializer.Serialize(this, Benchmark.GetJSONOptions());
-    }
+  public void LogWithColor(string msg, ConsoleColor color, bool newLine = true)
+  {
+    var existingColor = Console.ForegroundColor;
+    Console.ForegroundColor = color;
+    if (newLine)
+      Console.WriteLine(msg);
+    else
+      Console.Write(msg);
+    Console.ForegroundColor = existingColor;
+  }
 
-    public void RestartStopwatch()
-    {
-        Stopwatch.Restart();
-    }
-
-    public void LogLine()
-    {
-        Console.WriteLine("----------------------------------");
-    }
-
-    public void LogWithColor(string msg, ConsoleColor color, bool newLine = true)
-    {
-        var existingColor = Console.ForegroundColor;
-        Console.ForegroundColor = color;
-        if (newLine)
-            Console.WriteLine(msg);
-        else
-            Console.Write(msg);
-        Console.ForegroundColor = existingColor;
-    }
-
-    public void LogWithColor(string key, object value, ConsoleColor color)
-    {
-        Console.Write(key + ": ");
-        var existingColor = Console.ForegroundColor;
-        Console.ForegroundColor = color;
-        Console.WriteLine(value);
-        Console.ForegroundColor = existingColor;
-    }
+  public void LogWithColor(string key, object value, ConsoleColor color)
+  {
+    Console.Write(key + ": ");
+    var existingColor = Console.ForegroundColor;
+    Console.ForegroundColor = color;
+    Console.WriteLine(value);
+    Console.ForegroundColor = existingColor;
+  }
 }
