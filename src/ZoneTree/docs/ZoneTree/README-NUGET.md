@@ -1,4 +1,4 @@
-![ZoneTree Logo](https://raw.githubusercontent.com/koculu/ZoneTree/main/src/ZoneTree/docs/ZoneTree/images/logo2.png)
+![ZoneTree Logo](https://raw.githubusercontent.com/ZoneTree/ZoneTree/main/src/ZoneTree/docs/ZoneTree/images/logo2.png)
 
 # ZoneTree
 
@@ -292,7 +292,7 @@ Performance depends on workload and configuration, including:
 
 See the benchmark results:
 
-* [BenchmarkForAllModes.txt](https://github.com/koculu/ZoneTree/blob/main/src/Playground/BenchmarkForAllModes.txt)
+* [BenchmarkForAllModes.txt](https://github.com/ZoneTree/ZoneTree/blob/main/src/Playground/BenchmarkForAllModes.txt)
 
 Benchmark results vary with data shape, configuration, and hardware. Review the full benchmark file for details.
 
@@ -328,7 +328,7 @@ It provides indexing and search capabilities for applications that need fast tex
 
 Repository:
 
-* [ZoneTree.FullTextSearch](https://github.com/koculu/ZoneTree.FullTextSearch)
+* [ZoneTree.FullTextSearch](https://github.com/ZoneTree/ZoneTree.FullTextSearch)
 
 ---
 
@@ -336,13 +336,13 @@ Repository:
 
 Official documentation:
 
-* [Docs home](https://github.com/koculu/ZoneTree/tree/main/docs)
-* [Getting started](https://github.com/koculu/ZoneTree/blob/main/docs/getting-started.md)
-* [Reads and writes](https://github.com/koculu/ZoneTree/blob/main/docs/usage/reads-and-writes.md)
-* [Value mutability](https://github.com/koculu/ZoneTree/blob/main/docs/concepts/value-mutability.md)
-* [Memory usage](https://github.com/koculu/ZoneTree/blob/main/docs/storage/memory-usage.md)
-* [WAL modes](https://github.com/koculu/ZoneTree/blob/main/docs/durability/wal-modes.md)
-* [Production checklist](https://github.com/koculu/ZoneTree/blob/main/docs/operations/production-checklist.md)
+* [Docs home](https://github.com/ZoneTree/ZoneTree/tree/main/docs)
+* [Getting started](https://github.com/ZoneTree/ZoneTree/blob/main/docs/getting-started.md)
+* [Reads and writes](https://github.com/ZoneTree/ZoneTree/blob/main/docs/usage/reads-and-writes.md)
+* [Value mutability](https://github.com/ZoneTree/ZoneTree/blob/main/docs/concepts/value-mutability.md)
+* [Memory usage](https://github.com/ZoneTree/ZoneTree/blob/main/docs/storage/memory-usage.md)
+* [WAL modes](https://github.com/ZoneTree/ZoneTree/blob/main/docs/durability/wal-modes.md)
+* [Production checklist](https://github.com/ZoneTree/ZoneTree/blob/main/docs/operations/production-checklist.md)
 * [zonetree.dev](https://zonetree.dev)
 
 ---
@@ -392,4 +392,4 @@ Before large changes, please open an issue or discussion first.
 
 ## License
 
-ZoneTree is licensed under the **[MIT License](https://github.com/koculu/ZoneTree?tab=MIT-1-ov-file#readme)**.
+ZoneTree is licensed under the **[MIT License](https://github.com/ZoneTree/ZoneTree?tab=MIT-1-ov-file#readme)**.

@@ -1,4 +1,4 @@
-![ZoneTree Logo](https://raw.githubusercontent.com/koculu/ZoneTree/main/src/ZoneTree/docs/ZoneTree/images/logo2.png)
+![ZoneTree Logo](https://raw.githubusercontent.com/ZoneTree/ZoneTree/main/src/ZoneTree/docs/ZoneTree/images/logo2.png)
 
 # ZoneTree
 
@@ -329,7 +329,7 @@ It provides indexing and search capabilities for applications that need fast tex
 
 Repository:
 
-* [ZoneTree.FullTextSearch](https://github.com/koculu/ZoneTree.FullTextSearch)
+* [ZoneTree.FullTextSearch](https://github.com/ZoneTree/ZoneTree.FullTextSearch)
 
 ---
 
@@ -393,4 +393,4 @@ Before large changes, please open an issue or discussion first.
 
 ## License
 
-ZoneTree is licensed under the **[MIT License](https://github.com/koculu/ZoneTree?tab=MIT-1-ov-file#readme)**.
+ZoneTree is licensed under the **[MIT License](https://github.com/ZoneTree/ZoneTree?tab=MIT-1-ov-file#readme)**.
