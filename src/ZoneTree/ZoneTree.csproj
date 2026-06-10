@@ -6,7 +6,7 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <TargetFrameworks>net10.0;net9.0</TargetFrameworks>
     <LangVersion>14.0</LangVersion>
-    <RepositoryUrl>https://github.com/koculu/ZoneTree</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ZoneTree/ZoneTree</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageReadmeFile>README-NUGET.md</PackageReadmeFile>

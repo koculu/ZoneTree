@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" style="color: white;">
+  <defs>
+    <path id="path-0" style="fill: none;" d="M 153.756 107.813 C 153.452 134.252 158.369 146.758 173.222 158.911 C 192.215 168.051 209.607 164.101 227.97 161.04 C 263.056 148.697 258.386 135.477 258.386 107.204 L 258.386 102.642 C 258.386 98.366 257.074 93.773 252.911 91.692"></path>
+    <path id="path-1" style="fill: none;" d="M 187.517 25.994 C 187.822 47.719 187.391 45.802 189.342 55.193 C 193.61 75.732 197.012 74.963 216.412 74.963 C 240.498 74.963 253.594 66.633 271.769 58.843 C 281.502 54.99 285.554 53.819 289.41 52.152 C 308.573 43.865 302.248 35.79 290.931 24.473 L 289.715 23.865"></path>
+    <path id="path-2" style="fill: none;" d="M 210.329 199.972 C 216.646 213.296 221.005 218.634 226.45 223.088 C 251.019 243.19 279.613 229.51 305.835 220.959 C 309.771 212.803 307.916 211.738 305.531 206.968 L 304.922 206.36 C 302.494 199.075 298.231 188.279 298.231 180.506"></path>
+    <path id="path-3" style="fill: none;" d="M 285.761 143.095 C 309.903 146.418 323.767 145.528 337.467 145.528 C 350.519 145.528 364.418 146.745 377.616 146.745 C 386.741 146.745 395.257 146.745 403.774 146.745 L 404.382 146.745"></path>
+  </defs>
+  <text style="white-space: pre; fill: rgb(51, 51, 51); font-family: Arial, sans-serif; font-size: 28px;" x="613.947" y="233.43"> </text>
+  <g transform="matrix(1.027202, 0, 0, 1.080038, -6.667479, -60.747559)" style="">
+    <path d="M 332.477 179.274 L 332.477 249.877 C 332.477 251.533 331.393 253.052 329.64 253.857 L 252.541 289.31 C 250.88 290.07 248.861 290.07 247.199 289.31 L 170.1 253.857 C 168.347 253.052 167.264 251.533 167.264 249.877 L 167.264 179.274 C 167.264 177.618 168.347 176.091 170.1 175.286 L 247.199 139.841 C 248.861 139.073 250.88 139.073 252.541 139.841 L 329.64 175.286 C 331.393 176.091 332.477 177.618 332.477 179.274 Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="stroke-width: 5;" fill="#2e876d"></path>
+    <path d="M 172.11 178.819 L 247.199 213.345 C 248.861 214.105 250.88 214.105 252.541 213.345 L 327.887 178.697" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="stroke-width: 5;" fill="#2e876d"></path>
+    <path d="M 249.87 285.944 L 249.87 214.575" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="stroke-width: 5;"></path>
+  </g>
+  <text style="white-space: pre; fill: #2e876d; font-family: &quot;Mona Sans VF&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 100px; font-weight: 900; stroke-width: 1;" x="37.001" y="159.323" transform="matrix(1.00447, 0, 0, 1.164063, -20.867581, 195.449754)">ZoneTree</text>
+</svg>
