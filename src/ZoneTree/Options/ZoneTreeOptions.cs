@@ -35,7 +35,7 @@ public sealed class ZoneTreeOptions<TKey, TValue>
 {
   /// <summary>
   /// Mutable segment maximumum key-value pair count.
-  /// When the maximum count is reached 
+  /// When the maximum count is reached
   /// MoveMutableSegmentForward is called and current mutable segment is enqueued to
   /// the ReadOnlySegments layer.
   /// </summary>
@@ -81,7 +81,7 @@ public sealed class ZoneTreeOptions<TKey, TValue>
   public WriteAheadLogOptions WriteAheadLogOptions { get; set; } = new();
 
   /// <summary>
-  /// Disk Segment options. The options are used 
+  /// Disk Segment options. The options are used
   /// to create new disk segments.
   /// Existing disk segments are created with
   /// their existing options.
@@ -165,7 +165,7 @@ public sealed class ZoneTreeOptions<TKey, TValue>
     return true;
   }
 
-  static Exception ValidateCompressionLevel(
+  static CompressionLevelIsOutOfRangeException ValidateCompressionLevel(
       string option,
       CompressionMethod method,
       int level)

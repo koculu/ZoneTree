@@ -59,7 +59,7 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
     return pos;
   }
 
-  public Memory<byte> GetBytes(long offset, int length, SingleBlockPin pin)
+  public Memory<byte> GetBytes(long offset, int length, SingleBlockPin blockPin)
   {
     lock (this)
     {

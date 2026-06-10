@@ -650,7 +650,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
     return result;
   }
 
-  public TKey GetKey(long index, BlockPin pin)
+  public TKey GetKey(long index, BlockPin blockPin)
   {
     long off = 0;
     var partIndex = 0;
@@ -668,11 +668,11 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
     if (localIndex == len - 1)
       return PartKeys[partIndex * 2 + 1];
 
-    var key = Parts[partIndex].GetKey(localIndex, pin);
+    var key = Parts[partIndex].GetKey(localIndex, blockPin);
     return key;
   }
 
-  public TValue GetValue(long index, BlockPin pin)
+  public TValue GetValue(long index, BlockPin blockPin)
   {
     long off = 0;
     var partIndex = 0;
@@ -690,6 +690,6 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
     if (localIndex == len - 1)
       return PartValues[partIndex * 2 + 1];
 
-    return Parts[partIndex].GetValue(localIndex, pin);
+    return Parts[partIndex].GetValue(localIndex, blockPin);
   }
 }

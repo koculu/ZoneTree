@@ -201,9 +201,9 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
   protected TValue ReadValue(long index) => ReadValue(index, null);
 
-  protected abstract TKey ReadKey(long index, BlockPin pin);
+  protected abstract TKey ReadKey(long index, BlockPin blockPin);
 
-  protected abstract TValue ReadValue(long index, BlockPin pin);
+  protected abstract TValue ReadValue(long index, BlockPin blockPin);
 
   /// <summary>
   /// Finds the position of element that is greater or equal than key.
@@ -489,13 +489,13 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
     return CircularValueCache.ReleaseInactiveCacheRecords();
   }
 
-  public TKey GetKey(long index, BlockPin pin)
+  public TKey GetKey(long index, BlockPin blockPin)
   {
-    return ReadKey(index, pin);
+    return ReadKey(index, blockPin);
   }
 
-  public TValue GetValue(long index, BlockPin pin)
+  public TValue GetValue(long index, BlockPin blockPin)
   {
-    return ReadValue(index, pin);
+    return ReadValue(index, blockPin);
   }
 }

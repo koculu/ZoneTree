@@ -22,11 +22,11 @@ public sealed class CircularCache<TDataType>
 
   public int RecordLifeTimeInMillisecond { get; set; } = 10000;
 
-  int statsCacheHit = 0;
+  int statsCacheHit;
 
-  int statsCacheMiss = 0;
+  int statsCacheMiss;
 
-  public (int cacheHit, int cacheMiss) GetCacheStats() => (statsCacheHit, statsCacheMiss);
+  public (int cacheHit, int cacheMiss) CacheStats => (statsCacheHit, statsCacheMiss);
 
   public void ResetCacheStats()
   {

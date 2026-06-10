@@ -364,17 +364,17 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
   }
 
   static int IndexOfContiguousSegmentIds(
-      IReadOnlyList<IDiskSegment<TKey, TValue>> segments,
-      IReadOnlyList<long> segmentIds)
+      List<IDiskSegment<TKey, TValue>> segments,
+      long[] segmentIds)
   {
-    if (segmentIds.Count == 0 || segmentIds.Count > segments.Count)
+    if (segmentIds.Length == 0 || segmentIds.Length > segments.Count)
       return -1;
 
-    var lastStartIndex = segments.Count - segmentIds.Count;
+    var lastStartIndex = segments.Count - segmentIds.Length;
     for (var i = 0; i <= lastStartIndex; ++i)
     {
       var isMatch = true;
-      for (var j = 0; j < segmentIds.Count; ++j)
+      for (var j = 0; j < segmentIds.Length; ++j)
       {
         if (segments[i + j].SegmentId == segmentIds[j])
           continue;

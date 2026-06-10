@@ -38,7 +38,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
   public IZoneTreeMaintenance<TKey, TValue> Maintenance { get; }
 
   /// <inheritdoc/>
-  public int ThresholdForMergeOperationStart { get; set; } = 0;
+  public int ThresholdForMergeOperationStart { get; set; }
 
   /// <inheritdoc/>
   public int MaximumReadOnlySegmentCount { get; set; } = 64;

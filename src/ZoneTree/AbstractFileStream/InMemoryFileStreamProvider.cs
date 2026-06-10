@@ -70,7 +70,7 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
       Directories.Remove(path);
       if (recursive)
       {
-        var toRemove = Files.Keys.Where(x => x.StartsWith(path)).ToList();
+        var toRemove = Files.Keys.Where(x => x.StartsWith(path, StringComparison.Ordinal)).ToList();
         foreach (var f in toRemove)
           Files.Remove(f);
       }
@@ -118,7 +118,7 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
   {
     lock (this)
     {
-      return Directories.Where(x => x.StartsWith(path)).ToArray();
+      return Directories.Where(x => x.StartsWith(path, StringComparison.Ordinal)).ToArray();
     }
   }
 

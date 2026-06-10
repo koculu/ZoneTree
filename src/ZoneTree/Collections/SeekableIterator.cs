@@ -10,7 +10,7 @@ public sealed class SeekableIterator<TKey, TValue> : ISeekableIterator<TKey, TVa
 
   long position = -1;
 
-  BlockPin blockPin = new();
+  readonly BlockPin blockPin = new();
 
   public TKey CurrentKey =>
       position == -1 || position >= Length ?
