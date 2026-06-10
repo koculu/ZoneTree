@@ -91,6 +91,8 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
     }
   }
 
+  readonly Lock SyncRoot = new();
+
   public int Length => Chunk.ItemsCount;
 
   public bool IsEmpty => Chunk.IsEmpty;
@@ -122,7 +124,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
     {
       // queue is full or was full.
       // lock frequency of enqueue is almost zero due to the exponential size increase.
-      lock (this)
+      lock (SyncRoot)
       {
         var newItems = new TQueueItem[size * 2];
         Array.Copy(items, newItems, size);
@@ -154,7 +156,7 @@ public sealed class SingleProducerSingleConsumerQueue<TQueueItem>
     if (item == null)
       return false;
 
-    lock (this)
+    lock (SyncRoot)
     {
       if (!ReferenceEquals(chunk, Chunk))
       {

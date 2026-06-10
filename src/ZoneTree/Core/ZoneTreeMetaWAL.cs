@@ -11,6 +11,8 @@ namespace ZoneTree.Core;
 
 public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 {
+  readonly Lock SyncRoot = new();
+
   const CompressionMethod MetaWALCompressionMethod = CompressionMethod.None;
 
   const int MetaWALCompressionLevel = 0;
@@ -191,7 +193,7 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
   void AppendRecord(in MetaWalRecord record)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var bytes = BinarySerializerHelper.ToByteArray(record);
       Device.AppendBytesReturnPosition(bytes);

@@ -11,6 +11,8 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
     ITransactionalZoneTree<TKey, TValue>,
     ITransactionalZoneTreeMaintenance<TKey, TValue>
 {
+  readonly Lock SyncRoot = new();
+
   readonly ZoneTreeOptions<TKey, TValue> Options;
 
   readonly Dictionary<long, OptimisticTransaction<TKey, TValue>> OptimisticTransactions = new();
@@ -85,7 +87,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
   public void Rollback(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var transaction = GetOrCreateTransaction(transactionId);
       AbortTransaction(transaction);
@@ -131,7 +133,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
   public CommitResult PrepareNoThrow(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
       if (transaction == null)
@@ -142,7 +144,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
   public CommitResult PrepareAndCommit(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var result = PrepareAndCommitNoThrow(transactionId);
       if (result.IsAborted)
@@ -153,7 +155,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
   public CommitResult PrepareAndCommitNoThrow(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
       if (transaction == null)
@@ -167,7 +169,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
   public CommitResult Commit(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var transaction = GetOrCreateTransaction(transactionId);
       return DoCommit(transaction);
@@ -176,7 +178,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
   public CommitResult CommitNoThrow(long transactionId)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
       if (transaction == null)
@@ -274,7 +276,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
   public void RollbackUncommittedTransactions()
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var uncommitted = TransactionLog.UncommittedTransactionIds;
       foreach (var u in uncommitted)
@@ -287,7 +289,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
   public bool ReadCommittedContainsKey(in TKey key, long currentTransactionId = -1)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
       var ws = readWriteStamp.WriteStamp;
@@ -337,7 +339,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
   public bool ReadCommittedTryGet(in TKey key, out TValue value, long currentTransactionId = -1)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       TransactionLog.TryGetReadWriteStamp(key, out var readWriteStamp);
       var ws = readWriteStamp.WriteStamp;
@@ -393,7 +395,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
   {
     if (IsReadOnly)
       throw new ZoneTreeIsReadOnlyException();
-    lock (this)
+    lock (SyncRoot)
     {
       var transactionId = BeginTransaction();
       var transaction = GetOrCreateTransaction(transactionId);
@@ -421,7 +423,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
   {
     if (IsReadOnly)
       throw new ZoneTreeIsReadOnlyException();
-    lock (this)
+    lock (SyncRoot)
     {
       var transactionId = BeginTransaction();
       var transaction = GetOrCreateTransaction(transactionId);
@@ -471,7 +473,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
   public TransactionResult<bool> ContainsKeyNoThrow(long transactionId, in TKey key)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
       if (transaction == null)
@@ -490,7 +492,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
 
   public TransactionResult<bool> TryGetNoThrow(long transactionId, in TKey key, out TValue value)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
       if (transaction == null)
@@ -516,7 +518,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
   {
     if (IsReadOnly)
       throw new ZoneTreeIsReadOnlyException();
-    lock (this)
+    lock (SyncRoot)
     {
       var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
       if (transaction == null)
@@ -553,7 +555,7 @@ public sealed class OptimisticZoneTree<TKey, TValue> :
   {
     if (IsReadOnly)
       throw new ZoneTreeIsReadOnlyException();
-    lock (this)
+    lock (SyncRoot)
     {
       var transaction = GetOrCreateTransactionNoAbortThrow(transactionId);
       if (transaction == null)

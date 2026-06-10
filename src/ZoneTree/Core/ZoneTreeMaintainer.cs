@@ -17,6 +17,8 @@ namespace ZoneTree.Core;
 /// <typeparam name="TValue">The value type</typeparam>
 public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
 {
+  readonly Lock SyncRoot = new();
+
   readonly ILogger Logger;
 
   volatile bool RestartMerge;
@@ -176,7 +178,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
   /// <inheritdoc/>
   public void StartMerge()
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var mergerThread = Maintenance.StartMergeOperation();
       if (mergerThread == null)
@@ -193,7 +195,7 @@ public sealed class ZoneTreeMaintainer<TKey, TValue> : IMaintainer, IDisposable
   public void StartBottomSegmentsMerge(
       int fromIndex = 0, int toIndex = int.MaxValue)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var mergerThread = Maintenance
           .StartBottomSegmentsMergeOperation(fromIndex, toIndex);

@@ -13,6 +13,8 @@ namespace ZoneTree.WAL;
 
 public sealed class CompressedFileStream : Stream, IDisposable
 {
+  readonly Lock SyncRoot = new();
+
   readonly ILogger Logger;
 
   readonly int BlockSize;
@@ -259,7 +261,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
       return;
     if (IsClosed || !TailStream.CanWrite)
       return;
-    lock (this)
+    lock (SyncRoot)
     {
       tailBlock = TailBlock;
       if (tailBlock.BlockIndex < LastWrittenTailIndex)
@@ -455,7 +457,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
     if (value != 0)
     {
       // Sync with tail writer
-      lock (this)
+      lock (SyncRoot)
       {
         TruncateFile(value);
       }
@@ -539,7 +541,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
   public override void Write(byte[] buffer, int offset, int count)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (Position != Length)
         throw new Exception("Compressed File Stream can only write to the end of the file.");
@@ -593,7 +595,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
   {
     if (IsClosed)
       return;
-    lock (this)
+    lock (SyncRoot)
     {
       if (IsClosed)
         return;
@@ -624,7 +626,7 @@ public sealed class CompressedFileStream : Stream, IDisposable
 
   public byte[] GetFileContentIncludingTail()
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var tailBlock = TailBlock;
       var compressedBytes = tailBlock.Compress();

@@ -2,6 +2,8 @@ namespace ZoneTree.Logger;
 
 public sealed class ConsoleLogger : ILogger
 {
+  readonly Lock SyncRoot = new();
+
 #pragma warning disable CA2211 // Non-constant fields should not be visible
   public static LogLevel DefaultLogLevel = LogLevel.Warning;
 #pragma warning restore CA2211 // Non-constant fields should not be visible
@@ -20,7 +22,7 @@ public sealed class ConsoleLogger : ILogger
 
   public void LogError(Exception log)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var existing = Console.ForegroundColor;
       Console.ForegroundColor = ConsoleColor.Red;
@@ -33,7 +35,7 @@ public sealed class ConsoleLogger : ILogger
   {
     if (LogLevel > LogLevel.Info)
       return;
-    lock (this)
+    lock (SyncRoot)
     {
       var existing = Console.ForegroundColor;
       Console.ForegroundColor = ConsoleColor.Green;
@@ -46,7 +48,7 @@ public sealed class ConsoleLogger : ILogger
   {
     if (LogLevel > LogLevel.Trace)
       return;
-    lock (this)
+    lock (SyncRoot)
     {
       var existing = Console.ForegroundColor;
       Console.ForegroundColor = ConsoleColor.Cyan;
@@ -59,7 +61,7 @@ public sealed class ConsoleLogger : ILogger
   {
     if (LogLevel > LogLevel.Warning)
       return;
-    lock (this)
+    lock (SyncRoot)
     {
       var existing = Console.ForegroundColor;
       Console.ForegroundColor = ConsoleColor.Yellow;

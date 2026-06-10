@@ -12,6 +12,8 @@ namespace ZoneTree.WAL;
 
 public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
+  readonly Lock SyncRoot = new();
+
   readonly ILogger Logger;
 
   readonly IFileStreamProvider FileStreamProvider;
@@ -143,7 +145,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
 
   void ConsumeQueue()
   {
-    lock (this)
+    lock (SyncRoot)
     {
       while (Queue.TryDequeue(out var q))
       {
@@ -252,7 +254,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
 
   public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values, bool disableBackup)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (!disableBackup && EnableIncrementalBackup)
       {
@@ -304,7 +306,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
 
   public void TruncateIncompleteTailRecord(IncompleteTailRecordFoundException incompleteTailException)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       FileStream.SetLength(incompleteTailException.RecordPosition);
     }

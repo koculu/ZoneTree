@@ -12,6 +12,8 @@ namespace ZoneTree.WAL;
 // https://devblogs.microsoft.com/dotnet/file-io-improvements-in-dotnet-6/
 public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValue>
 {
+  readonly Lock SyncRoot = new();
+
   readonly ILogger Logger;
 
   readonly IFileStreamProvider FileStreamProvider;
@@ -79,7 +81,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
   {
     var keyBytes = KeySerializer.Serialize(key);
     var valueBytes = ValueSerializer.Serialize(value);
-    lock (this)
+    lock (SyncRoot)
     {
       LogEntry.AppendLogEntry(BinaryWriter, keyBytes, valueBytes, opIndex);
     }
@@ -127,7 +129,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
 
   public long ReplaceWriteAheadLog(TKey[] keys, TValue[] values, bool disableBackup)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       if (!disableBackup && EnableIncrementalBackup)
       {
@@ -219,7 +221,7 @@ public sealed class SyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrite
 
   public void TruncateIncompleteTailRecord(IncompleteTailRecordFoundException incompleteTailException)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       FileStream.SetLength(incompleteTailException.RecordPosition);
     }

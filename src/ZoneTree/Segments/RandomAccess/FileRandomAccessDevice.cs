@@ -7,6 +7,8 @@ namespace ZoneTree.Segments.RandomAccess;
 
 public sealed class FileRandomAccessDevice : IRandomAccessDevice
 {
+  readonly Lock SyncRoot = new();
+
   readonly string Category;
 
   IFileStream FileStream;
@@ -61,7 +63,7 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
 
   public Memory<byte> GetBytes(long offset, int length, SingleBlockPin blockPin)
   {
-    lock (this)
+    lock (SyncRoot)
     {
       var bytes = new byte[length];
       FileStream.Seek(offset, SeekOrigin.Begin);
