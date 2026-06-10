@@ -34,13 +34,13 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
   readonly IncrementalIdProvider IncrementalIdProvider = new();
 
-  readonly object AtomicUpdateLock = new();
+  readonly Lock AtomicUpdateLock = new();
 
-  readonly object LongMergerLock = new();
+  readonly Lock LongMergerLock = new();
 
-  readonly object LongBottomSegmentsMergerLock = new();
+  readonly Lock LongBottomSegmentsMergerLock = new();
 
-  readonly object ShortMergerLock = new();
+  readonly Lock ShortMergerLock = new();
 
   volatile bool IsMergingFlag;
 

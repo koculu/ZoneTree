@@ -37,7 +37,7 @@ public abstract class DiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 
   bool IsDropped;
 
-  readonly object DropLock = new();
+  readonly Lock DropLock = new();
 
   public long Length { get; protected set; }
 

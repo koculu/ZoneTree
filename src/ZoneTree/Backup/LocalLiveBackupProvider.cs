@@ -26,7 +26,7 @@ public sealed class LocalLiveBackupProvider
     WriteIndented = true
   };
 
-  readonly object SyncRoot = new();
+  readonly Lock SyncRoot = new();
 
   readonly Dictionary<long, LocalLiveBackupGenerationCatalog> ActiveGenerations = [];
 

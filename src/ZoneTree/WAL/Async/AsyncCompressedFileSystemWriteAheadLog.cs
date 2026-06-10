@@ -71,7 +71,7 @@ public sealed class AsyncCompressedFileSystemWriteAheadLog<TKey, TValue> : IWrit
     }
   }
 
-  readonly object AppendLock = new();
+  readonly Lock AppendLock = new();
 
   volatile bool isRunning;
 
