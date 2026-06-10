@@ -296,46 +296,27 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
 
   private static byte[] JsonSerializeToUtf8Bytes(ZoneTreeMeta meta)
   {
-#if NET6_0_OR_GREATER
     return JsonSerializer.SerializeToUtf8Bytes(
         meta,
         ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);
-#else
-        return JsonSerializer.SerializeToUtf8Bytes(
-                    meta,
-                    new JsonSerializerOptions()
-                    {
-                        WriteIndented = true
-                    });
-#endif
   }
 
   private static ZoneTreeMeta JsonDeserialize(byte[] bytes)
   {
-#if NET6_0_OR_GREATER
     return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes, ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);
-#else
-        return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes);
-#endif
   }
 
   private static ZoneTreeMeta JsonDeserialize(Span<byte> bytes)
   {
-#if NET6_0_OR_GREATER
     return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes, ZoneTreeMetaSourceGenerationContext.Default.ZoneTreeMeta);
-#else
-        return JsonSerializer.Deserialize<ZoneTreeMeta>(bytes);
-#endif
   }
 }
 
-#if NET6_0_OR_GREATER
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(ZoneTreeMeta))]
-internal partial class ZoneTreeMetaSourceGenerationContext : JsonSerializerContext
+internal sealed partial class ZoneTreeMetaSourceGenerationContext : JsonSerializerContext
 {
 }
-#endif
 
 public enum MetaWalOperation
 {
