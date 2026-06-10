@@ -712,9 +712,12 @@ public sealed class LocalLiveBackupGenerationCatalog
 
   public string StartedAtUtc { get; set; }
 
-  public List<long> SegmentIds { get; } = new();
+  [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1002:Do not expose generic lists", Justification = "Performance matters more. List is stable for years.")]
+  public List<long> SegmentIds { get; } = [];
 
-  public List<LocalLiveBackupFile> Files { get; set; } = new();
+  [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1002:Do not expose generic lists", Justification = "Performance matters more. List is stable for years.")]
+  [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "Probably, but we need to make it writable now.")]
+  public List<LocalLiveBackupFile> Files { get; set; } = [];
 
   public LocalLiveBackupRecordBatch RecordBatch { get; set; }
 }

@@ -100,11 +100,16 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
   {
     lock (this)
     {
-      if (destinationBackupFileName != null && Files.ContainsKey(destinationFileName))
+      if (destinationBackupFileName != null &&
+          Files.TryGetValue(destinationFileName, out var destinationBytes))
       {
-        Files[destinationBackupFileName] = Files[destinationFileName];
+        Files[destinationBackupFileName] = destinationBytes;
       }
-      Files[destinationFileName] = Files.ContainsKey(sourceFileName) ? Files[sourceFileName] : Array.Empty<byte>();
+
+      Files[destinationFileName] = Files.TryGetValue(sourceFileName, out var sourceBytes)
+        ? sourceBytes
+        : [];
+
       Files.Remove(sourceFileName);
     }
   }

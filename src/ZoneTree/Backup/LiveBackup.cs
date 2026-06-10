@@ -30,6 +30,7 @@ public sealed class LiveBackup<TKey, TValue> : IDisposable
 
   TaskCompletionSource<bool> StateChanged = CreateTaskSource();
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "SchedulerCancellation is dispsed correctly.")]
   CancellationTokenSource SchedulerCancellation;
 
   int RunningSchedulerCount;
