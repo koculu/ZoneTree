@@ -40,6 +40,11 @@ public sealed class LiveBackupOptions
   /// </summary>
   public LiveBackupCompressionOptions RecordBatchCompression { get; set; } = new();
 
+  /// <summary>
+  /// Maximum number of file transfers that may run concurrently during live backup.
+  /// </summary>
+  public int MaxConcurrentFileTransfers { get; set; } = 8;
+
   public void Normalize()
   {
     Schedule ??= LiveBackupSchedule.None;
