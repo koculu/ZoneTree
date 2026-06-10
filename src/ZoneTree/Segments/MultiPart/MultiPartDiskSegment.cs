@@ -606,6 +606,27 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
   public int GetPartCount() => Parts.Count;
 
+  public DiskSegmentFile[] GetFiles()
+  {
+    var files = new List<DiskSegmentFile>();
+    var deviceManager = Options.RandomAccessDeviceManager;
+    var category = DiskSegmentConstants.MultiPartDiskSegmentCategory;
+    if (deviceManager.DeviceExists(SegmentId, category, false))
+    {
+      var path = deviceManager.GetFilePath(SegmentId, category);
+      files.Add(new DiskSegmentFile(
+          SegmentId,
+          path,
+          Path.GetFileName(path),
+          Length));
+    }
+
+    foreach (var part in Parts)
+      files.AddRange(part.GetFiles());
+
+    return [.. files];
+  }
+
   public void SetDefaultSparseArray(IReadOnlyList<SparseArrayEntry<TKey, TValue>> defaultSparseArray)
   {
     throw new NotSupportedException("SetDefaultSparseArray is not intended to be called for MultiPartDiskSegment");

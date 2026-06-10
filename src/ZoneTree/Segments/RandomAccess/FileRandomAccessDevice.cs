@@ -40,7 +40,7 @@ public sealed class FileRandomAccessDevice : IRandomAccessDevice
     Writable = writable;
     var fileMode = writable ? FileMode.OpenOrCreate : FileMode.Open;
     var fileAccess = writable ? FileAccess.ReadWrite : FileAccess.Read;
-    var fileShare = writable ? FileShare.None : FileShare.Read;
+    var fileShare = FileShare.Read;
     FileStream = fileStreamProvider.CreateFileStream(filePath,
         fileMode,
         fileAccess,

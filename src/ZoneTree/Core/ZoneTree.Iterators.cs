@@ -53,6 +53,91 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
       }
   }
 
+  /// <summary>
+  /// Collects the immutable disk segment set and an in-memory-only iterator for
+  /// one live backup generation. Disk segments are attached for physical file
+  /// copy. The iterator excludes disk and bottom segments so in-memory records
+  /// can be streamed without scanning immutable disk data again.
+  /// </summary>
+  public BackupSegmentCollection CollectBackupSegments(
+      bool moveMutableSegmentForward,
+      bool includeInMemorySegments)
+  {
+    if (moveMutableSegmentForward && includeInMemorySegments)
+      MoveMutableSegmentForward();
+
+    BackupSegmentCollection result = null;
+    try
+    {
+      lock (ShortMergerLock)
+        lock (AtomicUpdateLock)
+        {
+          IDiskSegment<TKey, TValue> attachedDiskSegment = null;
+          var attachedBottomSegments = new List<IDiskSegment<TKey, TValue>>();
+          ZoneTreeIterator<TKey, TValue> inMemoryIterator = null;
+          var completed = false;
+          try
+          {
+            result = new BackupSegmentCollection();
+
+            var diskSegment = DiskSegment;
+            if (diskSegment is not NullDiskSegment<TKey, TValue>)
+            {
+              diskSegment.AttachIterator();
+              attachedDiskSegment = diskSegment;
+              result.DiskSegment = diskSegment;
+            }
+
+            var bottomSegments = BottomSegmentQueue.ToLastInFirstArray();
+            foreach (var bottom in bottomSegments)
+            {
+              bottom.AttachIterator();
+              attachedBottomSegments.Add(bottom);
+            }
+            result.BottomSegments = bottomSegments;
+
+            if (includeInMemorySegments)
+            {
+              inMemoryIterator = moveMutableSegmentForward
+                  ? (ZoneTreeIterator<TKey, TValue>)CreateReadOnlySegmentsIterator(
+                      autoRefresh: false,
+                      includeDeletedRecords: true)
+                  : (ZoneTreeIterator<TKey, TValue>)CreateInMemorySegmentsIterator(
+                      autoRefresh: false,
+                      includeDeletedRecords: true);
+              inMemoryIterator.Refresh();
+            }
+
+            result.InMemoryIterator = inMemoryIterator;
+            completed = true;
+          }
+          finally
+          {
+            if (!completed)
+            {
+              inMemoryIterator?.Dispose();
+              attachedDiskSegment?.DetachIterator();
+              foreach (var bottom in attachedBottomSegments)
+                bottom.DetachIterator();
+              result = null;
+            }
+          }
+        }
+
+      if (moveMutableSegmentForward && includeInMemorySegments)
+      {
+        var iterator = (ZoneTreeIterator<TKey, TValue>)result.InMemoryIterator;
+        iterator.WaitUntilReadOnlySegmentsBecomeFullyFrozen();
+      }
+      return result;
+    }
+    catch
+    {
+      result?.Dispose();
+      throw;
+    }
+  }
+
   public sealed class SegmentCollection
   {
     public IReadOnlyList<ISeekableIterator<TKey, TValue>> SeekableIterators { get; set; }
@@ -60,6 +145,45 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
     public IDiskSegment<TKey, TValue> DiskSegment { get; set; }
 
     public IReadOnlyList<IDiskSegment<TKey, TValue>> BottomSegments { get; set; }
+  }
+
+  public sealed class DiskSegmentCollection
+  {
+    public IDiskSegment<TKey, TValue> DiskSegment { get; set; }
+
+    public IReadOnlyList<IDiskSegment<TKey, TValue>> BottomSegments { get; set; }
+  }
+
+  public sealed class BackupSegmentCollection : IDisposable
+  {
+    bool IsDisposed;
+
+    public IDiskSegment<TKey, TValue> DiskSegment { get; set; }
+
+    public IReadOnlyList<IDiskSegment<TKey, TValue>> BottomSegments { get; set; }
+
+    public IZoneTreeIterator<TKey, TValue> InMemoryIterator { get; set; }
+
+    public void Dispose()
+    {
+      if (IsDisposed)
+        return;
+
+      InMemoryIterator?.Dispose();
+      InMemoryIterator = null;
+
+      DiskSegment?.DetachIterator();
+      DiskSegment = null;
+
+      if (BottomSegments != null)
+      {
+        foreach (var bottom in BottomSegments)
+          bottom?.DetachIterator();
+        BottomSegments = null;
+      }
+
+      IsDisposed = true;
+    }
   }
 
   public IZoneTreeIterator<TKey, TValue> CreateIterator(

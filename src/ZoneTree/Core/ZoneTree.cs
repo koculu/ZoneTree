@@ -32,7 +32,7 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
 
   volatile SingleProducerSingleConsumerQueue<IDiskSegment<TKey, TValue>> BottomSegmentQueue = new();
 
-  readonly IIncrementalIdProvider IncrementalIdProvider = new IncrementalIdProvider();
+  readonly IncrementalIdProvider IncrementalIdProvider = new();
 
   readonly object AtomicUpdateLock = new();
 
@@ -131,6 +131,8 @@ public sealed partial class ZoneTree<TKey, TValue> : IZoneTree<TKey, TValue>, IZ
   public ISerializer<TKey> KeySerializer => Options.KeySerializer;
 
   public ISerializer<TValue> ValueSerializer => Options.ValueSerializer;
+
+  public long LastOpIndex => IncrementalIdProvider.LastId;
 
   public ZoneTree(ZoneTreeOptions<TKey, TValue> options)
   {

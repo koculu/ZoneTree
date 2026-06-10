@@ -10,6 +10,7 @@ using ZoneTree.Options;
 using ZoneTree.Logger;
 using ZoneTree.Segments.RandomAccess;
 using ZoneTree.PresetTypes;
+using ZoneTree.Backup;
 
 namespace ZoneTree;
 
@@ -406,6 +407,90 @@ public sealed class ZoneTreeFactory<TKey, TValue>
       throw new DatabaseNotFoundException();
     var zoneTree = loader.LoadZoneTree();
     return zoneTree;
+  }
+
+  /// <summary>
+  /// Restores the latest generation from a local live backup directory and opens
+  /// the restored ZoneTree.
+  /// </summary>
+  public async ValueTask<IZoneTree<TKey, TValue>> RestoreFromLatestLiveBackup(string backupDirectory)
+  {
+    return await RestoreFromLatestLiveBackup(
+        new LocalLiveBackupProvider(backupDirectory));
+  }
+
+  /// <summary>
+  /// Restores the latest generation from a local live backup directory and opens
+  /// the restored ZoneTree.
+  /// </summary>
+  public async ValueTask<IZoneTree<TKey, TValue>> RestoreFromLatestLiveBackup(
+      LocalLiveBackupOptions localBackupOptions)
+  {
+    return await RestoreFromLatestLiveBackup(
+        new LocalLiveBackupProvider(localBackupOptions));
+  }
+
+  /// <summary>
+  /// Restores the latest generation from a live backup source and opens the
+  /// restored ZoneTree.
+  /// </summary>
+  public async ValueTask<IZoneTree<TKey, TValue>> RestoreFromLatestLiveBackup(
+      ILiveBackupSource source)
+  {
+    return await RestoreLiveBackup(source, generationId: null);
+  }
+
+  /// <summary>
+  /// Restores a specific generation from a local live backup directory and opens
+  /// the restored ZoneTree.
+  /// </summary>
+  public async ValueTask<IZoneTree<TKey, TValue>> RestoreFromLiveBackupGeneration(
+      string backupDirectory,
+      long generationId)
+  {
+    return await RestoreFromLiveBackupGeneration(
+        new LocalLiveBackupProvider(backupDirectory),
+        generationId);
+  }
+
+  /// <summary>
+  /// Restores a specific generation from a local live backup directory and opens
+  /// the restored ZoneTree.
+  /// </summary>
+  public async ValueTask<IZoneTree<TKey, TValue>> RestoreFromLiveBackupGeneration(
+      LocalLiveBackupOptions localBackupOptions,
+      long generationId)
+  {
+    return await RestoreFromLiveBackupGeneration(
+        new LocalLiveBackupProvider(localBackupOptions),
+        generationId);
+  }
+
+  /// <summary>
+  /// Restores a specific generation from a live backup source and opens the
+  /// restored ZoneTree.
+  /// </summary>
+  public async ValueTask<IZoneTree<TKey, TValue>> RestoreFromLiveBackupGeneration(
+      ILiveBackupSource source,
+      long generationId)
+  {
+    return await RestoreLiveBackup(source, generationId);
+  }
+
+  async ValueTask<IZoneTree<TKey, TValue>> RestoreLiveBackup(
+      ILiveBackupSource source,
+      long? generationId)
+  {
+    FillMissingOptionsForKnownTypes();
+    InitWriteAheadLogProvider();
+    var restore = new LiveBackupRestore<TKey, TValue>(
+        Options,
+        source);
+    if (generationId.HasValue)
+      await restore.RestoreGeneration(generationId.Value);
+    else
+      await restore.RestoreLatest();
+    return Open();
   }
 
   /// <summary>
