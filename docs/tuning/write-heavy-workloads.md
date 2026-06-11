@@ -68,4 +68,4 @@ For very large write-heavy databases, multipart disk segments help keep physical
 
 The default disk segment max item count is `20_000_000` records. Multipart disk segments target `1_500_000` to `3_000_000` records per part by default.
 
-See [disk segment tuning](disk-segments.md).
+See [disk segment tuning](disk-segments.md) and [write amplification](write-amplification.md).

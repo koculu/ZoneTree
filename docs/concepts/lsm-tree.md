@@ -30,6 +30,8 @@ This order ensures newer values and deletion markers override older records with
 
 Compaction removes obsolete records and combines segments into larger persistent structures. This is where old values, overwritten records, and deletion markers can be discarded when it is safe.
 
+ZoneTree's default multipart disk segment mode can reduce compaction write amplification by carrying unchanged disk parts forward during merge instead of rewriting the whole persistent level.
+
 ## Why This Works Well
 
 LSM-trees are strong when write throughput matters and data can be compacted over time. They are especially useful for indexes, event-like data, queues, caches, time-series layouts, and systems where many writes eventually become a smaller optimized on-disk representation.
@@ -47,3 +49,5 @@ The most important LSM-tree tuning knobs are:
 * cache behavior.
 
 See [write-heavy workloads](../tuning/write-heavy-workloads.md) and [read-heavy workloads](../tuning/read-heavy-workloads.md).
+
+For the merge model behind multipart disk segments, see [write amplification](../tuning/write-amplification.md).

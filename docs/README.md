@@ -47,10 +47,10 @@ These docs explain the mental model behind ZoneTree, the main APIs, and the oper
 ## Tuning
 
 * [Write-heavy workloads](tuning/write-heavy-workloads.md)
+* [Write amplification](tuning/write-amplification.md)
 * [Read-heavy workloads](tuning/read-heavy-workloads.md)
 * [Disk segment tuning](tuning/disk-segments.md)
 * [Large values](tuning/large-values.md)
-* [Billion-record datasets](tuning/billion-record-datasets.md)
 
 ## Build On ZoneTree
 

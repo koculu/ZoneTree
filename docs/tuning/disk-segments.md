@@ -44,6 +44,8 @@ The defaults are `1_500_000` and `3_000_000` records. The higher-level `DiskSegm
 
 Larger parts mean fewer files and potentially better sequential behavior. Smaller parts can reduce operational file-size pressure and make part-level reuse more flexible.
 
+ZoneTree randomizes multipart part sizes between the configured minimum and maximum. This avoids rigid split boundaries and helps multipart merge reuse stay effective over time. See [write amplification](write-amplification.md).
+
 ## Sparse Array Step Size
 
 `DefaultSparseArrayStepSize` controls how frequently ZoneTree records sparse index entries while creating disk segments.
