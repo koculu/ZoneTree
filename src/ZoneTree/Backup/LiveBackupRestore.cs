@@ -41,6 +41,7 @@ public sealed class LiveBackupRestore<TKey, TValue>
         generation,
         GetMaximumSegmentId(generation));
     var mutableSegmentId = ++maximumSegmentId;
+    CreateMutableWal(mutableSegmentId);
     var orderedSegmentIds = GetOrderedSegmentIds(generation);
     var diskSegmentId = orderedSegmentIds.Length > 0 ? orderedSegmentIds[0] : 0;
     var bottomSegments = orderedSegmentIds
@@ -77,19 +78,17 @@ public sealed class LiveBackupRestore<TKey, TValue>
       LiveBackupGeneration generation, long maximumSegmentId)
   {
     var batch = generation.RecordBatch;
-    var hasInMemoryRecordBatch = batch == null || batch.RecordCount == 0;
+    var hasInMemoryRecordBatch = batch != null && batch.RecordCount > 0;
     var restoreWalOptions = CloneWriteAheadLogOptions(
         Options.WriteAheadLogOptions);
     restoreWalOptions.EnableIncrementalBackup = false;
     Options.WriteAheadLogProvider.InitCategory(
         ZoneTree<TKey, TValue>.SegmentWalCategory);
 
-    var mutableWalSegmentId = maximumSegmentId + (hasInMemoryRecordBatch ? 2 : 1);
-    CreateMutableWal(mutableWalSegmentId, restoreWalOptions);
-
     var opIndex = generation.LastOpIndex;
-    if (hasInMemoryRecordBatch)
+    if (!hasInMemoryRecordBatch)
       return ([], maximumSegmentId, opIndex);
+
     var segmentId = ++maximumSegmentId;
     using var source = await Source.OpenRecordBatchAsync(batch, CancellationToken.None);
     using var reader = new LiveBackupRecordBatchReader(source, batch);
@@ -120,8 +119,14 @@ public sealed class LiveBackupRestore<TKey, TValue>
     return ([segmentId], maximumSegmentId, opIndex);
   }
 
-  private void CreateMutableWal(long mutableWalSegmentId, WriteAheadLogOptions restoreWalOptions)
+  void CreateMutableWal(long mutableWalSegmentId)
   {
+    var restoreWalOptions = CloneWriteAheadLogOptions(
+        Options.WriteAheadLogOptions);
+    restoreWalOptions.EnableIncrementalBackup = false;
+    Options.WriteAheadLogProvider.InitCategory(
+        ZoneTree<TKey, TValue>.SegmentWalCategory);
+
     using var mutableWal = Options.WriteAheadLogProvider.GetOrCreateWAL(
         mutableWalSegmentId,
         ZoneTree<TKey, TValue>.SegmentWalCategory,
