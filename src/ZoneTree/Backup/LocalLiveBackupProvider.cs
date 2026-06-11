@@ -28,8 +28,6 @@ public sealed class LocalLiveBackupProvider
 
   readonly Lock SyncRoot = new();
 
-  readonly Dictionary<long, LocalLiveBackupGenerationCatalog> ActiveGenerations = [];
-
   readonly string BackupDirectory;
 
   readonly int BufferSize;
@@ -37,6 +35,8 @@ public sealed class LocalLiveBackupProvider
   readonly LocalDirectoryManifest Manifest = new();
 
   bool ManifestLoaded;
+
+  LocalLiveBackupGenerationCatalog ActiveGeneration;
 
   long LastGenerationId;
 
@@ -160,12 +160,11 @@ public sealed class LocalLiveBackupProvider
     EnsureRootDirectories();
     lock (SyncRoot)
     {
-      ActiveGenerations[generationId] =
-          new LocalLiveBackupGenerationCatalog
-          {
-            GenerationId = generationId,
-            StartedAtUtc = startedAtUtc.ToString("O")
-          };
+      ActiveGeneration = new LocalLiveBackupGenerationCatalog
+      {
+        GenerationId = generationId,
+        StartedAtUtc = startedAtUtc.ToString("O")
+      };
     }
     return Task.CompletedTask;
   }
@@ -300,7 +299,7 @@ public sealed class LocalLiveBackupProvider
     {
       catalog = GetActiveGeneration(generationId);
       catalog.LastOpIndex = lastOpIndex;
-      ActiveGenerations.Remove(generationId);
+      ActiveGeneration = null;
     }
 
     await WriteGenerationAsync(catalog, cancellationToken);
@@ -542,8 +541,12 @@ public sealed class LocalLiveBackupProvider
 
   LocalLiveBackupGenerationCatalog GetActiveGeneration(long generationId)
   {
-    if (ActiveGenerations.TryGetValue(generationId, out var catalog))
-      return catalog;
+    if (ActiveGeneration != null &&
+        ActiveGeneration.GenerationId == generationId)
+    {
+      return ActiveGeneration;
+    }
+
     throw new InvalidOperationException(
         "Live backup generation has not been started.");
   }

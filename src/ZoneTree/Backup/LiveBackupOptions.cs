@@ -98,33 +98,10 @@ public sealed class LiveBackupCompressionOptions
     if (BlockSize <= 0)
       BlockSize = DefaultBlockSize;
 
-    if (!IsLevelValid())
+    if (!CompressionLevels.IsValid(Method, Level))
     {
       Method = DefaultMethod;
       Level = DefaultLevel;
     }
-  }
-  // TODO:fix code duplication in repo, this function logic is used somewhere else
-  bool IsLevelValid()
-  {
-    return Method switch
-    {
-      CompressionMethod.None => true,
-      CompressionMethod.Gzip =>
-          Level >= CompressionLevels.GzipOptimal &&
-          Level <= CompressionLevels.GzipSmallestSize,
-      CompressionMethod.LZ4 =>
-          Level >= CompressionLevels.LZ4Fastest &&
-          Level <= CompressionLevels.LZ4HighCompression12 &&
-          Level != 1 &&
-          Level != 2,
-      CompressionMethod.Zstd =>
-          Level >= CompressionLevels.ZstdMin &&
-          Level <= CompressionLevels.ZstdMax,
-      CompressionMethod.Brotli =>
-          Level >= CompressionLevels.BrotliOptimal &&
-          Level <= CompressionLevels.BrotliSmallestSize,
-      _ => false,
-    };
   }
 }
