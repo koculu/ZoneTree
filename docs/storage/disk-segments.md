@@ -71,9 +71,9 @@ See [compression](compression.md).
 
 ## Read Path Caches
 
-Disk segments use caches to reduce repeated disk work. ZoneTree includes circular key/value caches and block cache behavior for disk reads.
+Disk segments use caches to reduce repeated disk work. The main read-side cache for compressed disk segments is the decompressed block cache. It is controlled by the maintainer through `BlockCacheLifeTime` and `InactiveBlockCacheCleanupInterval`.
 
-The default circular key and value caches each hold `1024` records with a `10 second` record lifetime.
+Disk segment options also include smaller circular key/value caches. The default circular key and value caches each hold `1024` records with a `10 second` record lifetime.
 
 See [read-path caching](read-path-caching.md).
 

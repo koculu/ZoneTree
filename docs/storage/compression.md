@@ -37,6 +37,8 @@ Compression block size affects:
 
 Larger blocks can compress better. Smaller blocks can make random reads cheaper.
 
+For disk segments, block size also affects block cache memory. A cached disk block is held decompressed, so larger disk compression blocks can retain more memory per cached block. The maintainer controls how long inactive decompressed blocks remain cached.
+
 ZoneTree intentionally uses different default block sizes for WAL and disk segments. WAL blocks are smaller because they serve the write/recovery path. Disk segment blocks are larger because they serve persisted sorted data and benefit more from compression density.
 
 ## Test With Real Data

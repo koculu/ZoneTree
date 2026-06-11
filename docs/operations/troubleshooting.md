@@ -129,7 +129,8 @@ Likely causes:
 * too many segments must be searched,
 * key layout does not match the read pattern,
 * sparse arrays are too sparse or disabled,
-* key/value caches are too small for the working set,
+* decompressed block cache lifetime is too short for the working set,
+* key/value circular caches are too small for repeated same-record reads,
 * compression CPU cost is high,
 * full scans are affecting the cache strategy.
 
@@ -139,6 +140,8 @@ What to inspect:
 * bottom segment count,
 * disk segment mode,
 * `DefaultSparseArrayStepSize`,
+* maintainer `BlockCacheLifeTime`,
+* maintainer `InactiveBlockCacheCleanupInterval`,
 * key/value cache sizes and lifetimes,
 * whether iterators contribute to the block cache.
 
@@ -147,7 +150,8 @@ What to do:
 * keep maintenance healthy,
 * design keys around range scans and locality,
 * tune sparse array density after measuring reads,
-* tune circular key/value caches for repeated point reads,
+* tune block cache lifetime for repeated nearby disk reads,
+* tune circular key/value caches for repeated same-record reads,
 * keep one-off full scans from contributing to the block cache.
 
 ## Process Memory Looks High
@@ -159,7 +163,7 @@ Likely ZoneTree contributors:
 * active mutable segment,
 * read-only segments waiting for merge,
 * large keys or values,
-* disk block/read buffers,
+* decompressed disk block cache,
 * circular key/value caches,
 * iterators that pin segments,
 * temporary merge and WAL buffers.
@@ -171,12 +175,14 @@ What to inspect:
 * `ReadOnlySegmentsCount`,
 * iterator lifetimes,
 * value shape and value size,
+* maintainer block cache lifetime and cleanup interval,
 * maintainer activity.
 
 What to do:
 
 * tune `MutableSegmentMaxItemCount` by expected byte size, not only record count,
 * keep maintenance running,
+* shorten `BlockCacheLifeTime` if inactive disk blocks are retained too long,
 * dispose iterators promptly,
 * prefer immutable value shapes,
 * use .NET memory diagnostics instead of relying only on OS process memory.

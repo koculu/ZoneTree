@@ -24,7 +24,7 @@ public interface IMaintainer : IDisposable
   /// Gets or sets a value indicating whether a periodic cleanup job is enabled to release 
   /// unused block and key/value caches in disk segments.
   /// Toggling this property starts or stops the associated periodic timer.
-  /// The default value is <c>false</c>.
+  /// Maintainers created with <c>zoneTree.CreateMaintainer()</c> start this job by default.
   /// </summary>
   bool EnableJobForCleaningInactiveCaches { get; set; }
 
@@ -35,7 +35,8 @@ public interface IMaintainer : IDisposable
   TimeSpan BlockCacheLifeTime { get; set; }
 
   /// <summary>
-  /// Gets or sets the interval at which the cleanup job runs to remove inactive block caches.
+  /// Gets or sets the interval at which the cleanup job runs to remove inactive
+  /// block buffers and expired circular key/value cache records.
   /// The default value is 30 seconds.
   /// </summary>
   TimeSpan InactiveBlockCacheCleanupInterval { get; set; }

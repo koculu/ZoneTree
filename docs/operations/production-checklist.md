@@ -10,7 +10,7 @@ Use this checklist before putting ZoneTree behind production traffic.
 * Use sync WAL modes only when synchronous WAL acknowledgment is required.
 * Use `No WAL` only for cache, temporary, or intentionally rebuildable data.
 * Choose disk segment mode based on database size and operational file-size needs.
-* Tune sparse array and cache settings only after measuring read behavior.
+* Tune sparse arrays, block cache lifetime, and circular key/value caches only after measuring read behavior.
 * Plan backup and restore before production traffic.
 
 ## Memory
@@ -18,6 +18,7 @@ Use this checklist before putting ZoneTree behind production traffic.
 * Estimate key and value sizes.
 * Tune `MutableSegmentMaxItemCount` for value size.
 * Keep maintenance running for long-lived write-heavy applications.
+* Tune `BlockCacheLifeTime` when read-side memory or repeated disk reads matter.
 * Avoid long-lived iterators unless they are deliberate.
 * Use .NET diagnostics to measure live memory.
 

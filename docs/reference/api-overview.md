@@ -75,9 +75,9 @@ Important operations:
 * `StartMergeOperation`
 * `StartBottomSegmentsMergeOperation`
 * `SaveMetaData`
-* `ReleaseReadBuffers`
-* `ReleaseCircularKeyCacheRecords`
-* `ReleaseCircularValueCacheRecords`
+* `ReleaseReadBuffers` for decompressed disk block buffers
+* `ReleaseCircularKeyCacheRecords` for circular key cache records
+* `ReleaseCircularValueCacheRecords` for circular value cache records
 
 ## Backup And Restore
 

@@ -22,6 +22,8 @@ using var maintainer = zoneTree.CreateMaintainer();
 
 The maintainer created by `zoneTree.CreateMaintainer()` starts a periodic inactive-cache cleanup job and listens to segment lifecycle events. It starts merge work when read-only segments cross configured thresholds.
 
+The cleanup job matters for disk reads. Compressed disk segment reads can cache decompressed blocks, and the maintainer releases blocks that have been inactive longer than `BlockCacheLifeTime`.
+
 Default maintainer settings:
 
 | Setting | Default |
@@ -32,7 +34,7 @@ Default maintainer settings:
 | `InactiveBlockCacheCleanupInterval` | `30 seconds` |
 | inactive-cache cleanup job from `CreateMaintainer()` | enabled |
 
-`EnableJobForCleaningInactiveCaches` is `false` on a raw maintainer instance before the timer starts. The usual `zoneTree.CreateMaintainer()` path starts the cleanup job by default.
+The usual `zoneTree.CreateMaintainer()` path starts the cleanup job by default.
 
 Useful settings:
 
@@ -88,6 +90,8 @@ Write-side memory depends heavily on how quickly frozen segments are moved to di
 * value size.
 
 See [memory usage](../storage/memory-usage.md).
+
+Read-side memory depends heavily on block cache lifetime and cleanup. For repeated reads, a longer `BlockCacheLifeTime` can reduce disk reads and decompression. For tight memory budgets, use a shorter lifetime.
 
 ## Iterators Can Pin Segments
 

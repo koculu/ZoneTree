@@ -44,6 +44,17 @@ Use .NET memory diagnostics when you need to measure live ZoneTree data precisel
 
 For read-heavy workloads, memory is mostly shaped by cache behavior and the active working set.
 
+The largest read-side cache is usually the decompressed disk block cache. It stores decompressed compression blocks for disk segments and is cleaned by the maintainer. The default maintainer settings keep inactive blocks for `1 minute` and run cleanup every `30 seconds`.
+
+```csharp
+using var maintainer = zoneTree.CreateMaintainer();
+
+maintainer.BlockCacheLifeTime = TimeSpan.FromMinutes(1);
+maintainer.InactiveBlockCacheCleanupInterval = TimeSpan.FromSeconds(30);
+```
+
+Circular key/value caches are smaller per-record caches configured through disk segment options. They are useful for repeated reads of the same disk record indexes, but they are not the main disk-read cache.
+
 ## Write-Heavy Workloads
 
 For write-heavy workloads, memory is mostly shaped by mutable segment size and how quickly maintenance can move frozen segments to disk.

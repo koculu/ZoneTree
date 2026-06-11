@@ -85,7 +85,7 @@ The default is `1_000_000` records. This is a good starting point for small keys
 
 ## Disk
 
-Disk segment options affect file layout, compression, caches, sparse arrays, multipart sizing, and merge behavior.
+Disk segment options affect file layout, compression, circular key/value caches, sparse arrays, multipart sizing, and merge behavior.
 
 Tune disk options with the actual read/write pattern.
 
@@ -106,6 +106,8 @@ Important options:
 | `ValueCacheRecordLifeTimeInMillisecond` | value cache record lifetime |
 
 The default disk profile uses multipart disk segments, `20_000_000` as the disk segment max item count, `1_500_000` to `3_000_000` records per multipart part, `4 MB` disk compression blocks, LZ4 fastest compression, `1024` sparse array step size, and `1024` key/value cache entries with `10 second` lifetimes.
+
+The decompressed block cache is not configured by `DiskSegmentOptions`. Disk compression block size is configured here, but inactive decompressed block cleanup is controlled by the maintainer.
 
 ## WAL
 
@@ -181,7 +183,7 @@ Live backup is exposed for built-in non-transactional ZoneTree instances. Transa
 
 ## Maintenance
 
-The maintainer controls background merge work and inactive cache cleanup.
+The maintainer controls background merge work and inactive cache cleanup. Inactive cache cleanup releases decompressed disk blocks and expired circular key/value cache records.
 
 The maintainer created by `zoneTree.CreateMaintainer()` uses these defaults:
 
@@ -193,7 +195,7 @@ The maintainer created by `zoneTree.CreateMaintainer()` uses these defaults:
 | `InactiveBlockCacheCleanupInterval` | `30 seconds` |
 | inactive-cache cleanup job | enabled |
 
-`EnableJobForCleaningInactiveCaches` is `false` on a raw maintainer instance before the timer is started, but the normal `CreateMaintainer()` path starts the cleanup job by default.
+The normal `CreateMaintainer()` path starts the cleanup job by default. Longer `BlockCacheLifeTime` can improve repeated disk reads but retains more decompressed blocks in memory.
 
 ## Deletion
 
