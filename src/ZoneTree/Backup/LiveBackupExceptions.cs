@@ -31,19 +31,6 @@ public sealed class LiveBackupGenerationException : LiveBackupException
   public string Operation { get; }
 }
 
-public sealed class LiveBackupQueueException : LiveBackupException
-{
-  public LiveBackupQueueException(
-      string operation,
-      Exception innerException)
-      : base($"Live backup failed while {operation}.", innerException)
-  {
-    Operation = operation;
-  }
-
-  public string Operation { get; }
-}
-
 public sealed class LiveBackupRestoreTargetAlreadyExistsException
     : LiveBackupException
 {

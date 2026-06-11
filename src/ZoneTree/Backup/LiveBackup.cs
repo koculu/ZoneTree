@@ -43,6 +43,8 @@ public sealed class LiveBackup<TKey, TValue> : IDisposable
 
   bool IsGenerationRunning;
 
+  bool IsDisposed;
+
   public LiveBackup(
       IZoneTree<TKey, TValue> zoneTree,
       LiveBackupOptions options)
@@ -90,6 +92,8 @@ public sealed class LiveBackup<TKey, TValue> : IDisposable
   {
     lock (SyncRoot)
     {
+      ThrowIfDisposed();
+
       if (IsLiveBackupStarted)
         return;
 
@@ -144,6 +148,7 @@ public sealed class LiveBackup<TKey, TValue> : IDisposable
   public async Task CreateGenerationAsync(
       CancellationToken cancellationToken = default)
   {
+    ThrowIfDisposed();
     cancellationToken.ThrowIfCancellationRequested();
 
     BeginBackupGeneration(
@@ -348,6 +353,14 @@ public sealed class LiveBackup<TKey, TValue> : IDisposable
           !IsLiveBackupStarted)
       {
         return false;
+      }
+
+      if (IsDisposed)
+      {
+        if (skipIfBusy)
+          return false;
+
+        throw new ObjectDisposedException(GetType().Name);
       }
 
       if (IsGenerationRunning)
@@ -635,8 +648,24 @@ public sealed class LiveBackup<TKey, TValue> : IDisposable
     ZoneTree.Logger.LogError(exception);
   }
 
+  void ThrowIfDisposed()
+  {
+    lock (SyncRoot)
+    {
+      ObjectDisposedException.ThrowIf(IsDisposed, this);
+    }
+  }
+
   public void Dispose()
   {
+    lock (SyncRoot)
+    {
+      if (IsDisposed)
+        return;
+
+      IsDisposed = true;
+    }
+
     Maintenance.OnZoneTreeIsDisposing -= OnZoneTreeIsDisposing;
     Stop();
     WaitForLiveBackup();

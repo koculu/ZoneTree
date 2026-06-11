@@ -172,25 +172,7 @@ public sealed class ZoneTreeOptions<TKey, TValue>
   {
     var exception = new CompressionLevelIsOutOfRangeException
         (option, method, level);
-    return method switch
-    {
-      CompressionMethod.None => null,
-      CompressionMethod.Gzip =>
-          (level >= CompressionLevels.GzipOptimal &&
-          level <= CompressionLevels.GzipSmallestSize) ?
-          null : exception,
-      CompressionMethod.LZ4 =>
-          (level >= 0 && level <= 12 && level != 1 && level != 2) ? null : exception,
-      CompressionMethod.Zstd =>
-          (level >= CompressionLevels.ZstdMin &&
-          level <= CompressionLevels.ZstdMax) ?
-          null : exception,
-      CompressionMethod.Brotli =>
-          (level >= CompressionLevels.BrotliOptimal &&
-          level <= CompressionLevels.BrotliSmallestSize) ?
-          null : exception,
-      _ => null,
-    };
+    return CompressionLevels.IsValid(method, level) ? null : exception;
   }
 
   /// <summary>

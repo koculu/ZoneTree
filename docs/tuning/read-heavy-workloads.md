@@ -16,7 +16,9 @@ indexName:term:documentId
 
 ## Cache Behavior
 
-Disk block cache is most effective when the working set is smaller than available memory or reads repeatedly touch nearby key ranges.
+Disk block cache is the main cache for compressed disk segment reads. It stores decompressed compression blocks and is cleaned by the maintainer.
+
+It is most effective when the working set is smaller than available memory or reads repeatedly touch nearby key ranges.
 
 Random reads over a huge keyspace rely more heavily on disk and sparse index efficiency.
 
@@ -26,7 +28,7 @@ See [read-path caching](../storage/read-path-caching.md).
 
 | Symptom | Likely pressure | First actions |
 | --- | --- | --- |
-| Point reads slow down | too many segments, sparse index density, cold disk cache | keep maintenance active; tune `DefaultSparseArrayStepSize`; review cache sizes |
+| Point reads slow down | too many segments, sparse index density, cold block cache | keep maintenance active; tune `DefaultSparseArrayStepSize`; review `BlockCacheLifeTime` |
 | Range scans disturb hot reads | one-off scans contribute to cache pressure | keep iterator `contributeToTheBlockCache` disabled for one-off scans |
 | Repeated hot-key reads hit disk too often | key/value circular caches too small or short-lived | increase `KeyCacheSize`, `ValueCacheSize`, or cache lifetimes |
 | Latest-first reads are awkward | key layout or iterator direction is mismatched | use `CreateReverseIterator` or encode descending keys intentionally |
@@ -37,6 +39,8 @@ See [read-path caching](../storage/read-path-caching.md).
 Too many segments can increase read amplification. Maintenance and merge behavior help keep the read path efficient.
 
 Disk segment sparse arrays and cache settings can also affect point lookup and seek performance.
+
+For compressed disk reads, tune block cache lifetime before increasing circular key/value caches. Circular caches help repeated reads of the same record indexes; block cache helps repeated reads of nearby compressed blocks.
 
 ## Iterators
 

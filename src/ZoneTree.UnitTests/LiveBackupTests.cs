@@ -722,6 +722,19 @@ public sealed class LiveBackupTests
   }
 
   [Test]
+  public void LiveBackupOptionsNormalizeResetsInvalidFileTransferCount()
+  {
+    var options = new LiveBackupOptions
+    {
+      MaxConcurrentFileTransfers = 0
+    };
+
+    options.Normalize();
+
+    Assert.That(options.MaxConcurrentFileTransfers, Is.EqualTo(8));
+  }
+
+  [Test]
   public void LiveBackupCanRestartAfterStop()
   {
     var dataPath = "data/LiveBackupCanRestartAfterStop";
@@ -749,6 +762,34 @@ public sealed class LiveBackupTests
     backup.Stop();
 
     Assert.That(backup.CurrentGenerationId, Is.GreaterThan(firstGenerationId));
+
+    zoneTree.Maintenance.Drop();
+  }
+
+  [Test]
+  public void LiveBackupCannotRestartAfterDispose()
+  {
+    var dataPath = "data/LiveBackupCannotRestartAfterDispose";
+    DeleteDirectory(dataPath);
+
+    using var zoneTree = new ZoneTreeFactory<int, int>()
+        .SetDataDirectory(dataPath)
+        .SetWriteAheadLogDirectory(dataPath)
+        .OpenOrCreate();
+
+    var backup = zoneTree.CreateLiveBackup(new LiveBackupOptions
+    {
+      Store = new InMemoryLiveBackupProvider(),
+      BackupAfterMerge = false,
+      IncludeInMemoryRecords = false
+    });
+
+    backup.Dispose();
+
+    Assert.Throws<ObjectDisposedException>(() =>
+        backup.Start());
+    Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+        await backup.CreateGenerationAsync());
 
     zoneTree.Maintenance.Drop();
   }

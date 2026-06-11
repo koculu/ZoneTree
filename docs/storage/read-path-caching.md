@@ -1,52 +1,112 @@
 # Read-Path Caching
 
-ZoneTree's disk read path uses multiple cache layers to reduce repeated disk work.
+ZoneTree's disk read path uses two cache layers:
+
+* decompressed block cache,
+* circular key/value caches.
+
+They solve different problems and are controlled by different options.
+
+## Block Cache
+
+Disk segments use compressed random-access devices by default. Data is stored in compressed blocks. When a read touches a block, ZoneTree decompresses that block into memory.
+
+The block cache stores these decompressed blocks so nearby or repeated reads do not have to read and decompress the same compressed block again.
+
+This is the main disk-read cache for compressed disk segments.
+
+The disk compression block size is configured by `DiskSegmentOptions.CompressionBlockSize`. The default is `4 MB`. Larger blocks can improve compression ratio and sequential behavior, but each cached block can retain more memory. Smaller blocks can reduce random-read memory pressure, but may reduce compression efficiency.
+
+## Block Cache Lifetime
+
+Block cache cleanup is controlled by the maintainer, not by `DiskSegmentOptions`.
+
+Relevant maintainer settings:
+
+| Setting | Default |
+| --- | ---: |
+| `BlockCacheLifeTime` | `1 minute` |
+| `InactiveBlockCacheCleanupInterval` | `30 seconds` |
+| inactive-cache cleanup job from `CreateMaintainer()` | enabled |
+
+The maintainer periodically releases decompressed blocks that have not been accessed within `BlockCacheLifeTime`.
+
+```csharp
+using var maintainer = zoneTree.CreateMaintainer();
+
+maintainer.BlockCacheLifeTime = TimeSpan.FromMinutes(2);
+maintainer.InactiveBlockCacheCleanupInterval = TimeSpan.FromSeconds(30);
+```
+
+Longer block cache lifetime can improve repeated disk reads, but retains more memory. Shorter lifetime lowers retained memory, but may cause repeated decompression and disk reads.
+
+## Iterator Cache Contribution
+
+Iterators can scan large parts of the keyspace. By default, iterator disk reads do not contribute to the shared block cache.
+
+This prevents one-off scans from filling the block cache with data that may not be read again.
+
+Enable cache contribution when the scan represents a useful working set:
+
+```csharp
+using var iterator = zoneTree.CreateIterator(
+    contributeToTheBlockCache: true);
+```
+
+For one-off full scans, keep cache contribution disabled.
 
 ## Circular Key And Value Caches
 
-Disk segment options include circular caches for keys and values:
+Disk segment options also include small circular caches for deserialized keys and values:
 
 * `KeyCacheSize`
 * `ValueCacheSize`
 * `KeyCacheRecordLifeTimeInMillisecond`
 * `ValueCacheRecordLifeTimeInMillisecond`
 
-These caches are checked before deeper block access during lookups and searches. They are useful when recent keys or values are repeatedly touched.
+The defaults are `1024` key records, `1024` value records, and `10 second` record lifetimes.
 
-The default key and value cache sizes are `1024` records each. Larger caches can reduce repeated reads but use more memory. Smaller caches keep memory lower but may increase disk/block access.
+These caches are useful when the same disk record indexes are read repeatedly. They are smaller and more targeted than the block cache. They do not replace block cache behavior.
 
-## Block Cache
+```csharp
+using var zoneTree = new ZoneTreeFactory<int, string>()
+    .SetDataDirectory("data/app")
+    .ConfigureDiskSegmentOptions(options =>
+    {
+        options.KeyCacheSize = 4096;
+        options.ValueCacheSize = 4096;
+        options.KeyCacheRecordLifeTimeInMillisecond = 30_000;
+        options.ValueCacheRecordLifeTimeInMillisecond = 30_000;
+    })
+    .OpenOrCreate();
+```
 
-Block cache behavior matters when data is read from disk segments, especially with compressed disk blocks.
+## Practical Tuning
 
-Repeated reads over nearby keys can benefit from cached blocks. Random reads over a very large keyspace may benefit less unless the working set fits cache.
+For repeated reads over nearby key ranges, start with block cache behavior:
 
-## Iterator Cache Contribution
+* keep a maintainer alive,
+* tune `BlockCacheLifeTime`,
+* tune `CompressionBlockSize` if random-read granularity matters,
+* decide whether scans should contribute to the block cache.
 
-Some iterator paths can choose whether disk segment reads contribute to the block cache.
+For repeated point reads to the same records, consider circular key/value cache sizes and lifetimes.
 
-Use cache contribution when scans represent a useful working set that will be read again. Avoid it for one-off large scans that would evict more valuable cached blocks.
+For memory pressure, first identify which cache is growing:
 
-## Cache Lifetime
-
-Record lifetime options help keep circular caches from holding stale entries longer than intended.
-
-The default key and value cache record lifetime is `10 seconds`.
-
-Tune cache lifetime based on access pattern:
-
-* short lifetime for highly variable random reads,
-* longer lifetime for repeated hot-key access,
-* smaller caches when memory budget is tight.
+* decompressed block cache is released by maintainer cleanup,
+* circular key/value caches are bounded by disk segment options,
+* long-lived iterators can keep segments alive even after merges.
 
 ## Diagnostics
 
 If reads slow down, inspect:
 
-* key layout,
+* key layout and locality,
 * segment count,
-* compression settings,
+* compression block size,
+* block cache lifetime,
 * sparse array step size,
-* cache sizes,
-* iterator behavior,
+* iterator cache contribution,
+* circular key/value cache sizes,
 * storage latency.

@@ -36,6 +36,7 @@ ZoneTree gives you the core pieces expected from a serious storage engine:
 * High-throughput writes
 * Persistent storage
 * Write-ahead logging
+* Live backup and restore
 * Configurable durability/performance trade-offs
 * Forward and reverse iterators
 * Seekable range scans
@@ -258,6 +259,8 @@ ZoneTree uses async compressed WAL by default. It is the recommended starting po
 
 Disk segments can also use compression and different segment layouts. These options help tune disk space, read patterns, merge behavior, and file-size boundaries.
 
+For long-running services, ZoneTree also supports live backup for built-in non-transactional trees. Live backup creates complete backup generations while the tree remains open for reads and writes, and local backup generations can be restored through `ZoneTreeFactory`.
+
 ---
 
 ## Performance
@@ -276,8 +279,8 @@ In the included insert benchmarks, ZoneTree performs significantly faster than R
 | **str-str ZoneTree async-compressed WAL** | 892 ms | 1833 ms  | 2711 ms  | 9443 ms  |
 | **str-str ZoneTree sync-compressed WAL**  | 1752 ms | 3397 ms | 5070 ms  | 19153 ms |
 | **str-str ZoneTree sync WAL**             | 3488 ms | 7002 ms | 10483 ms | 38727 ms |
-| **int-int RocksDb sync-compressed WAL**   | 8059 ms | 16188 ms | 23599 ms | 61947 ms |
-| **str-str RocksDb sync-compressed WAL**   | 8215 ms | 16146 ms | 23760 ms | 72491 ms |
+| **int-int RocksDB sync-compressed WAL**   | 8059 ms | 16188 ms | 23599 ms | 61947 ms |
+| **str-str RocksDB sync-compressed WAL**   | 8215 ms | 16146 ms | 23760 ms | 72491 ms |
 
 Performance depends on workload and configuration, including:
 

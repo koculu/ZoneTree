@@ -77,7 +77,7 @@ Normal application scans should usually leave deleted records hidden.
 
 ## Block Cache Contribution
 
-Disk segment iterator reads do not contribute to the block cache by default. Enable cache contribution when the scan represents a useful working set that will probably be read again.
+Disk segment iterator reads do not contribute to the block cache by default. Enable cache contribution when the scan represents a useful working set that is likely to be read again.
 
 ```csharp
 using var iterator = zoneTree.CreateIterator(

@@ -69,6 +69,12 @@ ZoneTree defaults are designed as a practical general-purpose profile. Start wit
 | Maintainer block cache lifetime | `1 minute` |
 | Maintainer inactive cache cleanup interval | `30 seconds` |
 | Maintainer inactive cache cleanup job from `CreateMaintainer()` | enabled |
+| Live backup after normal merge | enabled |
+| Live backup in-memory records | enabled |
+| Live backup in-memory mode | `Live` |
+| Live backup file transfer concurrency | `8` |
+| Live backup record batch compression | `LZ4`, fastest level |
+| Live backup record batch compression block size | `1 MB` |
 | Console logger level | `Warning` |
 
 ## Memory
@@ -79,7 +85,7 @@ The default is `1_000_000` records. This is a good starting point for small keys
 
 ## Disk
 
-Disk segment options affect file layout, compression, caches, sparse arrays, multipart sizing, and merge behavior.
+Disk segment options affect file layout, compression, circular key/value caches, sparse arrays, multipart sizing, and merge behavior.
 
 Tune disk options with the actual read/write pattern.
 
@@ -100,6 +106,8 @@ Important options:
 | `ValueCacheRecordLifeTimeInMillisecond` | value cache record lifetime |
 
 The default disk profile uses multipart disk segments, `20_000_000` as the disk segment max item count, `1_500_000` to `3_000_000` records per multipart part, `4 MB` disk compression blocks, LZ4 fastest compression, `1024` sparse array step size, and `1024` key/value cache entries with `10 second` lifetimes.
+
+The decompressed block cache is not configured by `DiskSegmentOptions`. Disk compression block size is configured here, but inactive decompressed block cleanup is controlled by the maintainer.
 
 ## WAL
 
@@ -147,9 +155,35 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
     .OpenOrCreate();
 ```
 
+## Live Backup
+
+Live backup is configured with `LiveBackupOptions`.
+
+Important options:
+
+| Option | Purpose |
+| --- | --- |
+| `Store` | backup destination implementation |
+| `BackupAfterMerge` | requests a generation after successful normal merges |
+| `Schedule` | optional UTC schedule for automatic generations |
+| `IncludeInMemoryRecords` | streams mutable/read-only in-memory records into the generation |
+| `InMemoryMode` | chooses live or snapshot in-memory collection |
+| `RecordBatchCompression` | compression profile for in-memory record batches |
+| `MaxConcurrentFileTransfers` | concurrent disk segment file uploads |
+
+The local implementation is configured with `LocalLiveBackupOptions`:
+
+| Option | Purpose |
+| --- | --- |
+| `Directory` | local backup root directory |
+| `CopyBufferSize` | buffer size used for file copy operations |
+| `KeepLastGenerations` | optional local retention policy |
+
+Live backup is exposed for built-in non-transactional ZoneTree instances. Transactional trees need a transaction-aware backup design that captures transaction-log state together with storage-engine state.
+
 ## Maintenance
 
-The maintainer controls background merge work and inactive cache cleanup.
+The maintainer controls background merge work and inactive cache cleanup. Inactive cache cleanup releases decompressed disk blocks and expired circular key/value cache records.
 
 The maintainer created by `zoneTree.CreateMaintainer()` uses these defaults:
 
@@ -161,7 +195,7 @@ The maintainer created by `zoneTree.CreateMaintainer()` uses these defaults:
 | `InactiveBlockCacheCleanupInterval` | `30 seconds` |
 | inactive-cache cleanup job | enabled |
 
-`EnableJobForCleaningInactiveCaches` is `false` on a raw maintainer instance before the timer is started, but the normal `CreateMaintainer()` path starts the cleanup job by default.
+The normal `CreateMaintainer()` path starts the cleanup job by default. Longer `BlockCacheLifeTime` can improve repeated disk reads but retains more decompressed blocks in memory.
 
 ## Deletion
 

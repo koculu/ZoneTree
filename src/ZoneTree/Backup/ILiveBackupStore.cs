@@ -7,6 +7,12 @@ namespace ZoneTree.Backup;
 /// Implement this interface to write backup files to local disk, object
 /// storage, a remote service, or any other destination.
 /// </summary>
+/// <remarks>
+/// Segment file operations may be called concurrently for the same generation
+/// when live backup is configured with more than one concurrent file transfer.
+/// Implementations must make UseSegmentAsync and UploadSegmentFileAsync
+/// thread-safe for a generation.
+/// </remarks>
 public interface ILiveBackupStore
 {
   /// <summary>

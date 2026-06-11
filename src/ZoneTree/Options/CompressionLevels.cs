@@ -44,4 +44,29 @@ public static class CompressionLevels
   public const int Zstd4 = 4;
   public const int Zstd5 = 5;
   public const int ZstdMax = 22;
+
+  public static bool IsValid(
+      CompressionMethod method,
+      int level)
+  {
+    return method switch
+    {
+      CompressionMethod.None => true,
+      CompressionMethod.Gzip =>
+          level >= GzipOptimal &&
+          level <= GzipSmallestSize,
+      CompressionMethod.LZ4 =>
+          level >= LZ4Fastest &&
+          level <= LZ4HighCompression12 &&
+          level != 1 &&
+          level != 2,
+      CompressionMethod.Zstd =>
+          level >= ZstdMin &&
+          level <= ZstdMax,
+      CompressionMethod.Brotli =>
+          level >= BrotliOptimal &&
+          level <= BrotliSmallestSize,
+      _ => false,
+    };
+  }
 }

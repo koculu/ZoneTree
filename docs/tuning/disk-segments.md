@@ -44,6 +44,8 @@ The defaults are `1_500_000` and `3_000_000` records. The higher-level `DiskSegm
 
 Larger parts mean fewer files and potentially better sequential behavior. Smaller parts can reduce operational file-size pressure and make part-level reuse more flexible.
 
+ZoneTree randomizes multipart part sizes between the configured minimum and maximum. This avoids rigid split boundaries and helps multipart merge reuse stay effective over time. See [write amplification](write-amplification.md).
+
 ## Sparse Array Step Size
 
 `DefaultSparseArrayStepSize` controls how frequently ZoneTree records sparse index entries while creating disk segments.
@@ -86,16 +88,24 @@ Larger blocks often compress better but can make small random reads more expensi
 
 ## Cache Settings
 
-Tune:
+Disk reads are mostly shaped by the decompressed block cache. Disk segments are compressed in blocks by default, and repeated reads can reuse decompressed blocks.
+
+Block cache cleanup is controlled by the maintainer:
+
+```csharp
+using var maintainer = zoneTree.CreateMaintainer();
+
+maintainer.BlockCacheLifeTime = TimeSpan.FromMinutes(2);
+maintainer.InactiveBlockCacheCleanupInterval = TimeSpan.FromSeconds(30);
+```
+
+Circular key/value caches are a smaller per-record layer:
 
 * `KeyCacheSize`
 * `ValueCacheSize`
 * key/value cache lifetimes
-* iterator cache contribution
 
-Read-heavy hot-key workloads may benefit from larger caches. One-off scans may be better when they do not pollute block cache.
-
-The default key and value cache sizes are `1024` records each, with `10 second` record lifetimes.
+The default key and value cache sizes are `1024` records each, with `10 second` record lifetimes. Increase them when the same disk record indexes are read repeatedly.
 
 ```csharp
 using var zoneTree = new ZoneTreeFactory<int, string>()
@@ -109,6 +119,10 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
     })
     .OpenOrCreate();
 ```
+
+Iterator scans do not contribute to the shared block cache by default. Enable iterator cache contribution only when the scan represents a useful working set.
+
+See [read-path caching](../storage/read-path-caching.md).
 
 ## Practical Defaults
 
