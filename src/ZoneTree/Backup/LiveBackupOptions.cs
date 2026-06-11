@@ -50,6 +50,8 @@ public sealed class LiveBackupOptions
     Schedule ??= LiveBackupSchedule.None;
     RecordBatchCompression ??= new LiveBackupCompressionOptions();
     RecordBatchCompression.Normalize();
+    if (MaxConcurrentFileTransfers <= 0)
+      MaxConcurrentFileTransfers = 8;
   }
 }
 
