@@ -79,6 +79,25 @@ Important operations:
 * `ReleaseCircularKeyCacheRecords`
 * `ReleaseCircularValueCacheRecords`
 
+## Backup And Restore
+
+Live backup APIs create complete backup generations while a built-in non-transactional ZoneTree remains open.
+
+Important areas:
+
+* `CreateLiveBackup`
+* `LiveBackup<TKey, TValue>`
+* `LiveBackupOptions`
+* `LiveBackupSchedule`
+* `LocalLiveBackupProvider`
+* `LocalLiveBackupOptions`
+* `ILiveBackupStore`
+* `ILiveBackupSource`
+* `RestoreFromLatestLiveBackup`
+* `RestoreFromLiveBackupGeneration`
+
+Manual generations are created with `CreateGenerationAsync`. Automatic generations come from schedules or successful normal merges after `Start()` is called.
+
 ## Iterators
 
 Iterators scan in key order or reverse key order. Use `Seek` for range scans.

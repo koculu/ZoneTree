@@ -32,7 +32,7 @@ Use partitions when you want independent maintenance, backup, restore, or placem
 
 ## Replication
 
-Replication can be built above ZoneTree with application-level logs, WAL-derived streams, operation indexes, or domain events.
+Replication can be built above ZoneTree with application-level logs, domain events, custom write pipelines, and operation metadata.
 
 Operation indexes are useful as per-key freshness tokens. They are not a global distributed clock.
 

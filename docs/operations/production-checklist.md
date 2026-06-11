@@ -11,7 +11,7 @@ Use this checklist before putting ZoneTree behind production traffic.
 * Use `No WAL` only for cache, temporary, or intentionally rebuildable data.
 * Choose disk segment mode based on database size and operational file-size needs.
 * Tune sparse array and cache settings only after measuring read behavior.
-* Plan backup and restore.
+* Plan backup and restore before production traffic.
 
 ## Memory
 
@@ -33,7 +33,10 @@ Use this checklist before putting ZoneTree behind production traffic.
 ## Operations
 
 * Test restart and recovery.
-* Test backup restore.
+* Test backup restore from a real backup generation.
+* Decide whether backups are manual, scheduled, merge-triggered, or a combination.
+* Configure backup retention if local backup storage should be bounded.
+* Remember that built-in live backup covers non-transactional trees; transactional trees need a separate backup strategy.
 * Watch disk growth.
 * Watch read-only segment accumulation.
 * Watch merge duration.

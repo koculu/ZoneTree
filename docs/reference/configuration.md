@@ -69,6 +69,12 @@ ZoneTree defaults are designed as a practical general-purpose profile. Start wit
 | Maintainer block cache lifetime | `1 minute` |
 | Maintainer inactive cache cleanup interval | `30 seconds` |
 | Maintainer inactive cache cleanup job from `CreateMaintainer()` | enabled |
+| Live backup after normal merge | enabled |
+| Live backup in-memory records | enabled |
+| Live backup in-memory mode | `Live` |
+| Live backup file transfer concurrency | `8` |
+| Live backup record batch compression | `LZ4`, fastest level |
+| Live backup record batch compression block size | `1 MB` |
 | Console logger level | `Warning` |
 
 ## Memory
@@ -146,6 +152,32 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
     })
     .OpenOrCreate();
 ```
+
+## Live Backup
+
+Live backup is configured with `LiveBackupOptions`.
+
+Important options:
+
+| Option | Purpose |
+| --- | --- |
+| `Store` | backup destination implementation |
+| `BackupAfterMerge` | requests a generation after successful normal merges |
+| `Schedule` | optional UTC schedule for automatic generations |
+| `IncludeInMemoryRecords` | streams mutable/read-only in-memory records into the generation |
+| `InMemoryMode` | chooses live or snapshot in-memory collection |
+| `RecordBatchCompression` | compression profile for in-memory record batches |
+| `MaxConcurrentFileTransfers` | concurrent disk segment file uploads |
+
+The local implementation is configured with `LocalLiveBackupOptions`:
+
+| Option | Purpose |
+| --- | --- |
+| `Directory` | local backup root directory |
+| `CopyBufferSize` | buffer size used for file copy operations |
+| `KeepLastGenerations` | optional local retention policy |
+
+Live backup is exposed for built-in non-transactional ZoneTree instances. Transactional trees need a transaction-aware backup design and are not covered by live backup yet.
 
 ## Maintenance
 
