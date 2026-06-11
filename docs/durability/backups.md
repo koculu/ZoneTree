@@ -382,6 +382,8 @@ Restore uses the matching read-side abstraction:
 public interface ILiveBackupSource
 ```
 
+Custom sources must preserve the `Order` value of each `DiskSegmentFile` in the generation they return. Restore uses that order to rebuild the disk segment and bottom segment layout.
+
 The local implementation supports both sides, so restoring the latest local generation is direct:
 
 ```csharp

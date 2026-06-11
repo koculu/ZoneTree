@@ -250,8 +250,7 @@ public sealed class LocalLiveBackupProvider
     if (!string.IsNullOrWhiteSpace(directory))
       Directory.CreateDirectory(directory);
 
-    FileStream destination = null;
-    LocalRecordBatchWriter result = null;
+    FileStream destination;
     try
     {
       destination = new FileStream(
@@ -261,25 +260,31 @@ public sealed class LocalLiveBackupProvider
           FileShare.Read,
           BufferSize,
           FileOptions.Asynchronous);
+    }
+    catch
+    {
+      DeleteFileIfExists(tempPath);
+      throw;
+    }
+
+    try
+    {
       LocalLiveBackupGenerationCatalog activeGeneration;
       lock (SyncRoot)
       {
         activeGeneration = GetActiveGeneration(generationId);
       }
       activeGeneration.RecordBatch = recordBatch;
-      result = new LocalRecordBatchWriter(
+      return new LocalRecordBatchWriter(
           destination,
           batch,
           recordBatch,
           tempPath,
           path);
-      destination = null; // result owns disposal of destination.
-      return result;
     }
     catch
     {
       await destination.DisposeAsync();
-      if (result != null) await result.DisposeAsync();
       DeleteFileIfExists(tempPath);
       throw;
     }
