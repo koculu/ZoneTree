@@ -1,6 +1,6 @@
 # Backups
 
-ZoneTree supports live backup for ordinary `IZoneTree<TKey, TValue>` instances and offline full backup for any deployment.
+ZoneTree supports live backup for built-in non-transactional ZoneTree instances and offline full backup for any deployment.
 
 Live backup is the preferred shape for long-running applications. It creates complete backup generations while the tree remains open for reads and writes.
 
@@ -322,6 +322,26 @@ Retention is applied at the backup-path level. If a retained generation reuses a
 
 Custom stores own their own retention policy.
 
+## File Transfer Concurrency
+
+Disk segment files can be uploaded concurrently during a generation. The default is:
+
+```csharp
+MaxConcurrentFileTransfers = 8
+```
+
+Set it to `1` when the backup store should receive segment file operations sequentially:
+
+```csharp
+using var backup = zoneTree.CreateLiveBackup(new LiveBackupOptions
+{
+    Store = new LocalLiveBackupProvider("backup/app"),
+    MaxConcurrentFileTransfers = 1
+});
+```
+
+Values less than or equal to zero are normalized back to the default.
+
 ## Custom Stores And Sources
 
 Implement `ILiveBackupStore` when backup data should go somewhere other than a local directory.
@@ -354,6 +374,8 @@ Task<bool> UseSegmentAsync(
 
 Return `false` when the store already has the segment file. Return `true` when ZoneTree should upload the file through `UploadSegmentFileAsync`.
 
+When `MaxConcurrentFileTransfers` is greater than `1`, segment file operations may run concurrently for the same generation. Custom stores should make `UseSegmentAsync` and `UploadSegmentFileAsync` safe for that call pattern, or users should configure `MaxConcurrentFileTransfers = 1`.
+
 Restore uses the matching read-side abstraction:
 
 ```csharp
@@ -367,6 +389,8 @@ using var restored = await new ZoneTreeFactory<int, string>()
     .SetDataDirectory("data/restore")
     .RestoreFromLatestLiveBackup("backup/app");
 ```
+
+The restore target must be empty. If the target directory already contains ZoneTree metadata, restore throws `LiveBackupRestoreTargetAlreadyExistsException`.
 
 ## Offline Full Backup
 
