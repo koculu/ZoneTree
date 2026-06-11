@@ -2,7 +2,7 @@
 
 ZoneTree can be used as the durable ordered storage layer for queue-like systems. It gives you ordered keys, fast append-style writes, range scans, deletion markers, atomic same-key counters, and optional transactions.
 
-It does not turn a key-value store into a complete distributed queue by itself. Delivery guarantees, leases, retry policy, consumer coordination, and dead-letter handling belong to the queue layer you build above ZoneTree.
+The queue protocol defines delivery guarantees, leases, retry policy, consumer coordination, and dead-letter handling above that storage layer.
 
 ## Key Layout
 

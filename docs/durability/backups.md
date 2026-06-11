@@ -16,7 +16,7 @@ ZoneTree collects the current backup view, pins the disk segments that belong to
 
 Manual generations run in the caller's operation. Scheduled and merge-triggered generations run asynchronously.
 
-Live backup is not exposed for transactional ZoneTree yet. Transactional backup must capture transaction-log state together with the storage-engine state, so it needs its own design.
+Built-in live backup currently covers non-transactional ZoneTree instances. Transactional backup must capture transaction-log state together with the storage-engine state, so it needs its own design.
 
 ## Manual Backup
 

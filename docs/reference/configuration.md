@@ -179,7 +179,7 @@ The local implementation is configured with `LocalLiveBackupOptions`:
 | `CopyBufferSize` | buffer size used for file copy operations |
 | `KeepLastGenerations` | optional local retention policy |
 
-Live backup is exposed for built-in non-transactional ZoneTree instances. Transactional trees need a transaction-aware backup design and are not covered by live backup yet.
+Live backup is exposed for built-in non-transactional ZoneTree instances. Transactional trees need a transaction-aware backup design that captures transaction-log state together with storage-engine state.
 
 ## Maintenance
 

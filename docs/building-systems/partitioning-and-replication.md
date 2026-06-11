@@ -1,6 +1,6 @@
 # Partitioning And Replication
 
-ZoneTree is not a distributed database by itself. It is designed as a storage-engine foundation for systems that need partitioning or replication above the engine.
+ZoneTree is designed as a storage-engine foundation for systems that need partitioning or replication above the engine.
 
 ## Partitioning
 

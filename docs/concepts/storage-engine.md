@@ -1,6 +1,6 @@
 # Storage Engine Model
 
-ZoneTree is a storage engine, not a fixed database product. It gives your application an ordered, durable, programmable data layer. You decide what higher-level model lives above it.
+ZoneTree is a storage engine for building databases and data platforms. It gives your application an ordered, durable, programmable data layer. You decide what higher-level model lives above it.
 
 ZoneTree can be used directly as an ordered key-value database, or as the storage foundation for:
 
@@ -45,6 +45,6 @@ This split is intentional. ZoneTree is designed from the ground up as a storage-
 
 ## Single-Node Engine, Scalable Foundation
 
-ZoneTree is not a distributed database by itself. It provides the ordered keyspace, durability controls, iterators, operation indexes, transactions, and maintenance hooks needed to build partitioned, replicated, or domain-specific data platforms above it.
+ZoneTree provides the ordered keyspace, durability controls, iterators, operation indexes, transactions, and maintenance hooks needed to build partitioned, replicated, or domain-specific data platforms above it.
 
 Use one ZoneTree when one ordered keyspace is enough. Use multiple ZoneTrees when you want separate partitions, tenants, indexes, or data models.
