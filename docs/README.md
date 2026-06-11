@@ -4,6 +4,18 @@ ZoneTree is a high-performance LSM-tree storage engine for .NET. It provides ord
 
 These docs explain the mental model behind ZoneTree, the main APIs, and the operational choices that matter in production.
 
+## Core Strengths
+
+ZoneTree is strongest when it is treated as a storage-engine foundation: an ordered durable core for building higher-level data systems.
+
+* Ordered keys make range scans, prefix layouts, secondary indexes, queues, and time-series layouts natural.
+* The LSM-tree write path gives high-throughput persistent writes.
+* Multipart disk segments reduce write amplification by keeping rewrite work local when ranges change.
+* Operation indexes support per-key freshness for replay, audit, and replication pipelines.
+* Iterators, live backup, restore, transactions, and maintenance hooks make ZoneTree useful as a building block for larger data systems.
+
+For the storage model, start with [Storage engine model](concepts/storage-engine.md). For ZoneTree's merge design, read [Write amplification](tuning/write-amplification.md).
+
 ## Start here
 
 * [Getting started](getting-started.md)

@@ -1,42 +1,91 @@
 # Partitioning And Replication
 
-ZoneTree is designed as a storage-engine foundation for systems that need partitioning or replication above the engine.
+ZoneTree is designed to be the local storage-engine cell inside larger data systems. A single ZoneTree gives one ordered durable keyspace. Multiple ZoneTrees can be composed into tenant shards, hash partitions, time buckets, secondary indexes, replicas, or domain-specific storage groups.
 
-## Partitioning
+The power comes from combining small, explicit primitives:
 
-You can partition data across multiple ZoneTrees:
+* ordered keyspaces,
+* high-throughput writes that return operation indexes,
+* same-key atomic methods,
+* transactions for local multi-key coordination,
+* iterators for export, rebuild, and range movement,
+* live backup and restore abstractions,
+* maintenance hooks and segment lifecycle events,
+* configurable WAL and random-access storage providers.
+
+## Partition Cells
+
+A partition cell is usually one ZoneTree with one data directory and one keyspace contract.
+
+Common shapes:
 
 ```text
-tenant shard -> ZoneTree
-hash partition -> ZoneTree
-time bucket -> ZoneTree
-index family -> ZoneTree
+tenant:{tenantId}                 -> ZoneTree
+hash:{partitionId}                -> ZoneTree
+time:{yyyyMM}                     -> ZoneTree
+index:{indexName}:{partitionId}   -> ZoneTree
 ```
 
-Partitioning helps control:
+This lets each cell have independent:
 
-* file size,
-* memory pressure,
-* backup windows,
-* maintenance cost,
-* tenant isolation,
-* operational blast radius.
+* maintenance,
+* live backup,
+* restore,
+* retention,
+* placement,
+* memory budget,
+* disk segment tuning,
+* WAL configuration.
 
 ```csharp
 var tenantTree = new ZoneTreeFactory<string, byte[]>()
-    .SetDataDirectory($"data/tenant-{tenantId}")
+    .SetDataDirectory($"data/tenants/{tenantId}")
     .OpenOrCreate();
 ```
 
-Use partitions when you want independent maintenance, backup, restore, or placement decisions. Do not partition only because the API supports it; partition when there is an operational boundary.
+Partition when the boundary is useful for operations or query shape. Good reasons include tenant isolation, smaller backup windows, bounded file sets, independent rebuilds, separate retention policies, or parallel placement across machines or disks.
 
-## Replication
+## Ordered Keyspace Design
 
-Replication can be built above ZoneTree with application-level logs, domain events, custom write pipelines, and operation metadata.
+Partitioning works best when the key layout matches the routing rule.
 
-Operation indexes are useful as per-key freshness tokens. They are not a global distributed clock.
+Examples:
 
-For replication, include enough metadata in your operation stream to make replay idempotent:
+```text
+tenant:{tenantId}:user:{userId}
+tenant:{tenantId}:order:{createdAt}:{orderId}
+series:{seriesId}:{timestamp}
+index:{status}:{createdAt}:{entityId}
+```
+
+Related records should be adjacent when the dominant read is a range scan. If the dominant operation is random lookup, choose a layout that keeps routing and lookup simple.
+
+The comparer and serializers are part of the persisted identity of a ZoneTree. Choose them before creating the partition and keep the ordering contract stable.
+
+## Moving Data Between Partitions
+
+ZoneTree iterators are the natural export and rebuild path. A partitioner can create a snapshot iterator, scan a range, and write the records into another ZoneTree.
+
+```csharp
+using var iterator = source.CreateIterator(IteratorType.Snapshot);
+iterator.Seek(startKey);
+
+while (iterator.Next())
+{
+    if (source.Comparer.Compare(iterator.CurrentKey, endKey) >= 0)
+        break;
+
+    target.Upsert(iterator.CurrentKey, iterator.CurrentValue);
+}
+```
+
+Use `IteratorType.Snapshot` when the movement needs a stable view. Use normal iterators for online rebuilds where newer writes are handled by another operation stream.
+
+## Operation Indexes
+
+Every successful write returns an operation index. The operation index is a producer freshness token compared for the same key.
+
+This is useful for replication and replay:
 
 ```text
 partitionId
@@ -46,29 +95,75 @@ opIndex
 source node
 ```
 
-On replay, compare operation indexes only for the same key. For unrelated keys, use your replication layer's ordering and conflict rules.
+When replaying, a consumer can ignore an older operation for key `A` after a newer operation for key `A` has already been applied. Operation indexes are not a global distributed clock and should not be used to order unrelated keys.
 
-## Consistency
+ZoneTree also includes `Replicator<TKey, TValue>`, a helper that keeps a companion ZoneTree of latest operation indexes and applies upserts to a replica only when the incoming operation index is fresh enough for that key.
 
-The replication layer owns:
+## Replication Pipelines
 
-* transport,
-* retries,
-* ordering,
-* idempotency,
-* conflict rules,
-* failover,
-* recovery.
+A replication pipeline usually has three parts:
 
-ZoneTree owns local ordered durable storage.
+```text
+producer write path -> operation stream -> replica apply path
+```
 
-## Recommended Approach
+The operation stream can be an application log, event bus, WAL-derived tool, domain event stream, or custom transport. The apply path writes into another ZoneTree.
 
-Start simple:
+For idempotent replay, include:
 
-* define partition keys,
-* define source-of-truth ownership,
-* make writes idempotent,
-* record operation metadata,
-* test replay and recovery,
-* add distribution only where needed.
+* partition id,
+* key,
+* value or deletion marker,
+* operation index,
+* source identity,
+* schema or payload version if the value format evolves.
+
+Use `Upsert` or `ForceDelete` for simple replay. Use atomic methods when the replay decision is per-key freshness. Use transactions when applying one replicated operation must update several local keys together.
+
+## Backup-Based Movement
+
+Live backup is another useful primitive for partitioned systems. A backup generation is a complete backup unit for one ZoneTree. It can be written through `ILiveBackupStore` and read back through `ILiveBackupSource`.
+
+This enables:
+
+* moving a partition to a new location,
+* restoring a replica from a known generation,
+* seeding a new node before applying a later operation stream,
+* keeping independent backup histories per tenant or shard.
+
+Restore is exposed through `ZoneTreeFactory`:
+
+```csharp
+using var restored = await new ZoneTreeFactory<int, string>()
+    .SetDataDirectory("data/partition-7")
+    .RestoreFromLatestLiveBackup(source);
+```
+
+## Maintenance And Observability
+
+Maintenance APIs expose the storage-engine lifecycle of each partition:
+
+* mutable segment movement,
+* merge start/end,
+* disk segment creation,
+* disk segment activation,
+* bottom segment merge start/end,
+* failed drop events.
+
+These hooks make it possible to build dashboards, custom backup triggers, partition movement workflows, and placement decisions around real storage activity.
+
+For long-running services, keep a maintainer alive per active ZoneTree unless the application intentionally controls maintenance windows itself.
+
+## Local Consistency
+
+ZoneTree gives strong local primitives:
+
+* normal thread-safe writes,
+* same-key atomic operations,
+* transactional trees for multi-key local coordination,
+* ordered snapshot and read-only iterators,
+* WAL-backed recovery.
+
+The distributed system built above ZoneTree defines transport, cross-partition ordering, retries, conflict rules, failover, membership, and placement.
+
+That split is the design: ZoneTree gives the durable ordered engine cell; your system composes cells into the larger platform.
