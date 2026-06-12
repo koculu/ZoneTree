@@ -32,8 +32,6 @@ bottom segment queue
 | `DiskSegment` | `IDiskSegment` slot | Persistent disk segment used by normal merge. |
 | Bottom segments | `IDiskSegment` queue | Persistent disk segments below the `DiskSegment` slot. |
 
-Bottom segments are still live disk segments. Reads and iterators include them. The word "bottom" describes their position in the LSM shape, not an inactive state.
-
 ## Disk Segment Shapes
 
 In code, `IDiskSegment<TKey, TValue>` is the important abstraction. It means "a persistent segment ZoneTree can read, merge, back up, and drop."
