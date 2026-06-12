@@ -59,9 +59,7 @@ For the storage model, start with [LSM Tree](concepts/lsm-tree.md). For ZoneTree
 
 ## Tuning
 
-* [Write-heavy workloads](tuning/write-heavy-workloads.md)
 * [Write amplification](tuning/write-amplification.md)
-* [Read-heavy workloads](tuning/read-heavy-workloads.md)
 * [Disk segment tuning](tuning/disk-segments.md)
 * [Large values](tuning/large-values.md)
 
