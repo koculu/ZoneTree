@@ -1,40 +1,40 @@
 # Diagnostics
 
-Good ZoneTree diagnostics start with the shape of the LSM tree. Most operational questions can be answered by watching how records move through the mutable segment, read-only segments, disk segment, bottom segments, WAL files, and caches.
+ZoneTree diagnostics start with the storage shape: mutable segment, read-only segments, `DiskSegment`, bottom segments, WAL, caches, and maintenance activity.
+
+Use this page to decide what to measure before tuning or troubleshooting.
 
 ## Core Counters
 
-Start with these maintenance counters:
+Maintenance exposes the fastest view of the current LSM shape.
 
 | Counter | What It Tells You |
 | --- | --- |
 | `MutableSegmentRecordCount` | records currently in the writable mutable segment |
-| `ReadOnlySegmentsCount` | number of frozen in-memory segments waiting for merge |
+| `ReadOnlySegmentsCount` | frozen in-memory segments waiting for merge |
 | `ReadOnlySegmentsRecordCount` | records waiting in read-only in-memory segments |
 | `InMemoryRecordCount` | mutable plus read-only segment records |
-| `TotalRecordCount` | total segment records, including duplicated historical records across LSM layers |
+| `TotalRecordCount` | physical records across segment layers |
 | `IsMerging` | normal merge is running |
 | `IsBottomSegmentsMerging` | bottom segment merge is running |
 | `BottomSegments.Count` | number of bottom disk segments |
 
-`TotalRecordCount` is not the unique logical row count. LSM layers can contain older versions and deletion markers until merges remove them. Use scan-based counting when the exact live row count matters.
+`TotalRecordCount` is a physical storage-shape counter. It can include older versions and deletion markers until merge removes them. Use `Count()` or `CountFullScan()` when you need live-record count.
 
-## Maintenance Events
+## Segment Movement Events
 
-Maintenance events are the best low-cost way to build logs and metrics around segment movement:
+Events are the cleanest way to log segment movement without polling.
 
-* `OnMutableSegmentMovedForward`
-* `OnMergeOperationStarted`
-* `OnMergeOperationEnded`
-* `OnBottomSegmentsMergeOperationStarted`
-* `OnBottomSegmentsMergeOperationEnded`
-* `OnDiskSegmentCreated`
-* `OnDiskSegmentActivated`
-* `OnCanNotDropReadOnlySegment`
-* `OnCanNotDropDiskSegment`
-* `OnCanNotDropDiskSegmentCreator`
-
-Example:
+| Event | Use |
+| --- | --- |
+| `OnMutableSegmentMovedForward` | mutable segment became read-only |
+| `OnMergeOperationStarted` / `OnMergeOperationEnded` | normal merge timing and result |
+| `OnBottomSegmentsMergeOperationStarted` / `OnBottomSegmentsMergeOperationEnded` | bottom merge timing and result |
+| `OnDiskSegmentCreated` | new disk segment files were created |
+| `OnDiskSegmentActivated` | new disk segment became part of the tree shape |
+| `OnCanNotDropReadOnlySegment` | cleanup could not drop a read-only segment |
+| `OnCanNotDropDiskSegment` | cleanup could not drop a disk segment |
+| `OnCanNotDropDiskSegmentCreator` | temporary merge output cleanup failed |
 
 ```csharp
 zoneTree.Maintenance.OnMergeOperationEnded += (_, result) =>
@@ -50,138 +50,18 @@ zoneTree.Maintenance.OnMutableSegmentMovedForward += tree =>
 };
 ```
 
-Failed drop events do not mean the database is corrupt. They usually mean a file or segment is still referenced. ZoneTree can continue, and cleanup can happen later.
+Failed drop events mean ZoneTree could not delete obsolete segment files, WAL files, or temporary merge output after the logical tree shape had moved forward. Keep the exception details and investigate the storage/provider error; the event usually indicates cleanup debt rather than a corrupted active tree.
 
-## Write Pressure
+## Logger Signals
 
-Symptoms:
+Configure a logger in production and retain logs around:
 
-* `ReadOnlySegmentsCount` keeps growing,
-* `ReadOnlySegmentsRecordCount` keeps growing,
-* memory grows with write volume,
-* merges run often or for a long time.
-
-Check:
-
-* whether a maintainer is running,
-* `MaximumReadOnlySegmentCount`,
-* `ThresholdForMergeOperationStart`,
-* `MutableSegmentMaxItemCount`,
-* disk write throughput,
-* value size.
-
-For large values, a default `MutableSegmentMaxItemCount` of `1_000_000` records can be too high. Lower it so the mutable segment moves forward before the process holds too much live value data.
-
-See [large values](../tuning/large-values.md) and [write-heavy workloads](../tuning/write-heavy-workloads.md).
-
-## Merge Pressure
-
-Symptoms:
-
-* normal merge is almost always active,
-* bottom segments accumulate,
-* disk usage grows faster than live data,
-* foreground writes are fine but background work never catches up.
-
-Check:
-
-* merge result events,
-* read-only segment count and record count,
-* disk segment max item count,
-* multipart minimum and maximum record count,
-* bottom segment count,
-* long-lived iterators that may delay segment disposal.
-
-Multipart disk segments reduce rewrite work for localized merges, but they do not remove the cost of wide random overlap. If incoming read-only segments touch most of the keyspace, many parts can be affected.
-
-See [write amplification](../tuning/write-amplification.md).
-
-## Read Path And Cache Behavior
-
-For compressed disk segments, ZoneTree reads compressed blocks and keeps decompressed blocks in an internal block cache. The maintainer cleanup job releases inactive blocks based on `BlockCacheLifeTime`.
-
-Symptoms:
-
-* repeated disk reads are slower than expected,
-* memory grows during read-heavy workloads,
-* full scans disturb random-read performance.
-
-Check:
-
-* whether `CreateMaintainer()` is used in long-lived applications,
-* `BlockCacheLifeTime`,
-* `InactiveBlockCacheCleanupInterval`,
-* disk segment compression block size,
-* iterator `contributeToTheBlockCache`.
-
-One-off scans should usually avoid contributing to the block cache. Repeated scans over a useful working set can enable cache contribution intentionally.
-
-See [read path caching](../storage/read-path-caching.md).
-
-## WAL And Recovery Signals
-
-Track WAL size and recovery logs for persistent databases.
-
-Symptoms:
-
-* startup recovery takes longer than expected,
-* WAL files grow,
-* recovery reports incomplete tails,
-* recovery reports checksum or deserialization failures.
-
-Check:
-
-* WAL mode,
-* whether maintenance is merging read-only segments,
-* whether incremental backup is intentionally enabled,
-* serializer compatibility,
-* storage errors.
-
-An incomplete tail after a process crash is different from checksum or deserialization failure. Valid records before the incomplete tail can still be used. Checksum and deserialization failures should be investigated as data-integrity issues.
-
-See [recovery](../durability/recovery.md) and [WAL modes](../durability/wal-modes.md).
-
-## Backup Signals
-
-For live backup, watch:
-
-* generation duration,
-* failed generation logs,
-* file transfer duration,
-* record batch size,
-* local retention behavior if using `LocalLiveBackupProvider`,
-* restore tests from real generations.
-
-Live backup is generation based. A generation contains the disk segment files and optional in-memory record batch needed for that backup point. Restore should be tested before production traffic depends on it.
-
-See [backups](../durability/backups.md).
-
-## Memory Diagnostics
-
-OS process memory does not equal live ZoneTree data. .NET can retain memory for future allocations even after objects become collectible.
-
-Use .NET diagnostics when memory matters:
-
-* live managed object size,
-* allocation rate,
-* large object heap usage,
-* GC pauses,
-* retained references,
-* long-lived iterators,
-* mutable segment size,
-* block cache lifetime.
-
-The most common ZoneTree-side memory levers are:
-
-* `MutableSegmentMaxItemCount`,
-* value size,
-* maintainer cleanup,
-* block cache lifetime,
-* iterator lifetime.
-
-## Logging
-
-Configure a logger when running in production:
+* failed merges,
+* failed drops,
+* WAL read errors,
+* recovery warnings,
+* live backup failures,
+* unusually long maintenance operations.
 
 ```csharp
 using ZoneTree.Logger;
@@ -192,18 +72,98 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
     .OpenOrCreate();
 ```
 
-Capture at least:
+## Write Pressure
 
-* failed merges,
-* failed drops,
-* WAL read errors,
-* recovery warnings,
-* backup failures,
-* unusually long maintenance operations.
+Watch these when write throughput or memory changes:
 
-## Benchmark Records
+| Signal | Meaning |
+| --- | --- |
+| rising `MutableSegmentRecordCount` | current mutable segment is filling |
+| rising `ReadOnlySegmentsCount` | maintenance is not merging as fast as segments move forward |
+| long merge duration | merge IO, compression, serialization, or payload size is expensive |
+| large WAL files | in-memory segments are not yet merged, or WAL history is intentionally retained |
 
-When comparing results, record the full shape:
+Useful context:
+
+* `MutableSegmentMaxItemCount`,
+* value size,
+* WAL mode,
+* serializer cost,
+* storage write throughput,
+* maintainer settings.
+
+## Read Path
+
+For disk reads, inspect:
+
+| Signal | Meaning |
+| --- | --- |
+| segment counts | how many layers may be searched |
+| `DefaultSparseArrayStepSize` | sparse index density |
+| `BlockCacheLifeTime` | how long inactive decompressed disk blocks stay cached |
+| `InactiveBlockCacheCleanupInterval` | how often inactive cache cleanup runs |
+| disk compression block size | random-read granularity and cache unit size |
+| iterator cache contribution | whether scans populate the shared block cache |
+| circular key/value cache settings | repeated same-record key/value reuse |
+
+For compressed disk segments, decompressed block cache behavior is usually more important than circular key/value caches.
+
+See [read-path caching](../storage/read-path-caching.md).
+
+## Memory
+
+OS process memory is not the same thing as live ZoneTree data. .NET may keep freed memory available for reuse.
+
+Measure:
+
+* live managed object size,
+* allocation rate,
+* large object heap usage,
+* retained references,
+* iterator lifetimes,
+* mutable/read-only segment sizes,
+* decompressed block cache lifetime.
+
+Common ZoneTree levers:
+
+* `MutableSegmentMaxItemCount`,
+* value size,
+* maintainer cleanup,
+* `BlockCacheLifeTime`,
+* iterator lifetime.
+
+## WAL And Recovery
+
+Track:
+
+* WAL directory size,
+* recovery duration,
+* incomplete WAL tail reports,
+* checksum or deserialization failures,
+* serializer/comparer compatibility.
+
+An incomplete tail after process termination is a normal recovery boundary. Checksum and deserialization failures are integrity signals and should be investigated.
+
+See [recovery](../durability/recovery.md) and [WAL modes](../durability/wal-modes.md).
+
+## Backup
+
+For live backup, measure:
+
+* generation duration,
+* failed generation logs,
+* file transfer duration,
+* record batch size,
+* local retention behavior,
+* restore test results.
+
+Live backup is generation based. A generation contains disk segment files and optional in-memory records for that backup point.
+
+See [backups](../durability/backups.md).
+
+## Benchmark Shape
+
+When recording benchmark or incident data, include:
 
 * key and value type,
 * serializers,
@@ -213,9 +173,11 @@ When comparing results, record the full shape:
 * compression settings,
 * mutable segment size,
 * multipart min/max record count,
-* disk segment max item count,
+* `DiskSegmentMaxItemCount`,
+* sparse array step size,
 * block cache lifetime,
 * storage hardware,
-* maintenance settings.
+* maintainer settings,
+* backup activity.
 
-Without those details, benchmark numbers are difficult to explain or reproduce.
+Without the shape, numbers are hard to compare.

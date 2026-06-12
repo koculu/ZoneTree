@@ -1,26 +1,57 @@
 # Operation Indexes
 
-An operation index is a freshness token associated with a write. ZoneTree uses it to order writes for the same key when replaying logs, loading in-memory segments, or applying replicated operations.
+An operation index is ZoneTree's producer write sequence number. Every successful write receives an increasing `opIndex`.
 
-## Per-Key Freshness
+That sequence is useful whenever writes need to be replayed, audited, restored, replicated, or applied idempotently.
 
-The operation index is not a global database timestamp. It matters when comparing operations for the same key.
+## Write Sequence
 
-This distinction is important:
+```text
+Upsert(A)      -> opIndex 10
+Upsert(B)      -> opIndex 11
+ForceDelete(A) -> opIndex 12
+Upsert(A)      -> opIndex 13
+```
 
-* newer operation for key `A` should beat older operation for key `A`,
-* operation indexes for unrelated keys do not define the shape of the whole database.
+The operation index records the order in which ZoneTree accepted those writes from the producer.
 
-## Why It Exists
+`Upsert` can also receive the assigned operation index before the value is created:
 
-ZoneTree stores data across multiple layers. During recovery and replication, the engine may need to decide which operation wins for a key. The operation index gives ZoneTree a stable way to preserve the intended write order for that key.
+```csharp
+var opIndex = zoneTree.Upsert(
+    key,
+    opIndex => new AuditValue(opIndex, payload));
+```
 
-## Persisted Segments
+This is useful when the value itself should carry the write sequence.
 
-Persisted disk segment entries do not need to keep per-entry operation indexes in the same way mutable in-memory segments do. Once data is merged into a disk segment, segment ordering and merge rules carry the durable shape.
+## Recovery
 
-## Replication And Audit
+WAL entries carry operation indexes. During recovery, ZoneTree reads WAL records with their original sequence numbers and restores the producer high-water mark.
 
-Operation indexes are useful when building replication, audit, or replay pipelines. They help consumers reason about the relative freshness of writes for a key.
+After restart, new writes continue from a safe operation index instead of reusing older sequence numbers.
 
-Do not design a distributed global clock around `opIndex`. Use it as ZoneTree intends: a producer freshness token for key-level conflict resolution.
+## Replay
+
+Operation indexes make replay streams stable.
+
+```text
+key A, opIndex 10
+key B, opIndex 11
+key A, opIndex 12
+```
+
+A consumer can process the stream in operation-index order and reproduce the producer write order.
+
+For idempotent apply, a consumer can also remember the latest operation index it has accepted for each key. If an older operation for the same key arrives later, the consumer can ignore it.
+
+```text
+applied: key A, opIndex 12
+incoming: key A, opIndex 10  -> already superseded
+```
+
+## Replication
+
+`Replicator<TKey, TValue>` uses this pattern. It keeps a companion ZoneTree of latest operation indexes by key. Incoming upserts are applied to the replica only when their operation index is fresh enough for that key.
+
+This makes replicated upserts naturally idempotent for same-key updates while preserving the producer's write sequence for audit and replay.

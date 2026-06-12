@@ -83,7 +83,7 @@ Use `IteratorType.Snapshot` when the movement needs a stable view. Use normal it
 
 ## Operation Indexes
 
-Every successful write returns an operation index. The operation index is a producer freshness token compared for the same key.
+Every successful write returns an operation index. The operation index is ZoneTree's producer write sequence.
 
 This is useful for replication and replay:
 
@@ -95,9 +95,9 @@ opIndex
 source node
 ```
 
-When replaying, a consumer can ignore an older operation for key `A` after a newer operation for key `A` has already been applied. Operation indexes are not a global distributed clock and should not be used to order unrelated keys.
+When replaying, a consumer can process operations in producer sequence. For idempotent apply, it can also remember the latest operation index accepted for each key and ignore older same-key operations that arrive later.
 
-ZoneTree also includes `Replicator<TKey, TValue>`, a helper that keeps a companion ZoneTree of latest operation indexes and applies upserts to a replica only when the incoming operation index is fresh enough for that key.
+ZoneTree also includes `Replicator<TKey, TValue>`, a helper that keeps a companion ZoneTree of latest operation indexes by key and applies upserts to a replica idempotently.
 
 ## Replication Pipelines
 
@@ -118,7 +118,7 @@ For idempotent replay, include:
 * source identity,
 * schema or payload version if the value format evolves.
 
-Use `Upsert` or `ForceDelete` for simple replay. Use atomic methods when the replay decision is per-key freshness. Use transactions when applying one replicated operation must update several local keys together.
+Use `Upsert` or `ForceDelete` for simple replay. Use atomic methods when replay needs to check the latest accepted operation index for the same key. Use transactions when applying one replicated operation must update several local keys together.
 
 ## Backup-Based Movement
 

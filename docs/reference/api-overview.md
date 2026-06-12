@@ -53,7 +53,7 @@ Write methods:
 * `TryDelete`
 * `ForceDelete`
 
-Successful mutating operations return an operation index. The operation index is useful for replay, audit, and replication pipelines as a per-key freshness token.
+Successful mutating operations return an operation index. The operation index is ZoneTree's producer write sequence for replay, audit, restore, and replication pipelines.
 
 ## Atomic Methods
 
@@ -210,6 +210,6 @@ The default factory path uses local file-system backed providers. Custom provide
 
 ## Replication Helper
 
-`Replicator<TKey, TValue>` is a small helper for applying upserts by operation index. It keeps a companion ZoneTree of latest operation indexes per key and applies an incoming upsert only when the incoming operation index is fresh enough for that key.
+`Replicator<TKey, TValue>` is a small helper for applying upserts by operation index. It keeps a companion ZoneTree of latest operation indexes by key and uses that state to make repeated or delayed same-key updates idempotent.
 
-It is a useful building block for replay pipelines, but the application still owns transport, ordering between unrelated keys, retries, conflict policy, and topology.
+It is a useful building block for replay pipelines. The application still owns transport, retries, conflict policy, and topology.

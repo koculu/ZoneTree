@@ -1,38 +1,41 @@
 # Value Mutability
 
-Treat values stored in ZoneTree as immutable snapshots.
+Values stored in ZoneTree should be treated as snapshots.
 
-This rule is especially important when `TValue` is a mutable reference type. ZoneTree may hold the object reference while the value is still in an in-memory segment. If application code mutates that object after inserting it, the visible value can change without a new `Upsert`, without a WAL record, without a new operation index, and without predictable recovery behavior.
+This matters when `TValue` is a mutable reference type. While a value is still in an in-memory segment, ZoneTree may hold the same object reference the application inserted. Mutating that object outside a ZoneTree write can change the visible value without a WAL record, without a new operation index, and without a durable update.
 
-## The Problem
-
-Avoid this pattern:
+## Shared Reference Hazard
 
 ```csharp
+public sealed class User
+{
+    public string Name { get; set; }
+}
+
 var user = new User { Name = "Alice" };
 
 zoneTree.Upsert(1, user);
 
-user.Name = "Bob"; // wrong: mutates an object that may be stored by reference
+user.Name = "Bob"; // mutates an object that may already be stored by reference
 ```
 
-Also avoid treating a value returned by `TryGet` as a live editable database record:
+A value returned by `TryGet` should also be treated as a snapshot:
 
 ```csharp
 if (zoneTree.TryGet(1, out var user))
 {
-    user.Name = "Bob"; // wrong: does not create a real ZoneTree write
+    user.Name = "Bob"; // no ZoneTree write happens here
 }
 ```
 
-Depending on whether the value came from the mutable segment, a read-only segment, or disk deserialization, this can behave differently. That makes the bug subtle and hard to reproduce.
+The behavior can differ depending on whether the value came from the mutable segment, a read-only segment, or disk deserialization. That difference makes shared mutation hard to reason about.
 
-## The Rule
+## Update Discipline
 
-To update a value, create a new value and write it back with `Upsert`, an atomic method, or a transaction.
+Create the next value and write it through ZoneTree:
 
 ```csharp
-public sealed record User(string Name);
+public sealed record UserSnapshot(string Name);
 
 if (zoneTree.TryGet(1, out var user))
 {
@@ -41,7 +44,7 @@ if (zoneTree.TryGet(1, out var user))
 }
 ```
 
-For mutable classes, clone first:
+For mutable classes, clone before changing the value:
 
 ```csharp
 if (zoneTree.TryGet(1, out var user))
@@ -52,9 +55,9 @@ if (zoneTree.TryGet(1, out var user))
 }
 ```
 
-## Prefer Immutable Value Shapes
+## Value Shapes
 
-Small record-like values are often best represented as structs or readonly record structs.
+Small record-like payloads are often a good fit for structs or readonly record structs:
 
 ```csharp
 public readonly record struct CounterValue(long Count);
@@ -64,44 +67,22 @@ public readonly record struct UserScore(int Score, long UpdatedAt);
 public readonly record struct QueuePointer(long Sequence);
 ```
 
-This gives you:
+These shapes give value semantics, reduce accidental shared mutation, reduce GC pressure in in-memory segments, and serialize compactly when paired with appropriate serializers.
 
-* value semantics,
-* less accidental shared mutation,
-* lower GC pressure for in-memory segments,
-* predictable atomic updates,
-* compact serialized forms when paired with good serializers.
+Reference types are still valid for large or complex values. Prefer immutable classes, records, serialized payloads, or clone-and-upsert patterns.
 
-## When Reference Types Are Fine
+## Atomic Delegates
 
-Reference types are still useful for large or complex values. Use immutable classes, records, serialized payloads, or clone-and-upsert patterns.
+Atomic update delegates receive a local `TValue` variable by `ref`. They are the controlled place where a value can be transformed as part of a ZoneTree write.
 
-Avoid storing mutable object graphs and then changing them in place.
+For value types, this is direct. For mutable reference types, in-place mutation is valid when the delegate commits by returning `true`.
 
-## Atomic Updater Delegates
+The cancellation case is the trap. Returning `false` tells ZoneTree not to write the local value back. If the delegate mutates a shared reference object before returning `false`, the object may already have changed in memory.
 
-Atomic update delegates receive a local `TValue` variable by `ref`. They are designed to update that value.
-
-For value types, this is straightforward. For mutable reference types, in-place mutation is valid when the delegate commits by returning `true`.
-
-This is different from normal reads. A value returned by `TryGet` should be treated as a snapshot. An atomic updater delegate is the controlled place where the current value can be changed as part of a ZoneTree write.
-
-The caveat is cancellation. Returning `false` tells ZoneTree not to write the local value back. If the delegate mutates a shared reference object first and then returns `false`, that object may already have changed in memory.
-
-Avoid mutating before the commit decision:
+Decide first, then mutate or assign:
 
 ```csharp
-zoneTree.TryAtomicGetAndUpdate(1, out var user, (ref User value) =>
-{
-    value.Name = "Bob";
-    return ShouldCommit(value); // wrong: the object was already mutated
-});
-```
-
-Prefer:
-
-```csharp
-zoneTree.TryAtomicGetAndUpdate(1, out var user, (ref User value) =>
+zoneTree.TryAtomicGetAndUpdate(1, out var user, (ref UserSnapshot value) =>
 {
     if (!ShouldRename(value))
         return false;
@@ -111,7 +92,7 @@ zoneTree.TryAtomicGetAndUpdate(1, out var user, (ref User value) =>
 });
 ```
 
-If the update will commit, in-place mutation is fine:
+In-place mutation is fine when the update is definitely committed:
 
 ```csharp
 zoneTree.TryAtomicGetAndUpdate(1, out var user, (ref User value) =>
@@ -124,6 +105,5 @@ zoneTree.TryAtomicGetAndUpdate(1, out var user, (ref User value) =>
 });
 ```
 
-You can also assign a replacement value when that better matches your value model.
+Returning `false` should mean the delegate made no observable change.
 
-Decide first, then mutate or assign. Returning `false` should mean the delegate made no observable change.

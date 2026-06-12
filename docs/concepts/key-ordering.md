@@ -1,20 +1,10 @@
 # Key Ordering
 
-ZoneTree stores keys in comparer order. This is one of the most important design properties of the engine.
+ZoneTree stores keys in comparer order. The comparer is part of the physical database shape, not only an in-memory convenience.
 
-Ordered keys make it possible to build:
+Ordered keys enable range scans, prefix layouts, secondary indexes, time-series ranges, ordered queues, leaderboards, and partitioned keyspaces.
 
-* range scans,
-* prefix scans,
-* secondary indexes,
-* time-series layouts,
-* ordered queues,
-* leaderboard-style structures,
-* partitioned keyspaces.
-
-## Comparers Define The Keyspace
-
-The comparer determines the order of keys. Two trees with different comparers are different ordered worlds, even if they store the same key type.
+## Comparer Contract
 
 ```csharp
 using ZoneTree;
@@ -26,40 +16,74 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
     .OpenOrCreate();
 ```
 
-Choose the comparer intentionally. It controls lookup, iteration, range scans, and disk segment ordering.
+The comparer controls lookup, iteration, sparse indexes, merge output, and disk segment ordering.
 
-## Ordering Is Part Of The Database Shape
+ZoneTree stores the comparer type in metadata and validates it when opening an existing database. That check prevents opening a tree with a different comparer class.
 
-Do not change comparer semantics after a ZoneTree has been created.
+The comparison semantics themselves are also part of the contract. If a custom comparer keeps the same .NET type but changes ordering logic, culture rules, constructor state, or field order, persisted data may no longer match the runtime ordering.
 
-ZoneTree stores the comparer type in metadata and validates it when opening an existing database. If the runtime comparer type does not match the metadata, opening the tree fails with a comparer mismatch error.
+To change ordering, create a new ZoneTree with the new comparer or key encoding and rebuild the data into it. If a comparer type was only renamed and the ordering is identical, handle that as a metadata migration rather than a keyspace change.
 
-That check protects against accidentally opening a database with a different comparer class. It does not prove that a custom comparer with the same type still has the same behavior. Avoid changing the comparison logic, culture rules, constructor state, or field-ordering semantics of a comparer used by an existing database.
+## Ordered Key Design
 
-The reason is structural: mutable segments, read-only segments, disk segments, sparse arrays, merges, iterators, and point lookups all use the configured comparer and assume the stored data is already ordered by that same comparer.
+ZoneTree locality is comparer locality. Records are adjacent when the configured comparer sorts them adjacent.
 
-If you need a different ordering, create a new ZoneTree with the new comparer or key encoding and copy/rebuild the data into it. If only the comparer class was renamed but its ordering is exactly the same, that is a metadata migration problem, not an ordering change.
+The key can be a primitive, a fixed-size struct, a record struct, an encoded binary value, a string, or a domain type. The storage behavior comes from the comparer order, not from the field names.
 
-You can evolve the way you encode future keys only when the new encoded keys still sort correctly under the existing comparer and do not break the keyspace layout your application already depends on.
+Consider an event stream key:
 
-## Key Layouts Matter
-
-When building higher-level systems, encode your key so natural scans are cheap.
-
-Examples:
-
-```text
-tenantId:userId
-userId:createdAt:eventId
-indexName:term:documentId
-queueName:sequence
-sensorId:timestamp
+```csharp
+public readonly record struct EventKey(
+    int TenantId,
+    long StreamId,
+    long Sequence);
 ```
 
-ZoneTree does not impose a schema. Your key layout is the schema.
+For stream reads, the comparer should order the key by:
 
-## Forward And Reverse Order
+```text
+TenantId -> StreamId -> Sequence
+```
 
-ZoneTree supports both forward and reverse iterators. Reverse iteration is useful for latest-first time-series queries, descending leaderboards, and scanning the tail of ordered data.
+That order makes one stream contiguous:
+
+```text
+(tenant: 7, stream: 41, sequence: 1)
+(tenant: 7, stream: 41, sequence: 2)
+(tenant: 7, stream: 41, sequence: 3)
+```
+
+A forward scan can seek to the first requested sequence and continue until the key leaves the stream:
+
+```csharp
+using var iterator = zoneTree.CreateIterator();
+
+iterator.Seek(new EventKey(tenantId, streamId, fromSequence));
+
+while (iterator.Next())
+{
+    var key = iterator.CurrentKey;
+    if (key.TenantId != tenantId || key.StreamId != streamId)
+        break;
+
+    Consume(iterator.CurrentValue);
+}
+```
+
+The same fields in a different comparer order describe a different physical keyspace:
+
+```text
+Sequence -> TenantId -> StreamId
+```
+
+That order is useful for a global sequence scan, but it scatters one stream across the sequence space. Same data, different storage behavior.
+
+Packed numeric keys, fixed-size struct keys, `Memory<byte>` keys, and string keys all follow this same rule. Choose the representation and comparer that place the ranges your system reads into contiguous comparer order.
+
+Changing field order, comparison logic, culture rules, or binary encoding changes the keyspace. Treat that as a storage migration.
+
+## Forward And Reverse Scans
+
+ZoneTree supports forward and reverse iterators. Reverse iteration is useful for latest-first time-series queries, descending leaderboards, and tail scans over ordered data.
 
 See [iteration and range scans](../usage/iteration-and-range-scans.md).

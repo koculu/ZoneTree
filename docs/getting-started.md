@@ -64,7 +64,7 @@ For long-running applications, keep a maintainer alive while the tree is active.
 
 ## Next Steps
 
-* Learn the [storage engine model](concepts/storage-engine.md).
+* Learn the [LSM tree](concepts/lsm-tree.md).
 * Choose the right [read and write API](usage/reads-and-writes.md).
 * Understand [value mutability](concepts/value-mutability.md).
 * Understand [memory usage](storage/memory-usage.md).

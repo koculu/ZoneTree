@@ -10,15 +10,13 @@ namespace ZoneTree;
 /// </summary>
 /// <remarks>
 /// Mutating APIs return an operation index (<c>opIndex</c>). The operation
-/// index is a producer-side freshness token for replicated or audited writes.
-/// It is primarily compared per key, for example to ignore an older update for
-/// the same key after a newer update was already applied. It is not metadata
-/// about the whole LSM-tree shape and should not be used to reason about
-/// segment order, merge order, or the exact global order of unrelated keys.
+/// index is ZoneTree's producer write sequence for replay, audit, restore,
+/// and replication pipelines. Consumers can also keep the latest accepted
+/// operation index by key to apply same-key updates idempotently.
 ///
 /// ZoneTree uses a monotonically increasing producer high-water mark to make
-/// sure a future write for the same key cannot receive a lower operation index
-/// after restart, WAL replay, or WAL compaction.
+/// sure future writes continue with safe operation indexes after restart, WAL
+/// replay, or WAL compaction.
 /// </remarks>
 /// <typeparam name="TKey">The key type</typeparam>
 /// <typeparam name="TValue">The value type</typeparam>
@@ -59,7 +57,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
   /// </summary>
   /// <param name="key">The key of the element to add.</param>
   /// <param name="value">The value of the element to add.</param>
-  /// <param name="opIndex">The per-key freshness token assigned to the successful write.</param>
+  /// <param name="opIndex">The operation index assigned to the successful write.</param>
   /// <returns>true if the key and value were added successfully; otherwise, false if the key already exists.</returns>
   bool TryAdd(in TKey key, in TValue value, out long opIndex);
 
@@ -70,7 +68,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
   /// <param name="key">The key of the element.</param>
   /// <param name="value">The value of the element associated with the key.</param>
   /// <param name="valueUpdater">The delegate function that updates the value.</param>
-  /// <param name="opIndex">The per-key freshness token assigned to the successful update.</param>
+  /// <param name="opIndex">The operation index assigned to the successful update.</param>
   /// <returns>true if the key is found; otherwise, false</returns>
   bool TryGetAndUpdate(
       in TKey key,
@@ -101,7 +99,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
   /// </summary>
   /// <param name="key">The key of the element to add.</param>
   /// <param name="value">The value of the element to add. It can be null.</param>
-  /// <param name="opIndex">The per-key freshness token assigned to the successful write.</param>
+  /// <param name="opIndex">The operation index assigned to the successful write.</param>
   /// <returns>true if the key/value pair was added successfully;
   /// otherwise, false.</returns>
   bool TryAtomicAdd(in TKey key, in TValue value, out long opIndex);
@@ -111,7 +109,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
   /// </summary>
   /// <param name="key">The key of the element to update.</param>
   /// <param name="value">The value of the element to update. It can be null.</param>
-  /// <param name="opIndex">The per-key freshness token assigned to the successful update.</param>
+  /// <param name="opIndex">The operation index assigned to the successful update.</param>
   /// <returns>true if the key/value pair was updated successfully;
   /// otherwise, false.</returns>
   bool TryAtomicUpdate(in TKey key, in TValue value, out long opIndex);
@@ -154,7 +152,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
   /// </summary>
   /// <param name="key">The key of the element to upsert.</param>
   /// <param name="value">The value of the element to upsert.</param>
-  /// <returns>The per-key freshness token assigned to the write.</returns>
+  /// <returns>The operation index assigned to the write.</returns>
   long AtomicUpsert(in TKey key, in TValue value);
 
   /// <summary>
@@ -196,14 +194,14 @@ public interface IZoneTree<TKey, TValue> : IDisposable
   /// </summary>
   /// <param name="key">The key of the element to upsert.</param>
   /// <param name="valueGetter">The delegate provides the value to upsert.</param>
-  /// <returns>The per-key freshness token assigned to the write.</returns>
+  /// <returns>The operation index assigned to the write.</returns>
   long Upsert(in TKey key, GetValueDelegate<TKey, TValue> valueGetter);
 
   /// <summary>
   /// Attempts to delete the specified key.
   /// </summary>
   /// <param name="key">The key of the element to delete.</param>
-  /// <param name="opIndex">The per-key freshness token assigned to the successful delete marker.</param>
+  /// <param name="opIndex">The operation index assigned to the successful delete marker.</param>
   /// <returns>true if the key was found and deleted;
   /// false if the key was not found.</returns>
   bool TryDelete(in TKey key, out long opIndex);
@@ -214,7 +212,7 @@ public interface IZoneTree<TKey, TValue> : IDisposable
   /// It increases the data lake size.
   /// </summary>
   /// <param name="key">The key of the element to delete.</param>
-  /// <returns>The per-key freshness token assigned to the delete marker.</returns>
+  /// <returns>The operation index assigned to the delete marker.</returns>
   long ForceDelete(in TKey key);
 
   /// <summary>
@@ -335,6 +333,6 @@ public enum OperationResult
 /// </summary>
 /// <typeparam name="TValue">The value type</typeparam>
 /// <param name="value">The value that has been updated or added.</param>
-/// <param name="opIndex">The per-key freshness token assigned to the write.</param>
+/// <param name="opIndex">The operation index assigned to the write.</param>
 /// <param name="operationResult">The operation result.</param>
 public delegate void OperationResultDelegate<TValue>(in TValue value, long opIndex, OperationResult operationResult);

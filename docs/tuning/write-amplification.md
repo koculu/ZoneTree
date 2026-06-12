@@ -7,14 +7,14 @@ ZoneTree is designed to keep that cost local. A small localized update should no
 * vertical LSM layers,
 * horizontal multipart disk segments.
 
-The vertical layers batch writes and keep the active merge target bounded. The horizontal parts bound the persistent rewrite unit inside a disk segment and allow unchanged data to be carried forward.
+The vertical layers batch writes and keep the normal disk merge layer bounded. The horizontal parts bound the persistent rewrite unit inside a disk segment and allow unchanged data to be carried forward.
 
 Three record-count controls matter most:
 
 | Option | Default | Role |
 | --- | ---: | --- |
 | `MutableSegmentMaxItemCount` | `1_000_000` | controls when the mutable segment moves to read-only memory |
-| `DiskSegmentMaxItemCount` | `20_000_000` | controls when the active disk segment moves to bottom segments |
+| `DiskSegmentMaxItemCount` | `20_000_000` | controls when `DiskSegment` moves to bottom segments |
 | `MinimumRecordCount` / `MaximumRecordCount` | `1_500_000` / `3_000_000` | controls multipart part sizes inside a disk segment |
 
 ## Vertical Layers
@@ -41,7 +41,7 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
     .OpenOrCreate();
 ```
 
-The second vertical control is `DiskSegmentMaxItemCount`. After read-only segments are merged into a new disk segment, ZoneTree checks the new disk segment length. If it is greater than `DiskSegmentMaxItemCount`, the new disk segment is moved to bottom segments and the active disk segment is reset.
+The second vertical control is `DiskSegmentMaxItemCount`. After read-only segments are merged into a new disk segment, ZoneTree checks the new disk segment length. If it is greater than `DiskSegmentMaxItemCount`, the new disk segment is moved to bottom segments and the `DiskSegment` slot is reset.
 
 The default is `20_000_000` records.
 
@@ -52,7 +52,7 @@ using var zoneTree = new ZoneTreeFactory<int, int>()
     .OpenOrCreate();
 ```
 
-This keeps the active disk segment from growing forever. New read-only segments continue to merge into a fresh active disk segment instead of repeatedly merging into one increasingly large disk level.
+This keeps the normal disk merge layer from growing forever. New read-only segments continue to merge into a fresh `DiskSegment` instead of repeatedly merging into one increasingly large disk segment.
 
 ## Horizontal Parts
 
@@ -161,7 +161,7 @@ The same key ranges are less likely to be trapped forever inside the same full r
 
 Assume:
 
-* the active disk segment is multipart,
+* `DiskSegment` is multipart,
 * it contains `18M` compact records,
 * it is physically represented by several ordered part files,
 * one read-only segment contains `10K` new records whose sorted positions overlap part `B`.
@@ -172,7 +172,7 @@ Before merge:
 read-only segment:
 [ 10K new records overlapping B ]
 
-active disk segment:
+DiskSegment:
 [ A ][ B ][ C ][ D ][ E ][ F ]
 ```
 
@@ -186,7 +186,7 @@ During merge:
 After merge:
 
 ```text
-new active disk segment:
+new DiskSegment:
 [ carry A ][ write B2 ][ carry C ][ carry D ][ carry E ][ carry F ]
 ```
 
@@ -200,11 +200,11 @@ If the new disk segment grows beyond `DiskSegmentMaxItemCount`, ZoneTree moves i
 bottom segments:
 [ sealed merged disk segment ]
 
-active disk segment:
+DiskSegment:
 [ empty / fresh target for future read-only merges ]
 ```
 
-This is the vertical boundary. `DiskSegmentMaxItemCount` controls when the active disk level is sealed and moved downward.
+This is the vertical boundary. `DiskSegmentMaxItemCount` controls when `DiskSegment` is moved to bottom segments.
 
 ## Tuning Part Counts
 
@@ -235,7 +235,7 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
 
 Lower counts keep each part smaller in bytes and reduce the amount of local data that may need to be rewritten.
 
-Tune part counts together with `DiskSegmentMaxItemCount`. The disk segment max controls the total active disk segment size. The multipart min/max controls the internal part size of that active segment.
+Tune part counts together with `DiskSegmentMaxItemCount`. The disk segment max controls the size of the `DiskSegment` layer before it moves to bottom segments. The multipart min/max controls the internal part size of that disk segment.
 
 Use larger part counts when:
 
@@ -256,7 +256,7 @@ The minimum exists to keep the horizontal disk shape healthy. Lower it when reco
 
 ## Workload Shape
 
-Multipart reuse is most effective when incoming records touch a limited part of the keyspace. If a read-only segment contains random keys spread across most parts, then most parts become affected and the merge may approach a full rewrite of the active disk segment.
+Multipart reuse is most effective when incoming records touch a limited part of the keyspace. If a read-only segment contains random keys spread across most parts, then most parts become affected and the merge may approach a full rewrite of the disk segment.
 
 Randomized part sizes do not eliminate that fundamental cost. Their role is to prevent compaction from repeatedly recreating rigid, fully packed part boundaries when local ranges are rewritten.
 

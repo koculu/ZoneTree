@@ -72,7 +72,7 @@ Time-series workloads often write append-like data. ZoneTree's mutable segment a
 Tune:
 
 * `MutableSegmentMaxItemCount` for the in-memory write buffer,
-* `DiskSegmentMaxItemCount` for the active disk segment boundary,
+* `DiskSegmentMaxItemCount` for the boundary between `DiskSegment` and bottom segments,
 * multipart minimum and maximum record counts for local rewrite size,
 * WAL mode for the durability boundary,
 * compression block size for read behavior and storage size.

@@ -94,7 +94,7 @@ The implementation also exposes low-level in-memory and read-only-segment iterat
 
 ## Dispose Iterators
 
-Iterators can hold references to active segments. Dispose them when you are done.
+Iterators can hold references to segments while they scan. Dispose them when you are done.
 
 ```csharp
 using var iterator = zoneTree.CreateIterator();
