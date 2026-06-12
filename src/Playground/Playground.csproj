@@ -9,10 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.2" />
-    <PackageReference Include="Humanizer" Version="2.14.1" />
-    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.8" />
+    <PackageReference Include="Humanizer" Version="3.0.10" />
+    <PackageReference Include="NUnit" Version="4.6.1" />
   </ItemGroup>
 
   <ItemGroup>
