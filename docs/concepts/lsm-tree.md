@@ -1,53 +1,77 @@
-# LSM-Tree Model
+# LSM Tree
 
-ZoneTree uses a Log-Structured Merge-tree architecture. This model is optimized for high-throughput writes and ordered reads over persistent data.
+ZoneTree uses a Log-Structured Merge-tree model: writes are accepted in memory, protected by the WAL, then merged into sorted persistent segments by maintenance work.
 
-## Write Path
+The model is optimized for write throughput, ordered reads, and controlled background compaction.
 
-New writes enter the mutable segment in memory. When the mutable segment reaches its configured record limit, ZoneTree moves it forward into a read-only in-memory segment. Maintenance later merges read-only segments into disk segments.
-
-The high-level flow is:
+## Layer Progression
 
 ```text
-Mutable segment
+mutable segment
   -> read-only segments
-  -> disk segment
+  -> DiskSegment
   -> bottom segments
 ```
 
-## Read Path
+| Layer | Purpose |
+| --- | --- |
+| Mutable segment | receives current writes |
+| Read-only segments | frozen in-memory batches waiting for merge |
+| `DiskSegment` | persistent segment used by normal merge |
+| Bottom segments | persistent segments in the bottom segment queue |
 
-Reads search from newest to oldest storage layers:
+The mutable segment is bounded by `MutableSegmentMaxItemCount`. The `DiskSegment` layer is bounded by `DiskSegmentMaxItemCount`. These are record counts, not byte limits.
 
-* mutable segment,
-* read-only segments,
-* active disk segment,
-* bottom segments.
+## Visibility Order
 
-This order ensures newer values and deletion markers override older records with the same key.
+Reads search newest layers first:
 
-## Compaction
+```text
+mutable segment
+  -> read-only segments
+  -> DiskSegment
+  -> bottom segments
+```
 
-Compaction removes obsolete records and combines segments into larger persistent structures. This is where old values, overwritten records, and deletion markers can be discarded when it is safe.
+That order gives ZoneTree its update semantics. A newer value hides an older value with the same key. A newer deletion marker hides older values with the same key.
 
-ZoneTree's default multipart disk segment mode can reduce compaction write amplification by carrying unchanged disk parts forward during merge instead of rewriting the whole persistent level.
+Iterators merge the same ordered layers into a single ordered view.
 
-## Why This Works Well
+## Merge Behavior
 
-LSM-trees are strong when write throughput matters and data can be compacted over time. They are especially useful for indexes, event-like data, queues, caches, time-series layouts, and systems where many writes eventually become a smaller optimized on-disk representation.
+Normal merge takes read-only in-memory segments and merges them with `DiskSegment`. The output becomes the next `DiskSegment`.
 
-## What To Tune
+If the new `DiskSegment` grows beyond `DiskSegmentMaxItemCount`, it moves to bottom segments and the `DiskSegment` slot is reset.
 
-The most important LSM-tree tuning knobs are:
+Bottom segment merge is separate. It compacts older sealed disk segments without changing the current mutable or read-only write path.
 
-* mutable segment size,
-* maintenance behavior,
-* merge thresholds,
-* disk segment size,
-* compression,
+## Multipart Persistent Layer
+
+ZoneTree's default disk segment is multipart. One logical disk segment can contain many ordered immutable part files:
+
+```text
+multipart disk segment
+  -> part A
+  -> part B
+  -> part C
+```
+
+This horizontal shape matters during merge. If incoming records affect only a local key range, ZoneTree can rewrite the affected range and carry unrelated clean parts forward. The persistent rewrite unit is bounded by multipart part sizes instead of the entire disk segment.
+
+Multipart behavior is one of the main reasons ZoneTree can keep write amplification local for workloads with key locality. The full tuning model is covered in [write amplification](../tuning/write-amplification.md).
+
+## Tuning Axes
+
+The main LSM controls are:
+
+* mutable segment record count,
+* `DiskSegment` record count,
+* multipart part size range,
 * WAL mode,
-* cache behavior.
+* compression,
+* block cache cleanup,
+* maintenance scheduling.
 
-See [write-heavy workloads](../tuning/write-heavy-workloads.md) and [read-heavy workloads](../tuning/read-heavy-workloads.md).
+The practical decision is how much data to batch vertically, and how large each horizontal persistent rewrite unit should be.
 
-For the merge model behind multipart disk segments, see [write amplification](../tuning/write-amplification.md).
+See [write-heavy workloads](../tuning/write-heavy-workloads.md), [read-heavy workloads](../tuning/read-heavy-workloads.md), and [write amplification](../tuning/write-amplification.md).

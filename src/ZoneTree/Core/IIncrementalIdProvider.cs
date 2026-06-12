@@ -4,9 +4,8 @@ namespace ZoneTree.Core;
 /// Provides monotonically increasing ids for segment ids or operation indexes.
 /// </summary>
 /// <remarks>
-/// When used as an operation-index provider, the monotonic sequence is a
-/// producer high-water mark. It protects per-key freshness comparisons across
-/// restart; it is not intended to model the global order of unrelated keys.
+/// When used as an operation-index provider, the monotonic sequence is the
+/// producer high-water mark restored after restart and WAL replay.
 /// </remarks>
 public interface IIncrementalIdProvider
 {

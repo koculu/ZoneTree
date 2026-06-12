@@ -322,4 +322,4 @@ Make the custom store safe for concurrent segment-file operations, or configure 
 
 ## Restore From Custom Source Has Missing Or Wrong Segments
 
-Custom sources must preserve the `Order` value of each `DiskSegmentFile`. Restore uses that order to rebuild the active disk segment and bottom segment layout.
+Custom sources must preserve the `Order` value of each `DiskSegmentFile`. Restore uses that order to rebuild the `DiskSegment` and bottom segment layout.

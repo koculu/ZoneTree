@@ -11,15 +11,15 @@ ZoneTree is strongest when it is treated as a storage-engine foundation: an orde
 * Ordered keys make range scans, prefix layouts, secondary indexes, queues, and time-series layouts natural.
 * The LSM-tree write path gives high-throughput persistent writes.
 * Multipart disk segments reduce write amplification by keeping rewrite work local when ranges change.
-* Operation indexes support per-key freshness for replay, audit, and replication pipelines.
+* Operation indexes provide a producer write sequence for replay, audit, restore, and replication pipelines.
 * Iterators, live backup, restore, transactions, and maintenance hooks make ZoneTree useful as a building block for larger data systems.
 
-For the storage model, start with [Storage engine model](concepts/storage-engine.md). For ZoneTree's merge design, read [Write amplification](tuning/write-amplification.md).
+For the storage model, start with [LSM Tree](concepts/lsm-tree.md). For ZoneTree's merge design, read [Write amplification](tuning/write-amplification.md).
 
 ## Start here
 
 * [Getting started](getting-started.md)
-* [Storage engine model](concepts/storage-engine.md)
+* [LSM Tree](concepts/lsm-tree.md)
 * [Reads and writes](usage/reads-and-writes.md)
 * [Value mutability](concepts/value-mutability.md)
 * [Iteration and range scans](usage/iteration-and-range-scans.md)
@@ -27,7 +27,8 @@ For the storage model, start with [Storage engine model](concepts/storage-engine
 
 ## Concepts
 
-* [LSM-tree model](concepts/lsm-tree.md)
+* [LSM Tree](concepts/lsm-tree.md)
+* [Segments](concepts/segments.md)
 * [Key ordering](concepts/key-ordering.md)
 * [Deletion markers and TTL](concepts/deletion-markers-and-ttl.md)
 * [Operation indexes](concepts/op-index.md)

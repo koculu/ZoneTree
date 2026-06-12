@@ -9,7 +9,7 @@ On open, ZoneTree reconstructs the tree from those facts and then resumes writin
 
 ## What ZoneTree Loads
 
-Opening an existing tree starts with the metadata WAL. Metadata contains the key type, value type, comparer type, serializer types, current mutable segment id, read-only segment ids, active disk segment id, bottom segment ids, and stored options.
+Opening an existing tree starts with the metadata WAL. Metadata contains the key type, value type, comparer type, serializer types, current mutable segment id, read-only segment ids, `DiskSegment` id, bottom segment ids, and stored options.
 
 The loader validates that the opened `ZoneTreeFactory<TKey, TValue>` matches the persisted shape:
 
@@ -45,7 +45,7 @@ The normal startup shape is:
 metadata WAL -> storage shape
 read-only segment WALs -> read-only in-memory segments
 mutable segment WAL -> current mutable segment
-disk segment files -> active disk segment
+disk segment files -> DiskSegment
 bottom segment files -> bottom segments
 ```
 
@@ -53,9 +53,9 @@ The loader also tracks the maximum segment id from metadata, multipart segment f
 
 ## Operation Index Recovery
 
-Operation indexes are freshness tokens compared for the same key. They are not a global database timestamp.
+Operation indexes are ZoneTree's producer write sequence. WAL records carry them, and metadata preserves the high-water mark.
 
-During recovery, ZoneTree preserves the producer high-water mark so a later write for the same key cannot restart with a lower operation index after WAL compaction or restore. Read-only segment WALs and mutable segment WALs participate in this recovery path.
+During recovery, ZoneTree restores that high-water mark so new writes continue with safe sequence numbers after restart, WAL compaction, or restore. Read-only segment WALs and mutable segment WALs participate in this recovery path.
 
 See [operation indexes](../concepts/op-index.md).
 

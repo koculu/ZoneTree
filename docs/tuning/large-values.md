@@ -73,9 +73,9 @@ See [write amplification](write-amplification.md).
 
 ## Disk Segment Max Item Count
 
-`DiskSegmentMaxItemCount` controls when the active disk segment is sealed and moved to bottom segments.
+`DiskSegmentMaxItemCount` controls when `DiskSegment` is moved to bottom segments.
 
-The default is `20_000_000` records. For large values, that may represent a very large active disk segment.
+The default is `20_000_000` records. For large values, that may represent a very large disk segment.
 
 Use a lower value when you want smaller operational boundaries:
 
@@ -152,7 +152,7 @@ Use `contributeToTheBlockCache: true` only when the scan represents a useful wor
 | Memory grows quickly during inserts | too many large values in mutable/read-only memory | lower `MutableSegmentMaxItemCount`; keep maintenance active |
 | Read-only segments accumulate | large values make merge slower than writes | lower mutable segment size carefully; inspect merge duration and storage throughput |
 | Merges are slow | large payloads increase merge IO and serialization cost | reduce value size; lower multipart part counts; tune compression |
-| Active disk segment becomes too large | `DiskSegmentMaxItemCount` is too high for payload size | lower `DiskSegmentMaxItemCount` |
+| Disk segment becomes too large | `DiskSegmentMaxItemCount` is too high for payload size | lower `DiskSegmentMaxItemCount` |
 | WAL files are large | values are large or poorly compressible | test compressed WAL with real payloads; reduce payload size if possible |
 | Random reads are expensive | large compressed blocks or large serialized values | tune disk compression block size; split metadata from payload |
 | Process memory stays high after reads | decompressed block cache retains large blocks | shorten `BlockCacheLifeTime`; check iterator behavior |

@@ -1,84 +1,81 @@
-# Disk Segments
+# Disk Segment Files
 
-Disk segments are the persistent, optimized storage units produced by maintenance and merge operations.
+Disk segments are immutable persistent record sets. This page describes their physical file shape. For terminology, see [segments](../concepts/segments.md). For sizing and merge tuning, see [disk segment tuning](../tuning/disk-segments.md).
 
-ZoneTree's disk storage is adaptive. Key/value type shape, serializers, compression, sparse indexing, caches, and disk segment mode all affect the physical storage strategy.
+## File Categories
 
-## Active Disk Segment
+ZoneTree stores disk segment data through random-access devices. The common file categories are:
 
-Read-only in-memory segments are merged into an active disk segment. This reduces memory pressure and improves long-term read behavior.
+| Category | Purpose |
+| --- | --- |
+| `.data` | serialized key/value bytes or fixed-size record data |
+| `.head` | headers and offsets for layouts that need them |
+| `.sparse` | optional sparse index entries |
+| `.multi` | multipart disk segment descriptor |
 
-## Bottom Segments
+Compression usually adds the `.z` suffix to the physical file.
 
-When disk segments reach configured limits or multipart merge strategies are used, older persistent data can move into bottom segments.
+```text
+single-part segment 10
+  10.data.z
+  10.head.z
+  10.sparse.z
 
-Bottom segments let ZoneTree manage very large datasets without requiring one enormous file.
+multipart segment 20
+  20.multi
+  part files for segment 11
+  part files for segment 12
+  part files for segment 13
+```
 
-## Adaptive Layouts
+Fixed-size key/value layouts may not need a `.head` file. Variable-size layouts use headers and offsets so ZoneTree can keep random access while supporting strings, arrays, and other variable-size serialized values.
 
-ZoneTree chooses the disk segment implementation based on key and value shape:
+## Single-Part Layouts
 
-* fixed-size key + fixed-size value,
-* fixed-size key + variable-size value,
-* variable-size key + fixed-size value,
-* variable-size key + variable-size value.
+Single-part disk segments choose one of four layouts from the key and value shape:
 
-Small unmanaged structs can unlock simpler disk layouts because ZoneTree can store fixed-size keys and values more directly. This is another reason small immutable structs or readonly record structs can be a strong value shape when they fit the data model.
+| Layout | Physical idea |
+| --- | --- |
+| fixed key + fixed value | records can be addressed directly in `.data` |
+| fixed key + variable value | fixed keys and value offsets are stored in `.head`; value bytes live in `.data` |
+| variable key + fixed value | key offsets and fixed values are stored in `.head`; key bytes live in `.data` |
+| variable key + variable value | key/value offsets are stored in `.head`; key/value bytes live in `.data` |
 
-Reference types, strings, byte arrays, and variable-length serialized values use layouts with headers and offsets so the disk segment can still support efficient lookup and iteration.
+This is a storage optimization. The logical API stays the same for all layouts.
 
-## Single Vs Multipart
+## Multipart Descriptor
 
-ZoneTree supports two disk segment modes:
+A multipart disk segment is one logical disk segment made from ordered parts. Its `.multi` descriptor stores the part segment ids and boundary key/value information needed to route reads to the correct part.
 
-* `SingleDiskSegment`
-* `MultiPartDiskSegment`
+```text
+20.multi
+  part ids: 11, 12, 13
+  first/last keys for each part
+  first/last values for each part
+```
 
-`MultiPartDiskSegment` is the default. It partitions large disk segments into multiple physical parts, which keeps very large datasets more manageable and gives merge operations opportunities to carry existing parts forward instead of rewriting everything.
+The parts are regular `IDiskSegment` instances. A part can be carried forward into a later multipart segment when its key range is unchanged by a merge.
 
-`SingleDiskSegment` keeps a disk segment in one physical segment. It can be simpler for smaller databases.
+## Sparse Index File
 
-## Segment Size
+The `.sparse` file stores selected key/value/index entries. It helps ZoneTree position disk searches without loading every key into memory.
 
-The default high-level disk segment max item count is `20_000_000` records. With multipart disk segments, the default physical part targets are `1_500_000` to `3_000_000` records per part.
+`DefaultSparseArrayStepSize` controls sparse index density:
 
-Disk segment sizing affects:
+| Value | Effect |
+| --- | --- |
+| smaller step | more sparse entries, faster positioning, more memory |
+| larger step | fewer sparse entries, less memory, more local search |
+| `0` | disables default sparse array creation/loading |
 
-* merge cost,
-* read amplification,
-* file size,
-* backup behavior,
-* cache behavior,
-* operational manageability.
+## Immutability
 
-Use smaller segment sizes when operational boundaries matter. Use larger segments when you want fewer files and can tolerate larger merge units.
+Disk segment files are immutable after creation. Merge operations create new disk segment files and then drop old files when they are no longer needed.
 
-## Sparse Indexes
+Iterators and live backup can pin disk segments while they read or copy files. A pinned segment is not rewritten; its deletion is delayed until the pin is released.
 
-Disk segments use sparse indexing to avoid loading all keys into memory. Sparse arrays provide enough structure for efficient disk search while keeping memory usage bounded.
+## Restore And Backup
 
-`DefaultSparseArrayStepSize` controls the default sparse array density. A smaller step gives more index entries and can improve positioning at the cost of memory. A larger step reduces memory but may require more local search. Setting it to `0` disables default sparse array creation/loading.
+`IDiskSegment.GetFiles()` returns the physical files that belong to a disk segment. For multipart segments, this includes the `.multi` descriptor and every part file.
 
-The default sparse array step size is `1024`.
-
-## Compression
-
-Disk segments can use block-based compression to reduce storage footprint while preserving random access at the block level. Compression changes CPU, IO, and cache trade-offs.
-
-The default disk compression profile uses LZ4 fastest compression with `4 MB` blocks.
-
-See [compression](compression.md).
-
-## Read Path Caches
-
-Disk segments use caches to reduce repeated disk work. The main read-side cache for compressed disk segments is the decompressed block cache. It is controlled by the maintainer through `BlockCacheLifeTime` and `InactiveBlockCacheCleanupInterval`.
-
-Disk segment options also include smaller circular key/value caches. The default circular key and value caches each hold `1024` records with a `10 second` record lifetime.
-
-See [read-path caching](read-path-caching.md).
-
-## Iterator Pinning
-
-Iterators can keep disk segments alive while they scan. This protects reads from concurrent segment disposal, but long-lived iterators can delay file cleanup after merges.
-
-Dispose iterators promptly.
+Live backup stores these immutable files and streams in-memory records separately. Restore uses the recorded file order to rebuild the `DiskSegment` and bottom segment layout.

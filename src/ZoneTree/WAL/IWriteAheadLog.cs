@@ -21,8 +21,7 @@ public interface IWriteAheadLog<TKey, TValue> : IDisposable
   /// <param name="key">The key of the record.</param>
   /// <param name="value">The value of the record.</param>
   /// <param name="opIndex">
-  /// The producer freshness token for the write. Consumers compare this value
-  /// per key; it is not a database-wide shape or merge-order version.
+  /// The producer write sequence assigned to the record.
   /// </param>
   void Append(in TKey key, in TValue value, long opIndex);
 
