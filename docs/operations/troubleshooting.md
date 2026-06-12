@@ -41,7 +41,7 @@ First actions:
 * tune `MutableSegmentMaxItemCount` by expected record byte size,
 * benchmark WAL modes with the real storage device.
 
-See [write-heavy workloads](../tuning/write-heavy-workloads.md).
+See [write amplification](../tuning/write-amplification.md), [large values](../tuning/large-values.md), and [WAL modes](../durability/wal-modes.md).
 
 ## Read-Only Segments Accumulate
 
@@ -93,7 +93,7 @@ First actions:
 * keep one-off full scans from contributing to the block cache,
 * review disk compression block size for random-read workloads.
 
-See [read-heavy workloads](../tuning/read-heavy-workloads.md) and [read-path caching](../storage/read-path-caching.md).
+See [read-path caching](../storage/read-path-caching.md), [key ordering](../concepts/key-ordering.md), and [disk segment tuning](../tuning/disk-segments.md).
 
 ## Process Memory Looks High
 
