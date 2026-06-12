@@ -5,7 +5,7 @@ using BenchmarkDotNet.Engines;
 namespace Playground.InMemoryTreeBenchmark;
 
 [HtmlExporter]
-[SimpleJob(RunStrategy.ColdStart, targetCount: 1)]
+[SimpleJob(RunStrategy.ColdStart, iterationCount: 1)]
 [MinColumn, MaxColumn, MeanColumn, MedianColumn, /*AllStatisticsColumn*/]
 [MemoryDiagnoser]
 [HardwareCounters(
@@ -27,7 +27,7 @@ public class BigKeyTreeBenchmark
   }
 
 
-  BigKey[] Data = Array.Empty<BigKey>();
+  BigKey[] Data = [];
 
   [Benchmark]
   public void InsertBTree() => RandomBigInserts.InsertBTree(Data);

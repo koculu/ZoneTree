@@ -9,7 +9,7 @@ using ZoneTree.Comparers;
 namespace Playground.InMemoryTreeBenchmark;
 
 [HtmlExporter]
-[SimpleJob(RunStrategy.ColdStart, targetCount: 1)]
+[SimpleJob(RunStrategy.ColdStart, iterationCount: 1)]
 [MinColumn, MaxColumn, MeanColumn, MedianColumn, /*AllStatisticsColumn*/]
 [MemoryDiagnoser]
 /*[HardwareCounters(

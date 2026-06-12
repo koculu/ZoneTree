@@ -5,7 +5,7 @@ using BenchmarkDotNet.Engines;
 namespace Playground.InMemoryTreeBenchmark;
 
 [HtmlExporter]
-[SimpleJob(RunStrategy.ColdStart, targetCount: 1)]
+[SimpleJob(RunStrategy.ColdStart, iterationCount: 1)]
 [MinColumn, MaxColumn, MeanColumn, MedianColumn, /*AllStatisticsColumn*/]
 [MemoryDiagnoser]
 [HardwareCounters(
@@ -26,7 +26,7 @@ public class MidSizeTreeBenchmark
         RandomMidSizeInserts.GetSortedArray(Count);
   }
 
-  MidSizeKey[] Data = Array.Empty<MidSizeKey>();
+  MidSizeKey[] Data = [];
 
   [Benchmark]
   public void InsertBTree() => RandomMidSizeInserts.InsertBTree(Data);
