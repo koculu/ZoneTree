@@ -49,9 +49,10 @@ public sealed class LiveBackupRecordBatchReader : IDisposable
     if (!TryReadInt32(Source, out var compressedLength))
       throw new EndOfStreamException();
     var compressed = ReadBytes(Source, compressedLength);
-    var decompressed = DataCompression.Decompress(
+    var decompressed = DataCompression.DecompressFast(
         Batch.CompressionMethod,
-        compressed);
+        compressed,
+        uncompressedLength);
     if (decompressed.Length != uncompressedLength)
       throw new InvalidDataException("Invalid live backup compressed block length.");
     block = decompressed.ToArray();
