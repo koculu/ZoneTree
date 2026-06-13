@@ -130,14 +130,9 @@ public sealed class ZoneTreeFactory<TKey, TValue>
   /// </summary>
   /// <param name="blockSize">The block size</param>
   /// <returns>ZoneTree Factory</returns>
-  /// <exception cref="Exception">Thrown when compression block size is not valid.</exception>
   public ZoneTreeFactory<TKey, TValue>
       SetDiskSegmentCompressionBlockSize(int blockSize)
   {
-    if (blockSize < 8 * 1024)
-      throw new Exception("Compression Block size cannot be smaller than 8KB");
-    if (blockSize > 1024 * 1024 * 1024)
-      throw new Exception("Compression Block size cannot be greater than 1GB");
     Options.DiskSegmentOptions.CompressionBlockSize = blockSize;
     return this;
   }
