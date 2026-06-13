@@ -50,13 +50,13 @@ ZoneTree defaults are designed as a practical general-purpose profile. Start wit
 | BTree leaf size | `128` |
 | WAL mode | `AsyncCompressed` |
 | WAL compression block size | `256 KB` |
-| WAL compression | `LZ4`, fastest level |
+| WAL compression | `Zstd`, level `0` |
 | Async compressed WAL empty queue poll interval | `100 ms` |
 | Sync compressed WAL tail writer | enabled |
 | Sync compressed WAL tail writer interval | `500 ms` |
 | Disk segment mode | `MultiPartDiskSegment` |
 | Disk segment compression block size | `4 MB` |
-| Disk segment compression | `LZ4`, fastest level |
+| Disk segment compression | `Zstd`, level `0` |
 | Multipart minimum record count | `1_500_000` records |
 | Multipart maximum record count | `3_000_000` records |
 | Key cache size | `1024` records |
@@ -73,7 +73,7 @@ ZoneTree defaults are designed as a practical general-purpose profile. Start wit
 | Live backup in-memory records | enabled |
 | Live backup in-memory mode | `Live` |
 | Live backup file transfer concurrency | `8` |
-| Live backup record batch compression | `LZ4`, fastest level |
+| Live backup record batch compression | `Zstd`, level `0` |
 | Live backup record batch compression block size | `1 MB` |
 | Console logger level | `Warning` |
 
@@ -105,7 +105,7 @@ Important options:
 | `KeyCacheRecordLifeTimeInMillisecond` | key cache record lifetime |
 | `ValueCacheRecordLifeTimeInMillisecond` | value cache record lifetime |
 
-The default disk profile uses multipart disk segments, `20_000_000` as the disk segment max item count, `1_500_000` to `3_000_000` records per multipart part, `4 MB` disk compression blocks, LZ4 fastest compression, `1024` sparse array step size, and `1024` key/value cache entries with `10 second` lifetimes.
+The default disk profile uses multipart disk segments, `20_000_000` as the disk segment max item count, `1_500_000` to `3_000_000` records per multipart part, `4 MB` disk compression blocks, Zstd level `0` compression, `1024` sparse array step size, and `1024` key/value cache entries with `10 second` lifetimes.
 
 The decompressed block cache is not configured by `DiskSegmentOptions`. Disk compression block size is configured here, but inactive decompressed block cleanup is controlled by the maintainer.
 
@@ -141,7 +141,7 @@ Important WAL options:
 
 Use sync modes when the application specifically needs synchronous WAL acknowledgment. Use `No WAL` only for cache, temporary, or intentionally rebuildable data.
 
-The default WAL profile uses async compressed WAL, `256 KB` compression blocks, LZ4 fastest compression, and a `100 ms` async empty-queue poll interval.
+The default WAL profile uses async compressed WAL, `256 KB` compression blocks, Zstd level `0` compression, and a `100 ms` async empty-queue poll interval.
 
 Incremental backup is disabled by default. Enable it only when you intentionally need WAL history preserved during WAL replacement or compaction.
 

@@ -82,7 +82,7 @@ For variable-length values such as strings and byte arrays, ZoneTree uses layout
 
 `CompressionBlockSize` affects disk compression and random-access behavior.
 
-The default disk compression block size is `4 MB`, using LZ4 fastest compression.
+The default disk compression block size is `4 MB`, using Zstd level `0` compression.
 
 Larger blocks often compress better but can make small random reads more expensive. Smaller blocks can improve random read granularity but may reduce compression ratio.
 

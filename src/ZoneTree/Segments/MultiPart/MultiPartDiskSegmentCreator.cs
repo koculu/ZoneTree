@@ -1,4 +1,3 @@
-using ZoneTree.Compression;
 using ZoneTree.Core;
 using ZoneTree.Options;
 using ZoneTree.Segments.Disk;
@@ -18,11 +17,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
 
   readonly IIncrementalIdProvider IncrementalIdProvider;
 
-#pragma warning disable CA2213 // Dispose is required in case of drop and handled by parts drops.
-
   DiskSegmentCreator<TKey, TValue> NextCreator;
-
-#pragma warning restore CA2213
 
   readonly int DiskSegmentMaximumRecordCount;
 
@@ -39,6 +34,12 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
   TKey LastAppendedKey;
 
   TValue LastAppendedValue;
+
+  bool IsReadOnlyDiskSegmentCreated;
+
+  bool IsDropped;
+
+  bool IsDisposed;
 
   public HashSet<long> AppendedPartSegmentIds { get; } = new();
 
@@ -130,6 +131,8 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
 
   public IDiskSegment<TKey, TValue> CreateReadOnlyDiskSegment()
   {
+    ThrowIfNotWritable();
+
     if (NextCreator.Length == 0)
     {
       NextCreator.DropDiskSegment();
@@ -152,6 +155,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
         Parts,
         PartKeys.ToArray(),
         PartValues.ToArray());
+    IsReadOnlyDiskSegmentCreated = true;
     return diskSegment;
   }
 
@@ -177,8 +181,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
                 backupIfDelete: false,
                 compressionMethod,
                 compressionLevel);
-    var compressedBytes = DataCompression
-        .Compress(compressionMethod, compressionLevel, ms.ToArray());
+    var compressedBytes = MultiPartMetadataCodec.Encode(ms.ToArray());
     multiDevice.AppendBytesReturnPosition(compressedBytes);
     Options.RandomAccessDeviceManager
         .RemoveWritableDevice(SegmentId, DiskSegmentConstants.MultiPartDiskSegmentCategory);
@@ -234,6 +237,15 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
 
   public void DropDiskSegment()
   {
+    if (IsDropped)
+      return;
+    ObjectDisposedException.ThrowIf(
+        IsDisposed,
+        this);
+    if (IsReadOnlyDiskSegmentCreated)
+      throw new InvalidOperationException(
+          "Cannot drop a disk segment creator after ownership has been transferred.");
+
     foreach (var part in Parts)
     {
       if (AppendedPartSegmentIds.Contains(part.SegmentId))
@@ -250,6 +262,7 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
         DiskSegmentConstants.MultiPartDiskSegmentCategory,
         isCompressed: false))
     {
+      IsDropped = true;
       return;
     }
 
@@ -265,9 +278,36 @@ public sealed class MultiPartDiskSegmentCreator<TKey, TValue> : IDiskSegmentCrea
     randomAccessDeviceManager.RemoveReadOnlyDevice(
         SegmentId,
         DiskSegmentConstants.MultiPartDiskSegmentCategory);
+    IsDropped = true;
   }
 
   public void Dispose()
   {
+    if (IsReadOnlyDiskSegmentCreated || IsDropped || IsDisposed)
+      return;
+
+    foreach (var part in Parts)
+    {
+      if (AppendedPartSegmentIds.Contains(part.SegmentId))
+        continue;
+      part.Dispose();
+    }
+
+    NextCreator?.Dispose();
+    NextCreator = null;
+    IsDisposed = true;
+  }
+
+  void ThrowIfNotWritable()
+  {
+    if (IsReadOnlyDiskSegmentCreated)
+      throw new InvalidOperationException(
+          "The disk segment creator has already transferred ownership.");
+    ObjectDisposedException.ThrowIf(
+        IsDropped,
+        this);
+    ObjectDisposedException.ThrowIf(
+        IsDisposed,
+        this);
   }
 }

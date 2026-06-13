@@ -69,7 +69,7 @@ public sealed class LiveBackupTests
     Assert.That(recordBatch, Is.Not.Null);
     Assert.That(recordBatch.Completed, Is.True);
     Assert.That(recordBatch.RecordCount, Is.EqualTo(10));
-    Assert.That(recordBatch.CompressionMethod, Is.EqualTo(CompressionMethod.LZ4));
+    Assert.That(recordBatch.CompressionMethod, Is.EqualTo(CompressionMethod.Zstd));
     Assert.That(recordBatch.UncompressedLength, Is.GreaterThan(0));
     Assert.That(recordBatch.StoredLength, Is.GreaterThan(0));
     Assert.That(
