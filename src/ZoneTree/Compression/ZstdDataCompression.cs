@@ -1,4 +1,4 @@
-using ZstdNet;
+using ZstdSharp;
 
 namespace ZoneTree.Compression;
 
@@ -6,8 +6,7 @@ public static class ZstdDataCompression
 {
   public static Memory<byte> Compress(Memory<byte> bytes, int level)
   {
-    using var options = new CompressionOptions(level);
-    using var compressor = new Compressor(options);
+    using var compressor = new Compressor(level);
     return compressor.Wrap(bytes.Span).ToArray();
   }
 
@@ -21,7 +20,7 @@ public static class ZstdDataCompression
   {
     var decompressed = new byte[decompressedLength];
     using var decompressor = new Decompressor();
-    decompressor.Unwrap(compressedBytes.Span, decompressed, 0);
+    decompressor.Unwrap(compressedBytes.Span, decompressed.AsSpan());
     return decompressed;
   }
 }
