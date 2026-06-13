@@ -51,7 +51,8 @@ public sealed class LiveBackupRecordBatchReader : IDisposable
     var compressed = ReadBytes(Source, compressedLength);
     var decompressed = DataCompression.Decompress(
         Batch.CompressionMethod,
-        compressed);
+        compressed,
+        uncompressedLength);
     if (decompressed.Length != uncompressedLength)
       throw new InvalidDataException("Invalid live backup compressed block length.");
     block = decompressed.ToArray();

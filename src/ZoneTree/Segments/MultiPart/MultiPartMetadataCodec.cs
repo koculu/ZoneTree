@@ -15,9 +15,19 @@ internal static class MultiPartMetadataCodec
   const byte Version = 1;
 
   const int PrefixSize =
-      MagicSize + sizeof(byte) + sizeof(byte) + sizeof(int) + sizeof(int);
+      MagicSize +
+      sizeof(byte) +
+      sizeof(byte) +
+      sizeof(int) +
+      sizeof(int) +
+      sizeof(int);
 
   static ReadOnlySpan<byte> Magic => "ZoneTreeMPH-v001"u8;
+
+  readonly record struct Envelope(
+      CompressionMethod Method,
+      Memory<byte> Payload,
+      int DecompressedLength);
 
   public static Memory<byte> Encode(Memory<byte> bytes)
   {
@@ -41,6 +51,10 @@ internal static class MultiPartMetadataCodec
         span.Slice(offset, sizeof(int)),
         payload.Length);
     offset += sizeof(int);
+    BinaryPrimitives.WriteInt32LittleEndian(
+        span.Slice(offset, sizeof(int)),
+        bytes.Length);
+    offset += sizeof(int);
     payload.Span.CopyTo(span[offset..]);
     return result;
   }
@@ -48,10 +62,15 @@ internal static class MultiPartMetadataCodec
   public static Memory<byte> Decode(Memory<byte> bytes)
   {
     if (!HasEnvelope(bytes))
-      return DataCompression.Decompress(CompressionMethod.LZ4, bytes);
+      return LZ4DataCompression.Decompress(
+          bytes,
+          LZ4DataCompression.GetDecompressedLength(bytes));
 
-    var (method, payload) = ReadEnvelope(bytes);
-    return DataCompression.Decompress(method, payload);
+    var envelope = ReadEnvelope(bytes);
+    return DataCompression.Decompress(
+        envelope.Method,
+        envelope.Payload,
+        envelope.DecompressedLength);
   }
 
   static bool HasEnvelope(Memory<byte> bytes)
@@ -62,8 +81,7 @@ internal static class MultiPartMetadataCodec
     return bytes.Span[..MagicSize].SequenceEqual(Magic);
   }
 
-  static (CompressionMethod method, Memory<byte> payload) ReadEnvelope(
-      Memory<byte> bytes)
+  static Envelope ReadEnvelope(Memory<byte> bytes)
   {
     if (bytes.Length < PrefixSize)
       throw new InvalidDataException("Multipart metadata envelope is incomplete.");
@@ -86,10 +104,19 @@ internal static class MultiPartMetadataCodec
     var payloadLength = BinaryPrimitives.ReadInt32LittleEndian(
         span.Slice(offset, sizeof(int)));
     offset += sizeof(int);
+    var decompressedLength = BinaryPrimitives.ReadInt32LittleEndian(
+        span.Slice(offset, sizeof(int)));
+    offset += sizeof(int);
     if (payloadLength < 0 || payloadLength != span.Length - offset)
       throw new InvalidDataException(
           "Multipart metadata envelope payload length is invalid.");
+    if (decompressedLength < 0)
+      throw new InvalidDataException(
+          "Multipart metadata envelope decompressed length is invalid.");
 
-    return (method, bytes.Slice(offset, payloadLength));
+    return new Envelope(
+        method,
+        bytes.Slice(offset, payloadLength),
+        decompressedLength);
   }
 }

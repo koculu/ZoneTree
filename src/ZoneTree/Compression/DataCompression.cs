@@ -18,28 +18,14 @@ public static class DataCompression
   }
 
   public static Memory<byte> Decompress(
-      CompressionMethod method, Memory<byte> compressedBytes)
-  {
-    return method switch
-    {
-      CompressionMethod.LZ4 => LZ4DataCompression.Decompress(compressedBytes),
-      CompressionMethod.Zstd => ZstdDataCompression.Decompress(compressedBytes),
-      CompressionMethod.Brotli => BrotliDataCompression.Decompress(compressedBytes),
-      CompressionMethod.Gzip => GZipDataCompression.Decompress(compressedBytes),
-      CompressionMethod.None => compressedBytes,
-      _ => throw new ArgumentOutOfRangeException(nameof(method)),
-    };
-  }
-
-  public static Memory<byte> DecompressFast(
       CompressionMethod method, Memory<byte> compressedBytes, int decompressedLength)
   {
     return method switch
     {
-      CompressionMethod.LZ4 => LZ4DataCompression.DecompressFast(compressedBytes, decompressedLength),
-      CompressionMethod.Zstd => ZstdDataCompression.DecompressFast(compressedBytes, decompressedLength),
-      CompressionMethod.Brotli => BrotliDataCompression.DecompressFast(compressedBytes, decompressedLength),
-      CompressionMethod.Gzip => GZipDataCompression.DecompressFast(compressedBytes, decompressedLength),
+      CompressionMethod.LZ4 => LZ4DataCompression.Decompress(compressedBytes, decompressedLength),
+      CompressionMethod.Zstd => ZstdDataCompression.Decompress(compressedBytes, decompressedLength),
+      CompressionMethod.Brotli => BrotliDataCompression.Decompress(compressedBytes, decompressedLength),
+      CompressionMethod.Gzip => GZipDataCompression.Decompress(compressedBytes, decompressedLength),
       CompressionMethod.None => compressedBytes.ToArray(),
       _ => throw new ArgumentOutOfRangeException(nameof(method)),
     };
