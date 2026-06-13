@@ -9,11 +9,6 @@ public static class LZ4DataCompression
     return LZ4Pickler.Pickle(bytes.Span, (LZ4Level)level);
   }
 
-  public static byte[] Decompress(Memory<byte> compressedBytes)
-  {
-    return LZ4Pickler.Unpickle(compressedBytes.Span);
-  }
-
   public static byte[] Decompress(Memory<byte> compressedBytes, int decompressedLength)
   {
     var bytes = new byte[decompressedLength];
@@ -23,6 +18,6 @@ public static class LZ4DataCompression
 
   public static int GetDecompressedLength(Memory<byte> compressedBytes)
   {
-    return checked((int)LZ4Pickler.UnpickledSize(compressedBytes.Span));
+    return checked(LZ4Pickler.UnpickledSize(compressedBytes.Span));
   }
 }

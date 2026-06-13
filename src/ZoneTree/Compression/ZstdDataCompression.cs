@@ -18,13 +18,6 @@ public static class ZstdDataCompression
     return compressed.AsMemory(0, compressedLength);
   }
 
-  public static byte[] Decompress(Memory<byte> compressedBytes)
-  {
-    var decompressedLength = checked((int)Decompressor
-        .GetDecompressedSize(compressedBytes.Span));
-    return Decompress(compressedBytes, decompressedLength);
-  }
-
   public static byte[] Decompress(Memory<byte> compressedBytes, int decompressedLength)
   {
     var decompressed = new byte[decompressedLength];

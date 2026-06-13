@@ -1,5 +1,4 @@
 using System.IO.Compression;
-using ZoneTree.AbstractFileStream;
 
 namespace ZoneTree.Compression;
 
@@ -20,17 +19,6 @@ public static class BrotliDataCompression
       throw new InvalidDataException("Brotli compression failed.");
     }
     return compressed.AsMemory(0, compressedLength);
-  }
-
-  public static byte[] Decompress(Memory<byte> compressedBytes)
-  {
-    using var pin = compressedBytes.Pin();
-    using var msInput = compressedBytes.ToReadOnlyStream(pin);
-    using var msOutput = new MemoryStream();
-    using var gzs = new BrotliStream(msInput, CompressionMode.Decompress);
-    gzs.CopyTo(msOutput);
-    var decompressed = msOutput.ToArray();
-    return decompressed;
   }
 
   public static byte[] Decompress(Memory<byte> compressedBytes, int decompressedLength)
