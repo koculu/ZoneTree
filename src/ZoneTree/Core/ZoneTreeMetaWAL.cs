@@ -237,10 +237,10 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
       MutableSegment = mutableSegment,
       KeySerializerType = zoneTreeMeta.KeySerializerType,
       ValueSerializerType = zoneTreeMeta.ValueSerializerType,
-      WriteAheadLogOptions = zoneTreeMeta.WriteAheadLogOptions,
-      DiskSegmentOptions = zoneTreeMeta.DiskSegmentOptions,
-      MutableSegmentMaxItemCount = zoneTreeMeta.MutableSegmentMaxItemCount,
-      DiskSegmentMaxItemCount = zoneTreeMeta.DiskSegmentMaxItemCount,
+      WriteAheadLogOptions = Options.WriteAheadLogOptions,
+      DiskSegmentOptions = Options.DiskSegmentOptions,
+      MutableSegmentMaxItemCount = Options.MutableSegmentMaxItemCount,
+      DiskSegmentMaxItemCount = Options.DiskSegmentMaxItemCount,
       BottomSegments = bottomSegments,
       MaximumOpIndex = zoneTreeMeta.MaximumOpIndex,
     };
@@ -273,6 +273,10 @@ public sealed class ZoneTreeMetaWAL<TKey, TValue> : IDisposable
     zoneTreeMeta.DiskSegment = diskSegment;
     zoneTreeMeta.ReadOnlySegments = readOnlySegments;
     zoneTreeMeta.BottomSegments = bottomSegments;
+    zoneTreeMeta.WriteAheadLogOptions = Options.WriteAheadLogOptions;
+    zoneTreeMeta.DiskSegmentOptions = Options.DiskSegmentOptions;
+    zoneTreeMeta.MutableSegmentMaxItemCount = Options.MutableSegmentMaxItemCount;
+    zoneTreeMeta.DiskSegmentMaxItemCount = Options.DiskSegmentMaxItemCount;
   }
 
   public static ZoneTreeMeta LoadZoneTreeMetaWithoutWALRecords(
