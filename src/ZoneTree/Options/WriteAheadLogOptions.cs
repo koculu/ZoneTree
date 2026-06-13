@@ -23,8 +23,10 @@ public sealed class WriteAheadLogOptions
   public object CustomOptions { get; set; }
 
   /// <summary>
-  /// WAL compressin block size. New WALs will be created 
-  /// based on this setting. Default value = 256 KB
+  /// WAL compression block size, in bytes. New WALs are created based on
+  /// this setting. Larger blocks may improve compression ratio, but they also
+  /// increase the memory needed to buffer, compress, and decompress WAL blocks.
+  /// Default value is 256 KB.
   /// </summary>
   public int CompressionBlockSize { get; set; }
       = WriteAheadLogDefaultValues.CompressionBlockSize;

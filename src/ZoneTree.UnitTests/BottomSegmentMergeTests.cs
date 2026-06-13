@@ -28,6 +28,7 @@ public sealed class BottomSegmentMergeTests
 
     var zoneTree = new ZoneTreeFactory<int, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetDiskSegmentMaxItemCount(10)
         .SetDataDirectory(dataPath)
         .ConfigureDiskSegmentOptions(
@@ -72,6 +73,7 @@ public sealed class BottomSegmentMergeTests
 
     zoneTree = new ZoneTreeFactory<int, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetDiskSegmentMaxItemCount(10)
         .SetDataDirectory(dataPath)
         .OpenOrCreate();
@@ -338,6 +340,7 @@ public sealed class BottomSegmentMergeTests
         MaximumRecordCount = 100,
         DefaultSparseArrayStepSize = 0,
       },
+      AllowUnsafeOptionValues = true,
     };
     options.DisableDeletion();
     options.Validate();
@@ -375,6 +378,7 @@ public sealed class BottomSegmentMergeTests
         CompressionBlockSize = 1024,
         DefaultSparseArrayStepSize = 0,
       },
+      AllowUnsafeOptionValues = true,
     };
     options.DisableDeletion();
     options.Validate();

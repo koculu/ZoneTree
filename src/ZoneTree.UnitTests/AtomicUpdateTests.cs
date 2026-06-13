@@ -16,6 +16,7 @@ public sealed class AtomicUpdateTests
     var counterKey = -3999;
     using var data = new ZoneTreeFactory<int, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetComparer(new Int32ComparerDescending())
         .SetMutableSegmentMaxItemCount(500)
         .SetDataDirectory(dataPath)

@@ -21,6 +21,7 @@ public sealed class CountTests
     using var zoneTree = new ZoneTreeFactory<string, int>()
         .SetIsDeletedDelegate((in string key, in int value) => value == -1)
         .SetMarkValueDeletedDelegate((ref int x) => x = -1)
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(100)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)

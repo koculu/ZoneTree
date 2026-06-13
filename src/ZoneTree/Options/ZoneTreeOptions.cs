@@ -1,4 +1,3 @@
-using ZoneTree.Exceptions;
 using ZoneTree.WAL;
 using ZoneTree.Collections.BTree.Lock;
 using ZoneTree.Logger;
@@ -34,17 +33,18 @@ public delegate void MarkValueDeletedDelegate<TValue>(ref TValue value);
 public sealed class ZoneTreeOptions<TKey, TValue>
 {
   /// <summary>
-  /// Mutable segment maximumum key-value pair count.
+  /// Mutable segment maximum key-value pair count.
   /// When the maximum count is reached
   /// MoveMutableSegmentForward is called and current mutable segment is enqueued to
   /// the ReadOnlySegments layer.
+  /// Larger values keep more records in the mutable segment before it moves forward.
   /// </summary>
   public int MutableSegmentMaxItemCount { get; set; } = DefaultValues.MutableSegmentMaxItemCount;
 
   /// <summary>
-  /// Disk segment maximumum key-value pair count.
-  /// When the maximum count is reached
-  /// The disk segment is enqueued into to the bottom segments layer.
+  /// Disk segment maximum key-value pair count.
+  /// After a merge creates a disk segment, segments larger than this value are
+  /// enqueued into the bottom segments layer.
   /// </summary>
   public int DiskSegmentMaxItemCount { get; set; } = DefaultValues.DiskSegmentMaxItemCount;
 
@@ -96,13 +96,22 @@ public sealed class ZoneTreeOptions<TKey, TValue>
 
   /// <summary>
   /// The B+Tree node size.
+  /// Larger values can reduce tree height, but each node holds more keys in memory.
   /// </summary>
   public int BTreeNodeSize { get; set; } = DefaultValues.BTreeNodeSize;
 
   /// <summary>
   /// The B+Tree leaf size.
+  /// Larger values can improve scan locality, but each leaf holds more records in memory.
   /// </summary>
   public int BTreeLeafSize { get; set; } = DefaultValues.BTreeLeafSize;
+
+  /// <summary>
+  /// Allows unsafe numeric option values for advanced or test configurations.
+  /// Required components, enum values, and compression method/level compatibility
+  /// are still validated.
+  /// </summary>
+  public bool AllowUnsafeOptionValues { get; set; }
 
   /// <summary>
   /// ZoneTree Logger.
@@ -116,63 +125,7 @@ public sealed class ZoneTreeOptions<TKey, TValue>
   /// <returns>true if validation succeeds, false otherwise.</returns>
   public bool TryValidate(out Exception exception)
   {
-    if (KeySerializer == null)
-    {
-      exception = new MissingOptionException(nameof(KeySerializer));
-      return false;
-    }
-    if (ValueSerializer == null)
-    {
-      exception = new MissingOptionException(nameof(ValueSerializer));
-      return false;
-    }
-
-    if (Comparer == null)
-    {
-      exception = new MissingOptionException(nameof(Comparer));
-      return false;
-    }
-
-    if (RandomAccessDeviceManager == null)
-    {
-      exception = new MissingOptionException(nameof(RandomAccessDeviceManager));
-      return false;
-    }
-
-    if (WriteAheadLogProvider == null)
-    {
-      exception = new MissingOptionException(nameof(WriteAheadLogProvider));
-      return false;
-    }
-
-    exception = ValidateCompressionLevel(
-        "disk segment",
-        DiskSegmentOptions.CompressionMethod,
-        DiskSegmentOptions.CompressionLevel);
-
-    if (exception != null)
-      return false;
-
-    exception = ValidateCompressionLevel(
-        "write ahead log",
-        WriteAheadLogOptions.CompressionMethod,
-        WriteAheadLogOptions.CompressionLevel);
-
-    if (exception != null)
-      return false;
-
-    exception = null;
-    return true;
-  }
-
-  static CompressionLevelIsOutOfRangeException ValidateCompressionLevel(
-      string option,
-      CompressionMethod method,
-      int level)
-  {
-    var exception = new CompressionLevelIsOutOfRangeException
-        (option, method, level);
-    return CompressionLevels.IsValid(method, level) ? null : exception;
+    return ZoneTreeOptionsValidator.TryValidate(this, out exception);
   }
 
   /// <summary>

@@ -13,6 +13,7 @@ public sealed class FixedSizeKeyAndValueTests
       Directory.Delete(dataPath, true);
     using var data = new ZoneTreeFactory<int, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(5)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -43,6 +44,7 @@ public sealed class FixedSizeKeyAndValueTests
 
     using var data = new ZoneTreeFactory<int, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(100)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -74,6 +76,7 @@ public sealed class FixedSizeKeyAndValueTests
       Directory.Delete(dataPath, true);
 
     using var data = new ZoneTreeFactory<int, string>()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(5)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -276,6 +279,7 @@ public sealed class FixedSizeKeyAndValueTests
 
     using var data = new ZoneTreeFactory<string, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(5)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -310,6 +314,7 @@ public sealed class FixedSizeKeyAndValueTests
       Directory.Delete(dataPath, true);
 
     using var data = new ZoneTreeFactory<string, string>()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(5)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -339,6 +344,7 @@ public sealed class FixedSizeKeyAndValueTests
   static void ReloadIntIntTreeTestHelper(string dataPath, bool destroy)
   {
     using var data = new ZoneTreeFactory<int, int>()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(5)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)

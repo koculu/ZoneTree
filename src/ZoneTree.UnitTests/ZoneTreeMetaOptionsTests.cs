@@ -59,6 +59,7 @@ public sealed class ZoneTreeMetaOptionsTests
   {
     return new ZoneTreeFactory<string, string>()
         .SetDataDirectory(dataPath)
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(expected.MutableSegmentMaxItemCount)
         .SetDiskSegmentMaxItemCount(expected.DiskSegmentMaxItemCount)
         .ConfigureWriteAheadLogOptions(options =>

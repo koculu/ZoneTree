@@ -18,6 +18,7 @@ public sealed class OpIndexTests
     void CreateData()
     {
       using var zoneTree = new ZoneTreeFactory<int, int>()
+          .Configure(options => options.AllowUnsafeOptionValues = true)
           .SetDataDirectory(dataPath)
           .SetMutableSegmentMaxItemCount(100)
           .OpenOrCreate();
@@ -35,6 +36,7 @@ public sealed class OpIndexTests
     void ReloadData(int expectedIndex, bool drop = false)
     {
       using var zoneTree = new ZoneTreeFactory<int, int>()
+          .Configure(options => options.AllowUnsafeOptionValues = true)
           .SetDataDirectory(dataPath)
           .SetMutableSegmentMaxItemCount(100)
           .Open();
@@ -66,6 +68,7 @@ public sealed class OpIndexTests
     void CreateData()
     {
       using var zoneTree = new ZoneTreeFactory<int, int>()
+          .Configure(options => options.AllowUnsafeOptionValues = true)
           .SetDataDirectory(dataPath)
           .SetMutableSegmentMaxItemCount(100)
           .OpenOrCreate();
@@ -83,6 +86,7 @@ public sealed class OpIndexTests
     void ReloadData(int expectedIndex, bool drop = false)
     {
       using var zoneTree = new ZoneTreeFactory<int, int>()
+          .Configure(options => options.AllowUnsafeOptionValues = true)
           .SetDataDirectory(dataPath)
           .SetMutableSegmentMaxItemCount(100)
           .Open();
@@ -117,6 +121,7 @@ public sealed class OpIndexTests
     const int recordCount = 64;
 
     using (var zoneTree = new ZoneTreeFactory<int, int>()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetDataDirectory(dataPath)
         .SetMutableSegmentMaxItemCount(8)
         .OpenOrCreate())
@@ -133,6 +138,7 @@ public sealed class OpIndexTests
     }
 
     using (var zoneTree = new ZoneTreeFactory<int, int>()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetDataDirectory(dataPath)
         .SetMutableSegmentMaxItemCount(8)
         .Open())
@@ -152,6 +158,7 @@ public sealed class OpIndexTests
     const int recordCount = 16;
 
     using (var zoneTree = new ZoneTreeFactory<int, int>()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetDataDirectory(dataPath)
         .SetMutableSegmentMaxItemCount(64)
         .OpenOrCreate())
@@ -173,6 +180,7 @@ public sealed class OpIndexTests
     }
 
     using (var zoneTree = new ZoneTreeFactory<int, int>()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetDataDirectory(dataPath)
         .SetMutableSegmentMaxItemCount(64)
         .Open())
