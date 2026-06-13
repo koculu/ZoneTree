@@ -5,17 +5,21 @@ namespace ZoneTree.Compression;
 
 public static class BrotliDataCompression
 {
+  const int DefaultWindow = 22;
+
   public static Memory<byte> Compress(Memory<byte> bytes, int level)
   {
-    // Brotli Optimum level is extremely slow.
-    // Changing the optimum level to fastest!
-    if (level == 0)
-      level = 1;
-    using var msOutput = new MemoryStream();
-    using var gzs = new BrotliStream(msOutput, (CompressionLevel)level, false);
-    gzs.Write(bytes.Span);
-    gzs.Flush();
-    return msOutput.ToArray();
+    var compressed = new byte[BrotliEncoder.GetMaxCompressedLength(bytes.Length)];
+    if (!BrotliEncoder.TryCompress(
+        bytes.Span,
+        compressed.AsSpan(),
+        out var compressedLength,
+        GetQuality(level),
+        DefaultWindow))
+    {
+      throw new InvalidDataException("Brotli compression failed.");
+    }
+    return compressed.AsMemory(0, compressedLength);
   }
 
   public static byte[] Decompress(Memory<byte> compressedBytes)
@@ -32,11 +36,26 @@ public static class BrotliDataCompression
   public static byte[] DecompressFast(Memory<byte> compressedBytes, int decompressedLength)
   {
     var decompressed = new byte[decompressedLength];
-    using var pin = compressedBytes.Pin();
-    using var msInput = compressedBytes.ToReadOnlyStream(pin);
-    using var msOutput = new MemoryStream(decompressed);
-    using var gzs = new BrotliStream(msInput, CompressionMode.Decompress);
-    gzs.CopyTo(msOutput);
+    if (!BrotliDecoder.TryDecompress(
+        compressedBytes.Span,
+        decompressed.AsSpan(),
+        out var bytesWritten) ||
+        bytesWritten != decompressedLength)
+    {
+      throw new InvalidDataException("Brotli decompression failed.");
+    }
     return decompressed;
+  }
+
+  static int GetQuality(int level)
+  {
+    return (CompressionLevel)level switch
+    {
+      CompressionLevel.NoCompression => 0,
+      CompressionLevel.SmallestSize => 11,
+      // Brotli Optimal is extremely slow.
+      // treat Optimal like Fastest.
+      _ => 1,
+    };
   }
 }
