@@ -4,10 +4,9 @@ namespace ZoneTree.AbstractFileStream;
 
 public sealed class InMemoryFileStreamProvider : IFileStreamProvider
 {
-  readonly Dictionary<string, byte[]> Files = [];
+  readonly Dictionary<string, InMemoryFile> Files = [];
 
   readonly HashSet<string> Directories = [];
-
 
   readonly Lock SyncRoot = new();
 
@@ -19,81 +18,178 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
       int bufferSize = 4096,
       FileOptions options = FileOptions.None)
   {
+    path = NormalizePath(path);
     lock (SyncRoot)
     {
-      if (!Files.ContainsKey(path))
+      var fileExists = Files.TryGetValue(path, out var file);
+      switch (mode)
       {
-        if (mode == FileMode.Open)
-          throw new FileNotFoundException(path);
-        Files[path] = Array.Empty<byte>();
+        case FileMode.CreateNew:
+          ThrowIfNoWriteAccess(access, mode);
+          if (fileExists)
+            throw new IOException($"File {path} already exists.");
+          file = CreateFile(path);
+          break;
+        case FileMode.Create:
+          ThrowIfNoWriteAccess(access, mode);
+          file = fileExists ? ClearFile(file) : CreateFile(path);
+          break;
+        case FileMode.Open:
+          if (!fileExists)
+            throw new FileNotFoundException(path);
+          break;
+        case FileMode.OpenOrCreate:
+          if (!fileExists)
+            ThrowIfNoWriteAccess(access, mode);
+          if (!fileExists)
+            file = CreateFile(path);
+          break;
+        case FileMode.Truncate:
+          if (!fileExists)
+            throw new FileNotFoundException(path);
+          ThrowIfNoWriteAccess(access, mode);
+          file.SetLength(0);
+          break;
+        case FileMode.Append:
+          if (access != FileAccess.Write)
+            throw new ArgumentException("FileMode.Append requires FileAccess.Write.", nameof(access));
+          if (!fileExists)
+            file = CreateFile(path);
+          break;
+        default:
+          throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
       }
-      else if (mode == FileMode.CreateNew)
-      {
-        throw new IOException($"File {path} already exists.");
-      }
-      else if (mode == FileMode.Create)
-      {
-        Files[path] = Array.Empty<byte>();
-      }
-      else if (mode == FileMode.Truncate)
-      {
-        Files[path] = Array.Empty<byte>();
-      }
-      var bytes = Files[path];
-      var stream = new InMemoryFileStream(this, path, bytes);
+
+      var stream = new InMemoryFileStream(path, file, access, mode == FileMode.Append);
       if (mode == FileMode.Append)
         stream.Seek(0, SeekOrigin.End);
       return stream;
     }
   }
 
+  static void ThrowIfNoWriteAccess(FileAccess access, FileMode mode)
+  {
+    if ((access & FileAccess.Write) == 0)
+      throw new ArgumentException($"{mode} requires write access.", nameof(access));
+  }
+
+  InMemoryFile CreateFile(string path)
+  {
+    EnsureParentDirectories(path);
+    var file = new InMemoryFile();
+    Files[path] = file;
+    return file;
+  }
+
+  static InMemoryFile ClearFile(InMemoryFile file)
+  {
+    file.SetLength(0);
+    return file;
+  }
+
+  void EnsureParentDirectories(string path)
+  {
+    var parent = GetParentDirectory(path);
+    if (parent.Length == 0)
+      return;
+
+    var parts = parent.Split('/');
+    var current = "";
+    foreach (var part in parts)
+    {
+      current = current.Length == 0 ? part : current + "/" + part;
+      Directories.Add(current);
+    }
+  }
+
+  static string GetParentDirectory(string path)
+  {
+    var index = path.LastIndexOf('/');
+    return index <= 0 ? "" : path[..index];
+  }
+
+  static bool IsDescendant(string path, string parent)
+  {
+    return path.Length > parent.Length &&
+           path.StartsWith(parent, StringComparison.Ordinal) &&
+           path[parent.Length] == '/';
+  }
+
+  static string NormalizePath(string path)
+  {
+    ArgumentNullException.ThrowIfNull(path);
+    path = path.Replace('\\', '/');
+    while (path.Contains("//", StringComparison.Ordinal))
+      path = path.Replace("//", "/", StringComparison.Ordinal);
+    return path.Length > 1 ? path.TrimEnd('/') : path;
+  }
+
   public bool FileExists(string path)
   {
+    path = NormalizePath(path);
     lock (SyncRoot) return Files.ContainsKey(path);
   }
 
   public bool DirectoryExists(string path)
   {
+    path = NormalizePath(path);
     lock (SyncRoot) return Directories.Contains(path);
   }
 
   public void CreateDirectory(string path)
   {
-    lock (SyncRoot) Directories.Add(path);
+    path = NormalizePath(path);
+    lock (SyncRoot)
+    {
+      if (path.Length == 0)
+        return;
+      EnsureParentDirectories(path + "/file");
+      Directories.Add(path);
+    }
   }
 
   public void DeleteFile(string path)
   {
+    path = NormalizePath(path);
     lock (SyncRoot) Files.Remove(path);
   }
 
   public void DeleteDirectory(string path, bool recursive)
   {
+    path = NormalizePath(path);
     lock (SyncRoot)
     {
+      if (!recursive &&
+          (Files.Keys.Any(x => GetParentDirectory(x) == path) ||
+           Directories.Any(x => IsDescendant(x, path))))
+      {
+        throw new IOException($"Directory {path} is not empty.");
+      }
+
       Directories.Remove(path);
       if (recursive)
       {
-        var toRemove = Files.Keys.Where(x => x.StartsWith(path, StringComparison.Ordinal)).ToList();
-        foreach (var f in toRemove)
-          Files.Remove(f);
+        foreach (var file in Files.Keys.Where(x => IsDescendant(x, path)).ToArray())
+          Files.Remove(file);
+        foreach (var directory in Directories.Where(x => IsDescendant(x, path)).ToArray())
+          Directories.Remove(directory);
       }
     }
   }
 
   public string ReadAllText(string path)
   {
-    lock (SyncRoot) return Encoding.UTF8.GetString(Files[path]);
+    return Encoding.UTF8.GetString(ReadAllBytes(path));
   }
 
   public byte[] ReadAllBytes(string path)
   {
+    path = NormalizePath(path);
     lock (SyncRoot)
     {
-      var b = Files[path];
-      var copy = new byte[b.Length];
-      Buffer.BlockCopy(b, 0, copy, 0, b.Length);
-      return copy;
+      if (!Files.TryGetValue(path, out var file))
+        throw new FileNotFoundException(path);
+      return file.ToArray();
     }
   }
 
@@ -102,18 +198,26 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
       string destinationFileName,
       string destinationBackupFileName)
   {
+    sourceFileName = NormalizePath(sourceFileName);
+    destinationFileName = NormalizePath(destinationFileName);
+    destinationBackupFileName = destinationBackupFileName == null
+        ? null
+        : NormalizePath(destinationBackupFileName);
+
     lock (SyncRoot)
     {
+      if (!Files.TryGetValue(sourceFileName, out var source))
+        throw new FileNotFoundException(sourceFileName);
+
       if (destinationBackupFileName != null &&
-          Files.TryGetValue(destinationFileName, out var destinationBytes))
+          Files.TryGetValue(destinationFileName, out var destination))
       {
-        Files[destinationBackupFileName] = destinationBytes;
+        EnsureParentDirectories(destinationBackupFileName);
+        Files[destinationBackupFileName] = destination;
       }
 
-      Files[destinationFileName] = Files.TryGetValue(sourceFileName, out var sourceBytes)
-        ? sourceBytes
-        : [];
-
+      EnsureParentDirectories(destinationFileName);
+      Files[destinationFileName] = source;
       Files.Remove(sourceFileName);
     }
   }
@@ -125,22 +229,17 @@ public sealed class InMemoryFileStreamProvider : IFileStreamProvider
 
   public IReadOnlyList<string> GetDirectories(string path)
   {
+    path = NormalizePath(path);
     lock (SyncRoot)
     {
-      return Directories.Where(x => x.StartsWith(path, StringComparison.Ordinal)).ToArray();
+      return Directories
+          .Where(x => GetParentDirectory(x) == path)
+          .ToArray();
     }
   }
 
   public string CombinePaths(string path1, string path2)
   {
-    return Path.Combine(path1, path2);
-  }
-
-  internal void UpdateFile(string path, byte[] data)
-  {
-    lock (SyncRoot)
-    {
-      Files[path] = data;
-    }
+    return NormalizePath(Path.Combine(path1, path2));
   }
 }

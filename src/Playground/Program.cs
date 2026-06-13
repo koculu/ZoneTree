@@ -52,8 +52,8 @@ if (testCase == 3)
         (CompressionMethod.None, 0),
   };
 
-  test2.Count = test1.Count = 5_000_000;
-  test2.WALMode = test1.WALMode = WriteAheadLogMode.None;
+  test2.Count = test1.Count = 10_000_000;
+  test2.WALMode = test1.WALMode = WriteAheadLogMode.AsyncCompressed;
 
   b.NewSection("int-int insert");
   foreach (var (method, level) in methods)
