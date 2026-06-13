@@ -30,6 +30,7 @@
     "concepts/value-mutability.md",
     "storage/",
     "storage/disk-segments.md",
+    "storage/file-stream-providers.md",
     "storage/memory-usage.md",
     "storage/read-path-caching.md",
     "storage/compression.md",
