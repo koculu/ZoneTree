@@ -26,7 +26,7 @@ public static class GZipDataCompression
     return decompressed;
   }
 
-  public static byte[] DecompressFast(Memory<byte> compressedBytes, int decompressedLength)
+  public static byte[] Decompress(Memory<byte> compressedBytes, int decompressedLength)
   {
     var decompressed = new byte[decompressedLength];
     using var pin = compressedBytes.Pin();

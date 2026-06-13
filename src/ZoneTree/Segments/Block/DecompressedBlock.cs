@@ -84,7 +84,7 @@ public sealed class DecompressedBlock
       int decompressedLength)
   {
     var decompressed = DataCompression
-        .DecompressFast(method, compressedBytes, decompressedLength);
+        .Decompress(method, compressedBytes, decompressedLength);
     return new DecompressedBlock(blockIndex, decompressed, method, compressionLevel);
   }
 

@@ -22,10 +22,10 @@ public static class ZstdDataCompression
   {
     var decompressedLength = checked((int)Decompressor
         .GetDecompressedSize(compressedBytes.Span));
-    return DecompressFast(compressedBytes, decompressedLength);
+    return Decompress(compressedBytes, decompressedLength);
   }
 
-  public static byte[] DecompressFast(Memory<byte> compressedBytes, int decompressedLength)
+  public static byte[] Decompress(Memory<byte> compressedBytes, int decompressedLength)
   {
     var decompressed = new byte[decompressedLength];
     var decompressor = GetDecompressor();

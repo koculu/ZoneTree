@@ -62,10 +62,12 @@ internal static class MultiPartMetadataCodec
   public static Memory<byte> Decode(Memory<byte> bytes)
   {
     if (!HasEnvelope(bytes))
-      return DataCompression.Decompress(CompressionMethod.LZ4, bytes);
+      return LZ4DataCompression.Decompress(
+          bytes,
+          LZ4DataCompression.GetDecompressedLength(bytes));
 
     var envelope = ReadEnvelope(bytes);
-    return DataCompression.DecompressFast(
+    return DataCompression.Decompress(
         envelope.Method,
         envelope.Payload,
         envelope.DecompressedLength);

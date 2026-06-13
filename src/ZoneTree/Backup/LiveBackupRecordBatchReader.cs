@@ -49,7 +49,7 @@ public sealed class LiveBackupRecordBatchReader : IDisposable
     if (!TryReadInt32(Source, out var compressedLength))
       throw new EndOfStreamException();
     var compressed = ReadBytes(Source, compressedLength);
-    var decompressed = DataCompression.DecompressFast(
+    var decompressed = DataCompression.Decompress(
         Batch.CompressionMethod,
         compressed,
         uncompressedLength);
