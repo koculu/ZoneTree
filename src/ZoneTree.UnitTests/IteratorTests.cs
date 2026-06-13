@@ -16,6 +16,7 @@ public sealed class IteratorTests
       Directory.Delete(dataPath, true);
 
     using var zoneTree = new ZoneTreeFactory<int, int>()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(11)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -86,6 +87,7 @@ public sealed class IteratorTests
       Directory.Delete(dataPath, true);
 
     using var zoneTree = new ZoneTreeFactory<int, int>()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(11)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -177,6 +179,7 @@ public sealed class IteratorTests
       Directory.Delete(dataPath, true);
 
     using var zoneTree = new ZoneTreeFactory<int, int>()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(250)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -492,6 +495,7 @@ public sealed class IteratorTests
 
     using var zoneTree = new ZoneTreeFactory<string, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
         .SetComparer(new StringCurrentCultureComparerAscending())
@@ -567,6 +571,7 @@ public sealed class IteratorTests
 
     var zoneTree = new ZoneTreeFactory<string, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
         .SetComparer(new StringCurrentCultureComparerAscending())
@@ -590,6 +595,7 @@ public sealed class IteratorTests
     zoneTree.Dispose();
     zoneTree = new ZoneTreeFactory<string, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
         .SetComparer(new StringCurrentCultureComparerAscending())

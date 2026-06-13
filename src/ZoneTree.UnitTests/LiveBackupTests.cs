@@ -93,6 +93,7 @@ public sealed class LiveBackupTests
 
     using var zoneTree = new ZoneTreeFactory<int, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(3)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -135,6 +136,7 @@ public sealed class LiveBackupTests
 
     using (var zoneTree = new ZoneTreeFactory<int, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(3)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -380,6 +382,7 @@ public sealed class LiveBackupTests
     var logger = new NullLogger();
     using var zoneTree = new ZoneTreeFactory<int, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(3)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -423,6 +426,7 @@ public sealed class LiveBackupTests
 
     using var zoneTree = new ZoneTreeFactory<int, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(3)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -468,6 +472,7 @@ public sealed class LiveBackupTests
 
     using var zoneTree = new ZoneTreeFactory<int, int>()
         .DisableDeletion()
+        .Configure(options => options.AllowUnsafeOptionValues = true)
         .SetMutableSegmentMaxItemCount(3)
         .SetDataDirectory(dataPath)
         .SetWriteAheadLogDirectory(dataPath)
@@ -1228,6 +1233,7 @@ public sealed class LiveBackupTests
 
       using var zoneTree = new ZoneTreeFactory<int, int>()
           .DisableDeletion()
+          .Configure(options => options.AllowUnsafeOptionValues = true)
           .ConfigureDiskSegmentOptions(x =>
           {
             x.DiskSegmentMode = single ? DiskSegmentMode.SingleDiskSegment : DiskSegmentMode.MultiPartDiskSegment;
@@ -1254,7 +1260,9 @@ public sealed class LiveBackupTests
       await backup.CreateGenerationAsync();
 
       using var restored = await new ZoneTreeFactory<int, int>()
-          .DisableDeletion().ConfigureDiskSegmentOptions(x =>
+          .DisableDeletion()
+          .Configure(options => options.AllowUnsafeOptionValues = true)
+          .ConfigureDiskSegmentOptions(x =>
           {
             x.MinimumRecordCount = 10;
             x.MaximumRecordCount = 20;
@@ -1281,7 +1289,9 @@ public sealed class LiveBackupTests
       await backup.CreateGenerationAsync();
 
       using var restored2 = await new ZoneTreeFactory<int, int>()
-          .DisableDeletion().ConfigureDiskSegmentOptions(x =>
+          .DisableDeletion()
+          .Configure(options => options.AllowUnsafeOptionValues = true)
+          .ConfigureDiskSegmentOptions(x =>
           {
             x.MinimumRecordCount = 10;
             x.MaximumRecordCount = 20;
@@ -1317,6 +1327,7 @@ public sealed class LiveBackupTests
 
       using var zoneTree = new ZoneTreeFactory<int, int>()
           .DisableDeletion()
+          .Configure(options => options.AllowUnsafeOptionValues = true)
           .SetDiskSegmentMaxItemCount(50)
           .ConfigureDiskSegmentOptions(x =>
           {
@@ -1344,7 +1355,9 @@ public sealed class LiveBackupTests
       await backup.CreateGenerationAsync();
 
       using var restored = await new ZoneTreeFactory<int, int>()
-          .DisableDeletion().ConfigureDiskSegmentOptions(x =>
+          .DisableDeletion()
+          .Configure(options => options.AllowUnsafeOptionValues = true)
+          .ConfigureDiskSegmentOptions(x =>
           {
             x.MinimumRecordCount = 10;
             x.MaximumRecordCount = 20;
@@ -1371,7 +1384,9 @@ public sealed class LiveBackupTests
       await backup.CreateGenerationAsync();
 
       using var restored2 = await new ZoneTreeFactory<int, int>()
-          .DisableDeletion().ConfigureDiskSegmentOptions(x =>
+          .DisableDeletion()
+          .Configure(options => options.AllowUnsafeOptionValues = true)
+          .ConfigureDiskSegmentOptions(x =>
           {
             x.MinimumRecordCount = 10;
             x.MaximumRecordCount = 20;

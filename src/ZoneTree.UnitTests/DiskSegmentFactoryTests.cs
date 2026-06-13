@@ -65,7 +65,9 @@ public sealed class DiskSegmentFactoryTests
         DiskSegmentMode.MultiPartDiskSegment,
         i => i,
         i => i + 1,
-        factory => factory.DisableDeletion(),
+        factory => factory
+            .DisableDeletion()
+            .Configure(options => options.AllowUnsafeOptionValues = true),
         configureDiskSegmentOptions: options =>
         {
           options.MinimumRecordCount = 3;
