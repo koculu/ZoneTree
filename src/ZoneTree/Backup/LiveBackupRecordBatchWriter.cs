@@ -75,8 +75,7 @@ public sealed class LiveBackupRecordBatchWriter : ILiveBackupRecordWriter
         .Compress(
             Batch.CompressionMethod,
             Batch.CompressionLevel,
-            uncompressed)
-        .ToArray();
+            uncompressed);
     await WriteInt32Async(Destination, uncompressed.Length, cancellationToken);
     await WriteInt32Async(Destination, compressed.Length, cancellationToken);
     await Destination.WriteAsync(compressed, cancellationToken);
