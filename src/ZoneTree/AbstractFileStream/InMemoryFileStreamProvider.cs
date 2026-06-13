@@ -2,6 +2,14 @@ using System.Text;
 
 namespace ZoneTree.AbstractFileStream;
 
+/// <summary>
+/// Provides fast, in-process, RAM-backed file streams for ZoneTree workflows.
+/// This provider is optimized for WAL, segment, metadata, and merge operations
+/// that use stream-based access. It is not durable, does not emulate every
+/// filesystem behavior, and intentionally ignores <see cref="FileShare"/>.
+/// Large files are stored in chunks, while <see cref="ReadAllBytes"/> remains a
+/// small-file convenience API and may throw when a file cannot fit in one array.
+/// </summary>
 public sealed class InMemoryFileStreamProvider : IFileStreamProvider
 {
   readonly Dictionary<string, InMemoryFile> Files = [];

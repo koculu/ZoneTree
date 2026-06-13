@@ -53,6 +53,7 @@ For the storage model, start with [LSM Tree](concepts/lsm-tree.md). For ZoneTree
 
 * [Memory usage](storage/memory-usage.md)
 * [Disk segments](storage/disk-segments.md)
+* [File stream providers](storage/file-stream-providers.md)
 * [Read-path caching](storage/read-path-caching.md)
 * [Compression](storage/compression.md)
 * [Serializers and comparers](storage/serializers-and-comparers.md)

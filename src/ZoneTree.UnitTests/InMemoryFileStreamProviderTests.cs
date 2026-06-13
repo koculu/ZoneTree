@@ -77,6 +77,23 @@ public sealed class InMemoryFileStreamProviderTests
   }
 
   [Test]
+  public void SetLengthClearsBytesWhenReExtending()
+  {
+    var provider = new InMemoryFileStreamProvider();
+    using var stream = provider.CreateFileStream(
+        "test.bin",
+        FileMode.Create,
+        FileAccess.ReadWrite,
+        FileShare.None);
+    stream.Write(new byte[] { 1, 2, 3, 4 });
+
+    stream.SetLength(2);
+    stream.SetLength(4);
+
+    Assert.That(provider.ReadAllBytes("test.bin"), Is.EqualTo(new byte[] { 1, 2, 0, 0 }));
+  }
+
+  [Test]
   public void SparseWriteFillsGapWithZeroBytes()
   {
     var provider = new InMemoryFileStreamProvider();
@@ -90,6 +107,108 @@ public sealed class InMemoryFileStreamProviderTests
     stream.WriteByte(9);
 
     Assert.That(provider.ReadAllBytes("test.bin"), Is.EqualTo(new byte[] { 0, 0, 0, 9 }));
+  }
+
+  [Test]
+  public void SparseWriteAfterTruncateClearsGapWithZeroBytes()
+  {
+    var provider = new InMemoryFileStreamProvider();
+    using var stream = provider.CreateFileStream(
+        "test.bin",
+        FileMode.Create,
+        FileAccess.ReadWrite,
+        FileShare.None);
+    stream.Write(new byte[] { 1, 2, 3, 4 });
+    stream.SetLength(1);
+
+    stream.Position = 3;
+    stream.WriteByte(9);
+
+    Assert.That(provider.ReadAllBytes("test.bin"), Is.EqualTo(new byte[] { 1, 0, 0, 9 }));
+  }
+
+  [Test]
+  public void ReadAndWriteCanCrossSmallChunkBoundaryBeforePromotion()
+  {
+    const int smallChunkSize = 4 * 1024;
+    var provider = new InMemoryFileStreamProvider();
+    using var stream = provider.CreateFileStream(
+        "test.bin",
+        FileMode.Create,
+        FileAccess.ReadWrite,
+        FileShare.None);
+    var expected = new byte[] { 1, 2, 3, 4 };
+
+    stream.Position = smallChunkSize - 2;
+    stream.Write(expected);
+    stream.Position = smallChunkSize - 2;
+    var actual = new byte[expected.Length];
+    stream.ReadFaster(actual, 0, actual.Length);
+
+    Assert.That(stream.Length, Is.EqualTo(smallChunkSize + 2));
+    Assert.That(actual, Is.EqualTo(expected));
+  }
+
+  [Test]
+  public void ReadAndWriteCanCrossLargeChunkBoundaryAfterPromotion()
+  {
+    const int chunkSize = 8 * 1024 * 1024;
+    var provider = new InMemoryFileStreamProvider();
+    using var stream = provider.CreateFileStream(
+        "test.bin",
+        FileMode.Create,
+        FileAccess.ReadWrite,
+        FileShare.None);
+    var expected = new byte[] { 1, 2, 3, 4 };
+
+    stream.Position = chunkSize - 2;
+    stream.Write(expected);
+    stream.Position = chunkSize - 2;
+    var actual = new byte[expected.Length];
+    stream.ReadFaster(actual, 0, actual.Length);
+
+    Assert.That(stream.Length, Is.EqualTo(chunkSize + 2));
+    Assert.That(actual, Is.EqualTo(expected));
+  }
+
+  [Test]
+  public void PromotionKeepsExistingSmallChunkContent()
+  {
+    const int largeChunkThreshold = 1024 * 1024;
+    var provider = new InMemoryFileStreamProvider();
+    using var stream = provider.CreateFileStream(
+        "test.bin",
+        FileMode.Create,
+        FileAccess.ReadWrite,
+        FileShare.None);
+    stream.Write(new byte[] { 1, 2, 3 });
+
+    stream.Position = largeChunkThreshold + 1;
+    stream.WriteByte(4);
+
+    Assert.That(stream.Length, Is.EqualTo(largeChunkThreshold + 2));
+    Assert.That(provider.ReadAllBytes("test.bin")[..3], Is.EqualTo(new byte[] { 1, 2, 3 }));
+    stream.Position = largeChunkThreshold + 1;
+    Assert.That(stream.ReadByte(), Is.EqualTo(4));
+  }
+
+  [Test]
+  public void SetLengthZeroAfterPromotionResetsToSmallFileBehavior()
+  {
+    const int largeChunkThreshold = 1024 * 1024;
+    var provider = new InMemoryFileStreamProvider();
+    using var stream = provider.CreateFileStream(
+        "test.bin",
+        FileMode.Create,
+        FileAccess.ReadWrite,
+        FileShare.None);
+    stream.Position = largeChunkThreshold + 1;
+    stream.WriteByte(7);
+
+    stream.SetLength(0);
+    stream.Write(new byte[] { 1, 2, 3 });
+
+    Assert.That(provider.ReadAllBytes("test.bin"), Is.EqualTo(new byte[] { 1, 2, 3 }));
   }
 
   [Test]
