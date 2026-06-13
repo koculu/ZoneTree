@@ -17,7 +17,7 @@ ZoneTree supports:
 * `Gzip`
 * `None`
 
-Compression levels are validated against the selected method. The default profile uses LZ4 fastest compression because it is a good general-purpose balance for storage-engine workloads.
+Compression levels are validated against the selected method. The default profile uses Zstd compression because it is a good general-purpose balance for storage-engine workloads.
 
 ## WAL Compression
 
@@ -26,8 +26,8 @@ The default WAL mode is `AsyncCompressed`.
 Default WAL compression:
 
 ```text
-method: LZ4
-level:  LZ4 fastest
+method: Zstd
+level:  Zstd0
 block:  256 KB
 ```
 
@@ -42,8 +42,8 @@ Disk segment compression is block-based random-access compression.
 Default disk compression:
 
 ```text
-method: LZ4
-level:  LZ4 fastest
+method: Zstd
+level:  Zstd0
 block:  4 MB
 ```
 
@@ -111,8 +111,8 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
     .SetDataDirectory("data/app")
     .ConfigureWriteAheadLogOptions(options =>
     {
-        options.CompressionMethod = CompressionMethod.LZ4;
-        options.CompressionLevel = CompressionLevels.LZ4Fastest;
+        options.CompressionMethod = CompressionMethod.Zstd;
+        options.CompressionLevel = CompressionLevels.Zstd0;
         options.CompressionBlockSize = 256 * 1024;
     })
     .OpenOrCreate();
@@ -127,8 +127,8 @@ using var zoneTree = new ZoneTreeFactory<int, string>()
     .SetDataDirectory("data/app")
     .ConfigureDiskSegmentOptions(options =>
     {
-        options.CompressionMethod = CompressionMethod.LZ4;
-        options.CompressionLevel = CompressionLevels.LZ4Fastest;
+        options.CompressionMethod = CompressionMethod.Zstd;
+        options.CompressionLevel = CompressionLevels.Zstd0;
         options.CompressionBlockSize = 4 * 1024 * 1024;
     })
     .OpenOrCreate();

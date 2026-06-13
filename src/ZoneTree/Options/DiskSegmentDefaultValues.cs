@@ -6,9 +6,9 @@ public static class DiskSegmentDefaultValues
 
   public static readonly int CompressionBlockSize = 4 * 1024 * 1024;
 
-  public static readonly CompressionMethod CompressionMethod = CompressionMethod.LZ4;
+  public static readonly CompressionMethod CompressionMethod = CompressionMethod.Zstd;
 
-  public static readonly int CompressionLevel = CompressionLevels.LZ4Fastest;
+  public static readonly int CompressionLevel = CompressionLevels.Zstd0;
 
   public static readonly int MaximumRecordCount = 3_000_000;
 

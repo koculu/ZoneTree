@@ -3,7 +3,6 @@ using System.Buffers;
 using ZoneTree.AbstractFileStream;
 using ZoneTree.Collections;
 using ZoneTree.Comparers;
-using ZoneTree.Compression;
 using ZoneTree.Exceptions;
 using ZoneTree.Options;
 using ZoneTree.Segments.Block;
@@ -16,10 +15,10 @@ namespace ZoneTree.Segments.MultiPart;
 public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TValue>
 {
   public const CompressionMethod MultiPartHeaderCompressionMethod
-      = CompressionMethod.LZ4;
+      = MultiPartMetadataCodec.CurrentCompressionMethod;
 
   public const int MultiPartHeaderCompressionLevel
-      = CompressionLevels.LZ4Fastest;
+      = MultiPartMetadataCodec.CurrentCompressionLevel;
 
   public long SegmentId { get; }
 
@@ -35,7 +34,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
   bool IsDropped;
 
-  readonly object DropLock = new();
+  readonly Lock DropLock = new();
 
   readonly IReadOnlyList<IDiskSegment<TKey, TValue>> Parts;
 
@@ -83,8 +82,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
     var len = (int)diskSegmentListDevice.Length;
     var compressedBytes = diskSegmentListDevice.GetBytes(0, len);
-    var bytes = DataCompression
-        .Decompress(MultiPartHeaderCompressionMethod, compressedBytes);
+    var bytes = MultiPartMetadataCodec.Decode(compressedBytes);
     using var pin = bytes.Pin();
     using var ms = bytes.ToReadOnlyStream(pin);
     using var br = new BinaryReader(ms);
@@ -116,7 +114,7 @@ public sealed class MultiPartDiskSegment<TKey, TValue> : IDiskSegment<TKey, TVal
 
     var len = (int)diskSegmentListDevice.Length;
     var compressedBytes = diskSegmentListDevice.GetBytes(0, len);
-    var bytes = DataCompression.Decompress(MultiPartHeaderCompressionMethod, compressedBytes);
+    var bytes = MultiPartMetadataCodec.Decode(compressedBytes);
 
     using var pin = bytes.Pin();
     using var ms = bytes.ToReadOnlyStream(pin);

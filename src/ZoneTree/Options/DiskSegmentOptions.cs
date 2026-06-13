@@ -20,13 +20,13 @@ public sealed class DiskSegmentOptions
 
   /// <summary>
   /// Gets or sets the compression method used if compression is enabled.
-  /// Default value is <see cref="CompressionMethod.LZ4"/>.
+  /// Default value is <see cref="CompressionMethod.Zstd"/>.
   /// </summary>
   public CompressionMethod CompressionMethod { get; set; } = DiskSegmentDefaultValues.CompressionMethod;
 
   /// <summary>
   /// Gets or sets the compression level for the selected compression method.
-  /// Default value is <see cref="CompressionLevels.LZ4Fastest"/>.
+  /// Default value is <see cref="CompressionLevels.Zstd0"/>.
   /// </summary>
   public int CompressionLevel { get; set; } = DiskSegmentDefaultValues.CompressionLevel;
 

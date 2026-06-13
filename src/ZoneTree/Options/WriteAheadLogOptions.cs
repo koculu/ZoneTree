@@ -31,13 +31,13 @@ public sealed class WriteAheadLogOptions
 
   /// <summary>
   /// The compression method for the WALs with compression enabled.
-  /// Default is LZ4.
+  /// Default is Zstd.
   /// </summary>
   public CompressionMethod CompressionMethod { get; set; } = WriteAheadLogDefaultValues.CompressionMethod;
 
   /// <summary>
   /// The compression level of the selected compression method.
-  /// Default is <see cref="CompressionLevels.LZ4Fastest"/>.
+  /// Default is <see cref="CompressionLevels.Zstd0"/>.
   /// </summary>
   public int CompressionLevel { get; set; } = WriteAheadLogDefaultValues.CompressionLevel;
 

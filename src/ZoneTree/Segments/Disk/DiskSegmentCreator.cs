@@ -41,6 +41,12 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
 
   TValue LastValue;
 
+  bool IsReadOnlyDiskSegmentCreated;
+
+  bool IsDropped;
+
+  bool IsDisposed;
+
   public DiskSegmentCreator(
       ZoneTreeOptions<TKey, TValue> options,
       IIncrementalIdProvider incrementalIdProvider
@@ -49,34 +55,42 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
     SegmentId = incrementalIdProvider.NextId();
     KeySerializer = options.KeySerializer;
     ValueSerializer = options.ValueSerializer;
+    Options = options;
     var randomDeviceManager = options.RandomAccessDeviceManager;
 
     HasFixedSizeKey = !RuntimeHelpers.IsReferenceOrContainsReferences<TKey>();
     HasFixedSizeValue = !RuntimeHelpers.IsReferenceOrContainsReferences<TValue>();
     HasFixedSizeKeyAndValue = HasFixedSizeKey && HasFixedSizeValue;
     var diskOptions = options.DiskSegmentOptions;
-    if (!HasFixedSizeKeyAndValue)
-      DataHeaderDevice = randomDeviceManager
+    try
+    {
+      if (!HasFixedSizeKeyAndValue)
+        DataHeaderDevice = randomDeviceManager
+            .CreateWritableDevice(
+                SegmentId,
+                DiskSegmentConstants.DataHeaderCategory,
+                isCompressed: true,
+                diskOptions.CompressionBlockSize,
+                deleteIfExists: true,
+                backupIfDelete: false,
+                diskOptions.CompressionMethod,
+                diskOptions.CompressionLevel);
+      DataDevice = randomDeviceManager
           .CreateWritableDevice(
               SegmentId,
-              DiskSegmentConstants.DataHeaderCategory,
+              DiskSegmentConstants.DataCategory,
               isCompressed: true,
               diskOptions.CompressionBlockSize,
               deleteIfExists: true,
               backupIfDelete: false,
               diskOptions.CompressionMethod,
               diskOptions.CompressionLevel);
-    DataDevice = randomDeviceManager
-        .CreateWritableDevice(
-            SegmentId,
-            DiskSegmentConstants.DataCategory,
-            isCompressed: true,
-            diskOptions.CompressionBlockSize,
-            deleteIfExists: true,
-            backupIfDelete: false,
-            diskOptions.CompressionMethod,
-            diskOptions.CompressionLevel);
-    Options = options;
+    }
+    catch
+    {
+      Dispose();
+      throw;
+    }
     DefaultSparseArrayStepSize = options.DiskSegmentOptions.DefaultSparseArrayStepSize;
   }
 
@@ -140,6 +154,8 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
 
   public IDiskSegment<TKey, TValue> CreateReadOnlyDiskSegment()
   {
+    ThrowIfNotWritable();
+
     var isSparseArrayNotEmpty = DefaultSparseArray.Count > 0;
     if (isSparseArrayNotEmpty &&
         DefaultSparseArrayStepSize > 0 &&
@@ -158,15 +174,30 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
       diskSegment.SetDefaultSparseArray(DefaultSparseArray);
     DataHeaderDevice = null;
     DataDevice = null;
+    IsReadOnlyDiskSegmentCreated = true;
     return diskSegment;
   }
 
   public void DropDiskSegment()
   {
+    if (IsDropped)
+      return;
+    if (IsReadOnlyDiskSegmentCreated)
+      throw new InvalidOperationException(
+          "Cannot drop a disk segment creator after ownership has been transferred.");
+    ObjectDisposedException.ThrowIf(
+        IsDisposed,
+        this);
+
     Close();
     if (!HasFixedSizeKeyAndValue)
-      DataHeaderDevice.Delete();
-    DataDevice.Delete();
+    {
+      DataHeaderDevice?.Delete();
+      DataHeaderDevice = null;
+    }
+    DataDevice?.Delete();
+    DataDevice = null;
+    IsDropped = true;
   }
 
   void Close()
@@ -178,13 +209,32 @@ public sealed class DiskSegmentCreator<TKey, TValue> : IDiskSegmentCreator<TKey,
 
   public void Dispose()
   {
+    if (IsReadOnlyDiskSegmentCreated || IsDropped || IsDisposed)
+      return;
+
     if (!HasFixedSizeKeyAndValue)
       DataHeaderDevice?.Dispose();
     DataDevice?.Dispose();
+    DataHeaderDevice = null;
+    DataDevice = null;
+    IsDisposed = true;
   }
 
   public void Append(IDiskSegment<TKey, TValue> part, TKey key1, TKey key2, TValue value1, TValue value2)
   {
     throw new NotSupportedException("This method should be called on MultiDiskSegmentCreator.");
+  }
+
+  void ThrowIfNotWritable()
+  {
+    if (IsReadOnlyDiskSegmentCreated)
+      throw new InvalidOperationException(
+          "The disk segment creator has already transferred ownership.");
+    ObjectDisposedException.ThrowIf(
+        IsDropped,
+        this);
+    ObjectDisposedException.ThrowIf(
+        IsDisposed,
+        this);
   }
 }

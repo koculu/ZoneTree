@@ -72,9 +72,9 @@ public enum LiveBackupInMemoryMode
 
 public sealed class LiveBackupCompressionOptions
 {
-  public const CompressionMethod DefaultMethod = CompressionMethod.LZ4;
+  public const CompressionMethod DefaultMethod = CompressionMethod.Zstd;
 
-  public const int DefaultLevel = CompressionLevels.LZ4Fastest;
+  public const int DefaultLevel = CompressionLevels.Zstd0;
 
   public const int DefaultBlockSize = 1024 * 1024;
 

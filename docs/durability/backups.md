@@ -222,7 +222,7 @@ By default, live backup includes in-memory records:
 IncludeInMemoryRecords = true
 ```
 
-These records are serialized with the ZoneTree key and value serializers. Record batches are compressed by default with LZ4.
+These records are serialized with the ZoneTree key and value serializers. Record batches are compressed by default with Zstd level `0`.
 
 Use `Live` mode when you want the least intrusive backup pass:
 
